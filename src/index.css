@@ -1,0 +1,98 @@
+/* =============================
+   Global Variables & Font
+   ============================= */
+:root {
+  /* Primary color for text */
+  --color-primary: #262626;
+  /* Secondary color for muted text */
+  --color-secondary: #999999;
+  /* Surface background color */
+  --color-surface: #f5f5f5;
+  /* Site background color */
+  --color-bg: #fff;
+  /* Font family */
+  --font-main: 'ABC Oracle', Arial, sans-serif;
+  /* Font size, weight, kerning, line height */
+  --font-size: 14.4px;
+  --font-letter-spacing: -0.02em;
+  --font-line-height: 1.25;
+}
+
+/* =============================
+   Font Import (ABC Oracle)
+   ============================= */
+@font-face {
+  font-family: 'ABC Oracle';
+  src: url('./assets/fonts/ABCOracle.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap; /* Ensures text is visible while font loads */
+}
+
+/* =============================
+   Base Styles
+   ============================= */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-family: var(--font-main);
+  font-size: var(--font-size);
+  letter-spacing: var(--font-letter-spacing);
+  line-height: var(--font-line-height);
+  box-sizing: border-box;
+  /* overflow-x removed; box-sizing fixes width issues */
+}
+
+/* =============================
+   Utility Classes
+   ============================= */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-secondary);
+}
+.bg-surface {
+  background: var(--color-surface);
+}
+
+/* =============================
+   Remove default list styles
+   ============================= */
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* =============================
+   Links
+   ============================= */
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+a:hover {
+  opacity: 0.4;
+}
+
+/* =============================
+   Responsive helpers
+   ============================= */
+@media (max-width: 600px) {
+  html, body {
+    font-size: 14.4px;
+  }
+}
+
+/* =============================
+   Global box-sizing reset
+   ============================= */
+* , *::before, *::after {
+  box-sizing: border-box;
+}

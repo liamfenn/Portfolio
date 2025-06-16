@@ -1,0 +1,28 @@
+/* =============================
+   Portfolio Main Layout
+   ============================= */
+.portfolio-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: var(--color-bg);
+}
+
+/* =============================
+   Bio & Links Section
+   ============================= */
+.bio-section {
+  padding: 32px 40px 0 40px; /* Top, right, bottom, left */
+  max-width: 700px;
+  margin: 0 auto;
+  color: var(--color-primary);
+}
+.bio-section p {
+  margin: 0 0 12px 0;
+  font-size: 1em;
+  line-height: var(--font-line-height);
+}
+.bio-section a {
+  font-weight: 500;
+}

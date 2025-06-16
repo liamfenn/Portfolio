@@ -1,0 +1,167 @@
+/* =============================
+   MusicPlayer Component Styles
+   ============================= */
+
+.music-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  background: rgba(244, 244, 244, 0.88);
+  backdrop-filter: blur(50px);
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 24px 0 0;
+  z-index: 100;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .music-player {
+    height: 36px;
+    padding: 0 16px 0 0;
+  }
+}
+
+/* Album cover */
+.music-cover-container {
+  flex: 0 0 auto;
+}
+.music-cover {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+@media (max-width: 600px) {
+  .music-cover {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Track info */
+.music-info {
+  display: flex;
+  flex: 1 1 auto;
+  overflow: hidden;
+  align-items: center;
+}
+.music-title {
+  color: var(--color-primary);
+  font-size: 14.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-artist {
+  font-size: 14.4px;
+  color: var(--color-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info-desktop {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+.marquee-info {
+  display: none;
+  width: 100%;
+}
+
+.needs-marquee.marquee-info {
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.music-artist-inline {
+  color: var(--color-secondary);
+}
+
+@media (max-width: 600px) {
+  .info-desktop {
+    display: none;
+  }
+  .marquee-info {
+    display: block;
+  }
+}
+
+/* Controls */
+.music-controls {
+  display: flex;
+  gap: 0;
+  flex: 0 0 auto;
+}
+.control-btn {
+  width: 32px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  font-size: 0.9em;
+  cursor: pointer;
+  color: var(--color-primary);
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-main);
+}
+.control-btn:hover {
+  opacity: 0.4;
+}
+
+.control-btn:focus,
+.control-btn:active {
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+.control-btn.pause {
+  font-size: 1.2em;
+  margin-top: -2px;
+}
+
+@media (max-width: 600px) {
+  .control-btn {
+    padding: 3px 6px;
+    font-size: 0.9em;
+  }
+}
+
+/* marquee scroll */
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * (var(--text-width, 200px) + var(--gap-width, 48px)))); }
+}
+
+.marquee {
+  display: flex;
+}
+
+.needs-marquee .marquee {
+  animation: scroll var(--duration, 8s) linear infinite;
+}
+
+.marquee-item {
+  white-space: nowrap;
+  font-size: 14.4px;
+  margin-right: var(--gap-width, 48px);
+}
+
+.marquee-item:nth-child(2) {
+  display: none;
+}
+
+.needs-marquee .marquee-item:nth-child(2) {
+  display: inline;
+} 

@@ -1,0 +1,57 @@
+/* =============================
+   HeadingIntro Component Styles
+   ============================= */
+/* Wrapper for full-width border */
+.heading-wrapper {
+  width: 100%;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 24px; /* 24px for ≥600px */
+}
+
+@media (max-width: 600px) {
+  .heading-wrapper {
+    padding: 16px; /* Mobile */
+  }
+}
+
+.heading-intro {
+  width: 370px; /* Fixed width */
+  max-width: 370px;
+  margin: 0; /* Remove top margin */
+  color: var(--color-primary);
+  font-family: var(--font-main);
+  font-size: 1em;
+  letter-spacing: var(--font-letter-spacing);
+  line-height: var(--font-line-height);
+  /* Border removed, handled by wrapper */
+}
+.heading-intro p {
+  margin: 0 0 12px 0;
+  font-size: 1em;
+  line-height: var(--font-line-height);
+  font-weight: 400;
+}
+.heading-intro a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  font-weight: 500;
+}
+.heading-intro p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .heading-intro {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Superscript styling */
+.heading-intro sup {
+  font-size: 12px;
+  vertical-align: super;
+}
+.heading-intro a sup {
+  text-decoration: none;
+  display: inline-block; /* detaches from link underline */
+} 
