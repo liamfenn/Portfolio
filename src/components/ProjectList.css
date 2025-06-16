@@ -28,18 +28,30 @@
 
 /* Individual project rows */
 .project-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: 24px; /* Matches Figma values */
   font-size: 1em;
   color: var(--color-primary);
-  cursor: pointer;
   transition: background 0.15s;
+}
+
+.project-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
   padding: 0 24px; /* Horizontal padding */
 }
+
 .project-item:hover {
   background: var(--color-surface); /* subtle grey highlight */
+}
+
+/* Prevent opacity change on hover for project links */
+.project-link:hover {
+  opacity: 1;
 }
 
 /* Highlighted item preset */
@@ -74,7 +86,7 @@
 /* removed 1440px override - 24px stays default */
 
 @media (max-width: 600px) {
-  .project-item {
+  .project-link {
     padding: 0 16px;
   }
 }

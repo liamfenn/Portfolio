@@ -1,0 +1,153 @@
+/* =============================
+   Project Detail Page Styles
+   ============================= */
+
+.project-detail {
+  min-height: 100vh;
+  background: var(--color-bg);
+  font-family: var(--font-main);
+  font-size: var(--font-size);
+  letter-spacing: var(--font-letter-spacing);
+  line-height: var(--font-line-height);
+  color: var(--color-primary);
+}
+
+/* =============================
+   Project Header Section
+   ============================= */
+.project-header {
+  padding: 24px;
+  width: 100%;
+}
+
+.project-title-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.project-title {
+  font-size: var(--font-size);
+  font-weight: 400;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary);
+}
+
+/* Prevent opacity change on hover for project titles */
+.project-title:hover {
+  opacity: 1;
+}
+
+.project-bullet {
+  color: var(--color-primary);
+  font-weight: 400;
+}
+
+.project-year {
+  color: var(--color-secondary);
+  font-size: var(--font-size);
+  font-weight: 400;
+}
+
+.project-description {
+  margin-bottom: 24px;
+  max-width: 370px;
+}
+
+.project-description p {
+  font-size: var(--font-size);
+  line-height: var(--font-line-height);
+  color: var(--color-primary);
+  margin: 0 0 12px 0;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.project-tag {
+  color: var(--color-secondary);
+  font-size: var(--font-size);
+  font-weight: 400;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+/* =============================
+   Project Images Section
+   ============================= */
+.project-images {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-image-container {
+  width: 100%;
+}
+
+.project-image {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Image captions removed - uncomment if needed later
+.project-image-caption {
+  padding: 16px 40px;
+  max-width: 700px;
+  margin: 0 auto 32px auto;
+  font-size: var(--font-size);
+  color: var(--color-secondary);
+  text-align: left;
+  line-height: var(--font-line-height);
+}
+*/
+
+/* =============================
+   Loading & Error States
+   ============================= */
+.project-detail-loading,
+.project-detail-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  font-size: var(--font-size);
+  color: var(--color-secondary);
+  font-family: var(--font-main);
+}
+
+/* =============================
+   Mobile Responsive
+   ============================= */
+@media (max-width: 600px) {
+  .project-header {
+    padding: 16px;
+  }
+  
+  .project-title-section {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .project-description {
+    margin-bottom: 16px;
+    max-width: none; /* Remove max-width constraint on mobile */
+  }
+} 
