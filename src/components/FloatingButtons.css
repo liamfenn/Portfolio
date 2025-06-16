@@ -1,0 +1,57 @@
+.floating-buttons {
+  position: fixed;
+  bottom: 56px; /* 20px above music player (36px height) */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 100;
+  border-radius: 0;
+}
+
+.floating-button {
+  height: 36px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-family: var(--font-main);
+  font-size: var(--font-size);
+  letter-spacing: var(--font-letter-spacing);
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  opacity: 1 !important;
+}
+
+.floating-button:hover {
+  opacity: 1 !important;
+}
+
+.floating-button-dark {
+  background-color: #262626;
+  color: #ffffff;
+}
+
+.floating-button-dark:hover {
+  background-color: #f5f5f5;
+  color: #262626;
+}
+
+.floating-button-light {
+  background-color: #f5f5f5;
+  color: #262626;
+}
+
+.floating-button-light:hover {
+  background-color: #262626;
+  color: #ffffff;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .floating-buttons {
+    bottom: 52px; /* 16px above music player */
+  }
+} 

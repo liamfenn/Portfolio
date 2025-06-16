@@ -79,7 +79,12 @@ export default function ProjectList() {
     <div className="project-wrapper">
       {projectGroups.map((group, groupIndex) => (
         <ul key={groupIndex} className="project-list">
-          {group.projects.map(({ title, metaCompany, metaCompanyMobile, year, type, externalUrl, slug }) => (
+          {group.projects.map((project) => {
+            const { title, metaCompany, year, type, externalUrl, slug } = project
+            // Generate mobile company name from main company name
+            const metaCompanyMobile = metaCompany === 'OpenPurpose' ? 'OP' : metaCompany
+            
+            return (
             <li
               key={title}
               className={`project-item project-${type}`}
@@ -118,7 +123,8 @@ export default function ProjectList() {
                 </Link>
               )}
             </li>
-          ))}
+            )
+          })}
         </ul>
       ))}
     </div>

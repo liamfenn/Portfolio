@@ -4,6 +4,7 @@ import HeadingIntro from './components/HeadingIntro'
 import ProjectList from './components/ProjectList'
 import ProjectDetail from './components/ProjectDetail'
 import MusicPlayer from './components/MusicPlayer'
+import FloatingButtons from './components/FloatingButtons'
 
 // =============================
 //  Home Page Component
@@ -16,6 +17,7 @@ function HomePage() {
           Project List Section
           ============================= */}
       <ProjectList />
+      <FloatingButtons />
     </div>
   )
 }

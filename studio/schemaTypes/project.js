@@ -34,15 +34,9 @@ export default {
     },
     {
       name: 'metaCompany',
-      title: 'Company (Desktop)',
+      title: 'Company',
       type: 'string',
-      description: 'Company name for desktop view'
-    },
-    {
-      name: 'metaCompanyMobile',
-      title: 'Company (Mobile)',
-      type: 'string',
-      description: 'Abbreviated company name for mobile view'
+      description: 'Company name for collaboration'
     },
     {
       name: 'type',
@@ -61,27 +55,37 @@ export default {
       name: 'externalUrl',
       title: 'External URL',
       type: 'url',
-      description: 'Only for external projects (Bird, HCC, etc.)',
-      hidden: ({document}) => document?.type !== 'external'
+      description: 'Link to the live project or website (optional)'
     },
+
     {
-      name: 'tags',
-      title: 'Tags',
-      type: 'array',
-      of: [{type: 'string'}],
-      options: {
-        layout: 'tags'
-      }
-    },
-    {
-      name: 'images',
-      title: 'Project Images',
+      name: 'media',
+      title: 'Project Media',
       type: 'array',
       of: [
         {
           type: 'image',
           options: {
             hotspot: true
+          },
+          fields: [
+            {
+              name: 'alt',
+              title: 'Alt Text',
+              type: 'string',
+              validation: Rule => Rule.required()
+            },
+            {
+              name: 'caption',
+              title: 'Caption',
+              type: 'string'
+            }
+          ]
+        },
+        {
+          type: 'file',
+          options: {
+            accept: 'video/*'
           },
           fields: [
             {

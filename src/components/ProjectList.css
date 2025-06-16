@@ -54,6 +54,12 @@
   opacity: 1;
 }
 
+/* Prevent opacity change on hover for project titles and indicators */
+.project-item:hover .project-title,
+.project-item:hover .project-title::before {
+  opacity: 1;
+}
+
 /* Highlighted item preset */
 .project-item.highlight {
   font-weight: 600;

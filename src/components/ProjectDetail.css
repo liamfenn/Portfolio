@@ -37,11 +37,13 @@
   align-items: center;
   gap: 8px;
   color: var(--color-primary);
+  text-decoration: none;
+  cursor: pointer;
 }
 
-/* Prevent opacity change on hover for project titles */
+/* Project title hover effect */
 .project-title:hover {
-  opacity: 1;
+  opacity: 0.4;
 }
 
 .project-bullet {
@@ -56,8 +58,12 @@
 }
 
 .project-description {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   max-width: 370px;
+}
+
+.project-description.no-collaboration {
+  margin-bottom: 96px;
 }
 
 .project-description p {
@@ -67,10 +73,53 @@
   margin: 0 0 12px 0;
 }
 
+.project-collaboration {
+  margin-bottom: 96px;
+  max-width: 370px;
+}
+
+.project-collaboration p {
+  font-size: var(--font-size);
+  line-height: var(--font-line-height);
+  color: var(--color-secondary);
+  margin: 0;
+}
+
+.project-collaboration a {
+  color: var(--color-primary) !important;
+  text-decoration: none !important;
+}
+
+.project-collaboration a:hover {
+  opacity: 0.4 !important;
+}
+
+.project-visit {
+  margin-bottom: 0;
+  max-width: 370px;
+}
+
+.project-visit p {
+  font-size: var(--font-size);
+  line-height: var(--font-line-height);
+  color: var(--color-secondary);
+  margin: 0;
+}
+
+.project-visit a {
+  color: var(--color-primary) !important;
+  text-decoration: underline !important;
+}
+
+.project-visit a:hover {
+  opacity: 0.4 !important;
+}
+
 .project-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-top: 96px;
 }
 
 .project-tag {
@@ -149,5 +198,9 @@
   .project-description {
     margin-bottom: 16px;
     max-width: none; /* Remove max-width constraint on mobile */
+  }
+  
+  .project-images {
+    gap: 8px;
   }
 } 

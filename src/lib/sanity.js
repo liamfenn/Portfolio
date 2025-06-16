@@ -27,7 +27,8 @@ export async function getProjects() {
       type,
       externalUrl,
       tags,
-      images[] {
+      media[] {
+        _type,
         asset,
         alt,
         caption
@@ -50,7 +51,8 @@ export async function getProject(slug) {
       type,
       externalUrl,
       tags,
-      images[] {
+      media[] {
+        _type,
         asset,
         alt,
         caption
