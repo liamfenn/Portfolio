@@ -25,7 +25,7 @@ export const tracks = [
     id: 12,
     title: "Le voyage de Pénélope",
     artist: "Air",
-    audio: "/audio/Le voyage de Pénélope.mp3",
+    audio: "/audio/LVDP.mp3",
     cover: "/covers/LVDP.jpeg"
   },
   {

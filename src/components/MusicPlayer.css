@@ -127,8 +127,7 @@
 }
 
 .control-btn.pause {
-  font-size: 1.2em;
-  margin-top: -2px;
+  font-size: 11.6px;
 }
 
 @media (max-width: 600px) {
