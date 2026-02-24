@@ -22,6 +22,27 @@ export function SpotifyWidget() {
   const { data, isLoading } = useSpotify();
   const albumRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+  const [, tick] = useState(0);
+
+  // Re-render periodically when paused so "Xm ago" updates
+  // Scale interval: every 60s for first hour, then every hour after
+  useEffect(() => {
+    if (data?.isPlaying || !data?.playedAt) return;
+    const getInterval = () => {
+      const diffMs = Date.now() - new Date(data.playedAt!).getTime();
+      const diffMins = diffMs / (1000 * 60);
+      return diffMins < 60 ? 60000 : 3600000;
+    };
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      timer = setTimeout(() => {
+        tick((t) => t + 1);
+        schedule();
+      }, getInterval());
+    };
+    schedule();
+    return () => clearTimeout(timer);
+  }, [data?.isPlaying, data?.playedAt]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const el = albumRef.current;
