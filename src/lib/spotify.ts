@@ -101,11 +101,7 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       return getRecentlyPlayed(access_token);
     }
 
-    // If track is paused, get recently played to get the playedAt timestamp
-    if (!data.is_playing) {
-      return getRecentlyPlayed(access_token);
-    }
-
+    // Use the track directly whether playing or paused — avoids a second API call
     return {
       isPlaying: data.is_playing,
       title: data.item.name,
