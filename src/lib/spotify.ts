@@ -1,8 +1,6 @@
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_NOW_PLAYING_URL =
   "https://api.spotify.com/v1/me/player/currently-playing";
-const SPOTIFY_RECENTLY_PLAYED_URL =
-  "https://api.spotify.com/v1/me/player/recently-played?limit=1";
 
 function getCredentials() {
   const client_id = process.env.SPOTIFY_CLIENT_ID || "";
@@ -33,13 +31,6 @@ interface SpotifyNowPlaying {
   item: SpotifyTrack;
 }
 
-interface SpotifyRecentlyPlayed {
-  items: {
-    track: SpotifyTrack;
-    played_at: string;
-  }[];
-}
-
 export interface NowPlayingResponse {
   isPlaying: boolean;
   title: string;
@@ -49,6 +40,9 @@ export interface NowPlayingResponse {
   songUrl: string;
   playedAt?: string;
 }
+
+// In-memory cache of last known track
+let cachedTrack: NowPlayingResponse | null = null;
 
 async function getAccessToken(): Promise<SpotifyToken> {
   const { basic, refresh_token } = getCredentials();
@@ -77,7 +71,6 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
   try {
     const { access_token } = await getAccessToken();
 
-    // Try to get currently playing
     const response = await fetch(SPOTIFY_NOW_PLAYING_URL, {
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -85,24 +78,63 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       cache: "no-store",
     });
 
-    // If nothing is playing, try to get recently played
+    // No active session — return cached track as "not playing"
     if (response.status === 204 || response.status === 202) {
-      return getRecentlyPlayed(access_token);
+      if (cachedTrack) {
+        return { ...cachedTrack, isPlaying: false };
+      }
+      return null;
+    }
+
+    // Rate limited — wait and retry once
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get("Retry-After") || "5", 10);
+      await new Promise((r) => setTimeout(r, retryAfter * 1000));
+      const retry = await fetch(SPOTIFY_NOW_PLAYING_URL, {
+        headers: { Authorization: `Bearer ${access_token}` },
+        cache: "no-store",
+      });
+      if (retry.status === 204 || retry.status === 202) {
+        if (cachedTrack) return { ...cachedTrack, isPlaying: false };
+        return null;
+      }
+      if (retry.ok) {
+        const retryData: SpotifyNowPlaying = await retry.json();
+        if (retryData.item) {
+          const track: NowPlayingResponse = {
+            isPlaying: retryData.is_playing,
+            title: retryData.item.name,
+            artist: retryData.item.artists.map((a) => a.name).join(", "),
+            album: retryData.item.album.name,
+            albumImageUrl: retryData.item.album.images[0]?.url || "",
+            songUrl: retryData.item.external_urls.spotify,
+          };
+          cachedTrack = track;
+          return track;
+        }
+      }
+      if (cachedTrack) return { ...cachedTrack, isPlaying: false };
+      return null;
     }
 
     if (!response.ok) {
       console.error("Spotify now-playing error:", response.status, await response.text());
+      if (cachedTrack) {
+        return { ...cachedTrack, isPlaying: false };
+      }
       return null;
     }
 
     const data: SpotifyNowPlaying = await response.json();
 
     if (!data.item) {
-      return getRecentlyPlayed(access_token);
+      if (cachedTrack) {
+        return { ...cachedTrack, isPlaying: false };
+      }
+      return null;
     }
 
-    // Use the track directly whether playing or paused — avoids a second API call
-    return {
+    const track: NowPlayingResponse = {
       isPlaying: data.is_playing,
       title: data.item.name,
       artist: data.item.artists.map((a) => a.name).join(", "),
@@ -110,49 +142,16 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       albumImageUrl: data.item.album.images[0]?.url || "",
       songUrl: data.item.external_urls.spotify,
     };
+
+    // Cache the track
+    cachedTrack = track;
+
+    return track;
   } catch (error) {
     console.error("Error fetching now playing:", error);
+    if (cachedTrack) {
+      return { ...cachedTrack, isPlaying: false };
+    }
     throw error;
-  }
-}
-
-async function getRecentlyPlayed(
-  access_token: string
-): Promise<NowPlayingResponse | null> {
-  try {
-    const response = await fetch(SPOTIFY_RECENTLY_PLAYED_URL, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Spotify recently-played error:", response.status, errText);
-      return null;
-    }
-
-    const data: SpotifyRecentlyPlayed = await response.json();
-
-    if (!data.items || data.items.length === 0) {
-      return null;
-    }
-
-    const track = data.items[0].track;
-    const playedAt = data.items[0].played_at;
-
-    return {
-      isPlaying: false,
-      title: track.name,
-      artist: track.artists.map((a) => a.name).join(", "),
-      album: track.album.name,
-      albumImageUrl: track.album.images[0]?.url || "",
-      songUrl: track.external_urls.spotify,
-      playedAt,
-    };
-  } catch (error) {
-    console.error("Error fetching recently played:", error);
-    return null;
   }
 }
