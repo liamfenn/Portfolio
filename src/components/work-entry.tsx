@@ -10,7 +10,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
-  const [canHover, setCanHover] = useState(false);
+  const [canHover, setCanHover] = useState<boolean | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover)");
@@ -18,20 +18,43 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
   }, []);
 
   useEffect(() => {
-    if (canHover && videoRef.current) {
-      videoRef.current.pause();
+    if (canHover === null) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (canHover) {
+      video.pause();
+      video.currentTime = 0;
+      return;
     }
-    // Mobile: start drawing glow immediately since video autoplays
-    if (!canHover) {
-      const startDraw = () => drawGlow();
-      const video = videoRef.current;
-      if (video && !video.paused) {
-        startDraw();
-      } else if (video) {
-        video.addEventListener("play", startDraw, { once: true });
-        return () => video.removeEventListener("play", startDraw);
-      }
+
+    // Mobile: seek to last frame, draw once as static glow
+    const drawOnce = () => {
+      const canvas = canvasRef.current;
+      if (!video || !canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "#c0c0c0";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = "source-over";
+    };
+    const seekAndDraw = () => {
+      video.currentTime = video.duration;
+    };
+    video.addEventListener("seeked", drawOnce, { once: true });
+    if (video.readyState >= 1) {
+      seekAndDraw();
+    } else {
+      video.addEventListener("loadedmetadata", seekAndDraw, { once: true });
     }
+    return () => {
+      video.removeEventListener("seeked", drawOnce);
+      video.removeEventListener("loadedmetadata", seekAndDraw);
+    };
   }, [canHover]);
 
   const drawGlow = () => {
