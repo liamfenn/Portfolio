@@ -14,7 +14,6 @@ const FALLBACK_TRACK: NowPlayingResponse = {
   album: "Romance (Deluxe Edition)",
   albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27302e1a7156bfc074cc8d1b94c",
   songUrl: "https://open.spotify.com/track/1oVAmJ2oaHv5NWFH99jCWE",
-  playedAt: "2026-02-24T20:00:00Z",
 };
 
 interface CachedData {
@@ -32,9 +31,9 @@ function getCached(): CachedData | null {
   }
 }
 
-function setCache(track: NowPlayingResponse) {
+function setCache(track: NowPlayingResponse, cachedAt: string) {
   try {
-    const entry: CachedData = { track, cachedAt: new Date().toISOString() };
+    const entry: CachedData = { track, cachedAt };
     localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
   } catch {
     // ignore
@@ -44,6 +43,7 @@ function setCache(track: NowPlayingResponse) {
 export function useSpotify() {
   const [data, setData] = useState<NowPlayingResponse | null>(null);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const cachedAtRef = useRef<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -53,9 +53,12 @@ export function useSpotify() {
     if (cached) {
       setData({ ...cached.track, isPlaying: false });
       setCachedAt(cached.cachedAt);
+      cachedAtRef.current = cached.cachedAt;
     } else {
+      const fallbackTime = new Date(Date.now() - 30 * 60000).toISOString();
       setData(FALLBACK_TRACK);
-      setCachedAt(FALLBACK_TRACK.playedAt!);
+      setCachedAt(fallbackTime);
+      cachedAtRef.current = fallbackTime;
     }
   }, []);
 
@@ -68,8 +71,14 @@ export function useSpotify() {
       if (result.error) return;
 
       setData(result);
-      setCache(result);
-      setCachedAt(new Date().toISOString());
+
+      // Only advance cachedAt when playing — otherwise the "Xm ago"
+      // timer would reset to "1m ago" on every poll while paused
+      const now = new Date().toISOString();
+      const newCachedAt = result.isPlaying ? now : (cachedAtRef.current ?? now);
+      setCachedAt(newCachedAt);
+      cachedAtRef.current = newCachedAt;
+      setCache(result, newCachedAt);
     } catch {
       // keep previous data on error
     } finally {
