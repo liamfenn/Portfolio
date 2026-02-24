@@ -138,14 +138,21 @@ function isVideo(src: string) {
 }
 
 function ImageCard({ thumb }: { thumb: Thumbnail }) {
+  const [canHover, setCanHover] = useState<boolean | null>(null);
+  useEffect(() => {
+    setCanHover(window.matchMedia("(hover: hover)").matches);
+  }, []);
+
+  const effectiveGlowColor = (!canHover && thumb.mobileGlowColor) || thumb.glowColor;
+
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
       {/* Blurred glow behind — same image, blurred */}
-      {thumb.glowColor ? (
+      {effectiveGlowColor ? (
         <div
           className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px]"
           style={{
-            backgroundColor: thumb.glowColor,
+            backgroundColor: effectiveGlowColor,
             transform: "scale(1.05)",
             filter: "blur(24px)",
           }}

@@ -2,6 +2,7 @@ export interface Thumbnail {
   videoUrl: string;
   href: string;
   glowColor?: string; // override glow for light videos, e.g. "black"
+  mobileGlowColor?: string; // override glow on mobile only (e.g. for dark images)
 }
 
 export interface WorkEntry {
@@ -74,6 +75,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Plasticity.png",
             href: "https://x.com/getPlasticity/status/1894434327024603504?s=20",
+            mobileGlowColor: "#494578",
           },
         ],
         href: "https://plasticity.xyz",
