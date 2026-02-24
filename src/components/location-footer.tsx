@@ -1,16 +1,25 @@
 "use client";
 
 import { useWeather } from "@/hooks/use-weather";
+import { useState, useEffect } from "react";
 
-export function LocationFooter() {
-  const { data, isLoading } = useWeather();
-
-  const time = new Date().toLocaleTimeString("en-US", {
+function getTime() {
+  return new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
     timeZone: "America/New_York",
   });
+}
+
+export function LocationFooter() {
+  const { data, isLoading } = useWeather();
+  const [time, setTime] = useState(getTime);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(getTime()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex items-center justify-between px-2 md:px-4 type-mono-responsive">

@@ -52,6 +52,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Shop-4.mp4",
             href: "https://x.com/i/status/2014409124587700290",
+            glowColor: "#cccccc",
           },
         ],
         href: "https://shop.app",
@@ -77,6 +78,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Plasticity.png",
             href: "https://x.com/getPlasticity/status/1894434327024603504?s=20",
+            glowColor: "#cccccc",
             mobileGlowColor: "#494578",
           },
         ],
@@ -147,6 +149,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Fitag.png",
             href: "https://x.com/xyzfennell/status/1923067660620730766?s=20",
+            glowColor: "#cccccc",
           },
         ],
         href: "https://fitag.app",
@@ -167,6 +170,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Azura.png",
             href: "https://x.com/AzuraTrade/status/2025688718703829429?s=20",
+            glowColor: "#cccccc",
           },
         ],
         href: "https://azura.xyz",

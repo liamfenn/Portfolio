@@ -85,20 +85,17 @@ export function SpotifyWidget() {
 
         {/* Track info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <span
-            className="type-secondary text-muted-foreground transition-colors duration-200"
-            style={{ color: hovered && isActive ? "#1ed760" : undefined }}
-          >
+          <span className="type-secondary text-muted-foreground">
             {isActive ? "Listening to..." : "Last listened to"}
           </span>
-          <MarqueeText title={data.title} artist={data.artist} hovered={hovered} />
+          <MarqueeText title={data.title} artist={data.artist} hovered={hovered} isActive={isActive} />
         </div>
       </div>
 
-      {/* Right side: Now/timer crossfades to Spotify icon on hover */}
-      <div className="relative shrink-0 flex items-center justify-end">
+      {/* Right side: Now/timer crossfades to "View" on hover */}
+      <div className="relative shrink-0 grid items-center">
         <div
-          className="transition-all duration-200"
+          className="col-start-1 row-start-1 transition-all duration-200"
           style={{
             opacity: hovered ? 0 : 1,
             filter: hovered ? "blur(4px)" : "blur(0px)",
@@ -119,21 +116,23 @@ export function SpotifyWidget() {
           )}
         </div>
         <div
-          className="absolute inset-0 flex items-center justify-end transition-all duration-200"
+          className="col-start-1 row-start-1 justify-self-end transition-all duration-200"
           style={{
             opacity: hovered ? 1 : 0,
             filter: hovered ? "blur(0px)" : "blur(4px)",
             transform: hovered ? "scale(1)" : "scale(0.8)",
           }}
         >
-          <SpotifyIcon className={`w-[20px] h-[20px] ${isActive ? "text-spotify-green" : "text-[#aaaaaa]"}`} />
+          <span className={`type-mono-sm ${isActive ? "text-spotify-green" : "text-muted-foreground"}`}>
+            View
+          </span>
         </div>
       </div>
     </a>
   );
 }
 
-function MarqueeText({ title, artist, hovered }: { title: string; artist: string; hovered: boolean }) {
+function MarqueeText({ title, artist, hovered, isActive }: { title: string; artist: string; hovered: boolean; isActive: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState(0);
@@ -165,6 +164,18 @@ function MarqueeText({ title, artist, hovered }: { title: string; artist: string
         className={`spotify-marquee flex items-center gap-1 whitespace-nowrap w-fit${overflow > 0 ? " spotify-marquee-active" : ""}`}
         style={overflow > 0 ? { "--marquee-offset": `-${overflow}px` } as React.CSSProperties : undefined}
       >
+        <span
+          className="inline-flex items-center transition-all duration-200"
+          style={{
+            opacity: hovered ? 1 : 0,
+            filter: hovered ? "blur(0px)" : "blur(4px)",
+            transform: hovered ? "scale(1)" : "scale(0.8)",
+            width: hovered ? "14px" : "0px",
+            marginRight: hovered ? "2px" : "0px",
+          }}
+        >
+          <SpotifyIcon className={`w-[14px] h-[14px] shrink-0 ${isActive ? "text-spotify-green" : "text-foreground"}`} />
+        </span>
         <span className="type-secondary text-foreground">
           {title}
         </span>
@@ -173,18 +184,6 @@ function MarqueeText({ title, artist, hovered }: { title: string; artist: string
         </span>
         <span className="type-secondary text-muted">
           {artist}
-        </span>
-        <span
-          className="inline-flex transition-all duration-200"
-          style={{
-            opacity: hovered ? 1 : 0,
-            filter: hovered ? "blur(0px)" : "blur(4px)",
-            transform: hovered ? "scale(1)" : "scale(0.8)",
-            width: hovered ? "14px" : "0px",
-            marginLeft: hovered ? "2px" : "0px",
-          }}
-        >
-          <ArrowUpRightIcon className="w-[14px] h-[14px] shrink-0" />
         </span>
       </div>
     </div>
@@ -203,13 +202,6 @@ function SpotifySkeleton() {
   );
 }
 
-function ArrowUpRightIcon({ className }: { className?: string }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={className}>
-      <path d="M4.08325 4.08398H9.91659M9.91659 4.08398V9.91732M9.91659 4.08398L4.08325 9.91732" stroke="#999999" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 function SpotifyIcon({ className }: { className?: string }) {
   return (

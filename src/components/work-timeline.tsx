@@ -5,7 +5,7 @@ import { WorkEntry } from "./work-entry";
 
 export function WorkTimeline() {
   return (
-    <div className="flex flex-col gap-8 md:gap-10">
+    <div className="flex flex-col gap-8 md:gap-14">
       {WORK_TIMELINE.map((group) => (
         <div key={group.year} className="flex flex-col gap-8 relative">
           {/* Year label — inline on mobile, offset left on desktop */}

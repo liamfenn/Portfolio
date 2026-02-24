@@ -51,7 +51,8 @@
     a:hover {
       opacity: 0.4;
     }
-    a.spotify-widget:hover {
+    a.spotify-widget:hover,
+    a.video-card:hover {
       opacity: 1;
     }
   }
@@ -82,10 +83,10 @@
 
 @media (hover: hover) {
   .video-card:hover .video-glow-hidden {
-    opacity: 0.2;
+    opacity: 0.3;
   }
   .video-card:hover .video-glow-hidden.video-glow-solid {
-    opacity: 0.15;
+    opacity: 0.2;
   }
 }
 
