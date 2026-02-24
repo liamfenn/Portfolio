@@ -5,7 +5,7 @@ import { WorkEntry } from "./work-entry";
 
 export function WorkTimeline() {
   return (
-    <div className="flex flex-col gap-8 md:gap-14">
+    <div className="flex flex-col gap-12 md:gap-14">
       {WORK_TIMELINE.map((group) => (
         <div key={group.year} className="flex flex-col gap-8 relative">
           {/* Year label — inline on mobile, offset left on desktop */}
@@ -16,18 +16,13 @@ export function WorkTimeline() {
           </span>
 
           {/* Entries */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-10 md:gap-12">
             {group.entries.map((entry) => (
               <WorkEntry key={entry.id} entry={entry} />
             ))}
           </div>
         </div>
       ))}
-
-      {/* Ellipsis — mobile only */}
-      <span className="type-mono-responsive text-muted-foreground md:hidden">
-        ...
-      </span>
     </div>
   );
 }
