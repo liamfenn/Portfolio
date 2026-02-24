@@ -152,8 +152,8 @@ export const WORK_TIMELINE: YearGroup[] = [
         companyLogo: "/images/logos/Azura.png",
         companyLogoBg: "#65fc9f",
         company: "Azura",
-        companyColor: "#48a96d",
-        role: "Junior Product Designer",
+        companyColor: "#1ed760",
+        role: "Intern Product Designer",
         collaborator: "OpenPurpose®",
         collaboratorHref: "https://openpurpose.com",
         description:
