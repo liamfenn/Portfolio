@@ -3,6 +3,7 @@ export interface Thumbnail {
   href: string;
   glowColor?: string; // override glow for light videos, e.g. "black"
   mobileGlowColor?: string; // override glow on mobile only (e.g. for dark images)
+  mobileGlow?: boolean; // show dynamic video glow on mobile (default: no glow on mobile)
 }
 
 export interface WorkEntry {
@@ -46,6 +47,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Shop-3.mp4",
             href: "https://x.com/i/status/2018734068536377426",
+            mobileGlow: true,
           },
           {
             videoUrl: "/images/projects/Shop-4.mp4",
@@ -110,6 +112,7 @@ export const WORK_TIMELINE: YearGroup[] = [
           {
             videoUrl: "/images/projects/Bird.mp4",
             href: "https://www.linkedin.com/posts/birdhq_stop-juggling-tools-start-winning-customers-activity-7386060914032054272-A_eQ",
+            mobileGlow: true,
           },
         ],
         href: "https://bird.com",

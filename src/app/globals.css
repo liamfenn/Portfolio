@@ -73,13 +73,10 @@
   opacity: 0;
 }
 
-/* Mobile: show glow permanently */
+/* Mobile: only show glow for cards with mobileGlow */
 @media (hover: none) {
-  .video-glow-hidden {
+  .video-glow-mobile-active {
     opacity: 0.2;
-  }
-  .video-glow-hidden.video-glow-solid {
-    opacity: 0.15;
   }
 }
 

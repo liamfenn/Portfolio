@@ -28,33 +28,16 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
       return;
     }
 
-    // Mobile: seek to last frame, draw once as static glow
-    const drawOnce = () => {
-      const canvas = canvasRef.current;
-      if (!video || !canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      ctx.globalCompositeOperation = "multiply";
-      ctx.fillStyle = "#c0c0c0";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = "source-over";
-    };
-    const seekAndDraw = () => {
-      video.currentTime = video.duration;
-    };
-    video.addEventListener("seeked", drawOnce, { once: true });
-    if (video.readyState >= 1) {
-      seekAndDraw();
-    } else {
-      video.addEventListener("loadedmetadata", seekAndDraw, { once: true });
+    // Mobile: only draw dynamic glow if mobileGlow is enabled
+    if (thumb.mobileGlow) {
+      const startDraw = () => drawGlow();
+      if (!video.paused) {
+        startDraw();
+      } else {
+        video.addEventListener("play", startDraw, { once: true });
+        return () => video.removeEventListener("play", startDraw);
+      }
     }
-    return () => {
-      video.removeEventListener("seeked", drawOnce);
-      video.removeEventListener("loadedmetadata", seekAndDraw);
-    };
   }, [canHover]);
 
   const drawGlow = () => {
@@ -85,6 +68,10 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
     cancelAnimationFrame(rafRef.current);
   };
 
+  // On mobile, only show glow for cards with mobileGlow enabled
+  const showMobileGlow = canHover === false && thumb.mobileGlow;
+  const showGlow = canHover === true || canHover === null || showMobileGlow;
+
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
       <a
@@ -96,9 +83,9 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
         onMouseLeave={handleLeave}
       >
         {/* Blurred glow behind — canvas mirrors main video, or solid color */}
-        {thumb.glowColor ? (
+        {showGlow && (thumb.glowColor ? (
           <div
-            className="video-glow video-glow-solid absolute inset-0 rounded-[12px] video-glow-hidden z-0 pointer-events-none"
+            className={`video-glow video-glow-solid absolute inset-0 rounded-[12px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
             style={{
               backgroundColor: thumb.glowColor,
               transform: "scale(1.05)",
@@ -109,14 +96,14 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
         ) : (
           <canvas
             ref={canvasRef}
-            className="video-glow absolute inset-0 w-full h-full rounded-[12px] video-glow-hidden z-0 pointer-events-none"
+            className={`video-glow absolute inset-0 w-full h-full rounded-[12px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
             style={{
               transform: "scale(1.05)",
               filter: "blur(30px) saturate(3)",
             }}
             aria-hidden="true"
           />
-        )}
+        ))}
         <div className="relative rounded-[12px] overflow-hidden">
           <video
             ref={videoRef}
@@ -145,7 +132,8 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
     setCanHover(window.matchMedia("(hover: hover)").matches);
   }, []);
 
-  const effectiveGlowColor = (!canHover && thumb.mobileGlowColor) || thumb.glowColor;
+  // Desktop only — no glow on mobile for images
+  const showGlow = canHover === true || canHover === null;
 
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
@@ -155,12 +143,12 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
         rel="noopener noreferrer"
         className="video-card block rounded-[12px] overflow-visible relative z-10"
       >
-        {/* Blurred glow behind — same image, blurred */}
-        {effectiveGlowColor ? (
+        {/* Blurred glow behind — desktop only */}
+        {showGlow && (thumb.glowColor ? (
           <div
             className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px]"
             style={{
-              backgroundColor: effectiveGlowColor,
+              backgroundColor: thumb.glowColor,
               transform: "scale(1.05)",
               filter: "blur(24px)",
             }}
@@ -177,7 +165,7 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
             aria-hidden="true"
             alt=""
           />
-        )}
+        ))}
         <div className="relative rounded-[12px] overflow-hidden">
           <img
             src={thumb.videoUrl}
