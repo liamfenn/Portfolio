@@ -9,8 +9,11 @@ export async function GET() {
     const data = await getNowPlaying();
 
     if (!data) {
+      // Try a direct recently-played call for debugging
+      const { getRecentlyPlayedDebug } = await import("@/lib/spotify");
+      const debugInfo = await getRecentlyPlayedDebug();
       return NextResponse.json(
-        { isPlaying: false, error: "No track data available", debug: "getNowPlaying returned null" },
+        { isPlaying: false, error: "No track data available", debug: debugInfo },
         { status: 200 }
       );
     }

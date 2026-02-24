@@ -123,6 +123,20 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
   }
 }
 
+export async function getRecentlyPlayedDebug(): Promise<string> {
+  try {
+    const { access_token } = await getAccessToken();
+    const response = await fetch(SPOTIFY_RECENTLY_PLAYED_URL, {
+      headers: { Authorization: `Bearer ${access_token}` },
+      cache: "no-store",
+    });
+    const text = await response.text();
+    return `status=${response.status} body=${text.slice(0, 500)}`;
+  } catch (e) {
+    return `error: ${String(e)}`;
+  }
+}
+
 async function getRecentlyPlayed(
   access_token: string
 ): Promise<NowPlayingResponse | null> {
