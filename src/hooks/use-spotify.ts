@@ -8,6 +8,7 @@ export function useSpotify() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastPlayingAtRef = useRef<string | null>(null);
 
   const fetchNowPlaying = useCallback(async () => {
     try {
@@ -17,10 +18,18 @@ export function useSpotify() {
       }
       const result = await response.json();
       if (!result.error) {
+        // Track when we last saw the user actively playing
+        if (result.isPlaying) {
+          lastPlayingAtRef.current = new Date().toISOString();
+        }
+        // If paused and no playedAt, use the last time we saw playing (floor 1m ago)
+        if (!result.isPlaying && !result.playedAt) {
+          const fallback = lastPlayingAtRef.current || new Date(Date.now() - 60000).toISOString();
+          result.playedAt = fallback;
+        }
         setData(result);
         setError(null);
       }
-      // If there's an error, keep the previous data so the widget stays visible
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -34,7 +43,6 @@ export function useSpotify() {
     async function poll() {
       await fetchNowPlaying();
       if (cancelled) return;
-      // Poll faster when playing, slower when paused/idle
       const interval = data?.isPlaying ? 1000 : 10000;
       timeoutRef.current = setTimeout(poll, interval);
     }
