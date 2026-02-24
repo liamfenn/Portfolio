@@ -284,7 +284,7 @@ export function WorkEntry({ entry }: { entry: WorkEntryType }) {
 
       {/* Thumbnails — each linked to its own URL */}
       {entry.thumbnails && entry.thumbnails.length > 0 && (
-        <div className="flex gap-2 pt-3 overflow-visible">
+        <div className="flex gap-2 pt-1 md:pt-3 overflow-visible">
           {[...entry.thumbnails].reverse().map((thumb) =>
             isVideo(thumb.videoUrl) ? (
               <VideoCard key={thumb.videoUrl} thumb={thumb} />
