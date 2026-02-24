@@ -86,42 +86,8 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       return null;
     }
 
-    // Rate limited — wait and retry once
-    if (response.status === 429) {
-      const retryAfter = parseInt(response.headers.get("Retry-After") || "5", 10);
-      await new Promise((r) => setTimeout(r, retryAfter * 1000));
-      const retry = await fetch(SPOTIFY_NOW_PLAYING_URL, {
-        headers: { Authorization: `Bearer ${access_token}` },
-        cache: "no-store",
-      });
-      if (retry.status === 204 || retry.status === 202) {
-        if (cachedTrack) return { ...cachedTrack, isPlaying: false };
-        return null;
-      }
-      if (retry.ok) {
-        const retryData: SpotifyNowPlaying = await retry.json();
-        if (retryData.item) {
-          const track: NowPlayingResponse = {
-            isPlaying: retryData.is_playing,
-            title: retryData.item.name,
-            artist: retryData.item.artists.map((a) => a.name).join(", "),
-            album: retryData.item.album.name,
-            albumImageUrl: retryData.item.album.images[0]?.url || "",
-            songUrl: retryData.item.external_urls.spotify,
-          };
-          cachedTrack = track;
-          return track;
-        }
-      }
+    if (response.status === 429 || !response.ok) {
       if (cachedTrack) return { ...cachedTrack, isPlaying: false };
-      return null;
-    }
-
-    if (!response.ok) {
-      console.error("Spotify now-playing error:", response.status, await response.text());
-      if (cachedTrack) {
-        return { ...cachedTrack, isPlaying: false };
-      }
       return null;
     }
 
