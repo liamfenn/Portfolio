@@ -81,13 +81,6 @@
 }
 
 @media (hover: hover) {
-  .video-card {
-    transform: none;
-  }
-  .video-card:hover {
-    opacity: 1;
-    transform: perspective(400px) rotateY(15deg) scale(1.03);
-  }
   .video-card:hover .video-glow-hidden {
     opacity: 0.2;
   }

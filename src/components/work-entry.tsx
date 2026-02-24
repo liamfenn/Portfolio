@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import type { WorkEntry as WorkEntryType, Thumbnail } from "@/lib/data";
 
 
@@ -9,8 +9,24 @@ import type { WorkEntry as WorkEntryType, Thumbnail } from "@/lib/data";
 function VideoCard({ thumb }: { thumb: Thumbnail }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const rafRef = useRef<number>(0);
   const [canHover, setCanHover] = useState<boolean | null>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
+    setTilt({ rotateX: clamp(-y * 40, 25), rotateY: clamp(x * 40, 25), scale: 1.03 });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover)");
@@ -94,12 +110,18 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
       <a
+        ref={cardRef}
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
         className="video-card block rounded-[12px] overflow-visible relative z-10"
+        style={{
+          transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
+          transition: "transform 0.15s ease-out",
+        }}
         onMouseEnter={handleEnter}
-        onMouseLeave={handleLeave}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={(e) => { handleLeave(); handleMouseLeave(); }}
       >
         {/* Blurred glow behind — canvas mirrors main video, or solid color */}
         {showGlow && (thumb.glowColor ? (
@@ -149,9 +171,26 @@ function isVideo(src: string) {
 }
 
 function ImageCard({ thumb }: { thumb: Thumbnail }) {
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const [canHover, setCanHover] = useState<boolean | null>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+
   useEffect(() => {
     setCanHover(window.matchMedia("(hover: hover)").matches);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
+    setTilt({ rotateX: clamp(-y * 40, 25), rotateY: clamp(x * 40, 25), scale: 1.03 });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
   }, []);
 
   // Desktop only — no glow on mobile for images
@@ -160,10 +199,17 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
       <a
+        ref={cardRef}
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
         className="video-card block rounded-[12px] overflow-visible relative z-10"
+        style={{
+          transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
+          transition: "transform 0.15s ease-out",
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Blurred glow behind — desktop only */}
         {showGlow && (thumb.glowColor ? (
