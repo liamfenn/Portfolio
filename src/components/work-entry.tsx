@@ -28,15 +28,34 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
       return;
     }
 
-    // Mobile: only draw dynamic glow if mobileGlow is enabled
+    // Mobile: seek to last frame and draw static glow, only for mobileGlow cards
     if (thumb.mobileGlow) {
-      const startDraw = () => drawGlow();
-      if (!video.paused) {
-        startDraw();
+      const drawOnce = () => {
+        const canvas = canvasRef.current;
+        if (!video || !canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = "#c0c0c0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = "source-over";
+      };
+      const seekAndDraw = () => {
+        video.currentTime = video.duration;
+      };
+      video.addEventListener("seeked", drawOnce, { once: true });
+      if (video.readyState >= 1) {
+        seekAndDraw();
       } else {
-        video.addEventListener("play", startDraw, { once: true });
-        return () => video.removeEventListener("play", startDraw);
+        video.addEventListener("loadedmetadata", seekAndDraw, { once: true });
       }
+      return () => {
+        video.removeEventListener("seeked", drawOnce);
+        video.removeEventListener("loadedmetadata", seekAndDraw);
+      };
     }
   }, [canHover]);
 
