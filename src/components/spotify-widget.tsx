@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSpotify } from "@/hooks/use-spotify";
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 
 function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
@@ -20,8 +20,7 @@ function formatTimeAgo(dateString: string): string {
 
 export function SpotifyWidget() {
   const { data, cachedAt, isLoading } = useSpotify();
-  const albumRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+  const [hovered, setHovered] = useState(false);
   const [, tick] = useState(0);
 
   // Re-render periodically when paused so "Xm ago" updates
@@ -45,20 +44,6 @@ export function SpotifyWidget() {
     return () => clearTimeout(timer);
   }, [data?.isPlaying, timeRef]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = albumRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
-    setTilt({ rotateX: clamp(-y * 30, 20), rotateY: clamp(x * 30, 20), scale: 1.075 });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
-  }, []);
-
   if (isLoading && !data) {
     return <SpotifySkeleton />;
   }
@@ -79,21 +64,15 @@ export function SpotifyWidget() {
       href={data.songUrl}
       target="_blank"
       rel="noopener noreferrer"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full bg-[#f5f5f5]"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full transition-colors duration-200"
+      style={{ backgroundColor: hovered ? "rgba(245, 245, 245, 0.6)" : "#f5f5f5" }}
     >
       {/* Album art + track info wrapper */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         {/* Album art */}
-        <div
-          ref={albumRef}
-          className="relative w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] overflow-hidden shrink-0 shadow-[3px_3px_4px_0px_rgba(0,0,0,0.12)]"
-          style={{
-            transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
-            transition: "transform 0.15s ease-out",
-          }}
-        >
+        <div className="relative w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] overflow-hidden shrink-0 shadow-[3px_3px_4px_0px_rgba(0,0,0,0.12)]">
           {data.albumImageUrl && (
             <Image
               src={data.albumImageUrl}
@@ -106,31 +85,55 @@ export function SpotifyWidget() {
 
         {/* Track info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="type-secondary text-muted-foreground">
+          <span
+            className="type-secondary text-muted-foreground transition-colors duration-200"
+            style={{ color: hovered && isActive ? "#1ed760" : undefined }}
+          >
             {isActive ? "Listening to..." : "Last listened to"}
           </span>
-          <MarqueeText title={data.title} artist={data.artist} />
+          <MarqueeText title={data.title} artist={data.artist} hovered={hovered} />
         </div>
       </div>
 
-      {/* Now indicator or time ago */}
-      {isActive ? (
-        <div className="flex items-center gap-3 shrink-0 pr-1">
-          <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
-          <span className="type-mono-sm text-spotify-green">
-            Now
-          </span>
+      {/* Right side: Now/timer crossfades to Spotify icon on hover */}
+      <div className="relative shrink-0 flex items-center justify-end">
+        <div
+          className="transition-all duration-200"
+          style={{
+            opacity: hovered ? 0 : 1,
+            filter: hovered ? "blur(4px)" : "blur(0px)",
+            transform: hovered ? "scale(0.9)" : "scale(1)",
+          }}
+        >
+          {isActive ? (
+            <div className="flex items-center gap-3 pr-1">
+              <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
+              <span className="type-mono-sm text-spotify-green">
+                Now
+              </span>
+            </div>
+          ) : (
+            <span className="type-mono-sm text-muted-foreground">
+              {timeAgo}
+            </span>
+          )}
         </div>
-      ) : (
-        <span className="type-mono-sm text-muted-foreground shrink-0">
-          {timeAgo}
-        </span>
-      )}
+        <div
+          className="absolute inset-0 flex items-center justify-end transition-all duration-200"
+          style={{
+            opacity: hovered ? 1 : 0,
+            filter: hovered ? "blur(0px)" : "blur(4px)",
+            transform: hovered ? "scale(1)" : "scale(0.8)",
+          }}
+        >
+          <SpotifyIcon className={`w-[20px] h-[20px] ${isActive ? "text-spotify-green" : "text-[#aaaaaa]"}`} />
+        </div>
+      </div>
     </a>
   );
 }
 
-function MarqueeText({ title, artist }: { title: string; artist: string }) {
+function MarqueeText({ title, artist, hovered }: { title: string; artist: string; hovered: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState(0);
@@ -171,6 +174,18 @@ function MarqueeText({ title, artist }: { title: string; artist: string }) {
         <span className="type-secondary text-muted">
           {artist}
         </span>
+        <span
+          className="inline-flex transition-all duration-200"
+          style={{
+            opacity: hovered ? 1 : 0,
+            filter: hovered ? "blur(0px)" : "blur(4px)",
+            transform: hovered ? "scale(1)" : "scale(0.8)",
+            width: hovered ? "14px" : "0px",
+            marginLeft: hovered ? "2px" : "0px",
+          }}
+        >
+          <ArrowUpRightIcon className="w-[14px] h-[14px] shrink-0" />
+        </span>
       </div>
     </div>
   );
@@ -185,6 +200,14 @@ function SpotifySkeleton() {
         <div className="h-4 w-32 bg-muted-foreground/20 rounded" />
       </div>
     </div>
+  );
+}
+
+function ArrowUpRightIcon({ className }: { className?: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={className}>
+      <path d="M4.08325 4.08398H9.91659M9.91659 4.08398V9.91732M9.91659 4.08398L4.08325 9.91732" stroke="#999999" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

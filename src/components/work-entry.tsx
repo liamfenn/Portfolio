@@ -4,29 +4,65 @@ import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import type { WorkEntry as WorkEntryType, Thumbnail } from "@/lib/data";
 
+function useGyroTilt() {
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+  const [hovering, setHovering] = useState(false);
+  const targetRef = useRef({ rotateX: 0, rotateY: 0, scale: 1 });
+  const currentRef = useRef({ rotateX: 0, rotateY: 0, scale: 1 });
+  const rafRef = useRef<number>(0);
+
+  const animate = useCallback(() => {
+    const t = targetRef.current;
+    const c = currentRef.current;
+    const lerp = 0.15;
+    c.rotateX += (t.rotateX - c.rotateX) * lerp;
+    c.rotateY += (t.rotateY - c.rotateY) * lerp;
+    c.scale += (t.scale - c.scale) * lerp;
+
+    // Stop animating when close enough
+    const dx = Math.abs(t.rotateX - c.rotateX);
+    const dy = Math.abs(t.rotateY - c.rotateY);
+    if (dx > 0.01 || dy > 0.01) {
+      rafRef.current = requestAnimationFrame(animate);
+    }
+
+    setTilt({ rotateX: c.rotateX, rotateY: c.rotateY, scale: c.scale });
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
+    targetRef.current = { rotateX: clamp(-y * 20, 12), rotateY: clamp(x * 20, 12), scale: 1.02 };
+    setHovering(true);
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(animate);
+  }, [animate]);
+
+  const handleMouseLeave = useCallback(() => {
+    targetRef.current = { rotateX: 0, rotateY: 0, scale: 1 };
+    setHovering(false);
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(animate);
+  }, [animate]);
+
+  useEffect(() => {
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return { tilt, hovering, handleMouseMove, handleMouseLeave };
+}
+
 
 
 function VideoCard({ thumb }: { thumb: Thumbnail }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cardRef = useRef<HTMLAnchorElement>(null);
-  const rafRef = useRef<number>(0);
+  const glowRafRef = useRef<number>(0);
   const [canHover, setCanHover] = useState<boolean | null>(null);
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
-    setTilt({ rotateX: clamp(-y * 40, 25), rotateY: clamp(x * 40, 25), scale: 1.03 });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
-  }, []);
+  const { tilt, hovering, handleMouseMove, handleMouseLeave } = useGyroTilt();
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover)");
@@ -89,7 +125,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
     ctx.fillStyle = "#c0c0c0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalCompositeOperation = "source-over";
-    rafRef.current = requestAnimationFrame(drawGlow);
+    glowRafRef.current = requestAnimationFrame(drawGlow);
   };
 
   const handleEnter = () => {
@@ -100,7 +136,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
   const handleLeave = () => {
     videoRef.current?.pause();
     if (videoRef.current) videoRef.current.currentTime = 0;
-    cancelAnimationFrame(rafRef.current);
+    cancelAnimationFrame(glowRafRef.current);
   };
 
   // On mobile, only show glow for cards with mobileGlow enabled
@@ -108,25 +144,24 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
   const showGlow = canHover === true || canHover === null || showMobileGlow;
 
   return (
-    <div className="video-card-container flex-shrink-0 w-[148px] relative">
+    <div className="video-card-container flex-shrink-0 w-[148px] md:w-[240px] relative">
       <a
-        ref={cardRef}
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] overflow-visible relative z-10"
+        className="video-card block rounded-[12px] md:rounded-[20px] overflow-visible relative z-10"
         style={{
           transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
-          transition: "transform 0.15s ease-out",
+          transition: hovering ? "none" : "transform 0.4s ease-out",
         }}
         onMouseEnter={handleEnter}
         onMouseMove={handleMouseMove}
-        onMouseLeave={(e) => { handleLeave(); handleMouseLeave(); }}
+        onMouseLeave={() => { handleLeave(); handleMouseLeave(); }}
       >
         {/* Blurred glow behind — canvas mirrors main video, or solid color */}
         {showGlow && (thumb.glowColor ? (
           <div
-            className={`video-glow video-glow-solid absolute inset-0 rounded-[12px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
+            className={`video-glow video-glow-solid absolute inset-0 rounded-[12px] md:rounded-[20px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
             style={{
               backgroundColor: thumb.glowColor,
               transform: "scale(1.05)",
@@ -137,7 +172,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
         ) : (
           <canvas
             ref={canvasRef}
-            className={`video-glow absolute inset-0 w-full h-full rounded-[12px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
+            className={`video-glow absolute inset-0 w-full h-full rounded-[12px] md:rounded-[20px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
             style={{
               transform: "scale(1.05)",
               filter: "blur(30px) saturate(3)",
@@ -146,7 +181,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
           />
         ))}
         <div
-          className="relative rounded-[12px] overflow-hidden"
+          className="relative rounded-[12px] md:rounded-[20px] overflow-hidden"
           style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
         >
           <video
@@ -159,7 +194,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
             preload="auto"
             className="block w-full"
           />
-          <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+          <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
         </div>
       </a>
     </div>
@@ -171,42 +206,26 @@ function isVideo(src: string) {
 }
 
 function ImageCard({ thumb }: { thumb: Thumbnail }) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
   const [canHover, setCanHover] = useState<boolean | null>(null);
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+  const { tilt, hovering, handleMouseMove, handleMouseLeave } = useGyroTilt();
 
   useEffect(() => {
     setCanHover(window.matchMedia("(hover: hover)").matches);
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
-    setTilt({ rotateX: clamp(-y * 40, 25), rotateY: clamp(x * 40, 25), scale: 1.03 });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
   }, []);
 
   // Desktop only — no glow on mobile for images
   const showGlow = canHover === true || canHover === null;
 
   return (
-    <div className="video-card-container flex-shrink-0 w-[148px] relative">
+    <div className="video-card-container flex-shrink-0 w-[148px] md:w-[240px] relative">
       <a
-        ref={cardRef}
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] overflow-visible relative z-10"
+        className="video-card block rounded-[12px] md:rounded-[20px] overflow-visible relative z-10"
         style={{
           transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
-          transition: "transform 0.15s ease-out",
+          transition: hovering ? "none" : "transform 0.4s ease-out",
         }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -214,7 +233,7 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
         {/* Blurred glow behind — desktop only */}
         {showGlow && (thumb.glowColor ? (
           <div
-            className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px]"
+            className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px] md:rounded-[20px]"
             style={{
               backgroundColor: thumb.glowColor,
               transform: "scale(1.05)",
@@ -225,7 +244,7 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
         ) : (
           <img
             src={thumb.videoUrl}
-            className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full rounded-[12px] object-cover"
+            className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full rounded-[12px] md:rounded-[20px] object-cover"
             style={{
               transform: "scale(1.05)",
               filter: "blur(30px) saturate(3)",
@@ -234,13 +253,13 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
             alt=""
           />
         ))}
-        <div className="relative rounded-[12px] overflow-hidden">
+        <div className="relative rounded-[12px] md:rounded-[20px] overflow-hidden">
           <img
             src={thumb.videoUrl}
             alt=""
             className="block w-full"
           />
-          <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+          <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
         </div>
       </a>
     </div>
