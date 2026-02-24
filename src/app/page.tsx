@@ -40,7 +40,7 @@ export default function Home() {
       </div>
 
       {/* Centered content column */}
-      <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-12 md:pb-24 flex flex-col gap-12 md:gap-16 overflow-visible">
+      <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-9 md:pb-24 flex flex-col gap-12 md:gap-16 overflow-visible">
         {/* PFP + Bio */}
         <div className="flex flex-col gap-2">
           <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden">
