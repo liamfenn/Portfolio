@@ -17,7 +17,7 @@ export function LocationFooter() {
   const [time, setTime] = useState(getTime);
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(getTime()), 30000);
+    const interval = setInterval(() => setTime(getTime()), 1000);
     return () => clearInterval(interval);
   }, []);
 
