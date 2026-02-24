@@ -93,30 +93,24 @@ export function SpotifyWidget() {
       </div>
 
       {/* Right side: Now/timer crossfades to "View" on hover */}
-      <div className="relative shrink-0 grid items-center">
+      <div className="relative shrink-0 grid items-center pr-1">
         <div
-          className="col-start-1 row-start-1 transition-all duration-200"
+          className="col-start-1 row-start-1 flex items-center gap-3 justify-end transition-all duration-200"
           style={{
             opacity: hovered ? 0 : 1,
             filter: hovered ? "blur(4px)" : "blur(0px)",
             transform: hovered ? "scale(0.9)" : "scale(1)",
           }}
         >
-          {isActive ? (
-            <div className="flex items-center gap-3 pr-1">
-              <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
-              <span className="type-mono-sm text-spotify-green">
-                Now
-              </span>
-            </div>
-          ) : (
-            <span className="type-mono-sm text-muted-foreground">
-              {timeAgo}
-            </span>
+          {isActive && (
+            <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
           )}
+          <span className={`type-mono-sm ${isActive ? "text-spotify-green" : "text-muted-foreground"}`}>
+            {isActive ? "Now" : timeAgo}
+          </span>
         </div>
         <div
-          className="col-start-1 row-start-1 justify-self-end transition-all duration-200"
+          className="col-start-1 row-start-1 flex items-center gap-3 justify-end transition-all duration-200"
           style={{
             opacity: hovered ? 1 : 0,
             filter: hovered ? "blur(0px)" : "blur(4px)",
