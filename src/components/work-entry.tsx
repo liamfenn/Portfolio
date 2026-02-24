@@ -87,47 +87,49 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
 
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
-      {/* Blurred glow behind — canvas mirrors main video, or solid color */}
-      {thumb.glowColor ? (
-        <div
-          className="video-glow video-glow-solid absolute inset-0 rounded-[12px] video-glow-hidden z-0 pointer-events-none"
-          style={{
-            backgroundColor: thumb.glowColor,
-            transform: "scale(1.05)",
-            filter: "blur(24px)",
-          }}
-          aria-hidden="true"
-        />
-      ) : (
-        <canvas
-          ref={canvasRef}
-          className="video-glow absolute inset-0 w-full h-full rounded-[12px] video-glow-hidden z-0 pointer-events-none"
-          style={{
-            transform: "scale(1.05)",
-            filter: "blur(30px) saturate(3)",
-          }}
-          aria-hidden="true"
-        />
-      )}
       <a
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] overflow-hidden relative z-10"
+        className="video-card block rounded-[12px] overflow-visible relative z-10"
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
-        <video
-          ref={videoRef}
-          src={thumb.videoUrl}
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="auto"
-          className="block w-full"
-        />
-        <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+        {/* Blurred glow behind — canvas mirrors main video, or solid color */}
+        {thumb.glowColor ? (
+          <div
+            className="video-glow video-glow-solid absolute inset-0 rounded-[12px] video-glow-hidden z-0 pointer-events-none"
+            style={{
+              backgroundColor: thumb.glowColor,
+              transform: "scale(1.05)",
+              filter: "blur(24px)",
+            }}
+            aria-hidden="true"
+          />
+        ) : (
+          <canvas
+            ref={canvasRef}
+            className="video-glow absolute inset-0 w-full h-full rounded-[12px] video-glow-hidden z-0 pointer-events-none"
+            style={{
+              transform: "scale(1.05)",
+              filter: "blur(30px) saturate(3)",
+            }}
+            aria-hidden="true"
+          />
+        )}
+        <div className="relative rounded-[12px] overflow-hidden">
+          <video
+            ref={videoRef}
+            src={thumb.videoUrl}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="auto"
+            className="block w-full"
+          />
+          <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+        </div>
       </a>
     </div>
   );
@@ -147,41 +149,43 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
 
   return (
     <div className="video-card-container flex-shrink-0 w-[148px] relative">
-      {/* Blurred glow behind — same image, blurred */}
-      {effectiveGlowColor ? (
-        <div
-          className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px]"
-          style={{
-            backgroundColor: effectiveGlowColor,
-            transform: "scale(1.05)",
-            filter: "blur(24px)",
-          }}
-          aria-hidden="true"
-        />
-      ) : (
-        <img
-          src={thumb.videoUrl}
-          className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full rounded-[12px] object-cover"
-          style={{
-            transform: "scale(1.05)",
-            filter: "blur(30px) saturate(3)",
-          }}
-          aria-hidden="true"
-          alt=""
-        />
-      )}
       <a
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] overflow-hidden relative z-10"
+        className="video-card block rounded-[12px] overflow-visible relative z-10"
       >
-        <img
-          src={thumb.videoUrl}
-          alt=""
-          className="block w-full"
-        />
-        <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+        {/* Blurred glow behind — same image, blurred */}
+        {effectiveGlowColor ? (
+          <div
+            className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px]"
+            style={{
+              backgroundColor: effectiveGlowColor,
+              transform: "scale(1.05)",
+              filter: "blur(24px)",
+            }}
+            aria-hidden="true"
+          />
+        ) : (
+          <img
+            src={thumb.videoUrl}
+            className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full rounded-[12px] object-cover"
+            style={{
+              transform: "scale(1.05)",
+              filter: "blur(30px) saturate(3)",
+            }}
+            aria-hidden="true"
+            alt=""
+          />
+        )}
+        <div className="relative rounded-[12px] overflow-hidden">
+          <img
+            src={thumb.videoUrl}
+            alt=""
+            className="block w-full"
+          />
+          <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+        </div>
       </a>
     </div>
   );

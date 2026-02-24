@@ -91,10 +91,10 @@
     opacity: 1;
     transform: perspective(400px) rotateY(15deg) scale(1.03);
   }
-  .video-card-container:has(.video-card:hover) .video-glow-hidden {
+  .video-card:hover .video-glow-hidden {
     opacity: 0.2;
   }
-  .video-card-container:has(.video-card:hover) .video-glow-hidden.video-glow-solid {
+  .video-card:hover .video-glow-hidden.video-glow-solid {
     opacity: 0.15;
   }
 }

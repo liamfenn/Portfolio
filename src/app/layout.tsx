@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
 import "./globals.css";
 
@@ -52,6 +53,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${abcDiatype.variable} ${GeistMono.variable} font-sans antialiased`}>
         {children}
+        <Analytics />
         <AgentationProvider />
       </body>
     </html>
