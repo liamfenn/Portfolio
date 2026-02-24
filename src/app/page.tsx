@@ -39,7 +39,7 @@ export default function Home() {
       </div>
 
       {/* Centered content column */}
-      <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-16 md:pb-24 flex flex-col gap-12 md:gap-16">
+      <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-16 md:pb-24 flex flex-col gap-12 md:gap-16 overflow-visible">
         {/* Bio */}
         <p className="text-muted">
         <span className="text-foreground">Liam Fennell</span> is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.

@@ -201,7 +201,7 @@ export function WorkEntry({ entry }: { entry: WorkEntryType }) {
   );
 
   return (
-    <div className="work-entry flex flex-col gap-2">
+    <div className="work-entry flex flex-col gap-2 overflow-visible">
       {/* Avatars */}
       {entry.href ? (
         <a
@@ -254,7 +254,7 @@ export function WorkEntry({ entry }: { entry: WorkEntryType }) {
 
       {/* Thumbnails — each linked to its own URL */}
       {entry.thumbnails && entry.thumbnails.length > 0 && (
-        <div className="flex gap-2 pt-3">
+        <div className="flex gap-2 pt-3 overflow-visible">
           {[...entry.thumbnails].reverse().map((thumb) =>
             isVideo(thumb.videoUrl) ? (
               <VideoCard key={thumb.videoUrl} thumb={thumb} />
