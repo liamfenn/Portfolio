@@ -1,0 +1,171 @@
+"use client";
+
+import Image from "next/image";
+import { useSpotify } from "@/hooks/use-spotify";
+import { useRef, useCallback, useState, useEffect } from "react";
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "1m ago";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
+}
+
+export function SpotifyWidget() {
+  const { data, isLoading } = useSpotify(1000);
+  const albumRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = albumRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
+    setTilt({ rotateX: clamp(-y * 30, 20), rotateY: clamp(x * 30, 20), scale: 1.075 });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
+  }, []);
+
+  if (isLoading && !data) {
+    return <SpotifySkeleton />;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const isActive = data.isPlaying;
+  const timeAgo = data.playedAt ? formatTimeAgo(data.playedAt) : "recently";
+
+  return (
+    <a
+      href={data.songUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full bg-[#f5f5f5]"
+    >
+      {/* Album art + track info wrapper */}
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {/* Album art */}
+        <div
+          ref={albumRef}
+          className="relative w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] overflow-hidden shrink-0 shadow-[3px_3px_4px_0px_rgba(0,0,0,0.12)]"
+          style={{
+            transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
+            transition: "transform 0.15s ease-out",
+          }}
+        >
+          {data.albumImageUrl && (
+            <Image
+              src={data.albumImageUrl}
+              alt={data.title}
+              fill
+              className="object-cover"
+            />
+          )}
+        </div>
+
+        {/* Track info */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="type-secondary text-muted-foreground">
+            {isActive ? "Listening to..." : "Last listened to"}
+          </span>
+          <MarqueeText title={data.title} artist={data.artist} />
+        </div>
+      </div>
+
+      {/* Now indicator or time ago */}
+      {isActive ? (
+        <div className="flex items-center gap-3 shrink-0 pr-1">
+          <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
+          <span className="type-mono-sm text-spotify-green">
+            Now
+          </span>
+        </div>
+      ) : (
+        <span className="type-mono-sm text-muted-foreground shrink-0">
+          {timeAgo}
+        </span>
+      )}
+    </a>
+  );
+}
+
+function MarqueeText({ title, artist }: { title: string; artist: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState(0);
+
+  useEffect(() => {
+    function measure() {
+      const container = containerRef.current;
+      const text = textRef.current;
+      if (!container || !text) return;
+      const diff = text.scrollWidth - container.clientWidth;
+      // Add gradient width (24px) so text fully clears the fade
+      setOverflow(diff > 2 ? diff + 24 : 0);
+    }
+    // Measure after fonts load to get accurate widths
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(measure);
+    } else {
+      measure();
+    }
+  }, [title, artist]);
+
+  return (
+    <div className="relative overflow-hidden min-w-0" ref={containerRef}>
+      {overflow > 0 && (
+        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#f5f5f5] to-transparent z-10 pointer-events-none" />
+      )}
+      <div
+        ref={textRef}
+        className={`spotify-marquee flex items-center gap-1 whitespace-nowrap w-fit${overflow > 0 ? " spotify-marquee-active" : ""}`}
+        style={overflow > 0 ? { "--marquee-offset": `-${overflow}px` } as React.CSSProperties : undefined}
+      >
+        <span className="type-secondary text-foreground">
+          {title}
+        </span>
+        <span className="type-secondary text-muted">
+          ·
+        </span>
+        <span className="type-secondary text-muted">
+          {artist}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SpotifySkeleton() {
+  return (
+    <div className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-full bg-card animate-pulse">
+      <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] bg-muted-foreground/20" />
+      <div className="flex flex-col gap-1 flex-1">
+        <div className="h-3 w-20 bg-muted-foreground/20 rounded" />
+        <div className="h-4 w-32 bg-muted-foreground/20 rounded" />
+      </div>
+    </div>
+  );
+}
+
+function SpotifyIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+    </svg>
+  );
+}
