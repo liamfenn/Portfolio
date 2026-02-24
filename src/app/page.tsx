@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { WorkTimeline } from "@/components/work-timeline";
 import { SpotifyWidget } from "@/components/spotify-widget";
 import { LocationFooter } from "@/components/location-footer";
@@ -40,12 +41,23 @@ export default function Home() {
 
       {/* Centered content column */}
       <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-16 md:pb-24 flex flex-col gap-12 md:gap-16 overflow-visible">
-        {/* Bio */}
+        {/* PFP + Bio */}
+        <div className="flex flex-col gap-2">
+          <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden">
+            <Image
+              src="/images/logos/pfp.JPG"
+              alt="Liam Fennell"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
+          </div>
         <p className="text-muted">
         <span className="text-foreground">Liam Fennell</span> is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.
         <br /><br />
         Beyond product work, he’s interested in how design shapes behavior and experience across mediums, drawing influence from architecture, industrial design, and fashion.
         </p>
+        </div>
 
         {/* Work Timeline */}
         <WorkTimeline />
