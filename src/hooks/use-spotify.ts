@@ -6,6 +6,16 @@ import type { NowPlayingResponse } from "@/lib/spotify";
 const CACHE_KEY = "spotify-last-track";
 const POLL_INTERVAL = 30000; // 30s = ~2 req/min, well under 180/min limit
 
+// Hardcoded fallback so the widget always has something to show
+const FALLBACK_TRACK: NowPlayingResponse = {
+  isPlaying: false,
+  title: "Before You I Just Forget",
+  artist: "Fontaines D.C.",
+  album: "Romance (Deluxe Edition)",
+  albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27302e1a7156bfc074cc8d1b94c",
+  songUrl: "https://open.spotify.com/track/1oVAmJ2oaHv5NWFH99jCWE",
+};
+
 interface CachedData {
   track: NowPlayingResponse;
   cachedAt: string;
@@ -36,12 +46,15 @@ export function useSpotify() {
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load cached track on mount for instant display
+  // Load cached track on mount for instant display, fall back to hardcoded track
   useEffect(() => {
     const cached = getCached();
     if (cached) {
       setData({ ...cached.track, isPlaying: false });
       setCachedAt(cached.cachedAt);
+    } else {
+      setData(FALLBACK_TRACK);
+      setCachedAt(new Date().toISOString());
     }
   }, []);
 
