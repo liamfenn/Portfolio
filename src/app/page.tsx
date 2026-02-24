@@ -45,7 +45,7 @@ export default function Home() {
         <div className="flex flex-col gap-2">
           <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden">
             <Image
-              src="/images/logos/pfp.JPG"
+              src="/images/logos/pfp.jpg"
               alt="Liam Fennell"
               width={32}
               height={32}
