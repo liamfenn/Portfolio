@@ -10,7 +10,7 @@ export async function GET() {
 
     if (!data) {
       return NextResponse.json(
-        { isPlaying: false, error: "No track data available" },
+        { isPlaying: false, error: "No track data available", debug: "getNowPlaying returned null" },
         { status: 200 }
       );
     }
@@ -23,7 +23,7 @@ export async function GET() {
   } catch (error) {
     console.error("Spotify API error:", error);
     return NextResponse.json(
-      { isPlaying: false, error: "Failed to fetch Spotify data" },
+      { isPlaying: false, error: "Failed to fetch Spotify data", debug: String(error) },
       { status: 500 }
     );
   }
