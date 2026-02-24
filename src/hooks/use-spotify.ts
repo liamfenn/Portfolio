@@ -17,8 +17,9 @@ export function useSpotify(refreshInterval = 1000) {
       const result = await response.json();
       if (!result.error) {
         setData(result);
+        setError(null);
       }
-      setError(null);
+      // If there's an error, keep the previous data so the widget stays visible
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
