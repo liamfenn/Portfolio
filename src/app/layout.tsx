@@ -23,6 +23,8 @@ export const metadata: Metadata = {
     "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
   icons: {
     icon: "/images/meta/favicon.png",
+    apple: "/images/meta/favicon.png",
+    shortcut: "/images/meta/favicon.png",
   },
   openGraph: {
     title: "Liam Fennell",
