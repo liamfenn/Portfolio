@@ -17,14 +17,29 @@ const abcDiatype = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Liam Fennell - Designer",
+  title: "Liam Fennell",
   description:
-    "Designer based in Atlanta with experience working on consumer products. Interested in ideas surrounding fashion, commerce, culture, and artificial intelligence.",
+    "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
+  icons: {
+    icon: "/images/meta/favicon.png",
+  },
   openGraph: {
-    title: "Liam Fennell - Designer",
+    title: "Liam Fennell",
     description:
-      "Designer based in Atlanta with experience working on consumer products.",
+      "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
     type: "website",
+    images: [
+      {
+        url: "/images/meta/opengraph.png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Liam Fennell",
+    description:
+      "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
+    images: ["/images/meta/opengraph.png"],
   },
 };
 
