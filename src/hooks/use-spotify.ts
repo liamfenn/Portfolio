@@ -7,7 +7,7 @@ export function useSpotify() {
   const [data, setData] = useState<NowPlayingResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchNowPlaying = useCallback(async () => {
     try {
@@ -43,7 +43,7 @@ export function useSpotify() {
 
     return () => {
       cancelled = true;
-      clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [fetchNowPlaying, data?.isPlaying]);
 
