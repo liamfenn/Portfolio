@@ -89,7 +89,7 @@ export const WORK_TIMELINE: YearGroup[] = [
         collaborator: "Trinita Studio",
         collaboratorHref: "https://x.com/hours",
         description:
-          "Partnered with Trinita Studio to design the first version of ScyAI. Delivered core product flows, UX architecture, and a foundational brand system.",
+          "Partnered with Trinita Studio to design the first version of ScyAI. Delivered core product flows and a foundational brand system.",
         href: "https://scyai.com",
       },
       {

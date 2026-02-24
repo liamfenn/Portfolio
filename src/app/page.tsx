@@ -42,7 +42,7 @@ export default function Home() {
       <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-16 md:pb-24 flex flex-col gap-12 md:gap-16">
         {/* Bio */}
         <p className="text-foreground">
-        Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.
+        Liam Fennell is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.
         <br /><br />
         Beyond product work, he’s interested in how design shapes behavior and experience across mediums, drawing influence from architecture, industrial design, and fashion.
         </p>
