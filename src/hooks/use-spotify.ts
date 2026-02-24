@@ -14,6 +14,7 @@ const FALLBACK_TRACK: NowPlayingResponse = {
   album: "Romance (Deluxe Edition)",
   albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27302e1a7156bfc074cc8d1b94c",
   songUrl: "https://open.spotify.com/track/1oVAmJ2oaHv5NWFH99jCWE",
+  playedAt: "2025-02-24T20:00:00Z",
 };
 
 interface CachedData {
@@ -54,7 +55,7 @@ export function useSpotify() {
       setCachedAt(cached.cachedAt);
     } else {
       setData(FALLBACK_TRACK);
-      setCachedAt(new Date().toISOString());
+      setCachedAt(FALLBACK_TRACK.playedAt!);
     }
   }, []);
 
