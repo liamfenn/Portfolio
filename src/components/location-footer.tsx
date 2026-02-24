@@ -22,7 +22,7 @@ export function LocationFooter() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between px-2 md:px-4 type-mono-responsive">
+    <div className="flex items-center justify-between px-3 md:px-4 type-mono-responsive">
       <span className="text-muted">
         <span className="md:hidden">Atlanta, GA</span>
         <span className="hidden md:inline">Atlanta, Georgia</span>
