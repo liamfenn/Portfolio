@@ -19,7 +19,7 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export function SpotifyWidget() {
-  const { data, isLoading } = useSpotify(1000);
+  const { data, isLoading } = useSpotify();
   const albumRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
 

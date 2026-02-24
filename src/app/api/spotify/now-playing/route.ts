@@ -9,11 +9,8 @@ export async function GET() {
     const data = await getNowPlaying();
 
     if (!data) {
-      // Try a direct recently-played call for debugging
-      const { getRecentlyPlayedDebug } = await import("@/lib/spotify");
-      const debugInfo = await getRecentlyPlayedDebug();
       return NextResponse.json(
-        { isPlaying: false, error: "No track data available", debug: debugInfo },
+        { isPlaying: false, error: "No track data available" },
         { status: 200 }
       );
     }
@@ -26,7 +23,7 @@ export async function GET() {
   } catch (error) {
     console.error("Spotify API error:", error);
     return NextResponse.json(
-      { isPlaying: false, error: "Failed to fetch Spotify data", debug: String(error) },
+      { isPlaying: false, error: "Failed to fetch Spotify data" },
       { status: 500 }
     );
   }

@@ -87,7 +87,6 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
 
     // If nothing is playing, try to get recently played
     if (response.status === 204 || response.status === 202) {
-      console.log("Spotify: no active player (204/202), falling back to recently played");
       return getRecentlyPlayed(access_token);
     }
 
@@ -99,13 +98,11 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
     const data: SpotifyNowPlaying = await response.json();
 
     if (!data.item) {
-      console.log("Spotify: no item in response, falling back to recently played");
       return getRecentlyPlayed(access_token);
     }
 
     // If track is paused, get recently played to get the playedAt timestamp
     if (!data.is_playing) {
-      console.log("Spotify: track paused, falling back to recently played");
       return getRecentlyPlayed(access_token);
     }
 
@@ -120,20 +117,6 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
   } catch (error) {
     console.error("Error fetching now playing:", error);
     throw error;
-  }
-}
-
-export async function getRecentlyPlayedDebug(): Promise<string> {
-  try {
-    const { access_token } = await getAccessToken();
-    const response = await fetch(SPOTIFY_RECENTLY_PLAYED_URL, {
-      headers: { Authorization: `Bearer ${access_token}` },
-      cache: "no-store",
-    });
-    const text = await response.text();
-    return `status=${response.status} body=${text.slice(0, 500)}`;
-  } catch (e) {
-    return `error: ${String(e)}`;
   }
 }
 
@@ -155,10 +138,8 @@ async function getRecentlyPlayed(
     }
 
     const data: SpotifyRecentlyPlayed = await response.json();
-    console.log("Spotify recently-played response:", JSON.stringify(data).slice(0, 200));
 
     if (!data.items || data.items.length === 0) {
-      console.log("Spotify: no recently played items");
       return null;
     }
 

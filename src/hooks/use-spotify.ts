@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { NowPlayingResponse } from "@/lib/spotify";
 
-export function useSpotify(refreshInterval = 1000) {
+export function useSpotify() {
   const [data, setData] = useState<NowPlayingResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const fetchNowPlaying = useCallback(async () => {
     try {
@@ -28,14 +29,23 @@ export function useSpotify(refreshInterval = 1000) {
   }, []);
 
   useEffect(() => {
-    // Initial fetch
-    fetchNowPlaying();
+    let cancelled = false;
 
-    // Set up polling interval
-    const interval = setInterval(fetchNowPlaying, refreshInterval);
+    async function poll() {
+      await fetchNowPlaying();
+      if (cancelled) return;
+      // Poll faster when playing, slower when paused/idle
+      const interval = data?.isPlaying ? 1000 : 10000;
+      timeoutRef.current = setTimeout(poll, interval);
+    }
 
-    return () => clearInterval(interval);
-  }, [fetchNowPlaying, refreshInterval]);
+    poll();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutRef.current);
+    };
+  }, [fetchNowPlaying, data?.isPlaying]);
 
   return { data, isLoading, error };
 }
