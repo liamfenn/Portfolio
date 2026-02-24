@@ -4,11 +4,13 @@ const SPOTIFY_NOW_PLAYING_URL =
 const SPOTIFY_RECENTLY_PLAYED_URL =
   "https://api.spotify.com/v1/me/player/recently-played?limit=1";
 
-const client_id = process.env.SPOTIFY_CLIENT_ID;
-const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
-
-const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
+function getCredentials() {
+  const client_id = process.env.SPOTIFY_CLIENT_ID || "";
+  const client_secret = process.env.SPOTIFY_CLIENT_SECRET || "";
+  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN || "";
+  const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
+  return { basic, refresh_token };
+}
 
 interface SpotifyToken {
   access_token: string;
@@ -49,6 +51,7 @@ export interface NowPlayingResponse {
 }
 
 async function getAccessToken(): Promise<SpotifyToken> {
+  const { basic, refresh_token } = getCredentials();
   const response = await fetch(SPOTIFY_TOKEN_URL, {
     method: "POST",
     headers: {
@@ -57,12 +60,17 @@ async function getAccessToken(): Promise<SpotifyToken> {
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: refresh_token || "",
+      refresh_token,
     }),
     cache: "no-store",
   });
 
-  return response.json();
+  const data = await response.json();
+  if (!response.ok || !data.access_token) {
+    console.error("Spotify token error:", JSON.stringify(data));
+    throw new Error(`Token refresh failed: ${JSON.stringify(data)}`);
+  }
+  return data;
 }
 
 export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
@@ -83,6 +91,7 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
     }
 
     if (!response.ok) {
+      console.error("Spotify now-playing error:", response.status, await response.text());
       return null;
     }
 
@@ -107,7 +116,7 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
     };
   } catch (error) {
     console.error("Error fetching now playing:", error);
-    return null;
+    throw error;
   }
 }
 
@@ -123,6 +132,8 @@ async function getRecentlyPlayed(
     });
 
     if (!response.ok) {
+      const errText = await response.text();
+      console.error("Spotify recently-played error:", response.status, errText);
       return null;
     }
 
