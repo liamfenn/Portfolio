@@ -19,17 +19,18 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export function SpotifyWidget() {
-  const { data, isLoading } = useSpotify();
+  const { data, cachedAt, isLoading } = useSpotify();
   const albumRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
   const [, tick] = useState(0);
 
   // Re-render periodically when paused so "Xm ago" updates
   // Scale interval: every 60s for first hour, then every hour after
+  const timeRef = data?.playedAt ?? cachedAt;
   useEffect(() => {
-    if (data?.isPlaying || !data?.playedAt) return;
+    if (data?.isPlaying || !timeRef) return;
     const getInterval = () => {
-      const diffMs = Date.now() - new Date(data.playedAt!).getTime();
+      const diffMs = Date.now() - new Date(timeRef).getTime();
       const diffMins = diffMs / (1000 * 60);
       return diffMins < 60 ? 60000 : 3600000;
     };
@@ -42,7 +43,7 @@ export function SpotifyWidget() {
     };
     schedule();
     return () => clearTimeout(timer);
-  }, [data?.isPlaying, data?.playedAt]);
+  }, [data?.isPlaying, timeRef]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const el = albumRef.current;
@@ -67,7 +68,11 @@ export function SpotifyWidget() {
   }
 
   const isActive = data.isPlaying;
-  const timeAgo = data.playedAt ? formatTimeAgo(data.playedAt) : "recently";
+  const timeAgo = data.playedAt
+    ? formatTimeAgo(data.playedAt)
+    : cachedAt
+      ? formatTimeAgo(cachedAt)
+      : "recently";
 
   return (
     <a

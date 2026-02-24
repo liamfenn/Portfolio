@@ -15,11 +15,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(data, {
-      headers: {
-        "Cache-Control": "public, s-maxage=1, stale-while-revalidate=0",
-      },
-    });
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Spotify API error:", error);
     return NextResponse.json(

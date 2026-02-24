@@ -123,7 +123,10 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
             aria-hidden="true"
           />
         ))}
-        <div className="relative rounded-[12px] overflow-hidden">
+        <div
+          className="relative rounded-[12px] overflow-hidden"
+          style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
+        >
           <video
             ref={videoRef}
             src={thumb.videoUrl}

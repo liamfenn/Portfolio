@@ -41,9 +41,6 @@ export interface NowPlayingResponse {
   playedAt?: string;
 }
 
-// In-memory cache of last known track
-let cachedTrack: NowPlayingResponse | null = null;
-
 async function getAccessToken(): Promise<SpotifyToken> {
   const { basic, refresh_token } = getCredentials();
   const response = await fetch(SPOTIFY_TOKEN_URL, {
@@ -78,29 +75,21 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       cache: "no-store",
     });
 
-    // No active session — return cached track as "not playing"
     if (response.status === 204 || response.status === 202) {
-      if (cachedTrack) {
-        return { ...cachedTrack, isPlaying: false };
-      }
       return null;
     }
 
     if (response.status === 429 || !response.ok) {
-      if (cachedTrack) return { ...cachedTrack, isPlaying: false };
       return null;
     }
 
     const data: SpotifyNowPlaying = await response.json();
 
     if (!data.item) {
-      if (cachedTrack) {
-        return { ...cachedTrack, isPlaying: false };
-      }
       return null;
     }
 
-    const track: NowPlayingResponse = {
+    return {
       isPlaying: data.is_playing,
       title: data.item.name,
       artist: data.item.artists.map((a) => a.name).join(", "),
@@ -108,16 +97,8 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
       albumImageUrl: data.item.album.images[0]?.url || "",
       songUrl: data.item.external_urls.spotify,
     };
-
-    // Cache the track
-    cachedTrack = track;
-
-    return track;
   } catch (error) {
     console.error("Error fetching now playing:", error);
-    if (cachedTrack) {
-      return { ...cachedTrack, isPlaying: false };
-    }
-    throw error;
+    return null;
   }
 }

@@ -4,20 +4,27 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { NowPlayingResponse } from "@/lib/spotify";
 
 const CACHE_KEY = "spotify-last-track";
+const POLL_INTERVAL = 30000; // 30s = ~2 req/min, well under 180/min limit
 
-function getCachedTrack(): NowPlayingResponse | null {
+interface CachedData {
+  track: NowPlayingResponse;
+  cachedAt: string;
+}
+
+function getCached(): CachedData | null {
   try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-    return JSON.parse(cached);
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-function setCachedTrack(track: NowPlayingResponse) {
+function setCache(track: NowPlayingResponse) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(track));
+    const entry: CachedData = { track, cachedAt: new Date().toISOString() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
   } catch {
     // ignore
   }
@@ -25,66 +32,44 @@ function setCachedTrack(track: NowPlayingResponse) {
 
 export function useSpotify() {
   const [data, setData] = useState<NowPlayingResponse | null>(null);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastPlayingAtRef = useRef<string | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load cached track on mount so widget is visible immediately
+  // Load cached track on mount for instant display
   useEffect(() => {
-    const cached = getCachedTrack();
+    const cached = getCached();
     if (cached) {
-      setData({ ...cached, isPlaying: false });
+      setData({ ...cached.track, isPlaying: false });
+      setCachedAt(cached.cachedAt);
     }
   }, []);
 
   const fetchNowPlaying = useCallback(async () => {
     try {
       const response = await fetch("/api/spotify/now-playing");
-      if (!response.ok) {
-        throw new Error("Failed to fetch");
-      }
+      if (!response.ok) return;
+
       const result = await response.json();
-      if (!result.error) {
-        // Track when we last saw the user actively playing
-        if (result.isPlaying) {
-          lastPlayingAtRef.current = new Date().toISOString();
-        }
-        // If paused and no playedAt, use the last time we saw playing (floor 1m ago)
-        if (!result.isPlaying && !result.playedAt) {
-          if (!lastPlayingAtRef.current) {
-            lastPlayingAtRef.current = new Date(Date.now() - 60000).toISOString();
-          }
-          result.playedAt = lastPlayingAtRef.current;
-        }
-        setData(result);
-        setCachedTrack(result);
-        setError(null);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      if (result.error) return;
+
+      setData(result);
+      setCache(result);
+      setCachedAt(new Date().toISOString());
+    } catch {
+      // keep previous data on error
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function poll() {
-      await fetchNowPlaying();
-      if (cancelled) return;
-      const interval = data?.isPlaying ? 1000 : 10000;
-      timeoutRef.current = setTimeout(poll, interval);
-    }
-
-    poll();
-
+    fetchNowPlaying();
+    intervalRef.current = setInterval(fetchNowPlaying, POLL_INTERVAL);
     return () => {
-      cancelled = true;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [fetchNowPlaying, data?.isPlaying]);
+  }, [fetchNowPlaying]);
 
-  return { data, isLoading, error };
+  return { data, cachedAt, isLoading };
 }
