@@ -192,6 +192,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
             playsInline
             autoPlay
             preload="auto"
+            aria-hidden="true"
             className="block w-full"
           />
           <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />

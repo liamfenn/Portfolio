@@ -23,7 +23,7 @@ export default function Home() {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className=""
+                className="py-1 inline-block"
               >
                 {link.label}
               </a>
@@ -33,7 +33,7 @@ export default function Home() {
         </p>
         <a
           href="mailto:info@fennell.cv"
-          className="text-muted "
+          className="text-muted"
         >
           info@fennell.cv
         </a>
@@ -52,11 +52,11 @@ export default function Home() {
               className="w-full h-full object-cover"
             />
           </div>
-        <p className="text-muted">
-        <span className="text-foreground">Liam Fennell</span> is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.
+        <div className="text-muted">
+        <h1 className="inline text-foreground" style={{ font: "inherit" }}>Liam Fennell</h1> is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.
         <br /><br />
         Beyond product work, he’s interested in how design shapes behavior and experience across mediums, drawing influence from architecture, industrial design, and fashion.
-        </p>
+        </div>
         </div>
 
         {/* Work Timeline */}
@@ -71,7 +71,7 @@ export default function Home() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className=""
+                  className="py-1 inline-block"
                 >
                   {link.label}
                 </a>

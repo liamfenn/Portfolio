@@ -66,7 +66,7 @@ export function SpotifyWidget() {
       rel="noopener noreferrer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full transition-colors duration-200"
+      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-foreground/20 outline-none"
       style={{ backgroundColor: hovered ? "rgba(245, 245, 245, 0.6)" : "#f5f5f5" }}
     >
       {/* Album art + track info wrapper */}
