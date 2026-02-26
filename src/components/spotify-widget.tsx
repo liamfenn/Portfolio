@@ -151,7 +151,10 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
   return (
     <div className="relative overflow-hidden min-w-0" ref={containerRef}>
       {overflow > 0 && (
-        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#f5f5f5] to-transparent z-10 pointer-events-none" />
+        <div
+          className="absolute right-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+          style={{ background: `linear-gradient(to left, ${hovered ? "#f9f9f9" : "#f5f5f5"}, transparent)` }}
+        />
       )}
       <div
         ref={textRef}
@@ -188,6 +191,15 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
           {artist}
         </span>
       </div>
+      {overflow > 0 && (
+        <div
+          className="spotify-marquee-left-fade absolute left-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+          style={{
+            background: `linear-gradient(to right, ${hovered ? "#f9f9f9" : "#f5f5f5"}, transparent)`,
+            "--marquee-duration": "var(--marquee-duration, 10s)",
+          } as React.CSSProperties}
+        />
+      )}
     </div>
   );
 }

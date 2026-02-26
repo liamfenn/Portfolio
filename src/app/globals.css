@@ -194,3 +194,24 @@
   }
 }
 
+.spotify-marquee-left-fade {
+  opacity: 0;
+  animation: none;
+}
+
+.spotify-marquee-active ~ .spotify-marquee-left-fade {
+  animation: marquee-left-fade var(--marquee-duration, 10s) ease-in-out infinite;
+}
+
+@keyframes marquee-left-fade {
+  0%, 15% {
+    opacity: 0;
+  }
+  19%, 80% {
+    opacity: 1;
+  }
+  85%, 100% {
+    opacity: 0;
+  }
+}
+
