@@ -155,8 +155,11 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
       )}
       <div
         ref={textRef}
-        className={`spotify-marquee flex items-center gap-1 whitespace-nowrap w-fit${overflow > 0 ? " spotify-marquee-active" : ""}`}
-        style={overflow > 0 ? { "--marquee-offset": `-${overflow}px` } as React.CSSProperties : undefined}
+        className={`spotify-marquee flex items-center gap-1 whitespace-nowrap w-fit${overflow > 0 && !hovered ? " spotify-marquee-active" : ""}`}
+        style={{
+          ...(overflow > 0 ? { "--marquee-offset": `-${overflow}px` } as React.CSSProperties : {}),
+          ...(hovered ? { transform: "translateX(0)", transition: "transform 0.4s ease-out" } : {}),
+        }}
       >
         <span
           className="inline-flex items-center transition-all duration-200 overflow-hidden"
@@ -166,21 +169,22 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
           }}
         >
           <SpotifyIcon
-            className={`w-[14px] h-[14px] shrink-0 transition-all duration-200 ${isActive ? "text-spotify-green" : "text-foreground"}`}
+            className={`w-[14px] h-[14px] shrink-0 transition-all duration-200 ${isActive ? "text-spotify-green" : ""}`}
             style={{
+              color: isActive ? undefined : "#555",
               opacity: hovered ? 1 : 0,
               filter: hovered ? "blur(0px)" : "blur(4px)",
               transform: hovered ? "scale(1)" : "scale(0.8)",
             }}
           />
         </span>
-        <span className="type-secondary text-foreground">
+        <span className="type-secondary" style={{ color: "#555" }}>
           {title}
         </span>
-        <span className="type-secondary text-muted">
+        <span className="type-secondary" style={{ color: "#999" }}>
           ·
         </span>
-        <span className="type-secondary text-muted">
+        <span className="type-secondary" style={{ color: "#999" }}>
           {artist}
         </span>
       </div>
