@@ -8,7 +8,7 @@ import "./globals.css";
 const abcDiatype = localFont({
   src: [
     {
-      path: "../../public/fonts/ABC Diatype Medium.ttf",
+      path: "../../public/fonts/ABCDiatype-Medium.woff2",
       weight: "500",
       style: "normal",
     },
