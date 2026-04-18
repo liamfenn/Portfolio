@@ -2,7 +2,7 @@
 
 @theme {
   /* Typography - uses CSS variable from next/font */
-  --font-sans: var(--font-abc-diatype), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-suisse-intl), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
   /* Colors from Figma */
@@ -29,8 +29,10 @@
     font-family: var(--font-sans);
     font-weight: 500;
     font-size: 14.4px;
-    line-height: 1.25;
+    line-height: 1.35 !important;
     letter-spacing: -0.02em;
+    font-feature-settings: "palt";
+    font-synthesis: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -92,16 +94,16 @@
 
 /* Type styles — outside @layer so they override Tailwind defaults */
 .type-body {
-  font-family: var(--font-abc-diatype), system-ui, sans-serif;
+  font-family: var(--font-suisse-intl), system-ui, sans-serif;
   font-size: 16px;
-  line-height: 1.25;
+  line-height: 1.3;
   letter-spacing: -0.32px;
 }
 
 .type-secondary {
-  font-family: var(--font-abc-diatype), system-ui, sans-serif;
+  font-family: var(--font-suisse-intl), system-ui, sans-serif;
   font-size: 14.4px;
-  line-height: 1.25;
+  line-height: 1.3;
   letter-spacing: -0.28px;
 }
 

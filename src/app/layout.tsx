@@ -5,22 +5,22 @@ import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
 import "./globals.css";
 
-const abcDiatype = localFont({
+const suisseIntl = localFont({
   src: [
     {
-      path: "../../public/fonts/ABCDiatype-Medium.woff2",
+      path: "../../public/fonts/SuisseIntl-Book.otf",
       weight: "500",
       style: "normal",
     },
   ],
-  variable: "--font-abc-diatype",
+  variable: "--font-suisse-intl",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Liam Fennell",
   description:
-    "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
+    "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
   icons: {
     icon: "/images/meta/favicon.png",
     apple: "/images/meta/favicon.png",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Liam Fennell",
     description:
-      "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
+      "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
     type: "website",
     images: [
       {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Liam Fennell",
     description:
-      "Liam Fennell is a designer based in Atlanta building consumer products. His work leans toward restraint, reducing friction and abstraction so systems feel intuitive and obvious in hindsight.",
+      "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
     images: ["/images/meta/opengraph.png"],
   },
 };
@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${abcDiatype.variable} ${GeistMono.variable} font-sans antialiased`}>
+      <body className={`${suisseIntl.variable} ${GeistMono.variable} font-sans antialiased`}>
         {children}
         <Analytics />
         <AgentationProvider />
