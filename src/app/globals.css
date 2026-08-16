@@ -827,10 +827,22 @@
   line-height: 1.35;
   letter-spacing: -0.15px;
   white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
 }
 
 .case-study-control-step {
   width: 36px;
+}
+
+@media (hover: hover) {
+  .case-study-control:hover {
+    background: #000;
+    color: #fff;
+    opacity: 1;
+  }
 }
 
 .case-study-page > .portfolio-footer {
