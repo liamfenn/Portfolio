@@ -376,11 +376,8 @@ export function ProjectWork() {
   const selectedSort = SORT_OPTIONS.find((option) => option.value === sortMode) ?? SORT_OPTIONS[0];
   const sortOptions = SORT_OPTIONS.filter((option) => option.value !== sortMode);
   const sortLabel = selectedSort.label;
-  const gridLabel = isMobile
-    ? mobileColumns === 2
-      ? "List"
-      : "Grid"
-    : `${desktopDensity} x ${desktopDensity}`;
+  const mobileGridLabel = mobileColumns === 2 ? "List" : "Grid";
+  const desktopGridLabel = `${desktopDensity} x ${desktopDensity}`;
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
@@ -520,10 +517,18 @@ export function ProjectWork() {
             aria-label={isMobile ? `Switch to ${mobileColumns === 1 ? 2 : 1} column grid` : "Grid density"}
             onClick={toggleMobileGrid}
           >
-            <WorkGlyphControl
-              text={gridLabel}
-              reserveScrambleWidth={isGridLabelTransitioning}
-            />
+            <span className="work-grid-label-desktop">
+              <WorkGlyphControl
+                text={desktopGridLabel}
+                reserveScrambleWidth={isGridLabelTransitioning}
+              />
+            </span>
+            <span className="work-grid-label-mobile">
+              <WorkGlyphControl
+                text={mobileGridLabel}
+                reserveScrambleWidth={isGridLabelTransitioning}
+              />
+            </span>
           </button>
         </div>
       </div>

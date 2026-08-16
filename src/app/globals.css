@@ -381,6 +381,14 @@
   flex-basis: 2.55em;
 }
 
+.work-grid-label-desktop {
+  display: contents;
+}
+
+.work-grid-label-mobile {
+  display: none;
+}
+
 .work-density-menu {
   position: absolute;
   right: 0;
@@ -1269,6 +1277,14 @@
   .work-grid-label-group.is-scrambling .work-grid-label {
     width: 2.4em;
     flex-basis: 2.4em;
+  }
+
+  .work-grid-label-desktop {
+    display: none;
+  }
+
+  .work-grid-label-mobile {
+    display: contents;
   }
 
   .project-grid {
