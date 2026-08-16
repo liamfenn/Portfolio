@@ -430,6 +430,7 @@
 .identity-avatar {
   overflow: hidden;
   border: 0;
+  border-radius: 999px;
   background: #ebebeb;
 }
 
@@ -445,7 +446,13 @@
 .identity-album {
   overflow: visible;
   border: 0;
+  border-radius: 15.35px;
   background: #f5f5f5;
+}
+
+.identity-avatar[data-state="ready"],
+.identity-album[data-state="ready"] {
+  border-radius: 0;
 }
 
 .identity-album img {
@@ -756,6 +763,10 @@
     --identity-stack-offset: 8px;
     width: 36px;
     height: 36px;
+  }
+
+  .identity-album {
+    border-radius: 12px;
   }
 
   .identity-spotify.is-tapped {
