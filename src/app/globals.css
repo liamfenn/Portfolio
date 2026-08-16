@@ -674,3 +674,35 @@
     letter-spacing: -0.28px;
   }
 }
+
+@media (hover: hover) and (max-width: 767px) {
+  .identity-spotify:hover {
+    width: 100%;
+  }
+
+  .identity-spotify:hover .identity-avatar {
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid #fff;
+  }
+
+  .identity-spotify:hover .identity-album {
+    z-index: 1;
+    top: 8px;
+    left: 8px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+  }
+
+  .identity-spotify:hover .identity-track {
+    width: calc(100vw - 76px);
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+}
