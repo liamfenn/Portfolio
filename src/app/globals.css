@@ -1366,10 +1366,6 @@
   }
 
   .case-study-controls {
-    bottom: max(40px, env(safe-area-inset-bottom));
-  }
-
-  .case-study-controls.has-bottom-browser-chrome {
     bottom: max(24px, env(safe-area-inset-bottom));
   }
 
