@@ -4,7 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
-import type { CSSProperties, FocusEvent } from "react";
+import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
@@ -31,7 +31,15 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
-function GridGlyphLabel({ text }: { text: string }) {
+function GridGlyphControl({
+  text,
+  reserveScrambleWidth = false,
+}: {
+  text: string;
+  reserveScrambleWidth?: boolean;
+}) {
+  const [isScrambling, setIsScrambling] = useState(false);
+  const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
   const { ref } = useScramble({
     text,
     playOnMount: false,
@@ -45,11 +53,29 @@ function GridGlyphLabel({ text }: { text: string }) {
     overdrive: false,
     overflow: true,
     ignore: [" "],
+    onAnimationFrame: (result) => {
+      if (result !== text) {
+        setIsScrambling(true);
+      }
+    },
+    onAnimationEnd: () => {
+      setIsScrambling(false);
+    },
   });
 
   return (
-    <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
-      {text}
+    <span className={`work-grid-label-group${shouldReserveScrambleWidth ? " is-scrambling" : ""}`}>
+      <motion.span
+        layout="position"
+        className="work-control-square"
+        aria-hidden="true"
+        transition={
+          shouldReserveScrambleWidth ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }
+        }
+      />
+      <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
+        {text}
+      </span>
     </span>
   );
 }
@@ -57,12 +83,14 @@ function GridGlyphLabel({ text }: { text: string }) {
 export function ProjectWork() {
   const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
+  const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
   const [isDensityMenuRendered, setIsDensityMenuRendered] = useState(false);
   const [hasChangedDensity, setHasChangedDensity] = useState(false);
   const densityControlRef = useRef<HTMLDivElement>(null);
   const densityMenuExitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridLabelTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -85,8 +113,22 @@ export function ProjectWork() {
       if (densityMenuExitTimeoutRef.current) {
         clearTimeout(densityMenuExitTimeoutRef.current);
       }
+      if (gridLabelTransitionTimeoutRef.current) {
+        clearTimeout(gridLabelTransitionTimeoutRef.current);
+      }
     };
   }, []);
+
+  const beginGridLabelTransition = () => {
+    if (gridLabelTransitionTimeoutRef.current) {
+      clearTimeout(gridLabelTransitionTimeoutRef.current);
+    }
+    setIsGridLabelTransitioning(true);
+    gridLabelTransitionTimeoutRef.current = setTimeout(() => {
+      setIsGridLabelTransitioning(false);
+      gridLabelTransitionTimeoutRef.current = null;
+    }, 120);
+  };
 
   const openDensityMenu = () => {
     if (!isMobile) {
@@ -94,7 +136,10 @@ export function ProjectWork() {
         clearTimeout(densityMenuExitTimeoutRef.current);
         densityMenuExitTimeoutRef.current = null;
       }
-      setHasChangedDensity(false);
+      if (!isDensityMenuOpen) {
+        beginGridLabelTransition();
+        setHasChangedDensity(false);
+      }
       setIsDensityMenuRendered(true);
       setIsDensityMenuOpen(true);
     }
@@ -102,6 +147,9 @@ export function ProjectWork() {
 
   const closeDensityMenu = () => {
     if (!isMobile) {
+      if (isDensityMenuOpen) {
+        beginGridLabelTransition();
+      }
       setIsDensityMenuOpen(false);
       setHasChangedDensity(false);
       if (densityMenuExitTimeoutRef.current) {
@@ -115,18 +163,39 @@ export function ProjectWork() {
   };
 
   const handleDensityControlBlur = (event: FocusEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget)) {
+    if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) {
+      closeDensityMenu();
+    }
+  };
+
+  const handleDensityControlPointerLeave = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const { clientX, clientY, currentTarget } = event;
+    const menu = currentTarget.querySelector<HTMLElement>(".work-density-menu");
+    const hitAreas = [currentTarget.getBoundingClientRect(), menu?.getBoundingClientRect()].filter(
+      (bounds): bounds is DOMRect => Boolean(bounds),
+    );
+    const pointerIsStillInside = hitAreas.some(
+      (bounds) =>
+        clientX >= bounds.left - 1 &&
+        clientX <= bounds.right + 1 &&
+        clientY >= bounds.top - 1 &&
+        clientY <= bounds.bottom + 1,
+    );
+
+    if (!pointerIsStillInside) {
       closeDensityMenu();
     }
   };
 
   const selectDesktopDensity = (density: (typeof DESKTOP_DENSITIES)[number]) => {
+    beginGridLabelTransition();
     setHasChangedDensity(true);
     setDesktopDensity(density);
   };
 
   const toggleMobileGrid = () => {
     if (isMobile) {
+      beginGridLabelTransition();
       setMobileColumns((current) => (current === 1 ? 2 : 1));
     }
   };
@@ -162,48 +231,47 @@ export function ProjectWork() {
           ref={densityControlRef}
           className="work-density-control"
           onPointerEnter={openDensityMenu}
-          onPointerLeave={closeDensityMenu}
+          onPointerLeave={handleDensityControlPointerLeave}
           onFocus={openDensityMenu}
           onBlur={handleDensityControlBlur}
         >
           {isDensityMenuRendered ? (
-              <div
-                className={`work-density-menu${isDensityMenuOpen ? "" : " is-closing"}`}
-                role="menu"
-                aria-label="Grid density"
-                aria-hidden={!isDensityMenuOpen}
-              >
+            <div
+              className={`work-density-menu${isDensityMenuOpen ? "" : " is-closing"}`}
+              role="menu"
+              aria-label="Grid density"
+              aria-hidden={!isDensityMenuOpen}
+            >
+              <AnimatePresence initial={false} mode="popLayout">
                 {densityOptions.map((density, index) => (
-                  <div className="work-density-slot" role="none" key={index}>
-                    <AnimatePresence initial={false} mode="popLayout">
-                      <motion.button
-                        key={density}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked="false"
-                        tabIndex={isDensityMenuOpen ? 0 : -1}
-                        className={`work-density-option${
-                          isDensityMenuOpen ? (hasChangedDensity ? "" : " is-opening") : " is-closing"
-                        }`}
-                        style={
-                          {
-                            "--density-option-index": densityOptions.length - 1 - index,
-                            "--density-option-exit-index": index,
-                          } as CSSProperties
-                        }
-                        initial={hasChangedDensity ? DENSITY_HIDDEN : false}
-                        animate={DENSITY_VISIBLE}
-                        exit={DENSITY_HIDDEN}
-                        transition={DENSITY_TRANSITION}
-                        onClick={() => selectDesktopDensity(density)}
-                      >
-                        {density} x {density}
-                      </motion.button>
-                    </AnimatePresence>
-                  </div>
+                  <motion.button
+                    layout="position"
+                    key={density}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked="false"
+                    tabIndex={isDensityMenuOpen ? 0 : -1}
+                    className={`work-density-option${
+                      isDensityMenuOpen ? (hasChangedDensity ? "" : " is-opening") : " is-closing"
+                    }`}
+                    style={
+                      {
+                        "--density-option-index": densityOptions.length - 1 - index,
+                        "--density-option-exit-index": index,
+                      } as CSSProperties
+                    }
+                    initial={hasChangedDensity ? DENSITY_HIDDEN : false}
+                    animate={DENSITY_VISIBLE}
+                    exit={DENSITY_HIDDEN}
+                    transition={DENSITY_TRANSITION}
+                    onClick={() => selectDesktopDensity(density)}
+                  >
+                    {density} x {density}
+                  </motion.button>
                 ))}
-              </div>
-            ) : null}
+              </AnimatePresence>
+            </div>
+          ) : null}
 
           <button
             type="button"
@@ -215,8 +283,10 @@ export function ProjectWork() {
             aria-label={isMobile ? `Switch to ${mobileColumns === 1 ? 2 : 1} column grid` : "Grid density"}
             onClick={toggleMobileGrid}
           >
-            <span className="work-control-square" aria-hidden="true" />
-            <GridGlyphLabel text={gridLabel} />
+            <GridGlyphControl
+              text={gridLabel}
+              reserveScrambleWidth={isGridLabelTransitioning}
+            />
           </button>
         </div>
       </div>
