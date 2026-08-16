@@ -306,6 +306,17 @@
 .work-control {
   gap: 4px;
   padding: 0 2px 0 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.work-control:focus-visible {
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
 }
 
 .work-control img,
@@ -353,7 +364,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: default;
+  cursor: pointer;
   outline: none;
 }
 
@@ -368,11 +379,28 @@
   display: block;
   overflow: hidden;
   transition:
-    width 220ms ease,
-    height 220ms ease,
-    left 220ms ease,
-    top 220ms ease,
-    border-radius 220ms ease;
+    width 340ms cubic-bezier(0.45, 0, 0.55, 1),
+    height 340ms cubic-bezier(0.45, 0, 0.55, 1),
+    left 340ms cubic-bezier(0.45, 0, 0.55, 1),
+    top 340ms cubic-bezier(0.45, 0, 0.55, 1),
+    border-width 260ms cubic-bezier(0.45, 0, 0.55, 1),
+    border-radius 340ms cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: width, height, left, top, filter;
+}
+
+.identity-spotify.is-switching .identity-avatar,
+.identity-spotify.is-switching .identity-album {
+  animation: identity-layer-switch-blur 360ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@keyframes identity-layer-switch-blur {
+  0%, 100% {
+    filter: blur(0);
+  }
+
+  48% {
+    filter: blur(1px);
+  }
 }
 
 .identity-avatar {
@@ -380,6 +408,7 @@
   left: 9px;
   width: 43px;
   height: 43px;
+  border: 0 solid #fff;
   border-radius: 999px;
   background: #ebebeb;
 }
@@ -399,7 +428,7 @@
   left: 0;
   width: 28px;
   height: 28px;
-  border: 1px solid #fff;
+  border: 2px solid #fff;
   border-radius: 10px;
   background: #f5f5f5;
 }
@@ -417,13 +446,20 @@
   justify-content: center;
   overflow: hidden;
   opacity: 0;
-  transform: translateX(-6px);
+  filter: blur(1.5px);
+  transform: translateX(-4px) scale(0.98);
+  transform-origin: left center;
   white-space: nowrap;
   font-family: var(--font-oracle);
   font-weight: 400;
   line-height: 1.35;
   pointer-events: none;
-  transition: width 260ms ease, opacity 180ms ease, transform 260ms ease;
+  transition:
+    width 340ms cubic-bezier(0.45, 0, 0.55, 1),
+    opacity 220ms ease-out,
+    filter 280ms ease-out,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width, opacity, filter, transform;
 }
 
 .identity-status {
@@ -436,6 +472,66 @@
   color: #1ed760;
 }
 
+.identity-status-dots {
+  display: inline-flex;
+}
+
+.identity-status-dot {
+  display: inline-block;
+  transform-origin: center bottom;
+  animation-duration: 1.6s;
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: infinite;
+}
+
+.identity-status-dot:nth-child(1) {
+  animation-name: identity-status-dot-one;
+}
+
+.identity-status-dot:nth-child(2) {
+  animation-name: identity-status-dot-two;
+}
+
+.identity-status-dot:nth-child(3) {
+  animation-name: identity-status-dot-three;
+}
+
+@keyframes identity-status-dot-one {
+  0%, 74.99% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  75%, 100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes identity-status-dot-two {
+  0%, 24.99%, 75%, 100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  25%, 74.99% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes identity-status-dot-three {
+  0%, 49.99%, 75%, 100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  50%, 74.99% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .identity-song-line {
   overflow: hidden;
   font-size: 15px;
@@ -445,6 +541,10 @@
 }
 
 .identity-artist {
+  color: #555;
+}
+
+.identity-track-separator {
   color: #555;
 }
 
@@ -464,14 +564,15 @@
     left: 9px;
     width: 43px;
     height: 43px;
-    border: 0;
+    border-width: 0;
     border-radius: 12px;
   }
 
   .identity-spotify:hover .identity-track {
     width: min(300px, calc(100vw - 70px));
     opacity: 1;
-    transform: translateX(0);
+    filter: blur(0);
+    transform: translateX(0) scale(1);
     pointer-events: auto;
   }
 }
@@ -618,7 +719,7 @@
   .identity-album {
     width: 24px;
     height: 24px;
-    border-width: 1px;
+    border-width: 1.5px;
     border-radius: 8px;
   }
 
@@ -641,14 +742,15 @@
     left: 8px;
     width: 36px;
     height: 36px;
-    border: 0;
+    border-width: 0;
     border-radius: 10px;
   }
 
   .identity-spotify.is-tapped .identity-track {
     width: calc(100vw - 76px);
     opacity: 1;
-    transform: translateX(0);
+    filter: blur(0);
+    transform: translateX(0) scale(1);
     pointer-events: auto;
   }
 
@@ -695,14 +797,30 @@
     left: 8px;
     width: 36px;
     height: 36px;
-    border: 0;
+    border-width: 0;
     border-radius: 10px;
   }
 
   .identity-spotify:hover .identity-track {
     width: calc(100vw - 76px);
     opacity: 1;
-    transform: translateX(0);
+    filter: blur(0);
+    transform: translateX(0) scale(1);
     pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .identity-avatar,
+  .identity-album,
+  .identity-track {
+    animation: none;
+    transition-duration: 1ms;
+  }
+
+  .identity-status-dot {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 }

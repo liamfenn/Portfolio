@@ -7,7 +7,7 @@ const CONTACT_LINKS = [
   { label: "Twitter", href: "https://x.com/xyzfennell" },
   { label: "Instagram", href: "https://instagram.com/lliamfennell" },
   { label: "Cosmos", href: "https://cosmos.so/notliam" },
-  { label: "Github", href: "https://github.com/liamfenn" },
+  { label: "Github", href: "https://github.com/lliamfennell" },
 ];
 
 function ContactLinks({ mobile = false }: { mobile?: boolean }) {
@@ -34,19 +34,19 @@ function WorkToolbar() {
   return (
     <div className="work-toolbar" aria-label="Project display controls">
       <div className="work-toolbar-group">
-        <span className="work-control">
+        <button type="button" className="work-control">
           <Image src="/images/icons/filter-v2.svg" alt="" width={10} height={10} />
           Filter
-        </span>
-        <span className="work-control">
+        </button>
+        <button type="button" className="work-control">
           <span className="work-control-square" aria-hidden="true" />
           Sort
-        </span>
+        </button>
       </div>
-      <span className="work-control">
+      <button type="button" className="work-control" role="switch" aria-checked="true">
         <span className="work-control-square" aria-hidden="true" />
         Grid
-      </span>
+      </button>
     </div>
   );
 }
@@ -79,11 +79,29 @@ export default function Home() {
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
           <p className="portfolio-bio">
             <strong>Liam Fennell</strong> is a designer based in Atlanta, currently working with the talented team at{" "}
-            <strong>Shop</strong>, creating commerce &amp; discovery experiences for millions of users.
+            <a className="portfolio-link-strong" href="https://shop.app" target="_blank" rel="noreferrer">
+              Shop
+            </a>
+            , creating commerce &amp; discovery experiences for millions of users.
             <br />
             <br />
-            Previously at <strong>OpenPurpose</strong> where he designed interfaces for <strong>Bird</strong>,{" "}
-            <strong>Plasticity</strong>, <strong>Azura</strong> &amp; more.
+            Previously at{" "}
+            <a className="portfolio-link-strong" href="https://openpurpose.com" target="_blank" rel="noreferrer">
+              OpenPurpose
+            </a>{" "}
+            where he designed interfaces for{" "}
+            <a className="portfolio-link-strong" href="https://bird.com" target="_blank" rel="noreferrer">
+              Bird
+            </a>
+            ,{" "}
+            <a className="portfolio-link-strong" href="https://plasticity.xyz" target="_blank" rel="noreferrer">
+              Plasticity
+            </a>
+            ,{" "}
+            <a className="portfolio-link-strong" href="https://azura.xyz" target="_blank" rel="noreferrer">
+              Azura
+            </a>{" "}
+            &amp; more.
           </p>
         </div>
         <ContactLinks />
