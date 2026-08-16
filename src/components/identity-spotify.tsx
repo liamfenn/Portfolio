@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
-const SWITCH_MOTION_MS = 400;
+const SWITCH_MOTION_MS = 420;
 type ShuffleOrientation = "over" | "under";
 
 const SHUFFLE_KEYFRAMES: Keyframe[] = [
@@ -13,37 +13,43 @@ const SHUFFLE_KEYFRAMES: Keyframe[] = [
     offset: 0,
     opacity: 1,
     zIndex: 3,
-    transform: "translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)",
+    transform:
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) scaleX(1) scaleY(1)",
   },
   {
-    offset: 0.28,
+    offset: 0.26,
     opacity: 0.99,
     zIndex: 3,
-    transform: "translate3d(-4px, -5px, 7px) rotateY(-7deg) rotateZ(-3deg)",
+    transform:
+      "translate3d(-6px, -8px, 8px) rotateX(3deg) rotateY(-8deg) rotateZ(-3deg) skewX(-2deg) scaleX(0.98) scaleY(1.01)",
   },
   {
     offset: 0.49,
     opacity: 0.96,
     zIndex: 3,
-    transform: "translate3d(-9px, 0, 13px) rotateY(-16deg) rotateZ(-6deg)",
+    transform:
+      "translate3d(-14px, -2px, 18px) rotateX(8deg) rotateY(-20deg) rotateZ(-7deg) skewX(-6deg) scaleX(0.94) scaleY(1.03)",
   },
   {
     offset: 0.51,
     opacity: 0.96,
     zIndex: 1,
-    transform: "translate3d(-9px, 0, 13px) rotateY(-16deg) rotateZ(-6deg)",
+    transform:
+      "translate3d(-14px, -2px, 18px) rotateX(8deg) rotateY(-20deg) rotateZ(-7deg) skewX(-6deg) scaleX(0.94) scaleY(1.03)",
   },
   {
-    offset: 0.72,
+    offset: 0.74,
     opacity: 0.99,
     zIndex: 1,
-    transform: "translate3d(-4px, 5px, 6px) rotateY(-7deg) rotateZ(-3deg)",
+    transform:
+      "translate3d(-6px, 6px, 7px) rotateX(3deg) rotateY(-7deg) rotateZ(-3deg) skewX(-2deg) scaleX(0.98) scaleY(1.01)",
   },
   {
     offset: 1,
     opacity: 1,
     zIndex: 1,
-    transform: "translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)",
+    transform:
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) scaleX(1) scaleY(1)",
   },
 ];
 
@@ -249,19 +255,31 @@ export function IdentitySpotify() {
       onPointerLeave={triggerHoverOutMotion}
     >
       <div className="identity-artwork">
-        <span ref={avatarRef} className="identity-avatar" aria-hidden="true">
-          <Image
-            src="/images/profile-v2.png"
-            alt=""
-            width={1536}
-            height={1920}
-            priority
-          />
+        <span
+          ref={avatarRef}
+          className="identity-card-motion identity-avatar-motion"
+          aria-hidden="true"
+        >
+          <span className="identity-avatar">
+            <Image
+              src="/images/profile-v2.png"
+              alt=""
+              width={1536}
+              height={1920}
+              priority
+            />
+          </span>
         </span>
-        <span ref={albumRef} className="identity-album" aria-hidden="true">
-          {data?.albumImageUrl ? (
-            <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
-          ) : null}
+        <span
+          ref={albumRef}
+          className="identity-card-motion identity-album-motion"
+          aria-hidden="true"
+        >
+          <span className="identity-album">
+            {data?.albumImageUrl ? (
+              <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
+            ) : null}
+          </span>
         </span>
         {data ? (
           <a

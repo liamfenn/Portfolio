@@ -393,34 +393,52 @@
   outline-offset: 2px;
 }
 
-.identity-avatar,
-.identity-album {
-  --identity-artwork-front-stroke-width: 2px;
+.identity-card-motion {
+  --identity-small-scale: 0.651163;
+  --identity-stack-offset: 9px;
+  --identity-artwork-front-stroke-width: 3.071px;
   --identity-artwork-back-stroke-width: 1px;
   position: absolute;
+  top: 0;
+  left: 0;
   display: block;
-  overflow: hidden;
+  width: 43px;
+  height: 43px;
+  overflow: visible;
   backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-  transform-origin: 68% 68%;
+  transform-origin: 65.1163% 65.1163%;
+}
+
+.identity-avatar-motion {
+  z-index: 1;
+}
+
+.identity-album-motion {
+  z-index: 2;
+}
+
+.identity-avatar,
+.identity-album {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transform-origin: 0 0;
   transition:
-    width 400ms cubic-bezier(0.45, 0, 0.2, 1),
-    height 400ms cubic-bezier(0.45, 0, 0.2, 1),
-    left 400ms cubic-bezier(0.45, 0, 0.2, 1),
-    top 400ms cubic-bezier(0.45, 0, 0.2, 1),
-    border-radius 400ms cubic-bezier(0.45, 0, 0.2, 1),
-    box-shadow 400ms cubic-bezier(0.45, 0, 0.2, 1);
+    transform 420ms cubic-bezier(0.45, 0, 0.2, 1),
+    border-radius 420ms cubic-bezier(0.45, 0, 0.2, 1),
+    box-shadow 420ms cubic-bezier(0.45, 0, 0.2, 1);
 }
 
 .identity-avatar {
-  top: 9px;
-  left: 9px;
-  width: 43px;
-  height: 43px;
+  overflow: hidden;
   border: 0;
   border-radius: 999px;
   background: #ebebeb;
   box-shadow: 0 0 0 var(--identity-artwork-back-stroke-width) #fff;
+  transform: translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1);
 }
 
 .identity-avatar img {
@@ -433,16 +451,12 @@
 }
 
 .identity-album {
-  z-index: 2;
-  top: 0;
-  left: 0;
-  width: 28px;
-  height: 28px;
   overflow: visible;
   border: 0;
-  border-radius: 10px;
+  border-radius: 15.35px;
   background: #f5f5f5;
   box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
+  transform: translate3d(0, 0, 0) scale(var(--identity-small-scale));
 }
 
 .identity-album img {
@@ -597,23 +611,23 @@
 }
 
 @media (hover: hover) {
-  .identity-spotify.is-hovered .identity-avatar {
+  .identity-spotify.is-hovered .identity-avatar-motion {
     z-index: 2;
-    top: 0;
-    left: 0;
-    width: 28px;
-    height: 28px;
+  }
+
+  .identity-spotify.is-hovered .identity-album-motion {
+    z-index: 1;
+  }
+
+  .identity-spotify.is-hovered .identity-avatar {
     box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
+    transform: translate3d(0, 0, 0) scale(var(--identity-small-scale));
   }
 
   .identity-spotify.is-hovered .identity-album {
-    z-index: 1;
-    top: 9px;
-    left: 9px;
-    width: 43px;
-    height: 43px;
     border-radius: 12px;
     box-shadow: 0 0 0 var(--identity-artwork-back-stroke-width) #fff;
+    transform: translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1);
   }
 
   .identity-spotify.is-hovered .identity-track {
@@ -768,44 +782,41 @@
     flex-basis: 44px;
   }
 
-  .identity-avatar {
-    --identity-artwork-front-stroke-width: 1.5px;
+  .identity-card-motion {
+    --identity-small-scale: 0.666667;
+    --identity-stack-offset: 8px;
+    --identity-artwork-front-stroke-width: 2.25px;
     --identity-artwork-back-stroke-width: 0.75px;
-    top: 8px;
-    left: 8px;
     width: 36px;
     height: 36px;
+    transform-origin: 66.6667% 66.6667%;
   }
 
   .identity-album {
-    --identity-artwork-front-stroke-width: 1.5px;
-    --identity-artwork-back-stroke-width: 0.75px;
-    width: 24px;
-    height: 24px;
-    border-radius: 8px;
+    border-radius: 12px;
   }
 
   .identity-spotify.is-tapped {
     width: 100%;
   }
 
-  .identity-spotify.is-tapped .identity-avatar {
+  .identity-spotify.is-tapped .identity-avatar-motion {
     z-index: 2;
-    top: 0;
-    left: 0;
-    width: 24px;
-    height: 24px;
+  }
+
+  .identity-spotify.is-tapped .identity-album-motion {
+    z-index: 1;
+  }
+
+  .identity-spotify.is-tapped .identity-avatar {
     box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
+    transform: translate3d(0, 0, 0) scale(var(--identity-small-scale));
   }
 
   .identity-spotify.is-tapped .identity-album {
-    z-index: 1;
-    top: 8px;
-    left: 8px;
-    width: 36px;
-    height: 36px;
     border-radius: 10px;
     box-shadow: 0 0 0 var(--identity-artwork-back-stroke-width) #fff;
+    transform: translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1);
   }
 
   .identity-track-content {
@@ -913,23 +924,23 @@
     width: 100%;
   }
 
-  .identity-spotify.is-hovered .identity-avatar {
+  .identity-spotify.is-hovered .identity-avatar-motion {
     z-index: 2;
-    top: 0;
-    left: 0;
-    width: 24px;
-    height: 24px;
+  }
+
+  .identity-spotify.is-hovered .identity-album-motion {
+    z-index: 1;
+  }
+
+  .identity-spotify.is-hovered .identity-avatar {
     box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
+    transform: translate3d(0, 0, 0) scale(var(--identity-small-scale));
   }
 
   .identity-spotify.is-hovered .identity-album {
-    z-index: 1;
-    top: 8px;
-    left: 8px;
-    width: 36px;
-    height: 36px;
     border-radius: 10px;
     box-shadow: 0 0 0 var(--identity-artwork-back-stroke-width) #fff;
+    transform: translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1);
   }
 
   .identity-spotify.is-hovered .identity-track {
