@@ -398,6 +398,8 @@
   --identity-stack-offset: 9px;
   --identity-artwork-front-stroke-width: 3.071px;
   --identity-artwork-back-stroke-width: 1px;
+  --identity-album-front-radius: 15.35px;
+  --identity-album-back-radius: 12px;
   position: absolute;
   top: 0;
   left: 0;
@@ -426,10 +428,6 @@
   height: 100%;
   backface-visibility: hidden;
   transform-origin: 0 0;
-  transition:
-    transform 420ms cubic-bezier(0.45, 0, 0.2, 1),
-    border-radius 420ms cubic-bezier(0.45, 0, 0.2, 1),
-    box-shadow 420ms cubic-bezier(0.45, 0, 0.2, 1);
 }
 
 .identity-avatar {
@@ -453,7 +451,7 @@
 .identity-album {
   overflow: visible;
   border: 0;
-  border-radius: 15.35px;
+  border-radius: var(--identity-album-front-radius);
   background: #f5f5f5;
   box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
   transform: translate3d(0, 0, 0) scale(var(--identity-small-scale));
@@ -787,13 +785,11 @@
     --identity-stack-offset: 8px;
     --identity-artwork-front-stroke-width: 2.25px;
     --identity-artwork-back-stroke-width: 0.75px;
+    --identity-album-front-radius: 12px;
+    --identity-album-back-radius: 10px;
     width: 36px;
     height: 36px;
     transform-origin: 66.6667% 66.6667%;
-  }
-
-  .identity-album {
-    border-radius: 12px;
   }
 
   .identity-spotify.is-tapped {

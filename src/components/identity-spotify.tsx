@@ -5,52 +5,106 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
-const SWITCH_MOTION_MS = 420;
+const SWITCH_MOTION_MS = 480;
 type ShuffleOrientation = "over" | "under";
+
+type ShuffleAnimationGroup = {
+  animations: Animation[];
+  motion: Animation;
+};
 
 const SHUFFLE_KEYFRAMES: Keyframe[] = [
   {
     offset: 0,
     opacity: 1,
-    zIndex: 3,
+    easing: "cubic-bezier(0.45, 0, 0.55, 1)",
     transform:
-      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) scaleX(1) scaleY(1)",
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) skewY(0deg) scaleX(1) scaleY(1)",
   },
   {
-    offset: 0.26,
+    offset: 0.2,
     opacity: 0.99,
-    zIndex: 3,
+    easing: "cubic-bezier(0.4, 0, 0.6, 1)",
     transform:
-      "translate3d(-6px, -8px, 8px) rotateX(3deg) rotateY(-8deg) rotateZ(-3deg) skewX(-2deg) scaleX(0.98) scaleY(1.01)",
+      "translate3d(-8px, -9px, 10px) rotateX(6deg) rotateY(-14deg) rotateZ(-5deg) skewX(-4deg) skewY(1deg) scaleX(0.96) scaleY(1.03)",
   },
   {
-    offset: 0.49,
-    opacity: 0.96,
-    zIndex: 3,
+    offset: 0.36,
+    opacity: 0.94,
+    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
     transform:
-      "translate3d(-14px, -2px, 18px) rotateX(8deg) rotateY(-20deg) rotateZ(-7deg) skewX(-6deg) scaleX(0.94) scaleY(1.03)",
+      "translate3d(-20px, -11px, 28px) rotateX(18deg) rotateY(-38deg) rotateZ(-12deg) skewX(-14deg) skewY(5deg) scaleX(0.82) scaleY(1.11)",
   },
   {
-    offset: 0.51,
-    opacity: 0.96,
-    zIndex: 1,
+    offset: 0.56,
+    opacity: 0.97,
+    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
     transform:
-      "translate3d(-14px, -2px, 18px) rotateX(8deg) rotateY(-20deg) rotateZ(-7deg) skewX(-6deg) scaleX(0.94) scaleY(1.03)",
+      "translate3d(-3px, -1px, 6px) rotateX(5deg) rotateY(-10deg) rotateZ(-4deg) skewX(-4deg) skewY(1deg) scaleX(0.96) scaleY(1.03)",
   },
   {
-    offset: 0.74,
+    offset: 0.76,
     opacity: 0.99,
-    zIndex: 1,
+    easing: "cubic-bezier(0.2, 0, 0.2, 1)",
     transform:
-      "translate3d(-6px, 6px, 7px) rotateX(3deg) rotateY(-7deg) rotateZ(-3deg) skewX(-2deg) scaleX(0.98) scaleY(1.01)",
+      "translate3d(-5px, 5px, 5px) rotateX(3deg) rotateY(-7deg) rotateZ(-3deg) skewX(-2deg) skewY(0deg) scaleX(0.98) scaleY(1.01)",
   },
   {
     offset: 1,
     opacity: 1,
-    zIndex: 1,
     transform:
-      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) scaleX(1) scaleY(1)",
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) skewY(0deg) scaleX(1) scaleY(1)",
   },
+];
+
+const AVATAR_GEOMETRY_KEYFRAMES: Keyframe[] = [
+  {
+    transform:
+      "translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1)",
+  },
+  {
+    transform: "translate3d(0, 0, 0) scale(var(--identity-small-scale))",
+  },
+];
+
+const ALBUM_GEOMETRY_KEYFRAMES: Keyframe[] = [
+  {
+    borderRadius: "var(--identity-album-front-radius)",
+    transform: "translate3d(0, 0, 0) scale(var(--identity-small-scale))",
+  },
+  {
+    borderRadius: "var(--identity-album-back-radius)",
+    transform:
+      "translate3d(var(--identity-stack-offset), var(--identity-stack-offset), 0) scale(1)",
+  },
+];
+
+const AVATAR_STROKE_KEYFRAMES: Keyframe[] = [
+  { offset: 0, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+  { offset: 0.5, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+  { offset: 0.62, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+  { offset: 1, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+];
+
+const ALBUM_STROKE_KEYFRAMES: Keyframe[] = [
+  { offset: 0, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+  { offset: 0.5, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+  { offset: 0.62, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+  { offset: 1, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+];
+
+const AVATAR_PLANE_KEYFRAMES: Keyframe[] = [
+  { offset: 0, zIndex: 1 },
+  { offset: 0.559, zIndex: 1 },
+  { offset: 0.56, zIndex: 2 },
+  { offset: 1, zIndex: 2 },
+];
+
+const ALBUM_PLANE_KEYFRAMES: Keyframe[] = [
+  { offset: 0, zIndex: 3 },
+  { offset: 0.559, zIndex: 3 },
+  { offset: 0.56, zIndex: 1 },
+  { offset: 1, zIndex: 1 },
 ];
 
 export function IdentitySpotify() {
@@ -64,14 +118,16 @@ export function IdentitySpotify() {
   const hoverExitTimer = useRef<number | null>(null);
   const avatarRef = useRef<HTMLSpanElement>(null);
   const albumRef = useRef<HTMLSpanElement>(null);
-  const shuffleAnimationRef = useRef<Animation | null>(null);
+  const avatarSurfaceRef = useRef<HTMLSpanElement>(null);
+  const albumSurfaceRef = useRef<HTMLSpanElement>(null);
+  const shuffleAnimationRef = useRef<ShuffleAnimationGroup | null>(null);
   const shuffleIntentRef = useRef<"album" | "avatar" | null>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     return () => {
-      shuffleAnimationRef.current?.cancel();
+      shuffleAnimationRef.current?.animations.forEach((animation) => animation.cancel());
 
       if (hoverExitTimer.current !== null) {
         window.clearTimeout(hoverExitTimer.current);
@@ -106,7 +162,7 @@ export function IdentitySpotify() {
       }
 
       event.preventDefault();
-      shuffleAnimationRef.current?.cancel();
+      shuffleAnimationRef.current?.animations.forEach((animation) => animation.cancel());
       shuffleAnimationRef.current = null;
       shuffleIntentRef.current = null;
       setShuffleOrientation((current) => (current === "over" ? "under" : "over"));
@@ -152,7 +208,7 @@ export function IdentitySpotify() {
 
   const triggerSwitchMotion = (backLayer: "album" | "avatar") => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      shuffleAnimationRef.current?.cancel();
+      shuffleAnimationRef.current?.animations.forEach((animation) => animation.cancel());
       shuffleAnimationRef.current = null;
       shuffleIntentRef.current = null;
       return;
@@ -161,12 +217,12 @@ export function IdentitySpotify() {
     const activeAnimation = shuffleAnimationRef.current;
     if (
       activeAnimation &&
-      activeAnimation.playState !== "finished" &&
-      activeAnimation.playState !== "idle"
+      activeAnimation.motion.playState !== "finished" &&
+      activeAnimation.motion.playState !== "idle"
     ) {
       if (shuffleIntentRef.current !== backLayer) {
         shuffleIntentRef.current = backLayer;
-        activeAnimation.reverse();
+        activeAnimation.animations.forEach((animation) => animation.reverse());
       }
       return;
     }
@@ -179,21 +235,48 @@ export function IdentitySpotify() {
         : backLayer === "album"
           ? avatarRef.current
           : albumRef.current;
-    if (!movingLayer) {
+    const avatarLayer = avatarRef.current;
+    const albumLayer = albumRef.current;
+    const avatarSurface = avatarSurfaceRef.current;
+    const albumSurface = albumSurfaceRef.current;
+    if (!movingLayer || !avatarLayer || !albumLayer || !avatarSurface || !albumSurface) {
       return;
     }
 
-    const animation = movingLayer.animate(SHUFFLE_KEYFRAMES, {
+    const direction = backLayer === "album" ? "normal" : "reverse";
+    const sharedOptions: KeyframeAnimationOptions = {
+      duration: SWITCH_MOTION_MS,
+      direction,
+      fill: "both",
+      easing: "cubic-bezier(0.45, 0, 0.2, 1)",
+    };
+    const stagedOptions: KeyframeAnimationOptions = {
+      duration: SWITCH_MOTION_MS,
+      direction,
+      fill: "both",
+      easing: "linear",
+    };
+    const motion = movingLayer.animate(SHUFFLE_KEYFRAMES, {
       duration: SWITCH_MOTION_MS,
       direction: shuffleOrientation === "under" ? "reverse" : "normal",
-      easing: "cubic-bezier(0.45, 0, 0.2, 1)",
+      fill: "both",
+      easing: "linear",
     });
+    const animations = [
+      motion,
+      avatarSurface.animate(AVATAR_GEOMETRY_KEYFRAMES, sharedOptions),
+      albumSurface.animate(ALBUM_GEOMETRY_KEYFRAMES, sharedOptions),
+      avatarSurface.animate(AVATAR_STROKE_KEYFRAMES, stagedOptions),
+      albumSurface.animate(ALBUM_STROKE_KEYFRAMES, stagedOptions),
+      avatarLayer.animate(AVATAR_PLANE_KEYFRAMES, stagedOptions),
+      albumLayer.animate(ALBUM_PLANE_KEYFRAMES, stagedOptions),
+    ];
 
-    shuffleAnimationRef.current = animation;
+    shuffleAnimationRef.current = { animations, motion };
     shuffleIntentRef.current = backLayer;
-    animation.onfinish = () => {
-      if (shuffleAnimationRef.current === animation) {
-        animation.cancel();
+    motion.onfinish = () => {
+      if (shuffleAnimationRef.current?.motion === motion) {
+        animations.forEach((animation) => animation.cancel());
         shuffleAnimationRef.current = null;
         shuffleIntentRef.current = null;
       }
@@ -260,7 +343,7 @@ export function IdentitySpotify() {
           className="identity-card-motion identity-avatar-motion"
           aria-hidden="true"
         >
-          <span className="identity-avatar">
+          <span ref={avatarSurfaceRef} className="identity-avatar">
             <Image
               src="/images/profile-v2.png"
               alt=""
@@ -275,7 +358,7 @@ export function IdentitySpotify() {
           className="identity-card-motion identity-album-motion"
           aria-hidden="true"
         >
-          <span className="identity-album">
+          <span ref={albumSurfaceRef} className="identity-album">
             {data?.albumImageUrl ? (
               <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
             ) : null}
