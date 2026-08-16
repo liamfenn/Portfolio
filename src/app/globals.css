@@ -415,7 +415,24 @@
   }
 
   48% {
-    filter: blur(1px);
+    filter: blur(0.6px);
+  }
+}
+
+.identity-spotify.is-album-to-back .identity-album,
+.identity-spotify.is-avatar-to-back .identity-avatar {
+  animation:
+    identity-layer-switch-blur 360ms cubic-bezier(0.45, 0, 0.55, 1),
+    identity-back-layer-fade 360ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@keyframes identity-back-layer-fade {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  48% {
+    opacity: 0.84;
   }
 }
 
@@ -459,23 +476,33 @@
   min-width: 0;
   padding-bottom: 1px;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   overflow: hidden;
-  opacity: 0;
-  filter: blur(1.5px);
-  transform: translateX(-4px) scale(0.98);
-  transform-origin: left center;
   white-space: nowrap;
   font-family: var(--font-oracle);
   font-weight: 400;
   line-height: 1.35;
   pointer-events: none;
+  transition: width 360ms cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: width;
+}
+
+.identity-track-content {
+  display: flex;
+  width: max-content;
+  min-width: max-content;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  filter: blur(2px);
+  transform: translateX(-10px) scale(0.96);
+  transform-origin: left center;
   transition:
-    width 340ms cubic-bezier(0.45, 0, 0.55, 1),
-    opacity 220ms ease-out,
-    filter 280ms ease-out,
-    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: width, opacity, filter, transform;
+    opacity 280ms ease-out,
+    filter 360ms ease-out,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, filter, transform;
 }
 
 .identity-status {
@@ -591,10 +618,14 @@
 
   .identity-spotify:hover .identity-track {
     width: min(300px, calc(100vw - 72px));
+    pointer-events: auto;
+  }
+
+  .identity-spotify:hover .identity-track-content {
     opacity: 1;
     filter: blur(0);
     transform: translateX(0) scale(1);
-    pointer-events: auto;
+    transition-delay: 50ms, 35ms, 25ms;
   }
 }
 
@@ -768,10 +799,14 @@
 
   .identity-spotify.is-tapped .identity-track {
     width: calc(100vw - 78px);
+    pointer-events: auto;
+  }
+
+  .identity-spotify.is-tapped .identity-track-content {
     opacity: 1;
     filter: blur(0);
     transform: translateX(0) scale(1);
-    pointer-events: auto;
+    transition-delay: 50ms, 35ms, 25ms;
   }
 
   .identity-status {
@@ -833,9 +868,6 @@
 
   .identity-spotify:hover .identity-track {
     width: calc(100vw - 78px);
-    opacity: 1;
-    filter: blur(0);
-    transform: translateX(0) scale(1);
     pointer-events: auto;
   }
 }
@@ -843,7 +875,8 @@
 @media (prefers-reduced-motion: reduce) {
   .identity-avatar,
   .identity-album,
-  .identity-track {
+  .identity-track,
+  .identity-track-content {
     animation: none;
     transition-duration: 1ms;
   }

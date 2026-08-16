@@ -7,7 +7,7 @@ import { useSpotify } from "@/hooks/use-spotify";
 export function IdentitySpotify() {
   const { data } = useSpotify();
   const [isTapped, setIsTapped] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false);
+  const [switchingBackLayer, setSwitchingBackLayer] = useState<"album" | "avatar" | null>(null);
   const switchFrame = useRef<number | null>(null);
   const switchTimer = useRef<number | null>(null);
 
@@ -23,12 +23,12 @@ export function IdentitySpotify() {
     };
   }, []);
 
-  const triggerSwitchMotion = () => {
+  const triggerSwitchMotion = (backLayer: "album" | "avatar") => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
 
-    setIsSwitching(false);
+    setSwitchingBackLayer(null);
 
     if (switchFrame.current !== null) {
       cancelAnimationFrame(switchFrame.current);
@@ -39,21 +39,27 @@ export function IdentitySpotify() {
     }
 
     switchFrame.current = requestAnimationFrame(() => {
-      setIsSwitching(true);
-      switchTimer.current = window.setTimeout(() => setIsSwitching(false), 360);
+      setSwitchingBackLayer(backLayer);
+      switchTimer.current = window.setTimeout(() => setSwitchingBackLayer(null), 360);
     });
   };
 
   const toggleMobileState = () => {
     if (window.matchMedia("(hover: none)").matches) {
-      triggerSwitchMotion();
+      triggerSwitchMotion(isTapped ? "avatar" : "album");
       setIsTapped((current) => !current);
     }
   };
 
-  const triggerHoverMotion = () => {
+  const triggerHoverInMotion = () => {
     if (window.matchMedia("(hover: hover)").matches) {
-      triggerSwitchMotion();
+      triggerSwitchMotion("album");
+    }
+  };
+
+  const triggerHoverOutMotion = () => {
+    if (window.matchMedia("(hover: hover)").matches) {
+      triggerSwitchMotion("avatar");
     }
   };
 
@@ -61,9 +67,9 @@ export function IdentitySpotify() {
 
   return (
     <div
-      className={`identity-spotify${isTapped ? " is-tapped" : ""}${isSwitching ? " is-switching" : ""}`}
-      onPointerEnter={triggerHoverMotion}
-      onPointerLeave={triggerHoverMotion}
+      className={`identity-spotify${isTapped ? " is-tapped" : ""}${switchingBackLayer ? ` is-switching is-${switchingBackLayer}-to-back` : ""}`}
+      onPointerEnter={triggerHoverInMotion}
+      onPointerLeave={triggerHoverOutMotion}
     >
       <div className="identity-artwork">
         <span className="identity-avatar" aria-hidden="true">
@@ -106,21 +112,23 @@ export function IdentitySpotify() {
           rel="noreferrer"
           aria-label={`Open ${data.title} by ${data.artist} in Spotify`}
         >
-          <span
-            className={data.isPlaying ? "identity-status is-live" : "identity-status"}
-            aria-label={`${status}...`}
-          >
-            {status}
-            <span className="identity-status-dots" aria-hidden="true">
-              <span className="identity-status-dot">.</span>
-              <span className="identity-status-dot">.</span>
-              <span className="identity-status-dot">.</span>
+          <span className="identity-track-content">
+            <span
+              className={data.isPlaying ? "identity-status is-live" : "identity-status"}
+              aria-label={`${status}...`}
+            >
+              {status}
+              <span className="identity-status-dots" aria-hidden="true">
+                <span className="identity-status-dot">.</span>
+                <span className="identity-status-dot">.</span>
+                <span className="identity-status-dot">.</span>
+              </span>
             </span>
-          </span>
-          <span className="identity-song-line">
-            <span>{data.title}</span>
-            <span className="identity-track-separator" aria-hidden="true">•</span>
-            <span className="identity-artist">{data.artist}</span>
+            <span className="identity-song-line">
+              <span>{data.title}</span>
+              <span className="identity-track-separator" aria-hidden="true">•</span>
+              <span className="identity-artist">{data.artist}</span>
+            </span>
           </span>
         </a>
       ) : null}
