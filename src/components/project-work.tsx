@@ -3,10 +3,14 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
+const GRID_LABEL_GLYPHS = Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789").map(
+  (glyph) => glyph.charCodeAt(0),
+) as [number, number, ...number[]];
 
 const DENSITY_TRANSITION = {
   duration: 0.28,
@@ -46,6 +50,29 @@ const DENSITY_MENU_SLOT_VARIANTS = {
     },
   },
 } as const;
+
+function GridGlyphLabel({ text }: { text: string }) {
+  const { ref } = useScramble({
+    text,
+    playOnMount: false,
+    speed: 0.58,
+    tick: 1,
+    step: 1,
+    scramble: 4,
+    seed: 2,
+    chance: 1,
+    range: GRID_LABEL_GLYPHS,
+    overdrive: false,
+    overflow: true,
+    ignore: [" "],
+  });
+
+  return (
+    <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
+      {text}
+    </span>
+  );
+}
 
 export function ProjectWork() {
   const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
@@ -101,6 +128,13 @@ export function ProjectWork() {
   };
 
   const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
+  const gridLabel = isMobile
+    ? mobileColumns === 2
+      ? "List"
+      : "Grid"
+    : isDensityMenuOpen
+      ? `${desktopDensity} x ${desktopDensity}`
+      : "Grid";
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
@@ -184,23 +218,7 @@ export function ProjectWork() {
             onClick={toggleMobileGrid}
           >
             <span className="work-control-square" aria-hidden="true" />
-            {isDensityMenuOpen ? (
-              <span className="work-density-current">
-                <AnimatePresence initial={false} mode="popLayout">
-                  <motion.span
-                    key={desktopDensity}
-                    initial={hasChangedDensity ? DENSITY_HIDDEN : false}
-                    animate={DENSITY_VISIBLE}
-                    exit={hasChangedDensity ? DENSITY_HIDDEN : undefined}
-                    transition={DENSITY_TRANSITION}
-                  >
-                    {desktopDensity} x {desktopDensity}
-                  </motion.span>
-                </AnimatePresence>
-              </span>
-            ) : (
-              isMobile && mobileColumns === 2 ? "List" : "Grid"
-            )}
+            <GridGlyphLabel text={gridLabel} />
           </button>
         </div>
       </div>

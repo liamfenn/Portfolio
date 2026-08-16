@@ -331,14 +331,10 @@
   padding-right: 4px;
 }
 
-.work-density-current {
-  display: inline-grid;
-  place-items: center;
-}
-
-.work-density-current > span {
-  grid-area: 1 / 1;
-  transform-origin: center;
+.work-grid-label {
+  display: inline-block;
+  min-width: 2.4em;
+  text-align: left;
 }
 
 .work-density-menu {
