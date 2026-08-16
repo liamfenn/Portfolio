@@ -814,20 +814,6 @@
   width: 36px;
 }
 
-.case-study-page > .portfolio-footer {
-  margin-top: 128px;
-}
-
-.case-study-footer-mobile-row {
-  display: none;
-}
-
-.case-study-footer-owner {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
 .identity-spotify {
   --identity-track-width: calc((100vw - 32px) / 3 - 62px);
   display: flex;
@@ -1332,18 +1318,6 @@
   .case-study-control {
     font-size: 14px;
     letter-spacing: -0.14px;
-  }
-
-  .case-study-page > .portfolio-footer {
-    margin-top: 96px;
-  }
-
-  .case-study-footer-desktop-row {
-    display: none;
-  }
-
-  .case-study-footer-mobile-row {
-    display: flex;
   }
 
   .portfolio-contact-mobile {

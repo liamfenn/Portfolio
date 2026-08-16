@@ -118,7 +118,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         })}
       </article>
 
-      <PortfolioFooter variant="case-study" />
+      <PortfolioFooter />
       <CaseStudyControls
         previousSlug={adjacentStudies.previous.slug}
         previousTitle={adjacentStudies.previous.title}
