@@ -814,6 +814,10 @@
   width: 36px;
 }
 
+.case-study-page > .portfolio-footer {
+  margin-top: 48px;
+}
+
 .identity-spotify {
   --identity-track-width: calc((100vw - 32px) / 3 - 62px);
   display: flex;
@@ -1318,6 +1322,10 @@
   .case-study-control {
     font-size: 14px;
     letter-spacing: -0.14px;
+  }
+
+  .case-study-page > .portfolio-footer {
+    margin-top: 24px;
   }
 
   .portfolio-contact-mobile {
