@@ -29,28 +29,6 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
-const DENSITY_MENU_VARIANTS = {
-  open: {},
-  closed: {
-    transition: {
-      staggerChildren: 0.036,
-      staggerDirection: 1,
-    },
-  },
-} as const;
-
-const DENSITY_MENU_SLOT_VARIANTS = {
-  open: {
-    visibility: "visible",
-  },
-  closed: {
-    visibility: "hidden",
-    transition: {
-      duration: 0,
-    },
-  },
-} as const;
-
 function GridGlyphLabel({ text }: { text: string }) {
   const { ref } = useScramble({
     text,
@@ -79,26 +57,43 @@ export function ProjectWork() {
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
+  const [isDensityMenuRendered, setIsDensityMenuRendered] = useState(false);
   const [hasChangedDensity, setHasChangedDensity] = useState(false);
   const densityControlRef = useRef<HTMLDivElement>(null);
+  const densityMenuExitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
     const updateMobileState = () => {
       setIsMobile(mediaQuery.matches);
       if (mediaQuery.matches) {
+        if (densityMenuExitTimeoutRef.current) {
+          clearTimeout(densityMenuExitTimeoutRef.current);
+          densityMenuExitTimeoutRef.current = null;
+        }
         setIsDensityMenuOpen(false);
+        setIsDensityMenuRendered(false);
       }
     };
 
     updateMobileState();
     mediaQuery.addEventListener("change", updateMobileState);
-    return () => mediaQuery.removeEventListener("change", updateMobileState);
+    return () => {
+      mediaQuery.removeEventListener("change", updateMobileState);
+      if (densityMenuExitTimeoutRef.current) {
+        clearTimeout(densityMenuExitTimeoutRef.current);
+      }
+    };
   }, []);
 
   const openDensityMenu = () => {
     if (!isMobile) {
+      if (densityMenuExitTimeoutRef.current) {
+        clearTimeout(densityMenuExitTimeoutRef.current);
+        densityMenuExitTimeoutRef.current = null;
+      }
       setHasChangedDensity(false);
+      setIsDensityMenuRendered(true);
       setIsDensityMenuOpen(true);
     }
   };
@@ -107,6 +102,13 @@ export function ProjectWork() {
     if (!isMobile) {
       setIsDensityMenuOpen(false);
       setHasChangedDensity(false);
+      if (densityMenuExitTimeoutRef.current) {
+        clearTimeout(densityMenuExitTimeoutRef.current);
+      }
+      densityMenuExitTimeoutRef.current = setTimeout(() => {
+        setIsDensityMenuRendered(false);
+        densityMenuExitTimeoutRef.current = null;
+      }, 110);
     }
   };
 
@@ -162,34 +164,29 @@ export function ProjectWork() {
           onFocus={openDensityMenu}
           onBlur={handleDensityControlBlur}
         >
-          <AnimatePresence initial={false}>
-            {isDensityMenuOpen ? (
-              <motion.div
-                className="work-density-menu"
+          {isDensityMenuRendered ? (
+              <div
+                className={`work-density-menu${isDensityMenuOpen ? "" : " is-closing"}`}
                 role="menu"
                 aria-label="Grid density"
-                variants={DENSITY_MENU_VARIANTS}
-                initial="open"
-                animate="open"
-                exit="closed"
+                aria-hidden={!isDensityMenuOpen}
               >
                 {densityOptions.map((density, index) => (
-                  <motion.div
-                    className="work-density-slot"
-                    role="none"
-                    key={index}
-                    variants={DENSITY_MENU_SLOT_VARIANTS}
-                  >
+                  <div className="work-density-slot" role="none" key={index}>
                     <AnimatePresence initial={false} mode="popLayout">
                       <motion.button
                         key={density}
                         type="button"
                         role="menuitemradio"
                         aria-checked="false"
-                        className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
+                        tabIndex={isDensityMenuOpen ? 0 : -1}
+                        className={`work-density-option${
+                          isDensityMenuOpen ? (hasChangedDensity ? "" : " is-opening") : " is-closing"
+                        }`}
                         style={
                           {
                             "--density-option-index": densityOptions.length - 1 - index,
+                            "--density-option-exit-index": index,
                           } as CSSProperties
                         }
                         initial={hasChangedDensity ? DENSITY_HIDDEN : false}
@@ -201,11 +198,10 @@ export function ProjectWork() {
                         {density} x {density}
                       </motion.button>
                     </AnimatePresence>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             ) : null}
-          </AnimatePresence>
 
           <button
             type="button"

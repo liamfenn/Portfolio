@@ -393,6 +393,15 @@
   animation-delay: calc(var(--density-option-index) * 36ms);
 }
 
+.work-density-menu.is-closing {
+  pointer-events: none;
+}
+
+.work-density-option.is-closing {
+  animation: work-density-stack-out 1ms steps(1, end) both;
+  animation-delay: calc(var(--density-option-exit-index) * 36ms);
+}
+
 @keyframes work-density-stack-in {
   from {
     visibility: hidden;
@@ -400,6 +409,16 @@
 
   to {
     visibility: visible;
+  }
+}
+
+@keyframes work-density-stack-out {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: hidden;
   }
 }
 
