@@ -224,11 +224,21 @@ export function IdentitySpotify() {
           color: "#000",
           opacity: 0.04,
         },
-        outerBorder: {
-          width: albumStrokeWidth,
-          color: "#fff",
-          opacity: 1,
-        },
+        ...(isCompact
+          ? {
+              middleBorder: {
+                width: albumStrokeWidth,
+                color: "#fff",
+                opacity: 1,
+              },
+            }
+          : {
+              outerBorder: {
+                width: albumStrokeWidth,
+                color: "#fff",
+                opacity: 1,
+              },
+            }),
       },
     },
   );
