@@ -138,7 +138,7 @@ export function IdentitySpotify() {
     }
   };
 
-  const status = data?.isPlaying ? "Listening now" : "Last listened";
+  const status = data?.isPlaying ? "Listening now" : "Last listened to";
   const isSongMarqueeActive = songOverflow > 0 && (isTapped || isHovered);
 
   return (
