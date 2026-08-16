@@ -17,6 +17,22 @@ const suisseIntl = localFont({
   display: "swap",
 });
 
+const oracle = localFont({
+  src: "../../public/fonts/ABCOracle.ttf",
+  variable: "--font-abc-oracle",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
+});
+
+const otto = localFont({
+  src: "../../public/fonts/ABCOttoVariable.woff2",
+  variable: "--font-abc-otto",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fennell.cv"),
   title: "Liam Fennell",
@@ -54,7 +70,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${suisseIntl.variable} ${GeistMono.variable} font-sans antialiased`}>
+      <body
+        className={`${suisseIntl.variable} ${oracle.variable} ${otto.variable} ${GeistMono.variable} font-sans antialiased`}
+      >
         {children}
         <Analytics />
         <AgentationProvider />

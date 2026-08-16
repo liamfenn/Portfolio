@@ -219,8 +219,8 @@
 
 /* Portfolio v2 */
 .portfolio-v2 {
-  --font-oracle: var(--font-suisse-intl), Arial, sans-serif;
-  --font-otto: "Times New Roman", Times, serif;
+  --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
+  --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
   min-height: 100vh;
   overflow-x: clip;
   background: #fff;
