@@ -191,14 +191,16 @@ export function IdentitySpotify() {
           <span className="identity-track-content">
             <span
               className={data.isPlaying ? "identity-status is-live" : "identity-status"}
-              aria-label={`${status}...`}
+              aria-label={data.isPlaying ? `${status}...` : status}
             >
               {status}
-              <span className="identity-status-dots" aria-hidden="true">
-                <span className="identity-status-dot">.</span>
-                <span className="identity-status-dot">.</span>
-                <span className="identity-status-dot">.</span>
-              </span>
+              {data.isPlaying ? (
+                <span className="identity-status-dots" aria-hidden="true">
+                  <span className="identity-status-dot">.</span>
+                  <span className="identity-status-dot">.</span>
+                  <span className="identity-status-dot">.</span>
+                </span>
+              ) : null}
             </span>
             <span
               ref={songLineRef}
