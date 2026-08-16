@@ -348,8 +348,8 @@
 }
 
 .work-grid-label-group.is-scrambling .work-grid-label {
-  width: 2.4em;
-  flex-basis: 2.4em;
+  width: 2.55em;
+  flex-basis: 2.55em;
 }
 
 .work-density-menu {
@@ -874,6 +874,11 @@
 
   .work-density-menu {
     display: none;
+  }
+
+  .work-grid-label-group.is-scrambling .work-grid-label {
+    width: 2.4em;
+    flex-basis: 2.4em;
   }
 
   .project-grid {

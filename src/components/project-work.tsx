@@ -69,9 +69,7 @@ function GridGlyphControl({
         layout="position"
         className="work-control-square"
         aria-hidden="true"
-        transition={
-          shouldReserveScrambleWidth ? { duration: 0 } : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }
-        }
+        transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
       />
       <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
         {text}
@@ -127,7 +125,7 @@ export function ProjectWork() {
     gridLabelTransitionTimeoutRef.current = setTimeout(() => {
       setIsGridLabelTransitioning(false);
       gridLabelTransitionTimeoutRef.current = null;
-    }, 120);
+    }, 180);
   };
 
   const openDensityMenu = () => {
