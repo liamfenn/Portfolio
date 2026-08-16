@@ -423,6 +423,7 @@
 
 .identity-album::after {
   opacity: 1;
+  box-shadow: 0 0 0 1px #fff;
 }
 
 .identity-spotify.is-album-to-back .identity-avatar::after,
@@ -497,12 +498,14 @@
   left: 0;
   width: 28px;
   height: 28px;
+  overflow: visible;
   border: 0;
   border-radius: 10px;
   background: #f5f5f5;
 }
 
 .identity-album img {
+  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -532,12 +535,12 @@
   justify-content: center;
   opacity: 0;
   filter: blur(2px);
-  transform: translateX(-16px) scale(0.96);
+  transform: translateX(-12px) scale(0.96);
   transform-origin: left center;
   transition:
-    opacity 280ms ease-out,
-    filter 360ms ease-out,
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 100ms ease-out,
+    filter 220ms ease-out,
+    transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, filter, transform;
 }
 
@@ -644,11 +647,12 @@
 
 .identity-track-separator {
   display: inline-block;
-  margin: 0 0.25em;
+  margin: 0 0.4em;
+  align-self: center;
   font-size: 0.55em;
   line-height: 1;
-  vertical-align: 0.12em;
   color: #555;
+  transform: translateY(-0.04em);
 }
 
 @media (hover: hover) {
@@ -691,7 +695,10 @@
     opacity: 1;
     filter: blur(0);
     transform: translateX(0) scale(1);
-    transition-delay: 50ms, 35ms, 25ms;
+    transition:
+      opacity 220ms cubic-bezier(0.4, 0, 1, 1) 30ms,
+      filter 280ms cubic-bezier(0.4, 0, 1, 1) 20ms,
+      transform 360ms cubic-bezier(0.4, 0, 1, 1);
   }
 }
 
@@ -883,7 +890,10 @@
     opacity: 1;
     filter: blur(0);
     transform: translateX(0) scale(1);
-    transition-delay: 50ms, 35ms, 25ms;
+    transition:
+      opacity 220ms cubic-bezier(0.4, 0, 1, 1) 30ms,
+      filter 280ms cubic-bezier(0.4, 0, 1, 1) 20ms,
+      transform 360ms cubic-bezier(0.4, 0, 1, 1);
   }
 
   .identity-status {
