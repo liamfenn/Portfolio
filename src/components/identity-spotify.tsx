@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
-const SWITCH_MOTION_MS = 360;
+const SWITCH_MOTION_MS = 400;
 type ShuffleOrientation = "over" | "under";
 
 const SHUFFLE_KEYFRAMES: Keyframe[] = [
@@ -14,35 +14,30 @@ const SHUFFLE_KEYFRAMES: Keyframe[] = [
     opacity: 1,
     zIndex: 3,
     transform: "translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)",
-    easing: "cubic-bezier(0.4, 0, 0.7, 0.2)",
   },
   {
-    offset: 0.3,
-    opacity: 0.98,
+    offset: 0.28,
+    opacity: 0.99,
     zIndex: 3,
-    transform: "translate3d(-2px, -4px, 6px) rotateY(-6deg) rotateZ(-1.5deg)",
-    easing: "cubic-bezier(0.3, 0.55, 0.35, 1)",
+    transform: "translate3d(-4px, -5px, 7px) rotateY(-7deg) rotateZ(-3deg)",
   },
   {
     offset: 0.49,
-    opacity: 0.92,
+    opacity: 0.96,
     zIndex: 3,
-    transform: "translate3d(-5px, -1px, 9px) rotateY(-11deg) rotateZ(-3deg)",
-    easing: "steps(1, end)",
+    transform: "translate3d(-9px, 0, 13px) rotateY(-16deg) rotateZ(-6deg)",
   },
   {
     offset: 0.51,
-    opacity: 0.92,
+    opacity: 0.96,
     zIndex: 1,
-    transform: "translate3d(-5px, -1px, 8px) rotateY(-10deg) rotateZ(-3deg)",
-    easing: "cubic-bezier(0.22, 0.7, 0.3, 1)",
+    transform: "translate3d(-9px, 0, 13px) rotateY(-16deg) rotateZ(-6deg)",
   },
   {
-    offset: 0.74,
-    opacity: 0.97,
+    offset: 0.72,
+    opacity: 0.99,
     zIndex: 1,
-    transform: "translate3d(-2px, 2px, 2px) rotateY(-4deg) rotateZ(-1deg)",
-    easing: "cubic-bezier(0.2, 0.72, 0.25, 1)",
+    transform: "translate3d(-4px, 5px, 6px) rotateY(-7deg) rotateZ(-3deg)",
   },
   {
     offset: 1,
@@ -185,7 +180,7 @@ export function IdentitySpotify() {
     const animation = movingLayer.animate(SHUFFLE_KEYFRAMES, {
       duration: SWITCH_MOTION_MS,
       direction: shuffleOrientation === "under" ? "reverse" : "normal",
-      easing: "linear",
+      easing: "cubic-bezier(0.45, 0, 0.2, 1)",
     });
 
     shuffleAnimationRef.current = animation;
