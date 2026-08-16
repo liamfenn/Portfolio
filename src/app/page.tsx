@@ -1,98 +1,101 @@
-"use client";
-
 import Image from "next/image";
-import { WorkTimeline } from "@/components/work-timeline";
-import { SpotifyWidget } from "@/components/spotify-widget";
-import { LocationFooter } from "@/components/location-footer";
+import { IdentitySpotify } from "@/components/identity-spotify";
+import { PortfolioFooter } from "@/components/portfolio-footer";
+import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const CONTACT_LINKS = [
-  { label: "X", url: "https://x.com/xyzfennell" },
-  { label: "IG", url: "https://instagram.com/lliamfennell" },
-  { label: "Cosmos", url: "https://cosmos.so/notliam" },
+  { label: "Twitter", href: "https://x.com/xyzfennell" },
+  { label: "Instagram", href: "https://instagram.com/lliamfennell" },
+  { label: "Cosmos", href: "https://cosmos.so/notliam" },
+  { label: "Github", href: "https://github.com/liamfenn" },
 ];
+
+function ContactLinks({ mobile = false }: { mobile?: boolean }) {
+  return (
+    <div className={mobile ? "portfolio-contact portfolio-contact-mobile" : "portfolio-contact"}>
+      <a className="portfolio-link-strong" href="mailto:info@fennell.cv">
+        info@fennell.cv
+      </a>
+      <div className="portfolio-socials">
+        {CONTACT_LINKS.map((link, index) => (
+          <span key={link.label}>
+            <a href={link.href} target="_blank" rel="noreferrer">
+              {link.label}
+            </a>
+            {!mobile && index < CONTACT_LINKS.length - 1 ? ", " : null}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkToolbar() {
+  return (
+    <div className="work-toolbar" aria-label="Project display controls">
+      <div className="work-toolbar-group">
+        <span className="work-control">
+          <Image src="/images/icons/filter-v2.svg" alt="" width={10} height={10} />
+          Filter
+        </span>
+        <span className="work-control">
+          <span className="work-control-square" aria-hidden="true" />
+          Sort
+        </span>
+      </div>
+      <span className="work-control">
+        <span className="work-control-square" aria-hidden="true" />
+        Grid
+      </span>
+    </div>
+  );
+}
+
+function ProjectGrid() {
+  return (
+    <ul className="project-grid" aria-label="Selected work">
+      {PROJECT_PREVIEWS.map((preview) => (
+        <li
+          key={preview.id}
+          className="project-preview"
+          data-case-study-slug={preview.caseStudySlug}
+          aria-label={`${preview.label} preview placeholder`}
+        >
+          <span className="sr-only">
+            {preview.label}. This preview will link to /work/{preview.caseStudySlug} when the case study is published.
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-background">
-      {/* Desktop contact — bottom right */}
-      <div className="hidden md:flex fixed bottom-8 right-8 flex-col items-end z-10">
-        <p className="text-muted-foreground">
-          {CONTACT_LINKS.map((link, i) => (
-            <span key={link.label}>
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-1 inline-block"
-              >
-                {link.label}
-              </a>
-              {i < CONTACT_LINKS.length - 1 && ", "}
-            </span>
-          ))}
-        </p>
-        <a
-          href="mailto:info@fennell.cv"
-          className="text-muted"
-        >
-          info@fennell.cv
-        </a>
-      </div>
-
-      {/* Centered content column */}
-      <div className="mx-auto max-w-[500px] px-4 pt-4 md:px-0 md:pt-[172px] pb-9 md:pb-24 flex flex-col gap-14 md:gap-16 overflow-visible">
-        {/* PFP + Bio */}
-        <div className="flex flex-col gap-2">
-          <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden">
-            <Image
-              src="/images/logos/pfp.jpg"
-              alt="Liam Fennell"
-              width={32}
-              height={32}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        <div className="text-muted">
-        <h1 className="inline text-foreground" style={{ font: "inherit" }}>Liam Fennell</h1> is a designer based in Atlanta building consumer products. His work hinges on restraint, reducing friction so interfaces feel more intuitive and obvious in hindsight.
-        <br /><br />
-        Beyond product work, he’s interested in how design shapes behavior and experience across mediums, drawing influence from architecture, industrial design, and fashion.
-        </div>
-        </div>
-
-        {/* Work Timeline */}
-        <WorkTimeline />
-
-        {/* Mobile contact — inline before widgets */}
-        <div className="md:hidden flex flex-col">
-          <p className="type-secondary text-muted-foreground">
-            {CONTACT_LINKS.map((link, i) => (
-              <span key={link.label}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-1 inline-block"
-                >
-                  {link.label}
-                </a>
-                {i < CONTACT_LINKS.length - 1 && ", "}
-              </span>
-            ))}
+    <main className="portfolio-v2">
+      <header className="portfolio-intro">
+        <div className="portfolio-bio-group">
+          <IdentitySpotify />
+          <h1 className="sr-only">Liam Fennell — Product Designer</h1>
+          <p className="portfolio-bio">
+            <strong>Liam Fennell</strong> is a designer based in New York, currently working with the talented team at{" "}
+            <strong>Shop</strong>, creating commerce &amp; discovery experiences for millions of users.
+            <br />
+            <br />
+            Previously at <strong>OpenPurpose</strong> where he designed interfaces for <strong>Bird</strong>,{" "}
+            <strong>Plasticity</strong>, <strong>Azura</strong> &amp; more.
           </p>
-          <a
-            href="mailto:info@fennell.cv"
-            className="type-secondary text-muted"
-          >
-            info@fennell.cv
-          </a>
         </div>
+        <ContactLinks />
+      </header>
 
-        {/* Spotify + Location — tighter group */}
-        <div className="flex flex-col gap-3 md:gap-4">
-          <SpotifyWidget />
-          <LocationFooter />
-        </div>
-      </div>
-    </div>
+      <section className="portfolio-work" aria-label="Work">
+        <WorkToolbar />
+        <ProjectGrid />
+      </section>
+
+      <ContactLinks mobile />
+      <PortfolioFooter />
+    </main>
   );
 }

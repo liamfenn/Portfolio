@@ -18,9 +18,10 @@ const suisseIntl = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.fennell.cv"),
   title: "Liam Fennell",
   description:
-    "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
+    "Liam Fennell is a designer based in New York, currently designing commerce and discovery experiences for Shop.",
   icons: {
     icon: "/images/meta/favicon.png",
     apple: "/images/meta/favicon.png",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Liam Fennell",
     description:
-      "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
+      "Liam Fennell is a designer based in New York, currently designing commerce and discovery experiences for Shop.",
     type: "website",
     images: [
       {
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Liam Fennell",
     description:
-      "Liam Fennell is a designer based in Atlanta building consumer products. Currently at Shopify, working with the talented team building Shop app.",
+      "Liam Fennell is a designer based in New York, currently designing commerce and discovery experiences for Shop.",
     images: ["/images/meta/opengraph.png"],
   },
 };
