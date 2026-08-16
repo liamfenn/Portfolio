@@ -303,14 +303,25 @@ export function IdentitySpotify() {
               className={data.isPlaying ? "identity-status is-live" : "identity-status"}
               aria-label={data.isPlaying ? `${status}...` : status}
             >
-              {status}
               {data.isPlaying ? (
-                <span className="identity-status-dots" aria-hidden="true">
-                  <span className="identity-status-dot">.</span>
-                  <span className="identity-status-dot">.</span>
-                  <span className="identity-status-dot">.</span>
-                </span>
+                <Image
+                  className="identity-status-spotify-logo"
+                  src="/images/icons/spotify-live.svg"
+                  alt=""
+                  width={10}
+                  height={10}
+                />
               ) : null}
+              <span>
+                {status}
+                {data.isPlaying ? (
+                  <span className="identity-status-dots" aria-hidden="true">
+                    <span className="identity-status-dot">.</span>
+                    <span className="identity-status-dot">.</span>
+                    <span className="identity-status-dot">.</span>
+                  </span>
+                ) : null}
+              </span>
             </span>
             <span
               ref={songLineRef}

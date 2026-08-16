@@ -501,7 +501,16 @@
 }
 
 .identity-status.is-live {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 0.23em;
   color: #1ed760;
+}
+
+.identity-status-spotify-logo {
+  width: 0.808em;
+  height: 0.808em;
+  flex: 0 0 auto;
 }
 
 .identity-status-dots {
