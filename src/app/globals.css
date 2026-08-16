@@ -367,7 +367,7 @@
   background: transparent;
   outline: none;
   overflow: visible;
-  perspective: 180px;
+  perspective: 240px;
   transform-style: preserve-3d;
 }
 
@@ -400,90 +400,15 @@
   display: block;
   overflow: hidden;
   backface-visibility: hidden;
+  box-shadow: 0 0 0 var(--identity-artwork-stroke-width) #fff;
   transform: translate3d(0, 0, 0);
-  transform-origin: 72% 72%;
+  transform-origin: 68% 68%;
   transition:
-    width 440ms cubic-bezier(0.4, 0, 0.2, 1),
-    height 440ms cubic-bezier(0.4, 0, 0.2, 1),
-    left 440ms cubic-bezier(0.4, 0, 0.2, 1),
-    top 440ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 440ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.identity-avatar::after,
-.identity-album::after {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  border: var(--identity-artwork-stroke-width) solid #fff;
-  border-radius: inherit;
-  content: "";
-  pointer-events: none;
-  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.identity-avatar::after {
-  opacity: 0;
-  transition-delay: 0ms;
-}
-
-.identity-album::after {
-  opacity: 1;
-  box-shadow: 0 0 0 1px #fff;
-  transition-delay: 160ms;
-}
-
-.identity-spotify.is-switching .identity-avatar,
-.identity-spotify.is-switching .identity-album {
-  will-change: width, height, left, top, transform, opacity;
-}
-
-.identity-spotify.is-album-to-back .identity-album,
-.identity-spotify.is-avatar-to-back .identity-avatar {
-  animation: identity-card-shuffle-to-back 440ms linear;
-}
-
-@keyframes identity-card-shuffle-to-back {
-  0% {
-    opacity: 1;
-    z-index: 3;
-    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
-    animation-timing-function: cubic-bezier(0.4, 0, 0.72, 0.2);
-  }
-
-  28% {
-    opacity: 0.96;
-    z-index: 3;
-    transform: translate3d(-5px, -7px, 16px) rotateY(-18deg) rotateZ(-5deg);
-    animation-timing-function: cubic-bezier(0.28, 0.6, 0.35, 1);
-  }
-
-  48% {
-    opacity: 0.84;
-    z-index: 3;
-    transform: translate3d(-10px, -3px, 22px) rotateY(-32deg) rotateZ(-8deg);
-    animation-timing-function: step-end;
-  }
-
-  52% {
-    opacity: 0.84;
-    z-index: 1;
-    transform: translate3d(-10px, -3px, 18px) rotateY(-30deg) rotateZ(-8deg);
-    animation-timing-function: cubic-bezier(0.22, 0.72, 0.3, 1);
-  }
-
-  74% {
-    opacity: 0.94;
-    z-index: 1;
-    transform: translate3d(-4px, 4px, 5px) rotateY(-12deg) rotateZ(-3deg);
-    animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
-  }
-
-  100% {
-    opacity: 1;
-    z-index: 1;
-    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
-  }
+    width 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    left 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    top 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 360ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .identity-avatar {
@@ -677,11 +602,6 @@
     height: 28px;
   }
 
-  .identity-spotify.is-hovered .identity-avatar::after {
-    opacity: 1;
-    transition-delay: 160ms;
-  }
-
   .identity-spotify.is-hovered .identity-album {
     z-index: 1;
     top: 9px;
@@ -689,11 +609,6 @@
     width: 43px;
     height: 43px;
     border-radius: 12px;
-  }
-
-  .identity-spotify.is-hovered .identity-album::after {
-    opacity: 0;
-    transition-delay: 0ms;
   }
 
   .identity-spotify.is-hovered .identity-track {
@@ -875,11 +790,6 @@
     height: 24px;
   }
 
-  .identity-spotify.is-tapped .identity-avatar::after {
-    opacity: 1;
-    transition-delay: 160ms;
-  }
-
   .identity-spotify.is-tapped .identity-album {
     z-index: 1;
     top: 8px;
@@ -887,11 +797,6 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-  }
-
-  .identity-spotify.is-tapped .identity-album::after {
-    opacity: 0;
-    transition-delay: 0ms;
   }
 
   .identity-track-content {
@@ -1007,11 +912,6 @@
     height: 24px;
   }
 
-  .identity-spotify.is-hovered .identity-avatar::after {
-    opacity: 1;
-    transition-delay: 160ms;
-  }
-
   .identity-spotify.is-hovered .identity-album {
     z-index: 1;
     top: 8px;
@@ -1019,11 +919,6 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-  }
-
-  .identity-spotify.is-hovered .identity-album::after {
-    opacity: 0;
-    transition-delay: 0ms;
   }
 
   .identity-spotify.is-hovered .identity-track {

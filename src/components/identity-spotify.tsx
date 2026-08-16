@@ -5,31 +5,72 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
-const SWITCH_MOTION_MS = 440;
+const SWITCH_MOTION_MS = 360;
+type ShuffleOrientation = "over" | "under";
+
+const SHUFFLE_KEYFRAMES: Keyframe[] = [
+  {
+    offset: 0,
+    opacity: 1,
+    zIndex: 3,
+    transform: "translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)",
+    easing: "cubic-bezier(0.4, 0, 0.7, 0.2)",
+  },
+  {
+    offset: 0.3,
+    opacity: 0.98,
+    zIndex: 3,
+    transform: "translate3d(-2px, -4px, 6px) rotateY(-6deg) rotateZ(-1.5deg)",
+    easing: "cubic-bezier(0.3, 0.55, 0.35, 1)",
+  },
+  {
+    offset: 0.49,
+    opacity: 0.92,
+    zIndex: 3,
+    transform: "translate3d(-5px, -1px, 9px) rotateY(-11deg) rotateZ(-3deg)",
+    easing: "steps(1, end)",
+  },
+  {
+    offset: 0.51,
+    opacity: 0.92,
+    zIndex: 1,
+    transform: "translate3d(-5px, -1px, 8px) rotateY(-10deg) rotateZ(-3deg)",
+    easing: "cubic-bezier(0.22, 0.7, 0.3, 1)",
+  },
+  {
+    offset: 0.74,
+    opacity: 0.97,
+    zIndex: 1,
+    transform: "translate3d(-2px, 2px, 2px) rotateY(-4deg) rotateZ(-1deg)",
+    easing: "cubic-bezier(0.2, 0.72, 0.25, 1)",
+  },
+  {
+    offset: 1,
+    opacity: 1,
+    zIndex: 1,
+    transform: "translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)",
+  },
+];
 
 export function IdentitySpotify() {
   const { data } = useSpotify();
   const [isTapped, setIsTapped] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [shuffleOrientation, setShuffleOrientation] = useState<ShuffleOrientation>("over");
   const [songOverflow, setSongOverflow] = useState(0);
-  const [switchingBackLayer, setSwitchingBackLayer] = useState<"album" | "avatar" | null>(null);
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
-  const switchFrame = useRef<number | null>(null);
-  const switchTimer = useRef<number | null>(null);
+  const avatarRef = useRef<HTMLSpanElement>(null);
+  const albumRef = useRef<HTMLSpanElement>(null);
+  const shuffleAnimationRef = useRef<Animation | null>(null);
+  const shuffleIntentRef = useRef<"album" | "avatar" | null>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     return () => {
-      if (switchFrame.current !== null) {
-        cancelAnimationFrame(switchFrame.current);
-      }
-
-      if (switchTimer.current !== null) {
-        window.clearTimeout(switchTimer.current);
-      }
+      shuffleAnimationRef.current?.cancel();
 
       if (hoverExitTimer.current !== null) {
         window.clearTimeout(hoverExitTimer.current);
@@ -39,6 +80,39 @@ export function IdentitySpotify() {
         window.clearTimeout(exitCollapseTimer.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const handleShuffleShortcut = (event: KeyboardEvent) => {
+      const target = event.target;
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT");
+
+      if (
+        event.repeat ||
+        isEditable ||
+        !event.shiftKey ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.key.toLowerCase() !== "s"
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      shuffleAnimationRef.current?.cancel();
+      shuffleAnimationRef.current = null;
+      shuffleIntentRef.current = null;
+      setShuffleOrientation((current) => (current === "over" ? "under" : "over"));
+    };
+
+    window.addEventListener("keydown", handleShuffleShortcut);
+    return () => window.removeEventListener("keydown", handleShuffleShortcut);
   }, []);
 
   useEffect(() => {
@@ -77,26 +151,52 @@ export function IdentitySpotify() {
 
   const triggerSwitchMotion = (backLayer: "album" | "avatar") => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      shuffleAnimationRef.current?.cancel();
+      shuffleAnimationRef.current = null;
+      shuffleIntentRef.current = null;
       return;
     }
 
-    setSwitchingBackLayer(null);
-
-    if (switchFrame.current !== null) {
-      cancelAnimationFrame(switchFrame.current);
+    const activeAnimation = shuffleAnimationRef.current;
+    if (
+      activeAnimation &&
+      activeAnimation.playState !== "finished" &&
+      activeAnimation.playState !== "idle"
+    ) {
+      if (shuffleIntentRef.current !== backLayer) {
+        shuffleIntentRef.current = backLayer;
+        activeAnimation.reverse();
+      }
+      return;
     }
 
-    if (switchTimer.current !== null) {
-      window.clearTimeout(switchTimer.current);
+    const movingLayer =
+      shuffleOrientation === "over"
+        ? backLayer === "album"
+          ? albumRef.current
+          : avatarRef.current
+        : backLayer === "album"
+          ? avatarRef.current
+          : albumRef.current;
+    if (!movingLayer) {
+      return;
     }
 
-    switchFrame.current = requestAnimationFrame(() => {
-      setSwitchingBackLayer(backLayer);
-      switchTimer.current = window.setTimeout(
-        () => setSwitchingBackLayer(null),
-        SWITCH_MOTION_MS,
-      );
+    const animation = movingLayer.animate(SHUFFLE_KEYFRAMES, {
+      duration: SWITCH_MOTION_MS,
+      direction: shuffleOrientation === "under" ? "reverse" : "normal",
+      easing: "linear",
     });
+
+    shuffleAnimationRef.current = animation;
+    shuffleIntentRef.current = backLayer;
+    animation.onfinish = () => {
+      if (shuffleAnimationRef.current === animation) {
+        animation.cancel();
+        shuffleAnimationRef.current = null;
+        shuffleIntentRef.current = null;
+      }
+    };
   };
 
   const toggleMobileState = () => {
@@ -148,12 +248,13 @@ export function IdentitySpotify() {
 
   return (
     <div
-      className={`identity-spotify${isTapped ? " is-tapped" : ""}${isHovered ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}${switchingBackLayer ? ` is-switching is-${switchingBackLayer}-to-back` : ""}`}
+      className={`identity-spotify${isTapped ? " is-tapped" : ""}${isHovered ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
+      data-shuffle-orientation={shuffleOrientation}
       onPointerEnter={triggerHoverInMotion}
       onPointerLeave={triggerHoverOutMotion}
     >
       <div className="identity-artwork">
-        <span className="identity-avatar" aria-hidden="true">
+        <span ref={avatarRef} className="identity-avatar" aria-hidden="true">
           <Image
             src="/images/profile-v2.png"
             alt=""
@@ -162,7 +263,7 @@ export function IdentitySpotify() {
             priority
           />
         </span>
-        <span className="identity-album" aria-hidden="true">
+        <span ref={albumRef} className="identity-album" aria-hidden="true">
           {data?.albumImageUrl ? (
             <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
           ) : null}
