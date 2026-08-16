@@ -71,10 +71,9 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
             company={study.company}
             companyLogo={study.companyLogo}
             companyLogoBackground={study.companyLogoBackground}
-            period={study.period}
-            role={study.role}
           />
           <div className="case-study-summary">
+            <p className="case-study-period">{study.period}</p>
             <h1>{study.title}</h1>
             <p>{study.description}</p>
           </div>
