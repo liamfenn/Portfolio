@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
+import { useProjectDisplayState } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
@@ -97,8 +98,7 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
-  const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
+  const { desktopDensity, setDesktopDensity, mobileColumns, setMobileColumns } = useProjectDisplayState();
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
