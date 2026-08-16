@@ -13,41 +13,57 @@ type ShuffleAnimationGroup = {
   motion: Animation;
 };
 
-const SHUFFLE_KEYFRAMES: Keyframe[] = [
+const OVER_SHUFFLE_KEYFRAMES: Keyframe[] = [
   {
     offset: 0,
     opacity: 1,
-    easing: "cubic-bezier(0.45, 0, 0.55, 1)",
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
     transform:
       "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) skewY(0deg) scaleX(1) scaleY(1)",
   },
   {
     offset: 0.2,
-    opacity: 0.99,
-    easing: "cubic-bezier(0.4, 0, 0.6, 1)",
-    transform:
-      "translate3d(-8px, -9px, 10px) rotateX(6deg) rotateY(-14deg) rotateZ(-5deg) skewX(-4deg) skewY(1deg) scaleX(0.96) scaleY(1.03)",
-  },
-  {
-    offset: 0.36,
-    opacity: 0.94,
-    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transform:
-      "translate3d(-20px, -11px, 28px) rotateX(18deg) rotateY(-38deg) rotateZ(-12deg) skewX(-14deg) skewY(5deg) scaleX(0.82) scaleY(1.11)",
-  },
-  {
-    offset: 0.56,
     opacity: 0.97,
-    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
     transform:
-      "translate3d(-3px, -1px, 6px) rotateX(5deg) rotateY(-10deg) rotateZ(-4deg) skewX(-4deg) skewY(1deg) scaleX(0.96) scaleY(1.03)",
+      "translate3d(-18px, -11px, -16px) rotateX(-18deg) rotateY(38deg) rotateZ(-9deg) skewX(0deg) skewY(0deg) scaleX(0.95) scaleY(0.95)",
   },
   {
-    offset: 0.76,
+    offset: 0.54,
     opacity: 0.99,
-    easing: "cubic-bezier(0.2, 0, 0.2, 1)",
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
     transform:
-      "translate3d(-5px, 5px, 5px) rotateX(3deg) rotateY(-7deg) rotateZ(-3deg) skewX(-2deg) skewY(0deg) scaleX(0.98) scaleY(1.01)",
+      "translate3d(-2px, -1px, -2px) rotateX(-3deg) rotateY(6deg) rotateZ(-2deg) skewX(0deg) skewY(0deg) scaleX(0.99) scaleY(0.99)",
+  },
+  {
+    offset: 1,
+    opacity: 1,
+    transform:
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) skewY(0deg) scaleX(1) scaleY(1)",
+  },
+];
+
+const UNDER_SHUFFLE_KEYFRAMES: Keyframe[] = [
+  {
+    offset: 0,
+    opacity: 1,
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    transform:
+      "translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skewX(0deg) skewY(0deg) scaleX(1) scaleY(1)",
+  },
+  {
+    offset: 0.2,
+    opacity: 0.97,
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    transform:
+      "translate3d(9px, 7px, -12px) rotateX(12deg) rotateY(-28deg) rotateZ(6deg) skewX(0deg) skewY(0deg) scaleX(0.96) scaleY(0.96)",
+  },
+  {
+    offset: 0.54,
+    opacity: 0.99,
+    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    transform:
+      "translate3d(1px, 1px, -2px) rotateX(2deg) rotateY(-4deg) rotateZ(1deg) skewX(0deg) skewY(0deg) scaleX(0.99) scaleY(0.99)",
   },
   {
     offset: 1,
@@ -81,29 +97,29 @@ const ALBUM_GEOMETRY_KEYFRAMES: Keyframe[] = [
 
 const AVATAR_STROKE_KEYFRAMES: Keyframe[] = [
   { offset: 0, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
-  { offset: 0.5, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
-  { offset: 0.62, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+  { offset: 0.48, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+  { offset: 0.6, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
   { offset: 1, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
 ];
 
 const ALBUM_STROKE_KEYFRAMES: Keyframe[] = [
   { offset: 0, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
-  { offset: 0.5, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
-  { offset: 0.62, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
+  { offset: 0.48, boxShadow: "0 0 0 var(--identity-artwork-front-stroke-width) #fff" },
+  { offset: 0.6, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
   { offset: 1, boxShadow: "0 0 0 var(--identity-artwork-back-stroke-width) #fff" },
 ];
 
 const AVATAR_PLANE_KEYFRAMES: Keyframe[] = [
   { offset: 0, zIndex: 1 },
-  { offset: 0.559, zIndex: 1 },
-  { offset: 0.56, zIndex: 2 },
+  { offset: 0.539, zIndex: 1 },
+  { offset: 0.54, zIndex: 2 },
   { offset: 1, zIndex: 2 },
 ];
 
 const ALBUM_PLANE_KEYFRAMES: Keyframe[] = [
   { offset: 0, zIndex: 3 },
-  { offset: 0.559, zIndex: 3 },
-  { offset: 0.56, zIndex: 1 },
+  { offset: 0.539, zIndex: 3 },
+  { offset: 0.54, zIndex: 1 },
   { offset: 1, zIndex: 1 },
 ];
 
@@ -256,12 +272,15 @@ export function IdentitySpotify() {
       fill: "both",
       easing: "linear",
     };
-    const motion = movingLayer.animate(SHUFFLE_KEYFRAMES, {
-      duration: SWITCH_MOTION_MS,
-      direction: shuffleOrientation === "under" ? "reverse" : "normal",
-      fill: "both",
-      easing: "linear",
-    });
+    const motion = movingLayer.animate(
+      shuffleOrientation === "over" ? OVER_SHUFFLE_KEYFRAMES : UNDER_SHUFFLE_KEYFRAMES,
+      {
+        duration: SWITCH_MOTION_MS,
+        direction: "normal",
+        fill: "both",
+        easing: "linear",
+      },
+    );
     const animations = [
       motion,
       avatarSurface.animate(AVATAR_GEOMETRY_KEYFRAMES, sharedOptions),

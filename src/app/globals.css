@@ -408,7 +408,7 @@
   height: 43px;
   overflow: visible;
   backface-visibility: hidden;
-  transform-origin: 65.1163% 65.1163%;
+  transform-origin: 0 0;
 }
 
 .identity-avatar-motion {
@@ -789,7 +789,6 @@
     --identity-album-back-radius: 10px;
     width: 36px;
     height: 36px;
-    transform-origin: 66.6667% 66.6667%;
   }
 
   .identity-spotify.is-tapped {
