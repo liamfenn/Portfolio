@@ -78,7 +78,7 @@ export default function Home() {
           <IdentitySpotify />
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
           <p className="portfolio-bio">
-            <strong>Liam Fennell</strong> is a designer based in New York, currently working with the talented team at{" "}
+            <strong>Liam Fennell</strong> is a designer based in Atlanta, currently working with the talented team at{" "}
             <strong>Shop</strong>, creating commerce &amp; discovery experiences for millions of users.
             <br />
             <br />

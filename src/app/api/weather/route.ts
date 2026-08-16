@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
-const CITY = "Brooklyn";
+const CITY = "Atlanta";
 const COUNTRY = "US";
 
 export interface WeatherResponse {
@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({
       temperature: 71,
       condition: "Partly cloudy",
-      location: "Brooklyn, New York",
+      location: "Atlanta, Georgia",
     });
   }
 
@@ -41,7 +41,7 @@ export async function GET() {
     return NextResponse.json({
       temperature: Math.round(data.main.temp),
       condition: capitalizedCondition,
-      location: "Brooklyn, New York",
+      location: "Atlanta, Georgia",
     });
   } catch (error) {
     console.error("Weather API error:", error);
@@ -49,7 +49,7 @@ export async function GET() {
     return NextResponse.json({
       temperature: 71,
       condition: "Partly cloudy",
-      location: "Brooklyn, New York",
+      location: "Atlanta, Georgia",
     });
   }
 }

@@ -31,7 +31,7 @@ export function PortfolioFooter() {
         <span>Office of Liam Fennell</span>
       </div>
       <div className="portfolio-footer-row">
-        <span className="footer-highlight">Brooklyn, NY</span>
+        <span className="footer-highlight">Atlanta, GA</span>
         <span className="footer-weather">
           {time}, {condition} at {temperature}°F
         </span>
