@@ -27,8 +27,10 @@ export function IdentitySpotify() {
   const [isHovered, setIsHovered] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
+  const [trackHugWidth, setTrackHugWidth] = useState(0);
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
+  const statusRef = useRef<HTMLSpanElement>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
   const avatarSurfaceRef = useRef<HTMLSpanElement>(null);
@@ -66,8 +68,9 @@ export function IdentitySpotify() {
   useEffect(() => {
     const songLine = songLineRef.current;
     const songMarquee = songMarqueeRef.current;
+    const statusLine = statusRef.current;
 
-    if (!songLine || !songMarquee) {
+    if (!songLine || !songMarquee || !statusLine) {
       return;
     }
 
@@ -82,12 +85,16 @@ export function IdentitySpotify() {
         songMarquee.scrollWidth,
         songMarquee.getBoundingClientRect().width,
       );
+      const statusWidth = Math.max(statusLine.scrollWidth, statusLine.getBoundingClientRect().width);
+      setTrackHugWidth(Math.ceil(Math.max(marqueeWidth, statusWidth) + 24));
       const difference = marqueeWidth - songLine.clientWidth;
       setSongOverflow(difference > 2 ? difference + 24 : 0);
     };
 
     const resizeObserver = new ResizeObserver(measure);
     resizeObserver.observe(songLine);
+    resizeObserver.observe(songMarquee);
+    resizeObserver.observe(statusLine);
     document.fonts?.ready.then(measure);
     measure();
 
@@ -246,6 +253,11 @@ export function IdentitySpotify() {
   return (
     <div
       className={`identity-spotify${isTapped ? " is-tapped" : ""}${isHovered ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
+      style={
+        {
+          "--identity-track-hug-width": trackHugWidth > 0 ? `${trackHugWidth}px` : "var(--identity-track-width)",
+        } as CSSProperties
+      }
       onPointerEnter={triggerHoverInMotion}
       onPointerLeave={triggerHoverOutMotion}
     >
@@ -316,6 +328,7 @@ export function IdentitySpotify() {
         >
           <span className="identity-track-content">
             <span
+              ref={statusRef}
               className={data.isPlaying ? "identity-status is-live" : "identity-status"}
               aria-label={data.isPlaying ? `${status}...` : status}
             >
