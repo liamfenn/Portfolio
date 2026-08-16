@@ -31,8 +31,15 @@ export function CaseStudyControls({
       animationFrame.current = window.requestAnimationFrame(() => {
         const currentScrollY = Math.max(0, window.scrollY);
         const difference = currentScrollY - previousScrollY.current;
+        const content = document.querySelector<HTMLElement>(".case-study-content");
+        const contentBottom = content
+          ? content.getBoundingClientRect().bottom + currentScrollY
+          : document.documentElement.scrollHeight;
+        const viewportBottom = currentScrollY + window.innerHeight;
+        const isPastContent = viewportBottom >= contentBottom + 24;
+        const isAtPageBottom = viewportBottom >= document.documentElement.scrollHeight - 8;
 
-        if (currentScrollY <= 8) {
+        if (currentScrollY <= 8 || isPastContent || isAtPageBottom) {
           setIsVisible(true);
         } else if (difference > 4) {
           setIsVisible(false);
