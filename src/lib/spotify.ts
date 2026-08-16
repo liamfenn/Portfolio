@@ -5,15 +5,31 @@ const SPOTIFY_RECENTLY_PLAYED_URL =
   "https://api.spotify.com/v1/me/player/recently-played?limit=1";
 
 function getCredentials() {
-  const client_id = process.env.SPOTIFY_CLIENT_ID || "";
-  const client_secret = process.env.SPOTIFY_CLIENT_SECRET || "";
-  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN || "";
+  const client_id = process.env.SPOTIFY_CLIENT_ID?.trim() || "";
+  const client_secret = process.env.SPOTIFY_CLIENT_SECRET?.trim() || "";
+  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN?.trim() || "";
+
+  const missing = [
+    !client_id && "SPOTIFY_CLIENT_ID",
+    !client_secret && "SPOTIFY_CLIENT_SECRET",
+    !refresh_token && "SPOTIFY_REFRESH_TOKEN",
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing Spotify environment variables: ${missing.join(", ")}`);
+  }
+
   const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
   return { basic, refresh_token };
 }
 
 interface SpotifyToken {
   access_token: string;
+}
+
+interface SpotifyTokenError {
+  error?: string;
+  error_description?: string;
 }
 
 interface SpotifyTrack {
@@ -58,10 +74,19 @@ async function getAccessToken(): Promise<SpotifyToken> {
     cache: "no-store",
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as SpotifyToken & SpotifyTokenError;
   if (!response.ok || !data.access_token) {
-    console.error("Spotify token error:", JSON.stringify(data));
-    throw new Error(`Token refresh failed: ${JSON.stringify(data)}`);
+    if (data.error === "invalid_grant") {
+      throw new Error(
+        "Spotify authorization expired or was revoked. Run `npm run spotify:authorize` to reconnect it."
+      );
+    }
+
+    throw new Error(
+      `Spotify token refresh failed (${response.status}): ${
+        data.error_description || data.error || "Unknown error"
+      }`
+    );
   }
   return data;
 }
