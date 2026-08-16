@@ -17,8 +17,48 @@ export function CaseStudyControls({
   nextTitle,
 }: CaseStudyControlsProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [hasBottomBrowserChrome, setHasBottomBrowserChrome] = useState(false);
   const previousScrollY = useRef(0);
   const animationFrame = useRef<number | null>(null);
+  const browserChromeFrame = useRef<number | null>(null);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    if (!viewport) {
+      return;
+    }
+
+    const updateBrowserChromePosition = () => {
+      if (browserChromeFrame.current !== null) {
+        return;
+      }
+
+      browserChromeFrame.current = window.requestAnimationFrame(() => {
+        const layoutViewportHeight = document.documentElement.clientHeight;
+        const visibleViewportBottom = viewport.offsetTop + viewport.height;
+        const bottomOcclusion = Math.max(0, layoutViewportHeight - visibleViewportBottom);
+
+        setHasBottomBrowserChrome(bottomOcclusion > 8);
+        browserChromeFrame.current = null;
+      });
+    };
+
+    updateBrowserChromePosition();
+    viewport.addEventListener("resize", updateBrowserChromePosition);
+    viewport.addEventListener("scroll", updateBrowserChromePosition);
+    window.addEventListener("resize", updateBrowserChromePosition);
+
+    return () => {
+      viewport.removeEventListener("resize", updateBrowserChromePosition);
+      viewport.removeEventListener("scroll", updateBrowserChromePosition);
+      window.removeEventListener("resize", updateBrowserChromePosition);
+
+      if (browserChromeFrame.current !== null) {
+        window.cancelAnimationFrame(browserChromeFrame.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     previousScrollY.current = window.scrollY;
@@ -62,7 +102,10 @@ export function CaseStudyControls({
   }, []);
 
   return (
-    <nav className={`case-study-controls${isVisible ? "" : " is-hidden"}`} aria-label="Case study navigation">
+    <nav
+      className={`case-study-controls${isVisible ? "" : " is-hidden"}${hasBottomBrowserChrome ? " has-bottom-browser-chrome" : ""}`}
+      aria-label="Case study navigation"
+    >
       <Link className="case-study-control case-study-control-home" href="/">
         Home
       </Link>
