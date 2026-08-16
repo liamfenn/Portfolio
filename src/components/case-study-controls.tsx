@@ -1,0 +1,78 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
+interface CaseStudyControlsProps {
+  previousSlug: string;
+  previousTitle: string;
+  nextSlug: string;
+  nextTitle: string;
+}
+
+export function CaseStudyControls({
+  previousSlug,
+  previousTitle,
+  nextSlug,
+  nextTitle,
+}: CaseStudyControlsProps) {
+  const [isVisible, setIsVisible] = useState(true);
+  const previousScrollY = useRef(0);
+  const animationFrame = useRef<number | null>(null);
+
+  useEffect(() => {
+    previousScrollY.current = window.scrollY;
+
+    const handleScroll = () => {
+      if (animationFrame.current !== null) {
+        return;
+      }
+
+      animationFrame.current = window.requestAnimationFrame(() => {
+        const currentScrollY = Math.max(0, window.scrollY);
+        const difference = currentScrollY - previousScrollY.current;
+
+        if (currentScrollY <= 8) {
+          setIsVisible(true);
+        } else if (difference > 4) {
+          setIsVisible(false);
+        } else if (difference < -4) {
+          setIsVisible(true);
+        }
+
+        previousScrollY.current = currentScrollY;
+        animationFrame.current = null;
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (animationFrame.current !== null) {
+        window.cancelAnimationFrame(animationFrame.current);
+      }
+    };
+  }, []);
+
+  return (
+    <nav className={`case-study-controls${isVisible ? "" : " is-hidden"}`} aria-label="Case study navigation">
+      <Link className="case-study-control case-study-control-home" href="/">
+        Home
+      </Link>
+      <Link
+        className="case-study-control case-study-control-step"
+        href={`/work/${previousSlug}`}
+        aria-label={`Previous project: ${previousTitle}`}
+      >
+        P
+      </Link>
+      <Link
+        className="case-study-control case-study-control-step"
+        href={`/work/${nextSlug}`}
+        aria-label={`Next project: ${nextTitle}`}
+      >
+        N
+      </Link>
+    </nav>
+  );
+}

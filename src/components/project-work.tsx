@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
@@ -533,11 +534,14 @@ export function ProjectWork() {
             key={preview.id}
             className="project-preview"
             data-case-study-slug={preview.caseStudySlug}
-            aria-label={`${preview.label} preview placeholder`}
           >
-            <span className="sr-only">
-              {preview.label}. This preview will link to /work/{preview.caseStudySlug} when the case study is published.
-            </span>
+            <Link
+              className="project-preview-link"
+              href={`/work/${preview.caseStudySlug}`}
+              aria-label={`View the ${preview.label} case study`}
+            >
+              <span className="sr-only">{preview.label} case study preview.</span>
+            </Link>
           </li>
         ))}
       </ul>

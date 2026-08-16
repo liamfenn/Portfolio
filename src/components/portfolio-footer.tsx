@@ -12,7 +12,7 @@ function getNewYorkTime() {
   });
 }
 
-export function PortfolioFooter() {
+export function PortfolioFooter({ variant = "default" }: { variant?: "default" | "case-study" }) {
   const { data } = useWeather();
   const [time, setTime] = useState(getNewYorkTime);
 
@@ -25,12 +25,21 @@ export function PortfolioFooter() {
   const temperature = data ? Math.round(data.temperature) : 71;
 
   return (
-    <footer className="portfolio-footer">
-      <div className="portfolio-footer-row">
+    <footer className={`portfolio-footer${variant === "case-study" ? " case-study-footer" : ""}`}>
+      {variant === "case-study" ? (
+        <div className="portfolio-footer-row case-study-footer-mobile-row">
+          <span className="case-study-footer-owner">
+            <span className="footer-highlight">© 2026</span>
+            <span>Liam Fennell</span>
+          </span>
+          <span className="footer-weather">All rights reserved</span>
+        </div>
+      ) : null}
+      <div className={`portfolio-footer-row${variant === "case-study" ? " case-study-footer-desktop-row" : ""}`}>
         <span className="footer-highlight">© 2026</span>
         <span>Office of Liam Fennell</span>
       </div>
-      <div className="portfolio-footer-row">
+      <div className={`portfolio-footer-row${variant === "case-study" ? " case-study-footer-desktop-row" : ""}`}>
         <span className="footer-highlight">Atlanta, GA</span>
         <span className="footer-weather">
           {time}, {condition} at {temperature}°F
