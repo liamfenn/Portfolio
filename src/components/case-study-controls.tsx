@@ -64,7 +64,7 @@ export function CaseStudyControls({
   return (
     <nav className={`case-study-controls${isVisible ? "" : " is-hidden"}`} aria-label="Case study navigation">
       <Link className="case-study-control case-study-control-home" href="/">
-        Home
+        Close
       </Link>
       <Link
         className="case-study-control case-study-control-step"

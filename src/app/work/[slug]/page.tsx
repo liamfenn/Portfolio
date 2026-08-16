@@ -73,7 +73,6 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
             companyLogoBackground={study.companyLogoBackground}
           />
           <div className="case-study-summary">
-            <p className="case-study-period">{study.period}</p>
             <h1>{study.title}</h1>
             <p>{study.description}</p>
           </div>
