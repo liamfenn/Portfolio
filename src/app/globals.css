@@ -696,9 +696,9 @@
     filter: blur(0);
     transform: translateX(0) scale(1);
     transition:
-      opacity 220ms cubic-bezier(0.4, 0, 1, 1) 30ms,
-      filter 280ms cubic-bezier(0.4, 0, 1, 1) 20ms,
-      transform 360ms cubic-bezier(0.4, 0, 1, 1);
+      opacity 240ms cubic-bezier(0.4, 0, 0.2, 1) 20ms,
+      filter 300ms cubic-bezier(0.4, 0, 0.2, 1) 10ms,
+      transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -891,9 +891,9 @@
     filter: blur(0);
     transform: translateX(0) scale(1);
     transition:
-      opacity 220ms cubic-bezier(0.4, 0, 1, 1) 30ms,
-      filter 280ms cubic-bezier(0.4, 0, 1, 1) 20ms,
-      transform 360ms cubic-bezier(0.4, 0, 1, 1);
+      opacity 240ms cubic-bezier(0.4, 0, 0.2, 1) 20ms,
+      filter 300ms cubic-bezier(0.4, 0, 0.2, 1) 10ms,
+      transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .identity-status {
