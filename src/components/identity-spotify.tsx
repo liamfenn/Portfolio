@@ -2,14 +2,22 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
 export function IdentitySpotify() {
   const { data } = useSpotify();
   const [isTapped, setIsTapped] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [songOverflow, setSongOverflow] = useState(0);
   const [switchingBackLayer, setSwitchingBackLayer] = useState<"album" | "avatar" | null>(null);
+  const exitCollapseTimer = useRef<number | null>(null);
+  const hoverExitTimer = useRef<number | null>(null);
   const switchFrame = useRef<number | null>(null);
   const switchTimer = useRef<number | null>(null);
+  const songLineRef = useRef<HTMLSpanElement>(null);
+  const songMarqueeRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     return () => {
@@ -20,8 +28,50 @@ export function IdentitySpotify() {
       if (switchTimer.current !== null) {
         window.clearTimeout(switchTimer.current);
       }
+
+      if (hoverExitTimer.current !== null) {
+        window.clearTimeout(hoverExitTimer.current);
+      }
+
+      if (exitCollapseTimer.current !== null) {
+        window.clearTimeout(exitCollapseTimer.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    const songLine = songLineRef.current;
+    const songMarquee = songMarqueeRef.current;
+
+    if (!songLine || !songMarquee) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const measure = () => {
+      if (isCancelled) {
+        return;
+      }
+
+      const marqueeWidth = Math.max(
+        songMarquee.scrollWidth,
+        songMarquee.getBoundingClientRect().width,
+      );
+      const difference = marqueeWidth - songLine.clientWidth;
+      setSongOverflow(difference > 2 ? difference + 24 : 0);
+    };
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(songLine);
+    document.fonts?.ready.then(measure);
+    measure();
+
+    return () => {
+      isCancelled = true;
+      resizeObserver.disconnect();
+    };
+  }, [data?.artist, data?.title]);
 
   const triggerSwitchMotion = (backLayer: "album" | "avatar") => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -53,21 +103,47 @@ export function IdentitySpotify() {
 
   const triggerHoverInMotion = () => {
     if (window.matchMedia("(hover: hover)").matches) {
+      if (hoverExitTimer.current !== null) {
+        window.clearTimeout(hoverExitTimer.current);
+        hoverExitTimer.current = null;
+      }
+
+      if (exitCollapseTimer.current !== null) {
+        window.clearTimeout(exitCollapseTimer.current);
+        exitCollapseTimer.current = null;
+      }
+
+      setIsExiting(false);
+      setIsHovered(true);
       triggerSwitchMotion("album");
     }
   };
 
   const triggerHoverOutMotion = () => {
     if (window.matchMedia("(hover: hover)").matches) {
-      triggerSwitchMotion("avatar");
+      if (hoverExitTimer.current !== null) {
+        window.clearTimeout(hoverExitTimer.current);
+      }
+
+      hoverExitTimer.current = window.setTimeout(() => {
+        setIsExiting(true);
+        setIsHovered(false);
+        triggerSwitchMotion("avatar");
+        exitCollapseTimer.current = window.setTimeout(() => {
+          setIsExiting(false);
+          exitCollapseTimer.current = null;
+        }, 180);
+        hoverExitTimer.current = null;
+      }, 120);
     }
   };
 
   const status = data?.isPlaying ? "Listening now" : "Last listened";
+  const isSongMarqueeActive = songOverflow > 0 && (isTapped || isHovered);
 
   return (
     <div
-      className={`identity-spotify${isTapped ? " is-tapped" : ""}${switchingBackLayer ? ` is-switching is-${switchingBackLayer}-to-back` : ""}`}
+      className={`identity-spotify${isTapped ? " is-tapped" : ""}${isHovered ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}${switchingBackLayer ? ` is-switching is-${switchingBackLayer}-to-back` : ""}`}
       onPointerEnter={triggerHoverInMotion}
       onPointerLeave={triggerHoverOutMotion}
     >
@@ -124,10 +200,22 @@ export function IdentitySpotify() {
                 <span className="identity-status-dot">.</span>
               </span>
             </span>
-            <span className="identity-song-line">
-              <span>{data.title}</span>
-              <span className="identity-track-separator" aria-hidden="true">•</span>
-              <span className="identity-artist">{data.artist}</span>
+            <span
+              ref={songLineRef}
+              className={`identity-song-line${isSongMarqueeActive ? " is-marquee-active" : ""}`}
+              style={{ "--identity-song-marquee-offset": `-${songOverflow}px` } as CSSProperties}
+            >
+              <span ref={songMarqueeRef} className="identity-song-marquee">
+                <span>{data.title}</span>
+                <span className="identity-track-separator" aria-hidden="true">•</span>
+                <span className="identity-artist">{data.artist}</span>
+              </span>
+              {songOverflow > 0 ? (
+                <>
+                  <span className="identity-song-fade identity-song-fade-right" aria-hidden="true" />
+                  <span className="identity-song-fade identity-song-fade-left" aria-hidden="true" />
+                </>
+              ) : null}
             </span>
           </span>
         </a>
