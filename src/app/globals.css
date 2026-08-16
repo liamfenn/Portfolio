@@ -309,6 +309,10 @@
   width: 80px;
 }
 
+.work-sort-menu-control {
+  margin-right: auto;
+}
+
 .work-control {
   gap: 7px;
   padding: 0 2px 0 4px;
@@ -332,6 +336,22 @@
   padding-right: 4px;
 }
 
+.work-sort-control {
+  width: 80px;
+  gap: 0;
+  justify-content: flex-start;
+}
+
+.work-sort-menu {
+  right: auto;
+  left: 0;
+  align-items: flex-start;
+}
+
+.work-sort-menu .work-density-option {
+  justify-content: flex-start;
+}
+
 .work-grid-label-group {
   display: flex;
   align-items: center;
@@ -350,6 +370,11 @@
 .work-grid-label-group.is-scrambling .work-grid-label {
   width: 2.55em;
   flex-basis: 2.55em;
+}
+
+.work-sort-label-group.is-scrambling .work-grid-label {
+  width: 4.25em;
+  flex-basis: 4.25em;
 }
 
 .work-density-menu {
@@ -879,6 +904,11 @@
   .work-grid-label-group.is-scrambling .work-grid-label {
     width: 2.4em;
     flex-basis: 2.4em;
+  }
+
+  .work-sort-label-group.is-scrambling .work-grid-label {
+    width: 4.25em;
+    flex-basis: 4.25em;
   }
 
   .project-grid {
