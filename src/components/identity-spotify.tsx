@@ -65,13 +65,7 @@ export function IdentitySpotify() {
       onPointerEnter={triggerHoverMotion}
       onPointerLeave={triggerHoverMotion}
     >
-      <button
-        type="button"
-        className="identity-artwork"
-        aria-label={isTapped ? "Hide Spotify track" : "Show Spotify track"}
-        aria-expanded={isTapped}
-        onClick={toggleMobileState}
-      >
+      <div className="identity-artwork">
         <span className="identity-avatar" aria-hidden="true">
           <Image
             src="/images/profile-v2.png"
@@ -86,7 +80,23 @@ export function IdentitySpotify() {
             <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
           ) : null}
         </span>
-      </button>
+        {data ? (
+          <a
+            className="identity-artwork-action identity-artwork-link"
+            href={data.songUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open ${data.title} by ${data.artist} in Spotify`}
+          />
+        ) : null}
+        <button
+          type="button"
+          className="identity-artwork-action identity-artwork-toggle"
+          aria-label={isTapped ? "Hide Spotify track" : "Show Spotify track"}
+          aria-expanded={isTapped}
+          onClick={toggleMobileState}
+        />
+      </div>
 
       {data ? (
         <a
@@ -94,6 +104,7 @@ export function IdentitySpotify() {
           href={data.songUrl}
           target="_blank"
           rel="noreferrer"
+          aria-label={`Open ${data.title} by ${data.artist} in Spotify`}
         >
           <span
             className={data.isPlaying ? "identity-status is-live" : "identity-status"}
@@ -108,7 +119,7 @@ export function IdentitySpotify() {
           </span>
           <span className="identity-song-line">
             <span>{data.title}</span>
-            <span className="identity-track-separator" aria-hidden="true"> • </span>
+            <span className="identity-track-separator" aria-hidden="true">•</span>
             <span className="identity-artist">{data.artist}</span>
           </span>
         </a>
