@@ -145,7 +145,7 @@ export function IdentitySpotify() {
   const smallScale = isCompact ? 24 / 36 : 28 / 43;
   const frontStroke = isCompact ? 2.25 : 3.071;
   const backStroke = isCompact ? 0.75 : 1;
-  const albumInnerStroke = isCompact ? 0.5 : 0.6;
+  const albumInnerStroke = isCompact ? 0.75 : 0.9;
   const albumFrontRadius = isCompact ? 12 : 15.35;
   const albumBackRadius = isCompact ? 10 : 12;
   const layerTransition = prefersReducedMotion ? { duration: 0 } : STACK_SPRING;
@@ -222,7 +222,7 @@ export function IdentitySpotify() {
         innerBorder: {
           width: albumInnerStroke,
           color: "#000",
-          opacity: 0.04,
+          opacity: 0.12,
         },
         ...(isCompact
           ? {
