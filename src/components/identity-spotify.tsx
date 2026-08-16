@@ -222,7 +222,7 @@ export function IdentitySpotify() {
         innerBorder: {
           width: albumInnerStroke,
           color: "#000",
-          opacity: 0.12,
+          opacity: 0.08,
         },
         ...(isCompact
           ? {

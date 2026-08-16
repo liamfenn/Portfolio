@@ -75,7 +75,7 @@ function WorkGlyphControl({
 
   return (
     <span
-      className={`work-grid-label-group work-${variant}-label-group${
+      className={`work-label-group work-${variant}-label-group${
         shouldReserveScrambleWidth ? " is-scrambling" : ""
       }`}
     >

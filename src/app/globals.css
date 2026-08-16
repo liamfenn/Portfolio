@@ -352,11 +352,19 @@
   justify-content: flex-start;
 }
 
-.work-grid-label-group {
+.work-label-group {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 7px;
+}
+
+.work-sort-label-group {
+  justify-content: flex-start;
+}
+
+.work-sort-label-group .work-grid-label {
+  text-align: left;
 }
 
 .work-grid-label {
@@ -881,7 +889,7 @@
 
   .work-toolbar-group,
   .work-control,
-  .work-grid-label-group {
+  .work-label-group {
     gap: 4px;
   }
 
