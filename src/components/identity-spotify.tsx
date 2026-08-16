@@ -203,7 +203,7 @@ export function IdentitySpotify() {
     {
       autoEffects: false,
       effects: {
-        outerBorder: {
+        middleBorder: {
           width: avatarStrokeWidth,
           color: "#fff",
           opacity: 1,

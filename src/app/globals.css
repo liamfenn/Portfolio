@@ -497,7 +497,7 @@
 .identity-status {
   font-size: 14px;
   letter-spacing: -0.14px;
-  color: #555;
+  color: #999999;
 }
 
 .identity-status.is-live {
