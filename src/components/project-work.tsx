@@ -25,11 +25,30 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
+const DENSITY_MENU_VARIANTS = {
+  open: {},
+  closed: {
+    transition: {
+      staggerChildren: 0.036,
+      staggerDirection: 1,
+    },
+  },
+} as const;
+
+const DENSITY_MENU_SLOT_VARIANTS = {
+  open: {
+    visibility: "visible",
+  },
+  closed: {
+    visibility: "hidden",
+    transition: {
+      duration: 0,
+    },
+  },
+} as const;
+
 export function ProjectWork() {
   const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
-  const [densityOptions, setDensityOptions] = useState<Array<(typeof DESKTOP_DENSITIES)[number]>>(() =>
-    DESKTOP_DENSITIES.filter((density) => density !== 3),
-  );
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
@@ -72,9 +91,6 @@ export function ProjectWork() {
 
   const selectDesktopDensity = (density: (typeof DESKTOP_DENSITIES)[number]) => {
     setHasChangedDensity(true);
-    setDensityOptions((currentOptions) =>
-      currentOptions.map((option) => (option === density ? desktopDensity : option)),
-    );
     setDesktopDensity(density);
   };
 
@@ -84,6 +100,7 @@ export function ProjectWork() {
     }
   };
 
+  const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
@@ -111,35 +128,50 @@ export function ProjectWork() {
           onFocus={openDensityMenu}
           onBlur={handleDensityControlBlur}
         >
-          {isDensityMenuOpen ? (
-            <div className="work-density-menu" role="menu" aria-label="Grid density">
-              {densityOptions.map((density, index) => (
-                <div className="work-density-slot" role="none" key={index}>
-                  <AnimatePresence initial={false} mode="popLayout">
-                    <motion.button
-                      key={density}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked="false"
-                      className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
-                      style={
-                        {
-                          "--density-option-index": densityOptions.length - 1 - index,
-                        } as CSSProperties
-                      }
-                      initial={hasChangedDensity ? DENSITY_HIDDEN : false}
-                      animate={DENSITY_VISIBLE}
-                      exit={DENSITY_HIDDEN}
-                      transition={DENSITY_TRANSITION}
-                      onClick={() => selectDesktopDensity(density)}
-                    >
-                      {density} x {density}
-                    </motion.button>
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <AnimatePresence initial={false}>
+            {isDensityMenuOpen ? (
+              <motion.div
+                className="work-density-menu"
+                role="menu"
+                aria-label="Grid density"
+                variants={DENSITY_MENU_VARIANTS}
+                initial="open"
+                animate="open"
+                exit="closed"
+              >
+                {densityOptions.map((density, index) => (
+                  <motion.div
+                    className="work-density-slot"
+                    role="none"
+                    key={index}
+                    variants={DENSITY_MENU_SLOT_VARIANTS}
+                  >
+                    <AnimatePresence initial={false} mode="popLayout">
+                      <motion.button
+                        key={density}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked="false"
+                        className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
+                        style={
+                          {
+                            "--density-option-index": densityOptions.length - 1 - index,
+                          } as CSSProperties
+                        }
+                        initial={hasChangedDensity ? DENSITY_HIDDEN : false}
+                        animate={DENSITY_VISIBLE}
+                        exit={DENSITY_HIDDEN}
+                        transition={DENSITY_TRANSITION}
+                        onClick={() => selectDesktopDensity(density)}
+                      >
+                        {density} x {density}
+                      </motion.button>
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
 
           <button
             type="button"
