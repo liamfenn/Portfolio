@@ -1,7 +1,5 @@
 export interface CaseStudyTechnology {
   label: string;
-  color: string;
-  background: string;
 }
 
 export interface CaseStudyMediaBlock {
@@ -47,10 +45,10 @@ const PLACEHOLDER_DESCRIPTION =
   "Experiential campaign centered around social graph of personalized baskets with real products selected from the canvas. Each card is generated on device, dynamic layout and physics every time.";
 
 const TECHNOLOGIES: CaseStudyTechnology[] = [
-  { label: "SwiftUI", color: "#5533ea", background: "rgba(85, 51, 234, 0.16)" },
-  { label: "UIKit", color: "#eb37ac", background: "rgba(235, 55, 172, 0.16)" },
-  { label: "WebGL", color: "#5a1171", background: "rgba(90, 17, 113, 0.16)" },
-  { label: "Codex", color: "#1e71d7", background: "rgba(30, 113, 215, 0.16)" },
+  { label: "SwiftUI" },
+  { label: "UIKit" },
+  { label: "WebGL" },
+  { label: "Codex" },
 ];
 
 function placeholderBlocks(slug: string): CaseStudyBlock[] {

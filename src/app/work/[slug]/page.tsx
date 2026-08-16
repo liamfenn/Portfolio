@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CaseStudyControls } from "@/components/case-study-controls";
@@ -89,16 +88,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
                 <h2>{block.title}</h2>
                 <div className="case-study-technology-list">
                   {block.items.map((item) => (
-                    <span
-                      key={item.label}
-                      className="case-study-technology-tag"
-                      style={
-                        {
-                          "--case-study-tag-color": item.color,
-                          "--case-study-tag-background": item.background,
-                        } as CSSProperties
-                      }
-                    >
+                    <span key={item.label} className="case-study-technology-tag">
                       {item.label}
                     </span>
                   ))}
