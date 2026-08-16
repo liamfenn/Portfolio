@@ -1,0 +1,182 @@
+"use client";
+
+import Image from "next/image";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, FocusEvent } from "react";
+import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+
+const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
+
+const DENSITY_TRANSITION = {
+  duration: 0.18,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+
+const DENSITY_HIDDEN = {
+  opacity: 0,
+  scale: 0.86,
+  filter: "blur(3px)",
+} as const;
+
+const DENSITY_VISIBLE = {
+  opacity: 1,
+  scale: 1,
+  filter: "blur(0px)",
+} as const;
+
+export function ProjectWork() {
+  const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
+  const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
+  const [hasChangedDensity, setHasChangedDensity] = useState(false);
+  const densityControlRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateMobileState = () => {
+      setIsMobile(mediaQuery.matches);
+      if (mediaQuery.matches) {
+        setIsDensityMenuOpen(false);
+      }
+    };
+
+    updateMobileState();
+    mediaQuery.addEventListener("change", updateMobileState);
+    return () => mediaQuery.removeEventListener("change", updateMobileState);
+  }, []);
+
+  const openDensityMenu = () => {
+    if (!isMobile) {
+      setHasChangedDensity(false);
+      setIsDensityMenuOpen(true);
+    }
+  };
+
+  const closeDensityMenu = () => {
+    if (!isMobile) {
+      setIsDensityMenuOpen(false);
+      setHasChangedDensity(false);
+    }
+  };
+
+  const handleDensityControlBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      closeDensityMenu();
+    }
+  };
+
+  const selectDesktopDensity = (density: (typeof DESKTOP_DENSITIES)[number]) => {
+    setHasChangedDensity(true);
+    setDesktopDensity(density);
+  };
+
+  const toggleMobileGrid = () => {
+    if (isMobile) {
+      setMobileColumns((current) => (current === 1 ? 2 : 1));
+    }
+  };
+
+  const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
+  const gridStyle = {
+    "--project-columns": desktopDensity,
+    "--project-mobile-columns": mobileColumns,
+  } as CSSProperties;
+
+  return (
+    <section className="portfolio-work" aria-label="Work">
+      <div className="work-toolbar" aria-label="Project display controls">
+        <div className="work-toolbar-group">
+          <button type="button" className="work-control">
+            <Image src="/images/icons/filter-v2.svg" alt="" width={10} height={10} />
+            Filter
+          </button>
+          <button type="button" className="work-control">
+            <span className="work-control-square" aria-hidden="true" />
+            Sort
+          </button>
+        </div>
+
+        <div
+          ref={densityControlRef}
+          className="work-density-control"
+          onPointerEnter={openDensityMenu}
+          onPointerLeave={closeDensityMenu}
+          onFocus={openDensityMenu}
+          onBlur={handleDensityControlBlur}
+        >
+          {isDensityMenuOpen ? (
+            <div className="work-density-menu" role="menu" aria-label="Grid density">
+              <AnimatePresence initial={false} mode="popLayout">
+                {densityOptions.map((density, index) => (
+                  <motion.button
+                    layout
+                    key={density}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked="false"
+                    className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
+                    style={{ "--density-option-index": index } as CSSProperties}
+                    initial={hasChangedDensity ? DENSITY_HIDDEN : false}
+                    animate={DENSITY_VISIBLE}
+                    exit={DENSITY_HIDDEN}
+                    transition={DENSITY_TRANSITION}
+                    onClick={() => selectDesktopDensity(density)}
+                  >
+                    {density} x {density}
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            className="work-control work-grid-control"
+            role={isMobile ? "switch" : undefined}
+            aria-checked={isMobile ? mobileColumns === 2 : undefined}
+            aria-haspopup={isMobile ? undefined : "menu"}
+            aria-expanded={isMobile ? undefined : isDensityMenuOpen}
+            aria-label={isMobile ? `Switch to ${mobileColumns === 1 ? 2 : 1} column grid` : "Grid density"}
+            onClick={toggleMobileGrid}
+          >
+            <span className="work-control-square" aria-hidden="true" />
+            {isDensityMenuOpen ? (
+              <span className="work-density-current">
+                <AnimatePresence initial={false} mode="popLayout">
+                  <motion.span
+                    key={desktopDensity}
+                    initial={hasChangedDensity ? DENSITY_HIDDEN : false}
+                    animate={DENSITY_VISIBLE}
+                    exit={hasChangedDensity ? DENSITY_HIDDEN : undefined}
+                    transition={DENSITY_TRANSITION}
+                  >
+                    {desktopDensity} x {desktopDensity}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+            ) : (
+              "Grid"
+            )}
+          </button>
+        </div>
+      </div>
+
+      <ul className="project-grid" style={gridStyle} aria-label="Selected work">
+        {PROJECT_PREVIEWS.map((preview) => (
+          <li
+            key={preview.id}
+            className="project-preview"
+            data-case-study-slug={preview.caseStudySlug}
+            aria-label={`${preview.label} preview placeholder`}
+          >
+            <span className="sr-only">
+              {preview.label}. This preview will link to /work/{preview.caseStudySlug} when the case study is published.
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}

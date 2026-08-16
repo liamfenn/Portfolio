@@ -1,7 +1,6 @@
-import Image from "next/image";
 import { IdentitySpotify } from "@/components/identity-spotify";
 import { PortfolioFooter } from "@/components/portfolio-footer";
-import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { ProjectWork } from "@/components/project-work";
 
 const CONTACT_LINKS = [
   { label: "Twitter", href: "https://x.com/xyzfennell" },
@@ -27,46 +26,6 @@ function ContactLinks({ mobile = false }: { mobile?: boolean }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function WorkToolbar() {
-  return (
-    <div className="work-toolbar" aria-label="Project display controls">
-      <div className="work-toolbar-group">
-        <button type="button" className="work-control">
-          <Image src="/images/icons/filter-v2.svg" alt="" width={10} height={10} />
-          Filter
-        </button>
-        <button type="button" className="work-control">
-          <span className="work-control-square" aria-hidden="true" />
-          Sort
-        </button>
-      </div>
-      <button type="button" className="work-control" role="switch" aria-checked="true">
-        <span className="work-control-square" aria-hidden="true" />
-        Grid
-      </button>
-    </div>
-  );
-}
-
-function ProjectGrid() {
-  return (
-    <ul className="project-grid" aria-label="Selected work">
-      {PROJECT_PREVIEWS.map((preview) => (
-        <li
-          key={preview.id}
-          className="project-preview"
-          data-case-study-slug={preview.caseStudySlug}
-          aria-label={`${preview.label} preview placeholder`}
-        >
-          <span className="sr-only">
-            {preview.label}. This preview will link to /work/{preview.caseStudySlug} when the case study is published.
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -107,10 +66,7 @@ export default function Home() {
         <ContactLinks />
       </header>
 
-      <section className="portfolio-work" aria-label="Work">
-        <WorkToolbar />
-        <ProjectGrid />
-      </section>
+      <ProjectWork />
 
       <ContactLinks mobile />
       <PortfolioFooter />

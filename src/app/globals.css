@@ -303,6 +303,11 @@
   gap: 4px;
 }
 
+.work-density-control {
+  position: relative;
+  z-index: 3;
+}
+
 .work-control {
   gap: 4px;
   padding: 0 2px 0 4px;
@@ -319,6 +324,70 @@
   outline-offset: 2px;
 }
 
+.work-grid-control {
+  padding-right: 4px;
+}
+
+.work-density-current {
+  display: inline-grid;
+  place-items: center;
+}
+
+.work-density-current > span {
+  grid-area: 1 / 1;
+  transform-origin: center;
+}
+
+.work-density-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 2px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.work-density-option {
+  min-height: 20px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #555;
+  font: inherit;
+  line-height: 1.35;
+  letter-spacing: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transform-origin: center;
+  transition: color 120ms ease;
+}
+
+.work-density-option:hover,
+.work-density-option:focus-visible {
+  color: #000;
+}
+
+.work-density-option:focus-visible {
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 1px;
+}
+
+.work-density-option.is-opening {
+  animation: work-density-stack-in 1ms steps(1, end) both;
+  animation-delay: calc(var(--density-option-index) * 36ms);
+}
+
+@keyframes work-density-stack-in {
+  from {
+    visibility: hidden;
+  }
+
+  to {
+    visibility: visible;
+  }
+}
+
 .work-control img,
 .work-control-square {
   display: block;
@@ -333,7 +402,7 @@
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--project-columns, 3), minmax(0, 1fr));
   gap: 8px;
   width: 100%;
   margin: 0;
@@ -757,8 +826,12 @@
     flex-basis: 8px;
   }
 
+  .work-density-menu {
+    display: none;
+  }
+
   .project-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(var(--project-mobile-columns, 1), minmax(0, 1fr));
     gap: 8px;
     padding: 0;
   }
