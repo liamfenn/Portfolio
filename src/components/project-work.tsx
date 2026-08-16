@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -81,7 +80,7 @@ function WorkGlyphControl({
       }`}
     >
       {variant === "sort" ? (
-        <Image src="/images/icons/filter-v2.svg" alt="" width={10} height={10} />
+        <span className="work-control-dot" aria-hidden="true" />
       ) : (
         <motion.span
           layout="position"

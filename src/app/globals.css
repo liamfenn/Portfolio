@@ -465,12 +465,17 @@
   }
 }
 
-.work-control img,
+.work-control-dot,
 .work-control-square {
   display: block;
   width: 10px;
   height: 10px;
   flex: 0 0 10px;
+}
+
+.work-control-dot {
+  background: #000;
+  clip-path: circle(50%);
 }
 
 .work-control-square {
@@ -1263,7 +1268,7 @@
     gap: 4px;
   }
 
-  .work-control img,
+  .work-control-dot,
   .work-control-square {
     width: 8px;
     height: 8px;
