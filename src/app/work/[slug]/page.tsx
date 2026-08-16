@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CaseStudyControls } from "@/components/case-study-controls";
-import { PortfolioFooter } from "@/components/portfolio-footer";
 import { ProjectIdentity } from "@/components/project-identity";
 import {
   CASE_STUDIES,
@@ -110,7 +109,6 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         })}
       </article>
 
-      <PortfolioFooter />
       <CaseStudyControls
         previousSlug={adjacentStudies.previous.slug}
         previousTitle={adjacentStudies.previous.title}

@@ -513,6 +513,7 @@
 /* Case studies */
 .case-study-page {
   min-height: 100vh;
+  padding-bottom: 144px;
 }
 
 .case-study-content {
@@ -842,10 +843,6 @@
     color: #fff;
     opacity: 1;
   }
-}
-
-.case-study-page > .portfolio-footer {
-  margin-top: 96px;
 }
 
 .identity-spotify {
@@ -1365,8 +1362,8 @@
     letter-spacing: -0.14px;
   }
 
-  .case-study-page > .portfolio-footer {
-    margin-top: 48px;
+  .case-study-page {
+    padding-bottom: 112px;
   }
 
   .portfolio-contact-mobile {
