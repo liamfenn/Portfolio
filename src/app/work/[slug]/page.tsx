@@ -37,17 +37,20 @@ function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const { media } = block;
 
   return (
-    <div className="case-study-media" data-media-kind={media.kind}>
-      {media.kind === "image" && media.src ? (
-        <Image src={media.src} alt={media.alt ?? ""} fill sizes="(max-width: 767px) 100vw, 600px" />
-      ) : null}
-      {media.kind === "video" && media.src ? (
-        <video src={media.src} aria-label={media.alt} autoPlay muted loop playsInline preload="metadata" />
-      ) : null}
-      {media.kind === "interactive" ? (
-        <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
-      ) : null}
-    </div>
+    <figure className="case-study-media-block">
+      <div className="case-study-media" data-media-kind={media.kind}>
+        {media.kind === "image" && media.src ? (
+          <Image src={media.src} alt={media.alt ?? ""} fill sizes="(max-width: 767px) 100vw, 600px" />
+        ) : null}
+        {media.kind === "video" && media.src ? (
+          <video src={media.src} aria-label={media.alt} autoPlay muted loop playsInline preload="metadata" />
+        ) : null}
+        {media.kind === "interactive" ? (
+          <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
+        ) : null}
+      </div>
+      {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
+    </figure>
   );
 }
 

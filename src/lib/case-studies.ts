@@ -5,6 +5,7 @@ export interface CaseStudyTechnology {
 export interface CaseStudyMediaBlock {
   id: string;
   type: "media";
+  caption?: string;
   media: {
     kind: "placeholder" | "image" | "video" | "interactive";
     src?: string;
@@ -53,7 +54,12 @@ const TECHNOLOGIES: CaseStudyTechnology[] = [
 
 function placeholderBlocks(slug: string): CaseStudyBlock[] {
   return [
-    { id: `${slug}-media-01`, type: "media", media: { kind: "placeholder" } },
+    {
+      id: `${slug}-media-01`,
+      type: "media",
+      caption: "Early version",
+      media: { kind: "placeholder" },
+    },
     {
       id: `${slug}-copy-01`,
       type: "copy",

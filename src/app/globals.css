@@ -572,6 +572,26 @@
   background: #f5f5f5;
 }
 
+.case-study-media-block {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.case-study-media-caption {
+  margin: 0;
+  font-family: var(--font-oracle);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.13px;
+  color: #999;
+  text-align: center;
+}
+
 .case-study-media img,
 .case-study-media video,
 .case-study-interactive-slot {
@@ -1273,6 +1293,11 @@
   .case-study-summary p,
   .case-study-text-block p {
     letter-spacing: -0.28px;
+  }
+
+  .case-study-media-caption {
+    font-size: 12px;
+    letter-spacing: -0.12px;
   }
 
   .project-identity {
