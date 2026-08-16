@@ -8,9 +8,11 @@ import type { CSSProperties, FocusEvent } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
-const GRID_LABEL_GLYPHS = Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789").map(
-  (glyph) => glyph.charCodeAt(0),
-) as [number, number, ...number[]];
+const GRID_LABEL_GLYPHS = Array.from("GridList2345x").map((glyph) => glyph.charCodeAt(0)) as [
+  number,
+  number,
+  ...number[],
+];
 
 const DENSITY_TRANSITION = {
   duration: 0.28,
@@ -33,11 +35,11 @@ function GridGlyphLabel({ text }: { text: string }) {
   const { ref } = useScramble({
     text,
     playOnMount: false,
-    speed: 0.58,
+    speed: 0.68,
     tick: 1,
     step: 1,
-    scramble: 4,
-    seed: 2,
+    scramble: 2,
+    seed: 1,
     chance: 1,
     range: GRID_LABEL_GLYPHS,
     overdrive: false,

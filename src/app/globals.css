@@ -333,8 +333,10 @@
 
 .work-grid-label {
   display: inline-block;
-  min-width: 2.4em;
-  text-align: left;
+  width: 2.4em;
+  flex: 0 0 2.4em;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .work-density-menu {
