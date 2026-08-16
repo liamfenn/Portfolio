@@ -728,7 +728,7 @@
   font-weight: 400;
   line-height: 1.35;
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: auto;
   transition:
     width 320ms cubic-bezier(0.45, 0, 0.55, 1),
     opacity 220ms cubic-bezier(0.4, 0, 0.2, 1) 20ms,
@@ -746,7 +746,6 @@
   font-size: 15px;
   letter-spacing: -0.15px;
   color: #000;
-  pointer-events: auto;
   transition: opacity 150ms ease;
 }
 
@@ -755,7 +754,7 @@
     opacity: 1;
   }
 
-  .project-identity-index-label:hover {
+  .project-identity-details:hover .project-identity-index-label {
     opacity: 0.4;
   }
 
