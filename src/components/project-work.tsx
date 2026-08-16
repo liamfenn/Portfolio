@@ -89,6 +89,8 @@ export function ProjectWork() {
   const densityControlRef = useRef<HTMLDivElement>(null);
   const densityMenuExitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridLabelTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const densityHoverValidationFrameRef = useRef<number | null>(null);
+  const densityMenuOpenedByPointerRef = useRef(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -113,6 +115,9 @@ export function ProjectWork() {
       }
       if (gridLabelTransitionTimeoutRef.current) {
         clearTimeout(gridLabelTransitionTimeoutRef.current);
+      }
+      if (densityHoverValidationFrameRef.current !== null) {
+        cancelAnimationFrame(densityHoverValidationFrameRef.current);
       }
     };
   }, []);
@@ -166,21 +171,60 @@ export function ProjectWork() {
     }
   };
 
-  const handleDensityControlPointerLeave = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const { clientX, clientY, currentTarget } = event;
-    const menu = currentTarget.querySelector<HTMLElement>(".work-density-menu");
-    const hitAreas = [currentTarget.getBoundingClientRect(), menu?.getBoundingClientRect()].filter(
+  const pointIsInsideDensityControl = (clientX: number, clientY: number) => {
+    if (!densityControlRef.current) {
+      return false;
+    }
+
+    const menu = densityControlRef.current.querySelector<HTMLElement>(".work-density-menu");
+    const hitAreas = [densityControlRef.current.getBoundingClientRect(), menu?.getBoundingClientRect()].filter(
       (bounds): bounds is DOMRect => Boolean(bounds),
     );
-    const pointerIsStillInside = hitAreas.some(
+
+    return hitAreas.some(
       (bounds) =>
         clientX >= bounds.left - 1 &&
         clientX <= bounds.right + 1 &&
         clientY >= bounds.top - 1 &&
         clientY <= bounds.bottom + 1,
     );
+  };
 
-    if (!pointerIsStillInside) {
+  const handleDensityControlPointerEnter = () => {
+    densityMenuOpenedByPointerRef.current = true;
+    openDensityMenu();
+    if (densityHoverValidationFrameRef.current !== null) {
+      cancelAnimationFrame(densityHoverValidationFrameRef.current);
+    }
+    densityHoverValidationFrameRef.current = requestAnimationFrame(() => {
+      densityHoverValidationFrameRef.current = requestAnimationFrame(() => {
+        densityHoverValidationFrameRef.current = null;
+        if (!densityControlRef.current?.matches(":hover")) {
+          densityMenuOpenedByPointerRef.current = false;
+          closeDensityMenu();
+        }
+      });
+    });
+  };
+
+  const handleDensityControlPointerLeave = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!pointIsInsideDensityControl(event.clientX, event.clientY)) {
+      if (densityHoverValidationFrameRef.current !== null) {
+        cancelAnimationFrame(densityHoverValidationFrameRef.current);
+        densityHoverValidationFrameRef.current = null;
+      }
+      densityMenuOpenedByPointerRef.current = false;
+      closeDensityMenu();
+    }
+  };
+
+  const handleWorkPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (
+      isDensityMenuOpen &&
+      densityMenuOpenedByPointerRef.current &&
+      !pointIsInsideDensityControl(event.clientX, event.clientY)
+    ) {
+      densityMenuOpenedByPointerRef.current = false;
       closeDensityMenu();
     }
   };
@@ -212,7 +256,7 @@ export function ProjectWork() {
   } as CSSProperties;
 
   return (
-    <section className="portfolio-work" aria-label="Work">
+    <section className="portfolio-work" aria-label="Work" onPointerMoveCapture={handleWorkPointerMove}>
       <div className="work-toolbar" aria-label="Project display controls">
         <div className="work-toolbar-group">
           <button type="button" className="work-control">
@@ -228,7 +272,7 @@ export function ProjectWork() {
         <div
           ref={densityControlRef}
           className="work-density-control"
-          onPointerEnter={openDensityMenu}
+          onPointerEnter={handleDensityControlPointerEnter}
           onPointerLeave={handleDensityControlPointerLeave}
           onFocus={openDensityMenu}
           onBlur={handleDensityControlBlur}
