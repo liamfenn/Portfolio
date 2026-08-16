@@ -882,10 +882,6 @@
     padding: 0;
   }
 
-  .project-preview:nth-child(n + 4) {
-    display: none;
-  }
-
   .portfolio-contact-mobile {
     display: flex;
     padding: 24px 12px;
