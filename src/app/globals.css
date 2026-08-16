@@ -366,6 +366,9 @@
   border: 0;
   background: transparent;
   outline: none;
+  overflow: visible;
+  perspective: 180px;
+  transform-style: preserve-3d;
 }
 
 .identity-artwork-action {
@@ -396,13 +399,15 @@
   position: absolute;
   display: block;
   overflow: hidden;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  transform-origin: 72% 72%;
   transition:
-    width 340ms cubic-bezier(0.45, 0, 0.55, 1),
-    height 340ms cubic-bezier(0.45, 0, 0.55, 1),
-    left 340ms cubic-bezier(0.45, 0, 0.55, 1),
-    top 340ms cubic-bezier(0.45, 0, 0.55, 1),
-    border-radius 340ms cubic-bezier(0.45, 0, 0.55, 1);
-  will-change: width, height, left, top, filter;
+    width 440ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 440ms cubic-bezier(0.4, 0, 0.2, 1),
+    left 440ms cubic-bezier(0.4, 0, 0.2, 1),
+    top 440ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 440ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .identity-avatar::after,
@@ -430,33 +435,54 @@
 
 .identity-spotify.is-switching .identity-avatar,
 .identity-spotify.is-switching .identity-album {
-  animation: identity-layer-switch-blur 360ms cubic-bezier(0.45, 0, 0.55, 1);
-}
-
-@keyframes identity-layer-switch-blur {
-  0%, 100% {
-    filter: blur(0);
-  }
-
-  48% {
-    filter: blur(0.6px);
-  }
+  will-change: width, height, left, top, transform, opacity;
 }
 
 .identity-spotify.is-album-to-back .identity-album,
 .identity-spotify.is-avatar-to-back .identity-avatar {
-  animation:
-    identity-layer-switch-blur 360ms cubic-bezier(0.45, 0, 0.55, 1),
-    identity-back-layer-fade 360ms cubic-bezier(0.45, 0, 0.55, 1);
+  animation: identity-card-shuffle-to-back 440ms linear;
 }
 
-@keyframes identity-back-layer-fade {
-  0%, 100% {
+@keyframes identity-card-shuffle-to-back {
+  0% {
     opacity: 1;
+    z-index: 3;
+    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.72, 0.2);
+  }
+
+  28% {
+    opacity: 0.96;
+    z-index: 3;
+    transform: translate3d(-5px, -7px, 16px) rotateY(-18deg) rotateZ(-5deg);
+    animation-timing-function: cubic-bezier(0.28, 0.6, 0.35, 1);
   }
 
   48% {
     opacity: 0.84;
+    z-index: 3;
+    transform: translate3d(-10px, -3px, 22px) rotateY(-32deg) rotateZ(-8deg);
+    animation-timing-function: step-end;
+  }
+
+  52% {
+    opacity: 0.84;
+    z-index: 1;
+    transform: translate3d(-10px, -3px, 18px) rotateY(-30deg) rotateZ(-8deg);
+    animation-timing-function: cubic-bezier(0.22, 0.72, 0.3, 1);
+  }
+
+  74% {
+    opacity: 0.94;
+    z-index: 1;
+    transform: translate3d(-4px, 4px, 5px) rotateY(-12deg) rotateZ(-3deg);
+    animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
+  }
+
+  100% {
+    opacity: 1;
+    z-index: 1;
+    transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
   }
 }
 

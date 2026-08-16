@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
+const SWITCH_MOTION_MS = 440;
+
 export function IdentitySpotify() {
   const { data } = useSpotify();
   const [isTapped, setIsTapped] = useState(false);
@@ -90,7 +92,10 @@ export function IdentitySpotify() {
 
     switchFrame.current = requestAnimationFrame(() => {
       setSwitchingBackLayer(backLayer);
-      switchTimer.current = window.setTimeout(() => setSwitchingBackLayer(null), 360);
+      switchTimer.current = window.setTimeout(
+        () => setSwitchingBackLayer(null),
+        SWITCH_MOTION_MS,
+      );
     });
   };
 
