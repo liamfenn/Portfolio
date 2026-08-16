@@ -578,7 +578,7 @@
   margin: 0;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .case-study-media-caption {
@@ -1313,7 +1313,7 @@
   }
 
   .case-study-media-block {
-    gap: 8px;
+    gap: 10px;
   }
 
   .project-identity {
