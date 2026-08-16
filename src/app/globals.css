@@ -394,10 +394,6 @@
 .identity-card-motion {
   --identity-small-scale: 0.651163;
   --identity-stack-offset: 9px;
-  --identity-artwork-front-stroke-width: 3.071px;
-  --identity-artwork-back-stroke-width: 1px;
-  --identity-album-front-radius: 15.35px;
-  --identity-album-back-radius: 12px;
   position: absolute;
   top: 0;
   left: 0;
@@ -434,9 +430,7 @@
 .identity-avatar {
   overflow: hidden;
   border: 0;
-  border-radius: 999px;
   background: #ebebeb;
-  box-shadow: 0 0 0 var(--identity-artwork-back-stroke-width) #fff;
 }
 
 .identity-avatar img {
@@ -451,13 +445,10 @@
 .identity-album {
   overflow: visible;
   border: 0;
-  border-radius: var(--identity-album-front-radius);
   background: #f5f5f5;
-  box-shadow: 0 0 0 var(--identity-artwork-front-stroke-width) #fff;
 }
 
 .identity-album img {
-  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -763,10 +754,6 @@
   .identity-card-motion {
     --identity-small-scale: 0.666667;
     --identity-stack-offset: 8px;
-    --identity-artwork-front-stroke-width: 2.25px;
-    --identity-artwork-back-stroke-width: 0.75px;
-    --identity-album-front-radius: 12px;
-    --identity-album-back-radius: 10px;
     width: 36px;
     height: 36px;
   }

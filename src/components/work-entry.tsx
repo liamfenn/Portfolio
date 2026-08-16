@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import type { WorkEntry as WorkEntryType, Thumbnail } from "@/lib/data";
+import { SmoothCorners } from "@/components/smooth-corners";
 
 function useGyroTilt() {
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
@@ -11,7 +12,7 @@ function useGyroTilt() {
   const currentRef = useRef({ rotateX: 0, rotateY: 0, scale: 1 });
   const rafRef = useRef<number>(0);
 
-  const animate = useCallback(() => {
+  const animate = useCallback(function updateTilt() {
     const t = targetRef.current;
     const c = currentRef.current;
     const lerp = 0.15;
@@ -23,7 +24,7 @@ function useGyroTilt() {
     const dx = Math.abs(t.rotateX - c.rotateX);
     const dy = Math.abs(t.rotateY - c.rotateY);
     if (dx > 0.01 || dy > 0.01) {
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(updateTilt);
     }
 
     setTilt({ rotateX: c.rotateX, rotateY: c.rotateY, scale: c.scale });
@@ -66,7 +67,13 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover)");
-    setCanHover(mq.matches);
+    const updateCanHover = () => setCanHover(mq.matches);
+    const frame = requestAnimationFrame(updateCanHover);
+    mq.addEventListener("change", updateCanHover);
+    return () => {
+      cancelAnimationFrame(frame);
+      mq.removeEventListener("change", updateCanHover);
+    };
   }, []);
 
   useEffect(() => {
@@ -109,7 +116,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
         video.removeEventListener("loadedmetadata", seekAndDraw);
       };
     }
-  }, [canHover]);
+  }, [canHover, thumb.mobileGlow]);
 
   const drawGlow = () => {
     const video = videoRef.current;
@@ -149,7 +156,7 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] md:rounded-[20px] overflow-visible relative z-10"
+        className="video-card block overflow-visible relative z-10"
         style={{
           transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
           transition: hovering ? "none" : "transform 0.4s ease-out",
@@ -160,43 +167,49 @@ function VideoCard({ thumb }: { thumb: Thumbnail }) {
       >
         {/* Blurred glow behind — canvas mirrors main video, or solid color */}
         {showGlow && (thumb.glowColor ? (
-          <div
-            className={`video-glow video-glow-solid absolute inset-0 rounded-[12px] md:rounded-[20px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
-            style={{
-              backgroundColor: thumb.glowColor,
-              transform: "scale(1.05)",
-              filter: "blur(24px)",
-            }}
-            aria-hidden="true"
-          />
+          <SmoothCorners radius={12} desktopRadius={20}>
+            <div
+              className={`video-glow video-glow-solid absolute inset-0 video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
+              style={{
+                backgroundColor: thumb.glowColor,
+                transform: "scale(1.05)",
+                filter: "blur(24px)",
+              }}
+              aria-hidden="true"
+            />
+          </SmoothCorners>
         ) : (
-          <canvas
-            ref={canvasRef}
-            className={`video-glow absolute inset-0 w-full h-full rounded-[12px] md:rounded-[20px] video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
-            style={{
-              transform: "scale(1.05)",
-              filter: "blur(30px) saturate(3)",
-            }}
-            aria-hidden="true"
-          />
+          <SmoothCorners radius={12} desktopRadius={20}>
+            <canvas
+              ref={canvasRef}
+              className={`video-glow absolute inset-0 w-full h-full video-glow-hidden z-0 pointer-events-none${showMobileGlow ? " video-glow-mobile-active" : ""}`}
+              style={{
+                transform: "scale(1.05)",
+                filter: "blur(30px) saturate(3)",
+              }}
+              aria-hidden="true"
+            />
+          </SmoothCorners>
         ))}
-        <div
-          className="relative rounded-[12px] md:rounded-[20px] overflow-hidden"
-          style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
-        >
-          <video
-            ref={videoRef}
-            src={thumb.videoUrl}
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="auto"
-            aria-hidden="true"
-            className="block w-full"
-          />
-          <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
-        </div>
+        <SmoothCorners radius={12} desktopRadius={20}>
+          <div
+            className="relative overflow-hidden"
+            style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
+          >
+            <video
+              ref={videoRef}
+              src={thumb.videoUrl}
+              muted
+              loop
+              playsInline
+              autoPlay
+              preload="auto"
+              aria-hidden="true"
+              className="block w-full"
+            />
+            <div className="absolute inset-0 shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+          </div>
+        </SmoothCorners>
       </a>
     </div>
   );
@@ -211,7 +224,14 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
   const { tilt, hovering, handleMouseMove, handleMouseLeave } = useGyroTilt();
 
   useEffect(() => {
-    setCanHover(window.matchMedia("(hover: hover)").matches);
+    const mq = window.matchMedia("(hover: hover)");
+    const updateCanHover = () => setCanHover(mq.matches);
+    const frame = requestAnimationFrame(updateCanHover);
+    mq.addEventListener("change", updateCanHover);
+    return () => {
+      cancelAnimationFrame(frame);
+      mq.removeEventListener("change", updateCanHover);
+    };
   }, []);
 
   // Desktop only — no glow on mobile for images
@@ -223,7 +243,7 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
         href={thumb.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="video-card block rounded-[12px] md:rounded-[20px] overflow-visible relative z-10"
+        className="video-card block overflow-visible relative z-10"
         style={{
           transform: `perspective(400px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
           transition: hovering ? "none" : "transform 0.4s ease-out",
@@ -233,35 +253,41 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
       >
         {/* Blurred glow behind — desktop only */}
         {showGlow && (thumb.glowColor ? (
-          <div
-            className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0 rounded-[12px] md:rounded-[20px]"
-            style={{
-              backgroundColor: thumb.glowColor,
-              transform: "scale(1.05)",
-              filter: "blur(24px)",
-            }}
-            aria-hidden="true"
-          />
+          <SmoothCorners radius={12} desktopRadius={20}>
+            <div
+              className="video-glow video-glow-solid video-glow-hidden z-0 pointer-events-none absolute inset-0"
+              style={{
+                backgroundColor: thumb.glowColor,
+                transform: "scale(1.05)",
+                filter: "blur(24px)",
+              }}
+              aria-hidden="true"
+            />
+          </SmoothCorners>
         ) : (
-          <img
-            src={thumb.videoUrl}
-            className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full rounded-[12px] md:rounded-[20px] object-cover"
-            style={{
-              transform: "scale(1.05)",
-              filter: "blur(30px) saturate(3)",
-            }}
-            aria-hidden="true"
-            alt=""
-          />
+          <SmoothCorners radius={12} desktopRadius={20}>
+            <img
+              src={thumb.videoUrl}
+              className="video-glow video-glow-hidden z-0 pointer-events-none absolute inset-0 w-full h-full object-cover"
+              style={{
+                transform: "scale(1.05)",
+                filter: "blur(30px) saturate(3)",
+              }}
+              aria-hidden="true"
+              alt=""
+            />
+          </SmoothCorners>
         ))}
-        <div className="relative rounded-[12px] md:rounded-[20px] overflow-hidden">
-          <img
-            src={thumb.videoUrl}
-            alt=""
-            className="block w-full"
-          />
-          <div className="absolute inset-0 rounded-[12px] md:rounded-[20px] shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
-        </div>
+        <SmoothCorners radius={12} desktopRadius={20}>
+          <div className="relative overflow-hidden">
+            <img
+              src={thumb.videoUrl}
+              alt=""
+              className="block w-full"
+            />
+            <div className="absolute inset-0 shadow-[inset_0_0_0_0.88px_rgba(0,0,0,0.04)] pointer-events-none" />
+          </div>
+        </SmoothCorners>
       </a>
     </div>
   );
@@ -270,30 +296,40 @@ function ImageCard({ thumb }: { thumb: Thumbnail }) {
 export function WorkEntry({ entry }: { entry: WorkEntryType }) {
   const avatars = (
     <div className="relative h-[24px] w-[40px] md:h-[32px] md:w-[48px]">
-      <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-[20px] h-[20px] md:w-[28px] md:h-[28px] rounded-full overflow-hidden"
-        style={entry.personalLogoOpacity ? { opacity: entry.personalLogoOpacity } : undefined}
-      >
-        <Image
-          src={entry.personalLogo}
-          alt="Personal"
-          width={28}
-          height={28}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div
-        className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[24px] h-[24px] md:left-[16px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden outline outline-1 outline-white"
-        style={{ backgroundColor: entry.companyLogoBg || "#f5f5f5" }}
-      >
-        <Image
-          src={entry.companyLogo}
-          alt={entry.company}
-          width={32}
-          height={32}
-          className="w-full h-full object-cover"
-        />
-      </div>
+      <SmoothCorners radius={999}>
+        <div
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[20px] h-[20px] md:w-[28px] md:h-[28px] overflow-hidden"
+          style={entry.personalLogoOpacity ? { opacity: entry.personalLogoOpacity } : undefined}
+        >
+          <Image
+            src={entry.personalLogo}
+            alt="Personal"
+            width={28}
+            height={28}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </SmoothCorners>
+      <SmoothCorners radius={999}>
+        <div
+          className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[24px] h-[24px] md:left-[16px] md:w-[32px] md:h-[32px] overflow-hidden bg-white p-px"
+        >
+          <SmoothCorners radius={999}>
+            <span
+              className="relative block h-full w-full overflow-hidden"
+              style={{ backgroundColor: entry.companyLogoBg || "#f5f5f5" }}
+            >
+              <Image
+                src={entry.companyLogo}
+                alt={entry.company}
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+              />
+            </span>
+          </SmoothCorners>
+        </div>
+      </SmoothCorners>
     </div>
   );
 

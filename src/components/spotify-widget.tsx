@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useSpotify } from "@/hooks/use-spotify";
 import { useRef, useState, useEffect } from "react";
+import { SmoothCorners } from "@/components/smooth-corners";
 
 function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
@@ -60,27 +61,35 @@ export function SpotifyWidget() {
       : "recently";
 
   return (
-    <a
-      href={data.songUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-foreground/20 outline-none"
-      style={{ backgroundColor: hovered ? "rgba(245, 245, 245, 0.6)" : "#f5f5f5" }}
-    >
+    <SmoothCorners radius={999}>
+      <a
+        href={data.songUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="spotify-widget flex items-center gap-4 w-full pl-4 pr-5 py-2 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-foreground/20 outline-none"
+        style={{ backgroundColor: hovered ? "rgba(245, 245, 245, 0.6)" : "#f5f5f5" }}
+      >
       {/* Album art + track info wrapper */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         {/* Album art */}
-        <div className="relative w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] overflow-hidden shrink-0 shadow-[3px_3px_4px_0px_rgba(0,0,0,0.12)]">
-          {data.albumImageUrl && (
-            <Image
-              src={data.albumImageUrl}
-              alt={data.title}
-              fill
-              className="object-cover"
-            />
-          )}
+        <div
+          className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] shrink-0"
+          style={{ filter: "drop-shadow(3px 3px 4px rgba(0, 0, 0, 0.12))" }}
+        >
+          <SmoothCorners radius={8} desktopRadius={10}>
+            <div className="relative h-full w-full overflow-hidden">
+              {data.albumImageUrl && (
+                <Image
+                  src={data.albumImageUrl}
+                  alt={data.title}
+                  fill
+                  className="object-cover"
+                />
+              )}
+            </div>
+          </SmoothCorners>
         </div>
 
         {/* Track info */}
@@ -103,7 +112,9 @@ export function SpotifyWidget() {
           }}
         >
           {isActive && (
-            <span className="w-[4px] h-[4px] rounded-full bg-spotify-green animate-pulse-deep" />
+            <SmoothCorners radius={999}>
+              <span className="w-[4px] h-[4px] bg-spotify-green animate-pulse-deep" />
+            </SmoothCorners>
           )}
           <span className={`type-mono-sm ${isActive ? "text-spotify-green" : "text-muted-foreground"}`}>
             {isActive ? "Now" : timeAgo}
@@ -122,7 +133,8 @@ export function SpotifyWidget() {
           </span>
         </div>
       </div>
-    </a>
+      </a>
+    </SmoothCorners>
   );
 }
 
@@ -206,13 +218,21 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
 
 function SpotifySkeleton() {
   return (
-    <div className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-full bg-card animate-pulse">
-      <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-[8px] md:rounded-[10px] bg-muted-foreground/20" />
-      <div className="flex flex-col gap-1 flex-1">
-        <div className="h-3 w-20 bg-muted-foreground/20 rounded" />
-        <div className="h-4 w-32 bg-muted-foreground/20 rounded" />
+    <SmoothCorners radius={999}>
+      <div className="flex items-center gap-2.5 w-full px-2.5 py-2 bg-card animate-pulse">
+        <SmoothCorners radius={8} desktopRadius={10}>
+          <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] bg-muted-foreground/20" />
+        </SmoothCorners>
+        <div className="flex flex-col gap-1 flex-1">
+          <SmoothCorners radius={4}>
+            <div className="h-3 w-20 bg-muted-foreground/20" />
+          </SmoothCorners>
+          <SmoothCorners radius={4}>
+            <div className="h-4 w-32 bg-muted-foreground/20" />
+          </SmoothCorners>
+        </div>
       </div>
-    </div>
+    </SmoothCorners>
   );
 }
 

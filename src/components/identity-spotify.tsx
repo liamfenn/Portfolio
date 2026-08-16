@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "motion/react";
+import { animate, motion, useReducedMotion } from "motion/react";
+import { useSmoothCorners } from "@lisse/react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
@@ -30,6 +31,14 @@ export function IdentitySpotify() {
   const hoverExitTimer = useRef<number | null>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
+  const avatarSurfaceRef = useRef<HTMLSpanElement>(null);
+  const albumSurfaceRef = useRef<HTMLSpanElement>(null);
+  const avatarStrokeValue = useRef(1);
+  const albumStrokeValue = useRef(3.071);
+  const albumRadiusValue = useRef(15.35);
+  const [avatarStrokeWidth, setAvatarStrokeWidth] = useState(1);
+  const [albumStrokeWidth, setAlbumStrokeWidth] = useState(3.071);
+  const [smoothedAlbumRadius, setSmoothedAlbumRadius] = useState(15.35);
 
   useEffect(() => {
     return () => {
@@ -139,12 +148,84 @@ export function IdentitySpotify() {
   const albumFrontRadius = isCompact ? 12 : 15.35;
   const albumBackRadius = isCompact ? 10 : 12;
   const layerTransition = prefersReducedMotion ? { duration: 0 } : STACK_SPRING;
-  const surfaceTransition = prefersReducedMotion ? { duration: 0 } : SURFACE_TRANSITION;
   const getLayerTarget = (isFront: boolean) => ({
     x: isFront ? 0 : stackOffset,
     y: isFront ? 0 : stackOffset,
     scale: isFront ? smallScale : 1,
   });
+
+  useEffect(() => {
+    const nextAvatarStroke = isAvatarFront ? frontStroke : backStroke;
+    const nextAlbumStroke = isAvatarFront ? backStroke : frontStroke;
+    const nextAlbumRadius = isAvatarFront ? albumBackRadius : albumFrontRadius;
+
+    const animationOptions = {
+      duration: prefersReducedMotion ? 0 : SURFACE_TRANSITION.duration,
+      ease: SURFACE_TRANSITION.ease,
+    } as const;
+    const animations = [
+      animate(avatarStrokeValue.current, nextAvatarStroke, {
+        ...animationOptions,
+        onUpdate: (value) => {
+          avatarStrokeValue.current = value;
+          setAvatarStrokeWidth(value);
+        },
+      }),
+      animate(albumStrokeValue.current, nextAlbumStroke, {
+        ...animationOptions,
+        onUpdate: (value) => {
+          albumStrokeValue.current = value;
+          setAlbumStrokeWidth(value);
+        },
+      }),
+      animate(albumRadiusValue.current, nextAlbumRadius, {
+        ...animationOptions,
+        onUpdate: (value) => {
+          albumRadiusValue.current = value;
+          setSmoothedAlbumRadius(value);
+        },
+      }),
+    ];
+
+    return () => animations.forEach((animation) => animation.stop());
+  }, [
+    albumBackRadius,
+    albumFrontRadius,
+    backStroke,
+    frontStroke,
+    isAvatarFront,
+    prefersReducedMotion,
+  ]);
+
+  useSmoothCorners(
+    avatarSurfaceRef,
+    { radius: 999, smoothing: 0.6 },
+    {
+      autoEffects: false,
+      effects: {
+        outerBorder: {
+          width: avatarStrokeWidth,
+          color: "#fff",
+          opacity: 1,
+        },
+      },
+    },
+  );
+
+  useSmoothCorners(
+    albumSurfaceRef,
+    { radius: smoothedAlbumRadius, smoothing: 0.6 },
+    {
+      autoEffects: false,
+      effects: {
+        outerBorder: {
+          width: albumStrokeWidth,
+          color: "#fff",
+          opacity: 1,
+        },
+      },
+    },
+  );
 
   return (
     <div
@@ -162,12 +243,8 @@ export function IdentitySpotify() {
           style={{ zIndex: isAvatarFront ? 2 : 1 }}
         >
           <motion.span
+            ref={avatarSurfaceRef}
             className="identity-avatar"
-            initial={false}
-            animate={{
-              boxShadow: `0 0 0 ${isAvatarFront ? frontStroke : backStroke}px #fff`,
-            }}
-            transition={surfaceTransition}
           >
             <Image
               src="/images/profile-v2.png"
@@ -187,13 +264,8 @@ export function IdentitySpotify() {
           style={{ zIndex: isAvatarFront ? 1 : 2 }}
         >
           <motion.span
+            ref={albumSurfaceRef}
             className="identity-album"
-            initial={false}
-            animate={{
-              borderRadius: isAvatarFront ? albumBackRadius : albumFrontRadius,
-              boxShadow: `0 0 0 ${isAvatarFront ? backStroke : frontStroke}px #fff`,
-            }}
-            transition={surfaceTransition}
           >
             {data?.albumImageUrl ? (
               <Image src={data.albumImageUrl} alt="" fill sizes="44px" />
