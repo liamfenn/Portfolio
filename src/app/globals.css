@@ -746,11 +746,17 @@
   font-size: 15px;
   letter-spacing: -0.15px;
   color: #000;
+  pointer-events: auto;
+  transition: opacity 150ms ease;
 }
 
 @media (hover: hover) {
   .project-identity:hover {
     opacity: 1;
+  }
+
+  .project-identity-index-label:hover {
+    opacity: 0.4;
   }
 
   .project-identity.is-hovered .project-identity-details {
