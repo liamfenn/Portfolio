@@ -101,7 +101,6 @@ export function ProjectWork() {
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
-  const [isSortLabelTransitioning, setIsSortLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
   const [isDensityMenuRendered, setIsDensityMenuRendered] = useState(false);
@@ -114,7 +113,6 @@ export function ProjectWork() {
   const densityMenuExitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sortMenuExitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridLabelTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sortLabelTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const densityHoverValidationFrameRef = useRef<number | null>(null);
   const sortHoverValidationFrameRef = useRef<number | null>(null);
   const densityMenuOpenedByPointerRef = useRef(false);
@@ -149,9 +147,6 @@ export function ProjectWork() {
       if (sortMenuExitTimeoutRef.current) {
         clearTimeout(sortMenuExitTimeoutRef.current);
       }
-      if (sortLabelTransitionTimeoutRef.current) {
-        clearTimeout(sortLabelTransitionTimeoutRef.current);
-      }
       if (densityHoverValidationFrameRef.current !== null) {
         cancelAnimationFrame(densityHoverValidationFrameRef.current);
       }
@@ -172,17 +167,6 @@ export function ProjectWork() {
     }, 180);
   };
 
-  const beginSortLabelTransition = () => {
-    if (sortLabelTransitionTimeoutRef.current) {
-      clearTimeout(sortLabelTransitionTimeoutRef.current);
-    }
-    setIsSortLabelTransitioning(true);
-    sortLabelTransitionTimeoutRef.current = setTimeout(() => {
-      setIsSortLabelTransitioning(false);
-      sortLabelTransitionTimeoutRef.current = null;
-    }, 180);
-  };
-
   const openDensityMenu = () => {
     if (!isMobile) {
       if (densityMenuExitTimeoutRef.current) {
@@ -190,7 +174,6 @@ export function ProjectWork() {
         densityMenuExitTimeoutRef.current = null;
       }
       if (!isDensityMenuOpen) {
-        beginGridLabelTransition();
         setHasChangedDensity(false);
       }
       setIsDensityMenuRendered(true);
@@ -200,9 +183,6 @@ export function ProjectWork() {
 
   const closeDensityMenu = () => {
     if (!isMobile) {
-      if (isDensityMenuOpen) {
-        beginGridLabelTransition();
-      }
       setIsDensityMenuOpen(false);
       setHasChangedDensity(false);
       if (densityMenuExitTimeoutRef.current) {
@@ -228,7 +208,6 @@ export function ProjectWork() {
         sortMenuExitTimeoutRef.current = null;
       }
       if (!isSortMenuOpen) {
-        beginSortLabelTransition();
         setHasChangedSort(false);
       }
       setIsSortMenuRendered(true);
@@ -238,9 +217,6 @@ export function ProjectWork() {
 
   const closeSortMenu = () => {
     if (!isMobile) {
-      if (isSortMenuOpen) {
-        beginSortLabelTransition();
-      }
       setIsSortMenuOpen(false);
       setHasChangedSort(false);
       if (sortMenuExitTimeoutRef.current) {
@@ -382,14 +358,12 @@ export function ProjectWork() {
   };
 
   const selectDesktopSort = (nextSortMode: SortMode) => {
-    beginSortLabelTransition();
     setHasChangedSort(true);
     setSortMode(nextSortMode);
   };
 
   const cycleMobileSort = () => {
     if (isMobile) {
-      beginSortLabelTransition();
       setSortMode((current) => {
         const currentIndex = SORT_OPTIONS.findIndex((option) => option.value === current);
         return SORT_OPTIONS[(currentIndex + 1) % SORT_OPTIONS.length].value;
@@ -400,14 +374,12 @@ export function ProjectWork() {
   const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
   const selectedSort = SORT_OPTIONS.find((option) => option.value === sortMode) ?? SORT_OPTIONS[0];
   const sortOptions = SORT_OPTIONS.filter((option) => option.value !== sortMode);
-  const sortLabel = isMobile ? selectedSort.label : isSortMenuOpen ? selectedSort.label : "Sort";
+  const sortLabel = selectedSort.label;
   const gridLabel = isMobile
     ? mobileColumns === 2
       ? "List"
       : "Grid"
-    : isDensityMenuOpen
-      ? `${desktopDensity} x ${desktopDensity}`
-      : "Grid";
+    : `${desktopDensity} x ${desktopDensity}`;
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
@@ -486,7 +458,6 @@ export function ProjectWork() {
           >
             <WorkGlyphControl
               text={sortLabel}
-              reserveScrambleWidth={isSortLabelTransitioning}
               variant="sort"
             />
           </button>
