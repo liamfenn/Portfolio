@@ -9,14 +9,14 @@ import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
 
 const DENSITY_TRANSITION = {
-  duration: 0.18,
+  duration: 0.28,
   ease: [0.16, 1, 0.3, 1],
 } as const;
 
 const DENSITY_HIDDEN = {
   opacity: 0,
-  scale: 0.86,
-  filter: "blur(3px)",
+  scale: 0.74,
+  filter: "blur(5px)",
 } as const;
 
 const DENSITY_VISIBLE = {
@@ -27,6 +27,9 @@ const DENSITY_VISIBLE = {
 
 export function ProjectWork() {
   const [desktopDensity, setDesktopDensity] = useState<(typeof DESKTOP_DENSITIES)[number]>(3);
+  const [densityOptions, setDensityOptions] = useState<Array<(typeof DESKTOP_DENSITIES)[number]>>(() =>
+    DESKTOP_DENSITIES.filter((density) => density !== 3),
+  );
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
@@ -69,6 +72,9 @@ export function ProjectWork() {
 
   const selectDesktopDensity = (density: (typeof DESKTOP_DENSITIES)[number]) => {
     setHasChangedDensity(true);
+    setDensityOptions((currentOptions) =>
+      currentOptions.map((option) => (option === density ? desktopDensity : option)),
+    );
     setDesktopDensity(density);
   };
 
@@ -78,7 +84,6 @@ export function ProjectWork() {
     }
   };
 
-  const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
@@ -108,26 +113,31 @@ export function ProjectWork() {
         >
           {isDensityMenuOpen ? (
             <div className="work-density-menu" role="menu" aria-label="Grid density">
-              <AnimatePresence initial={false} mode="popLayout">
-                {densityOptions.map((density, index) => (
-                  <motion.button
-                    layout
-                    key={density}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked="false"
-                    className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
-                    style={{ "--density-option-index": index } as CSSProperties}
-                    initial={hasChangedDensity ? DENSITY_HIDDEN : false}
-                    animate={DENSITY_VISIBLE}
-                    exit={DENSITY_HIDDEN}
-                    transition={DENSITY_TRANSITION}
-                    onClick={() => selectDesktopDensity(density)}
-                  >
-                    {density} x {density}
-                  </motion.button>
-                ))}
-              </AnimatePresence>
+              {densityOptions.map((density, index) => (
+                <div className="work-density-slot" role="none" key={index}>
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.button
+                      key={density}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked="false"
+                      className={`work-density-option${hasChangedDensity ? "" : " is-opening"}`}
+                      style={
+                        {
+                          "--density-option-index": densityOptions.length - 1 - index,
+                        } as CSSProperties
+                      }
+                      initial={hasChangedDensity ? DENSITY_HIDDEN : false}
+                      animate={DENSITY_VISIBLE}
+                      exit={DENSITY_HIDDEN}
+                      transition={DENSITY_TRANSITION}
+                      onClick={() => selectDesktopDensity(density)}
+                    >
+                      {density} x {density}
+                    </motion.button>
+                  </AnimatePresence>
+                </div>
+              ))}
             </div>
           ) : null}
 
@@ -157,7 +167,7 @@ export function ProjectWork() {
                 </AnimatePresence>
               </span>
             ) : (
-              "Grid"
+              isMobile && mobileColumns === 2 ? "List" : "Grid"
             )}
           </button>
         </div>

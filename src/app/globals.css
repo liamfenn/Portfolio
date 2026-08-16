@@ -306,6 +306,7 @@
 .work-density-control {
   position: relative;
   z-index: 3;
+  width: 80px;
 }
 
 .work-control {
@@ -325,6 +326,8 @@
 }
 
 .work-grid-control {
+  width: 80px;
+  justify-content: flex-end;
   padding-right: 4px;
 }
 
@@ -341,16 +344,31 @@
 .work-density-menu {
   position: absolute;
   right: 0;
-  bottom: calc(100% + 2px);
+  bottom: 100%;
   display: flex;
+  width: 80px;
+  padding-bottom: 2px;
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
 }
 
+.work-density-slot {
+  position: relative;
+  display: grid;
+  width: 80px;
+  height: 20px;
+  place-items: stretch;
+}
+
 .work-density-option {
-  min-height: 20px;
+  grid-area: 1 / 1;
+  display: flex;
+  width: 80px;
+  height: 20px;
   padding: 0 4px;
+  align-items: center;
+  justify-content: flex-end;
   border: 0;
   background: transparent;
   color: #555;
@@ -832,7 +850,7 @@
 
   .project-grid {
     grid-template-columns: repeat(var(--project-mobile-columns, 1), minmax(0, 1fr));
-    gap: 8px;
+    gap: 4px;
     padding: 0;
   }
 
