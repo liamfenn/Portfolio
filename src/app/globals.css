@@ -300,7 +300,7 @@
 }
 
 .work-toolbar-group {
-  gap: 4px;
+  gap: 8px;
 }
 
 .work-density-control {
@@ -310,7 +310,7 @@
 }
 
 .work-control {
-  gap: 4px;
+  gap: 7px;
   padding: 0 2px 0 4px;
   border: 0;
   background: transparent;
@@ -336,7 +336,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 7px;
 }
 
 .work-grid-label {
@@ -857,6 +857,12 @@
     padding: 0 8px;
     font-size: 14px;
     letter-spacing: -0.14px;
+  }
+
+  .work-toolbar-group,
+  .work-control,
+  .work-grid-label-group {
+    gap: 4px;
   }
 
   .work-control img,
