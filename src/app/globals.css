@@ -414,31 +414,18 @@
   border-radius: inherit;
   content: "";
   pointer-events: none;
-  transition: opacity 100ms ease-out;
+  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .identity-avatar::after {
   opacity: 0;
+  transition-delay: 0ms;
 }
 
 .identity-album::after {
   opacity: 1;
   box-shadow: 0 0 0 1px #fff;
-}
-
-.identity-spotify.is-album-to-back .identity-avatar::after,
-.identity-spotify.is-avatar-to-back .identity-album::after {
-  animation: identity-front-stroke-in 360ms cubic-bezier(0.45, 0, 0.55, 1);
-}
-
-@keyframes identity-front-stroke-in {
-  0%, 60% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
+  transition-delay: 160ms;
 }
 
 .identity-spotify.is-switching .identity-avatar,
@@ -666,6 +653,7 @@
 
   .identity-spotify.is-hovered .identity-avatar::after {
     opacity: 1;
+    transition-delay: 160ms;
   }
 
   .identity-spotify.is-hovered .identity-album {
@@ -679,6 +667,7 @@
 
   .identity-spotify.is-hovered .identity-album::after {
     opacity: 0;
+    transition-delay: 0ms;
   }
 
   .identity-spotify.is-hovered .identity-track {
@@ -862,6 +851,7 @@
 
   .identity-spotify.is-tapped .identity-avatar::after {
     opacity: 1;
+    transition-delay: 160ms;
   }
 
   .identity-spotify.is-tapped .identity-album {
@@ -875,6 +865,7 @@
 
   .identity-spotify.is-tapped .identity-album::after {
     opacity: 0;
+    transition-delay: 0ms;
   }
 
   .identity-track-content {
@@ -992,6 +983,7 @@
 
   .identity-spotify.is-hovered .identity-avatar::after {
     opacity: 1;
+    transition-delay: 160ms;
   }
 
   .identity-spotify.is-hovered .identity-album {
@@ -1005,6 +997,7 @@
 
   .identity-spotify.is-hovered .identity-album::after {
     opacity: 0;
+    transition-delay: 0ms;
   }
 
   .identity-spotify.is-hovered .identity-track {
