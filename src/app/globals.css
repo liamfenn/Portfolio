@@ -1070,6 +1070,7 @@
   font-size: 15px;
   letter-spacing: -0.15px;
   color: #000;
+  transition: opacity 150ms ease;
 }
 
 .identity-song-marquee {
@@ -1124,6 +1125,14 @@
 }
 
 @media (hover: hover) {
+  .identity-track:hover {
+    opacity: 1;
+  }
+
+  .identity-track-content:hover .identity-song-line {
+    opacity: 0.4;
+  }
+
   .identity-spotify.is-hovered .identity-track {
     width: var(--identity-track-width);
     pointer-events: auto;
