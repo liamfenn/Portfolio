@@ -968,6 +968,11 @@
   background: #ebebeb;
 }
 
+/* Preserve the project avatar stroke before Lisse hydrates its SVG border. */
+.persistent-identity.is-project .identity-avatar:not([data-state="ready"]) {
+  box-shadow: 0 0 0 1px #fff;
+}
+
 .identity-avatar img {
   position: absolute;
   top: -32.44%;
@@ -1567,6 +1572,12 @@
 
   .identity-artwork-toggle {
     display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .persistent-identity.is-project .identity-avatar:not([data-state="ready"]) {
+    box-shadow: 0 0 0 0.75px #fff;
   }
 }
 
