@@ -65,42 +65,13 @@
     a:hover {
       opacity: 0.4;
     }
-    a.spotify-widget:hover,
-    a.video-card:hover {
+    a.spotify-widget:hover {
       opacity: 1;
     }
   }
 
   a:visited {
     color: inherit;
-  }
-}
-
-.video-card {
-  transition: transform 0.3s ease;
-}
-
-.video-glow {
-  transition: opacity 0.3s ease;
-}
-
-.video-glow-hidden {
-  opacity: 0;
-}
-
-/* Mobile: only show glow for cards with mobileGlow */
-@media (hover: none) {
-  .video-glow-mobile-active {
-    opacity: 0.2;
-  }
-}
-
-@media (hover: hover) {
-  .video-card:hover .video-glow-hidden {
-    opacity: 0.3;
-  }
-  .video-card:hover .video-glow-hidden.video-glow-solid {
-    opacity: 0.2;
   }
 }
 
@@ -159,17 +130,6 @@
 @media (min-width: 768px) {
   .type-mono-sm {
     font-size: 12px;
-  }
-}
-
-/* Entry links — hovering any .entry-link dims all entry-links in the same entry */
-.entry-link {
-  transition: opacity 0.15s ease;
-}
-
-@media (hover: hover) {
-  .work-entry:has(.entry-link:hover) .entry-link {
-    opacity: 0.4;
   }
 }
 
