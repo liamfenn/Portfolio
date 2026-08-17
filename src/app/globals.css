@@ -704,7 +704,7 @@
   height: var(--case-study-focus-source-height);
   overflow: hidden;
   opacity: 0;
-  cursor: default;
+  cursor: sw-resize;
   pointer-events: auto;
   transition:
     top 520ms cubic-bezier(0.16, 1, 0.3, 1),

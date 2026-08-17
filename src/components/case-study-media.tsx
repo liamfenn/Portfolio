@@ -35,12 +35,24 @@ function getFocusBounds(source: DOMRect): MediaBounds {
 }
 
 function waitForVideoFrame(video: HTMLVideoElement, callback: () => void) {
+  let didFinish = false;
+  const finish = () => {
+    if (didFinish) {
+      return;
+    }
+
+    didFinish = true;
+    window.clearTimeout(fallbackTimer);
+    callback();
+  };
+  const fallbackTimer = window.setTimeout(finish, 80);
+
   if ("requestVideoFrameCallback" in video) {
-    video.requestVideoFrameCallback(() => callback());
+    video.requestVideoFrameCallback(finish);
     return;
   }
 
-  window.requestAnimationFrame(callback);
+  window.requestAnimationFrame(finish);
 }
 
 function MediaSurface({
@@ -139,11 +151,21 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       window.clearTimeout(closeTimer.current);
     }
     closeTimer.current = window.setTimeout(() => {
-      setIsFocusRendered(false);
-      setIsFocusReady(false);
-      setIsFocusClosing(false);
-      triggerRef.current?.focus({ preventScroll: true });
-      closeTimer.current = null;
+      const finishClose = () => {
+        setIsFocusRendered(false);
+        setIsFocusReady(false);
+        setIsFocusClosing(false);
+        triggerRef.current?.focus({ preventScroll: true });
+        closeTimer.current = null;
+      };
+
+      if (isVideo && inlineVideoRef.current && focusedVideoRef.current) {
+        inlineVideoRef.current.currentTime = focusedVideoRef.current.currentTime;
+        void inlineVideoRef.current.play().catch(() => undefined);
+        waitForVideoFrame(inlineVideoRef.current, finishClose);
+      } else {
+        finishClose();
+      }
     }, isVideo ? VIDEO_FOCUS_EXIT_DURATION : IMAGE_FOCUS_EXIT_DURATION);
   }, [isFocusClosing, isFocusRendered, isVideo]);
 
@@ -285,15 +307,12 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           className={`case-study-focus-overlay${isFocusReady ? " is-ready" : ""}${isFocusVisible ? " is-visible" : ""}${isFocusClosing ? " is-closing" : ""}`}
           role="dialog"
           aria-modal="true"
-          aria-label="Focused project media. Click outside the media or press Escape to close."
+          aria-label="Focused project media. Click anywhere or press Escape to close."
           tabIndex={-1}
           style={focusStyle}
           onClick={closeFocus}
         >
-          <div
-            className={`case-study-focus-content${isVideo ? " is-video" : ""}`}
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className={`case-study-focus-content${isVideo ? " is-video" : ""}`}>
             <MediaSurface block={block} isFocused videoRef={focusedVideoRef} />
           </div>
         </div>,
