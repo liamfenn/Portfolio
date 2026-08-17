@@ -5,6 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { CaseStudyMediaBlock } from "@/lib/case-studies";
+import type { PortfolioVideoAsset } from "@/lib/media-assets";
+import { AV1_MIME, H264_MIME, mediaUrl } from "@/lib/media-delivery";
+import { useVideoRendition } from "@/hooks/use-video-rendition";
 import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
@@ -63,22 +66,36 @@ function waitForVideoFrame(video: HTMLVideoElement, callback: () => void) {
   window.requestAnimationFrame(finish);
 }
 
+/**
+ * The focused view grows to at most 796px, so the inline video reserves that
+ * rung up front on devices that can focus. Both views then share one file and
+ * opening focus costs no extra fetch.
+ */
+function getFocusReservedWidth() {
+  if (typeof window === "undefined" || !window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
+    return 0;
+  }
+
+  return Math.min(796, window.innerWidth - 48, window.innerHeight - 48);
+}
+
 function CaseStudyVideo({
-  src,
-  alt,
-  poster,
+  asset,
   videoRef,
   freezeOnNavigation,
 }: {
-  src: string;
-  alt?: string;
-  poster?: string;
+  asset: PortfolioVideoAsset;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   freezeOnNavigation: boolean;
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const snapshotRef = useRef<HTMLCanvasElement>(null);
+  const poster = asset.poster;
   const [isFrameReady, setIsFrameReady] = useState(Boolean(poster));
+  // Only the inline copy reserves the focused size; the focused copy is already
+  // rendered at that size and measures it directly.
+  const reservedWidth = freezeOnNavigation ? getFocusReservedWidth() : 0;
+  const rendition = useVideoRendition(asset, localVideoRef, reservedWidth);
 
   const setVideoRef = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -90,9 +107,16 @@ function CaseStudyVideo({
     [videoRef],
   );
 
+  // Sources are attached after mount, so the element needs a reload to pick them up.
+  useEffect(() => {
+    if (rendition) {
+      localVideoRef.current?.load();
+    }
+  }, [rendition]);
+
   useEffect(() => {
     const video = localVideoRef.current;
-    if (!video) {
+    if (!video || !rendition) {
       return;
     }
 
@@ -115,7 +139,7 @@ function CaseStudyVideo({
       cancelled = true;
       video.removeEventListener("loadeddata", revealPresentedFrame);
     };
-  }, [src]);
+  }, [rendition]);
 
   useEffect(() => {
     if (!freezeOnNavigation) {
@@ -182,15 +206,21 @@ function CaseStudyVideo({
       <video
         ref={setVideoRef}
         className={isFrameReady ? "is-frame-ready" : undefined}
-        src={src}
-        poster={poster}
-        aria-label={alt}
+        poster={poster ? mediaUrl(poster) : undefined}
+        aria-label={asset.alt}
         autoPlay={!freezeOnNavigation}
         muted
         loop
         playsInline
         preload={freezeOnNavigation ? "metadata" : "auto"}
-      />
+      >
+        {rendition ? (
+          <>
+            <source src={mediaUrl(rendition.av1)} type={AV1_MIME} />
+            <source src={mediaUrl(rendition.h264)} type={H264_MIME} />
+          </>
+        ) : null}
+      </video>
       {freezeOnNavigation ? (
         <canvas ref={snapshotRef} className="case-study-video-snapshot" aria-hidden="true" />
       ) : null}
@@ -219,20 +249,15 @@ function MediaSurface({
     >
       {media.kind === "image" && media.src ? (
         <Image
-          src={media.src}
+          src={mediaUrl(media.src)}
           alt={media.alt ?? ""}
           fill
+          quality={90}
           sizes={isFocused ? "796px" : "(max-width: 767px) 100vw, 600px"}
         />
       ) : null}
-      {media.kind === "video" && media.src ? (
-        <CaseStudyVideo
-          src={media.src}
-          alt={media.alt}
-          poster={media.poster}
-          videoRef={videoRef}
-          freezeOnNavigation={!isFocused}
-        />
+      {media.kind === "video" ? (
+        <CaseStudyVideo asset={media} videoRef={videoRef} freezeOnNavigation={!isFocused} />
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />

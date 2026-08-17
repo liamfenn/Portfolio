@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "media:video": "bash scripts/process-video.sh",
-    "spotify:authorize": "node scripts/spotify-authorize.mjs"
+    "spotify:authorize": "node scripts/spotify-authorize.mjs",
+    "media:upload": "node scripts/upload-media.mjs"
   },
   "dependencies": {
     "@lisse/react": "^0.7.0",
     "@vercel/analytics": "^1.6.1",
+    "@vercel/blob": "^2.8.0",
     "geist": "^1.7.0",
     "motion": "^12.26.2",
     "next": "16.1.1",

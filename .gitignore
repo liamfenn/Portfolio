@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# encoded media - lives in Vercel Blob, regenerate with `npm run media:video`
+/public/media/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

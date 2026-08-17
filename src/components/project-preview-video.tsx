@@ -2,10 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PortfolioVideoAsset } from "@/lib/media-assets";
+import { AV1_MIME, H264_MIME, mediaUrl } from "@/lib/media-delivery";
+import { useVideoRendition } from "@/hooks/use-video-rendition";
 
 export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFrameReady, setIsFrameReady] = useState(Boolean(asset.poster));
+  const rendition = useVideoRendition(asset, videoRef);
+
+  useEffect(() => {
+    if (rendition) {
+      videoRef.current?.load();
+    }
+  }, [rendition]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -47,19 +56,25 @@ export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
         video.cancelVideoFrameCallback(frameCallback);
       }
     };
-  }, []);
+  }, [rendition]);
 
   return (
     <video
       ref={videoRef}
       className={`project-preview-video${isFrameReady ? " is-frame-ready" : ""}`}
-      src={asset.previewSrc ?? asset.src}
-      poster={asset.poster}
+      poster={mediaUrl(asset.poster)}
       aria-label={asset.alt}
       muted
       loop
       playsInline
       preload="metadata"
-    />
+    >
+      {rendition ? (
+        <>
+          <source src={mediaUrl(rendition.av1)} type={AV1_MIME} />
+          <source src={mediaUrl(rendition.h264)} type={H264_MIME} />
+        </>
+      ) : null}
+    </video>
   );
 }
