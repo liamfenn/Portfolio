@@ -790,7 +790,7 @@
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: opacity 360ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .case-study-focus-overlay.is-visible::before {
@@ -829,15 +829,15 @@
   cursor: sw-resize;
   pointer-events: auto;
   transition:
-    top 520ms cubic-bezier(0.16, 1, 0.3, 1),
-    left 520ms cubic-bezier(0.16, 1, 0.3, 1),
-    width 520ms cubic-bezier(0.16, 1, 0.3, 1),
-    height 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    top 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    left 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 300ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: top, left, width, height;
 }
 
 .case-study-focus-content.is-video {
-  transition-duration: 500ms;
+  transition-duration: 300ms;
   transition-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
 }
 
@@ -854,10 +854,10 @@
 
 .case-study-focus-overlay.is-closing .case-study-focus-content.is-video {
   transition:
-    top 380ms cubic-bezier(0.4, 0, 0.6, 1),
-    left 380ms cubic-bezier(0.4, 0, 0.6, 1),
-    width 380ms cubic-bezier(0.4, 0, 0.6, 1),
-    height 380ms cubic-bezier(0.4, 0, 0.6, 1);
+    top 230ms cubic-bezier(0.4, 0, 0.6, 1),
+    left 230ms cubic-bezier(0.4, 0, 0.6, 1),
+    width 230ms cubic-bezier(0.4, 0, 0.6, 1),
+    height 230ms cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .case-study-focus-overlay.is-handoff .case-study-focus-content.is-video {
