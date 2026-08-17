@@ -8,6 +8,7 @@ import type { CaseStudyMediaBlock } from "@/lib/case-studies";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
 const FOCUS_EXIT_DURATION = 540;
+const VIDEO_FOCUS_EXIT_DURATION = 660;
 
 interface MediaBounds {
   top: number;
@@ -45,15 +46,18 @@ function MediaSurface({
   block,
   isFocused = false,
   videoRef,
+  surfaceRef,
 }: {
   block: CaseStudyMediaBlock;
   isFocused?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
+  surfaceRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const { media } = block;
 
   return (
     <div
+      ref={surfaceRef}
       className={isFocused ? "case-study-focused-media" : "case-study-media"}
       data-media-kind={media.kind}
       onTransitionEnd={(event) => {
@@ -103,6 +107,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const mediaSurfaceRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
@@ -124,15 +129,15 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       setIsFocusRendered(false);
       triggerRef.current?.focus({ preventScroll: true });
       closeTimer.current = null;
-    }, FOCUS_EXIT_DURATION);
-  }, [isFocusRendered]);
+    }, isVideo ? VIDEO_FOCUS_EXIT_DURATION : FOCUS_EXIT_DURATION);
+  }, [isFocusRendered, isVideo]);
 
   const openFocus = useCallback(() => {
     if (isFocusRendered || !canFocus || !window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
       return;
     }
 
-    const source = triggerRef.current?.getBoundingClientRect();
+    const source = mediaSurfaceRef.current?.getBoundingClientRect();
     if (!source) {
       return;
     }
@@ -144,9 +149,11 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     setSourceBounds(getFocusBounds(source));
     setIsFocusRendered(true);
     openFrame.current = window.requestAnimationFrame(() => {
-      setIsFocusVisible(true);
-      overlayRef.current?.focus({ preventScroll: true });
-      openFrame.current = null;
+      openFrame.current = window.requestAnimationFrame(() => {
+        setIsFocusVisible(true);
+        overlayRef.current?.focus({ preventScroll: true });
+        openFrame.current = null;
+      });
     });
   }, [canFocus, isFocusRendered]);
 
@@ -256,7 +263,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           onClick={openFocus}
           onKeyDown={handleTriggerKeyDown}
         >
-          <MediaSurface block={block} videoRef={videoRef} />
+          <MediaSurface block={block} videoRef={videoRef} surfaceRef={mediaSurfaceRef} />
         </div>
         {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
       </figure>
