@@ -846,7 +846,13 @@ body.is-media-focused .case-study-controls {
   width: var(--case-study-focus-source-width);
   height: var(--case-study-focus-source-height);
   opacity: 0;
-  background: #fff;
+  /*
+   * Matches the media it is hiding rather than painting white. The page behind
+   * is blurred, not scrimmed away, so a white rectangle over a dark video reads
+   * as a panel -- and it shows beyond the focused media whenever the source sits
+   * elsewhere on the page.
+   */
+  background: var(--case-study-media-backdrop, #fff);
   pointer-events: none;
 }
 
