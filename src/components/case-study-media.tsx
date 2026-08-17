@@ -3,11 +3,18 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { CaseStudyMediaBlock } from "@/lib/case-studies";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
-const FOCUS_EXIT_DURATION = 220;
+const FOCUS_EXIT_DURATION = 540;
+
+interface MediaBounds {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
 
 function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock; isFocused?: boolean }) {
   const { media } = block;
@@ -39,6 +46,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const canFocus = block.media.kind !== "interactive";
   const [isFocusRendered, setIsFocusRendered] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
+  const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const openFrame = useRef<number | null>(null);
@@ -49,6 +57,15 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       return;
     }
 
+    const source = triggerRef.current?.getBoundingClientRect();
+    if (source) {
+      setSourceBounds({
+        top: source.top,
+        left: source.left,
+        width: source.width,
+        height: source.height,
+      });
+    }
     setIsFocusVisible(false);
     if (closeTimer.current !== null) {
       window.clearTimeout(closeTimer.current);
@@ -65,10 +82,21 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       return;
     }
 
+    const source = triggerRef.current?.getBoundingClientRect();
+    if (!source) {
+      return;
+    }
+
     if (closeTimer.current !== null) {
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
+    setSourceBounds({
+      top: source.top,
+      left: source.left,
+      width: source.width,
+      height: source.height,
+    });
     setIsFocusRendered(true);
     openFrame.current = window.requestAnimationFrame(() => {
       setIsFocusVisible(true);
@@ -126,7 +154,16 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     }
   };
 
-  const focusedView = isFocusRendered
+  const focusStyle = sourceBounds
+    ? ({
+        "--case-study-focus-source-top": `${sourceBounds.top}px`,
+        "--case-study-focus-source-left": `${sourceBounds.left}px`,
+        "--case-study-focus-source-width": `${sourceBounds.width}px`,
+        "--case-study-focus-source-height": `${sourceBounds.height}px`,
+      } as CSSProperties)
+    : undefined;
+
+  const focusedView = isFocusRendered && sourceBounds
     ? createPortal(
         <div
           ref={overlayRef}
@@ -135,6 +172,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           aria-modal="true"
           aria-label="Focused project media. Click anywhere or press Escape to close."
           tabIndex={-1}
+          style={focusStyle}
           onClick={closeFocus}
         >
           <div className="case-study-focus-content">
