@@ -32,21 +32,24 @@ function getBackdropStyle(block: CaseStudyMediaBlock): CSSProperties | undefined
 }
 
 /**
- * Never smaller than the old fixed size, but scales up on roomier displays. The
- * cap is what a Studio Display lands on; without it the short edge would drive
- * the size and the media reads as oversized even though it fits.
+ * Two sizes rather than a curve: the standard one everywhere, and a larger one
+ * past the same width the project grid treats as a big screen. Still clamped to
+ * the viewport so a short window cannot push the media off screen.
  */
-const FOCUS_MIN_SIZE = 796;
-const FOCUS_MAX_SIZE = 1120;
-const FOCUS_VIEWPORT_SHARE = 0.55;
+const FOCUS_SIZE_STANDARD = 796;
+const FOCUS_SIZE_LARGE = 960;
+const FOCUS_LARGE_VIEWPORT_QUERY = "(min-width: 1920px)";
 const FOCUS_VIEWPORT_INSET = 96;
 
 function getFocusTargetSize() {
+  const base = window.matchMedia(FOCUS_LARGE_VIEWPORT_QUERY).matches
+    ? FOCUS_SIZE_LARGE
+    : FOCUS_SIZE_STANDARD;
+
   return Math.min(
-    Math.max(FOCUS_MIN_SIZE, window.innerWidth * FOCUS_VIEWPORT_SHARE),
+    base,
     window.innerWidth - FOCUS_VIEWPORT_INSET,
     window.innerHeight - FOCUS_VIEWPORT_INSET,
-    FOCUS_MAX_SIZE,
   );
 }
 
