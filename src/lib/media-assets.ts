@@ -31,7 +31,7 @@ export const MEDIA_ASSETS = {
     alt: "Shoppable Baskets interaction prototype",
     width: 1600,
     height: 1600,
-    backdrop: "#f5f5f5",
+    backdrop: "#f3f3f3",
   },
   shoppableBasketsFlare: {
     id: "shop-baskets-flare",
