@@ -23,6 +23,18 @@
 
 /* Base styles */
 @layer base {
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
   body {
     background: var(--color-background);
     color: var(--color-foreground);
@@ -1658,6 +1670,17 @@
     width: 100%;
     padding-top: 8px;
     gap: 20px;
+  }
+
+  .case-study-media-trigger {
+    width: calc(100% + 2px);
+    margin-inline: -1px;
+  }
+
+  .case-study-video-viewport video {
+    inset: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
   }
 
   .case-study-header {
