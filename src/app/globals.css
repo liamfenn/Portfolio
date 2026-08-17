@@ -1050,6 +1050,7 @@
 }
 
 .case-study-controls {
+  --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
   position: fixed;
   z-index: 20;
   left: 50%;
