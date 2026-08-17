@@ -43,9 +43,7 @@ export default function Home() {
             , creating commerce &amp; discovery experiences for millions of users.
             <br />
             <br />
-            Previously at{" "}
-            <strong>OpenPurpose</strong>{" "}
-            where he designed interfaces for{" "}
+            Previously at OpenPurpose where he designed interfaces for{" "}
             <a className="portfolio-link-strong" href="https://bird.com" target="_blank" rel="noreferrer">
               Bird
             </a>

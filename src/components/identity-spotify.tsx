@@ -24,6 +24,12 @@ const SURFACE_TRANSITION = {
 } as const;
 
 const PROJECT_SHUFFLE_HALF_DURATION = 380;
+const PROJECT_LOGO_SWAP_DELAY = PROJECT_SHUFFLE_HALF_DURATION + 190;
+
+interface ProjectSurface {
+  image: string;
+  background: string;
+}
 
 export function PersistentIdentityHeader() {
   const pathname = usePathname();
@@ -37,12 +43,22 @@ export function PersistentIdentityHeader() {
   const [isHovered, setIsHovered] = useState(false);
   const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
   const [isNavigationShuffling, setIsNavigationShuffling] = useState(false);
+  const [heldProjectSurface, setHeldProjectSurface] = useState<ProjectSurface | null>(null);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
   const [trackHugWidth, setTrackHugWidth] = useState(0);
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
   const navigationShuffleTimer = useRef<number | null>(null);
+  const projectLogoSwapTimer = useRef<number | null>(null);
+  const currentProjectSurface = useRef<ProjectSurface | null>(
+    study
+      ? {
+          image: study.companyLogo,
+          background: study.companyLogoBackground,
+        }
+      : null,
+  );
   const statusRef = useRef<HTMLSpanElement>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
@@ -68,8 +84,21 @@ export function PersistentIdentityHeader() {
       if (navigationShuffleTimer.current !== null) {
         window.clearTimeout(navigationShuffleTimer.current);
       }
+
+      if (projectLogoSwapTimer.current !== null) {
+        window.clearTimeout(projectLogoSwapTimer.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    currentProjectSurface.current = study
+      ? {
+          image: study.companyLogo,
+          background: study.companyLogoBackground,
+        }
+      : null;
+  }, [study]);
 
   useEffect(() => {
     if (hoverExitTimer.current !== null) {
@@ -108,16 +137,31 @@ export function PersistentIdentityHeader() {
         window.clearTimeout(navigationShuffleTimer.current);
       }
 
+      if (projectLogoSwapTimer.current !== null) {
+        window.clearTimeout(projectLogoSwapTimer.current);
+      }
+
+      if (prefersReducedMotion) {
+        setHeldProjectSurface(null);
+        setIsNavigationShuffling(false);
+        return;
+      }
+
+      setHeldProjectSurface(currentProjectSurface.current);
       setIsNavigationShuffling(true);
       navigationShuffleTimer.current = window.setTimeout(() => {
         setIsNavigationShuffling(false);
         navigationShuffleTimer.current = null;
       }, PROJECT_SHUFFLE_HALF_DURATION);
+      projectLogoSwapTimer.current = window.setTimeout(() => {
+        setHeldProjectSurface(null);
+        projectLogoSwapTimer.current = null;
+      }, PROJECT_LOGO_SWAP_DELAY);
     };
 
     window.addEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
     return () => window.removeEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
-  }, []);
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     const songLine = songLineRef.current;
@@ -228,14 +272,12 @@ export function PersistentIdentityHeader() {
   const albumInnerStroke = isCompact ? 0.75 : 0.9;
   const albumFrontRadius = isCompact ? 12 : 15.35;
   const albumBackRadius = isCompact ? 10 : 12;
-  const secondaryImage = isProject ? study?.companyLogo : data?.albumImageUrl;
-  const secondaryBackground = isProject ? study?.companyLogoBackground ?? "#f5f5f5" : "#f5f5f5";
+  const secondaryImage = isProject ? heldProjectSurface?.image ?? study?.companyLogo : data?.albumImageUrl;
+  const secondaryBackground = isProject
+    ? heldProjectSurface?.background ?? study?.companyLogoBackground ?? "#f5f5f5"
+    : "#f5f5f5";
   const layerTransition = prefersReducedMotion ? { duration: 0 } : STACK_SPRING;
-  const secondaryImageTransition = prefersReducedMotion
-    ? { duration: 0 }
-    : isProject && isNavigationShuffling
-      ? { ...SURFACE_TRANSITION, delay: 0.28 }
-      : SURFACE_TRANSITION;
+  const secondaryImageTransition = prefersReducedMotion ? { duration: 0 } : SURFACE_TRANSITION;
   const getLayerTarget = (isFront: boolean) => ({
     x: isFront ? 0 : stackOffset,
     y: isFront ? 0 : stackOffset,
