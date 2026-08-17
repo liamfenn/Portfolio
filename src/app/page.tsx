@@ -48,12 +48,8 @@ export default function Home() {
             ,{" "}
             <a className="portfolio-link-strong" href="https://plasticity.xyz" target="_blank" rel="noreferrer">
               Plasticity
-            </a>
-            ,{" "}
-            <a className="portfolio-link-strong" href="https://azura.xyz" target="_blank" rel="noreferrer">
-              Azura
             </a>{" "}
-              &amp; more.
+              and more.
             </p>
             <p>
               His practice explores how products can recede around intent without flattening their character.
