@@ -16,6 +16,64 @@ interface MediaBounds {
   height: number;
 }
 
+function FocusedVideoPlayer({ src, alt }: { src: string; alt?: string }) {
+  const playerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    let idleStyle: HTMLStyleElement | null = null;
+
+    const preparePlayer = async () => {
+      await import("@grizzshutsdown/simpleplayer");
+      await window.customElements.whenDefined("simple-player");
+
+      if (isCancelled || !playerRef.current?.shadowRoot) {
+        return;
+      }
+
+      idleStyle = document.createElement("style");
+      idleStyle.dataset.caseStudyPlayer = "idle-controls";
+      idleStyle.textContent = `
+        .sp-progress-cluster {
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            opacity 180ms ease,
+            top 360ms cubic-bezier(0.23, 1, 0.32, 1),
+            width 360ms cubic-bezier(0.23, 1, 0.32, 1),
+            height 360ms cubic-bezier(0.23, 1, 0.32, 1),
+            transform 360ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .sp-player.is-pointer-active .sp-progress-cluster,
+        .sp-player.is-scrubbing .sp-progress-cluster,
+        .sp-progress-cluster:focus-within {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      `;
+      playerRef.current.shadowRoot.append(idleStyle);
+    };
+
+    void preparePlayer();
+
+    return () => {
+      isCancelled = true;
+      idleStyle?.remove();
+    };
+  }, []);
+
+  return (
+    <simple-player
+      ref={playerRef}
+      className="case-study-simple-player"
+      src={src}
+      aspect-ratio="1 / 1"
+      aria-label={alt}
+    />
+  );
+}
+
 function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock; isFocused?: boolean }) {
   const { media } = block;
 
@@ -34,12 +92,7 @@ function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock
       ) : null}
       {media.kind === "video" && media.src ? (
         isFocused ? (
-          <simple-player
-            className="case-study-simple-player"
-            src={media.src}
-            aspect-ratio="1 / 1"
-            aria-label={media.alt}
-          />
+          <FocusedVideoPlayer src={media.src} alt={media.alt} />
         ) : (
           <video
             src={media.src}
@@ -68,12 +121,6 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (block.media.kind === "video") {
-      void import("@grizzshutsdown/simpleplayer");
-    }
-  }, [block.media.kind]);
 
   const closeFocus = useCallback(() => {
     if (!isFocusRendered) {
