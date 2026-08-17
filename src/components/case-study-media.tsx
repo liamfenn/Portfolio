@@ -379,7 +379,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   return (
     <>
       <figure
-        className={`case-study-media-block${isFocusReady ? " is-focused" : ""}`}
+        className={`case-study-media-block${isFocusReady ? " is-focused" : ""}${isFocusClosing ? " is-focus-closing" : ""}`}
         aria-hidden={isFocusReady || undefined}
       >
         <div

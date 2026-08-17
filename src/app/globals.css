@@ -690,6 +690,16 @@
     outline-offset: 2px;
   }
 
+  .case-study-media-block.is-focused
+    .case-study-media[data-media-kind="video"] {
+    opacity: 0;
+  }
+
+  .case-study-media-block.is-focused.is-focus-closing
+    .case-study-media[data-media-kind="video"] {
+    opacity: 1;
+  }
+
 }
 
 .case-study-focus-overlay {
