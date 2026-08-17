@@ -196,12 +196,27 @@
  * .portfolio-v2 and would not inherit it from there.
  */
 :root {
-  --portfolio-column-width: 600px;
+  /*
+   * One column of the default grid, bounded to a readable measure. The grid is
+   * 8px padding with 8px gaps, so a 3-up column is (100vw - 16 - 16) / 3. The
+   * reference density is deliberately the default rather than the live one, so
+   * changing the grid never reflows the prose. Above ~2450px the cap wins and
+   * the column stops tracking the grid, because the alternative is a line
+   * length no one can read.
+   */
+  --portfolio-column-width: clamp(460px, calc((100vw - 32px) / 3), 600px);
   --portfolio-column-padding: 12px;
   /* Distance from the viewport centre to the column's text edge. */
   --portfolio-column-inset: calc(
     var(--portfolio-column-width) / 2 - var(--portfolio-column-padding)
   );
+}
+
+/* Past this width the grid defaults to 4-up, so the column follows it. */
+@media (min-width: 1920px) {
+  :root {
+    --portfolio-column-width: clamp(460px, calc((100vw - 40px) / 4), 600px);
+  }
 }
 
 .portfolio-v2 {
