@@ -18,7 +18,8 @@ export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) {
+    // No source yet means play() would reject, so wait for the rendition.
+    if (!video || !rendition) {
       return;
     }
 
@@ -38,10 +39,18 @@ export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
       }
     };
 
+    let isVisible = false;
+    const tryPlay = () => {
+      if (isVisible && video.paused) {
+        void video.play().then(markFrameReady).catch(() => undefined);
+      }
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          void video.play().then(markFrameReady).catch(() => undefined);
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          tryPlay();
         } else {
           video.pause();
         }
@@ -50,8 +59,12 @@ export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
     );
 
     observer.observe(video);
+    // Retry on canplay: a rejected play() would otherwise leave the tile frozen on
+    // its poster, and the observer does not fire again while visibility holds.
+    video.addEventListener("canplay", tryPlay);
     return () => {
       observer.disconnect();
+      video.removeEventListener("canplay", tryPlay);
       if (frameCallback !== null && "cancelVideoFrameCallback" in video) {
         video.cancelVideoFrameCallback(frameCallback);
       }

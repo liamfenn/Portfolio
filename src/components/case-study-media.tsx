@@ -159,7 +159,10 @@ function CaseStudyVideo({
     }
 
     const video = localVideoRef.current;
-    if (!video) {
+    // Wait for a source. Observing earlier means the first intersection callback
+    // calls play() on an empty element, which rejects, and the callback never
+    // fires again because the intersection itself never changes.
+    if (!video || !rendition) {
       return;
     }
 
@@ -170,10 +173,18 @@ function CaseStudyVideo({
       return;
     }
 
+    let isVisible = false;
+    const tryPlay = () => {
+      if (isVisible && video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          void video.play().catch(() => undefined);
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          tryPlay();
         } else {
           video.pause();
         }
@@ -182,8 +193,15 @@ function CaseStudyVideo({
     );
 
     observer.observe(video);
-    return () => observer.disconnect();
-  }, [freezeOnNavigation]);
+    // A rejected play() leaves the video stuck paused until the user taps it, and
+    // the observer will not fire again while the intersection is unchanged. Retry
+    // whenever the element becomes playable.
+    video.addEventListener("canplay", tryPlay);
+    return () => {
+      observer.disconnect();
+      video.removeEventListener("canplay", tryPlay);
+    };
+  }, [freezeOnNavigation, rendition]);
 
   useEffect(() => {
     if (!freezeOnNavigation) {
