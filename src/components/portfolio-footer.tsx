@@ -14,11 +14,15 @@ function getNewYorkTime() {
 
 export function PortfolioFooter() {
   const { data } = useWeather();
-  const [time, setTime] = useState(getNewYorkTime);
+  const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
+    const initialFrame = window.requestAnimationFrame(() => setTime(getNewYorkTime()));
     const interval = window.setInterval(() => setTime(getNewYorkTime()), 30_000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.cancelAnimationFrame(initialFrame);
+      window.clearInterval(interval);
+    };
   }, []);
 
   const condition = data?.condition ?? "Partly cloudy";
@@ -33,7 +37,10 @@ export function PortfolioFooter() {
       <div className="portfolio-footer-row">
         <span className="footer-highlight">Atlanta, GA</span>
         <span className="footer-weather">
-          {time}, {condition} at {temperature}°F
+          <span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
+            {time ?? "12:00 PM"}
+          </span>
+          , {condition} at {temperature}°F
         </span>
       </div>
       <div className="portfolio-footer-row portfolio-footer-bottom">
