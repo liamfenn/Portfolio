@@ -8,6 +8,10 @@ import { useSmoothCorners } from "@lisse/react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
+import {
+  CASE_STUDY_NAVIGATION_EVENT,
+  type CaseStudyNavigationDirection,
+} from "@/lib/case-study-navigation";
 import { getCaseStudy } from "@/lib/case-studies";
 
 const STACK_SPRING = {
@@ -22,6 +26,11 @@ const SURFACE_TRANSITION = {
   ease: [0.16, 1, 0.3, 1],
 } as const;
 
+const PROJECT_SPIN_TRANSITION = {
+  duration: 0.72,
+  ease: [0.65, 0, 0.35, 1],
+} as const;
+
 export function PersistentIdentityHeader() {
   const pathname = usePathname();
   const projectSlug = pathname.match(/^\/work\/([^/]+)/)?.[1];
@@ -33,6 +42,7 @@ export function PersistentIdentityHeader() {
   const [isExiting, setIsExiting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
+  const [projectRotation, setProjectRotation] = useState(0);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
   const [trackHugWidth, setTrackHugWidth] = useState(0);
@@ -91,6 +101,16 @@ export function PersistentIdentityHeader() {
     updateCompactState();
     mediaQuery.addEventListener("change", updateCompactState);
     return () => mediaQuery.removeEventListener("change", updateCompactState);
+  }, []);
+
+  useEffect(() => {
+    const handleCaseStudyNavigation = (event: Event) => {
+      const { direction } = (event as CustomEvent<{ direction: CaseStudyNavigationDirection }>).detail;
+      setProjectRotation((current) => current + direction * 360);
+    };
+
+    window.addEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
+    return () => window.removeEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
   }, []);
 
   useEffect(() => {
@@ -315,7 +335,12 @@ export function PersistentIdentityHeader() {
         onPointerEnter={triggerHoverInMotion}
         onPointerLeave={triggerHoverOutMotion}
       >
-        <div className="identity-artwork">
+        <motion.div
+          className="identity-artwork"
+          initial={false}
+          animate={{ rotate: projectRotation }}
+          transition={prefersReducedMotion ? { duration: 0 } : PROJECT_SPIN_TRANSITION}
+        >
           <motion.span
             className="identity-card-motion identity-avatar-motion"
             aria-hidden="true"
@@ -377,7 +402,7 @@ export function PersistentIdentityHeader() {
               onClick={toggleMobileState}
             />
           ) : null}
-        </div>
+        </motion.div>
 
         {!isProject && data ? (
           <a

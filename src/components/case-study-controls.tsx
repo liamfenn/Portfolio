@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import {
+  announceCaseStudyNavigation,
+  type CaseStudyNavigationDirection,
+} from "@/lib/case-study-navigation";
 
 interface CaseStudyControlsProps {
   previousSlug: string;
@@ -16,6 +22,7 @@ export function CaseStudyControls({
   nextSlug,
   nextTitle,
 }: CaseStudyControlsProps) {
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(true);
   const previousScrollY = useRef(0);
   const animationFrame = useRef<number | null>(null);
@@ -61,6 +68,51 @@ export function CaseStudyControls({
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.shiftKey
+      ) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (key !== "p" && key !== "n") {
+        return;
+      }
+
+      event.preventDefault();
+      const direction: CaseStudyNavigationDirection = key === "p" ? -1 : 1;
+      const destination = key === "p" ? previousSlug : nextSlug;
+      announceCaseStudyNavigation(direction);
+      router.push(`/work/${destination}`);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nextSlug, previousSlug, router]);
+
+  const handleNavigationClick = (
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    direction: CaseStudyNavigationDirection,
+  ) => {
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+
+    announceCaseStudyNavigation(direction);
+  };
+
   return (
     <nav className={`case-study-controls${isVisible ? "" : " is-hidden"}`} aria-label="Case study navigation">
       <Link className="case-study-control case-study-control-home" href="/">
@@ -70,6 +122,7 @@ export function CaseStudyControls({
         className="case-study-control case-study-control-step"
         href={`/work/${previousSlug}`}
         aria-label={`Previous project: ${previousTitle}`}
+        onClick={(event) => handleNavigationClick(event, -1)}
       >
         P
       </Link>
@@ -77,6 +130,7 @@ export function CaseStudyControls({
         className="case-study-control case-study-control-step"
         href={`/work/${nextSlug}`}
         aria-label={`Next project: ${nextTitle}`}
+        onClick={(event) => handleNavigationClick(event, 1)}
       >
         N
       </Link>
