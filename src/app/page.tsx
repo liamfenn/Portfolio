@@ -56,9 +56,9 @@ export default function Home() {
               &amp; more.
             </p>
             <p>
-              His practice explores how products can recede around intent without flattening character. He
-              treats design as a reflective conversation with the thing being made, moving between conception and
-              execution to shape interaction and introduce expression where it earns attention.
+              His practice explores how products can recede around intent without flattening their character.
+              Design becomes a reflective conversation with the thing being made, moving between conception and
+              execution. Ideas are resolved through play, making room for expression where it earns attention.
             </p>
           </div>
         </div>

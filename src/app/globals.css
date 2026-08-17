@@ -696,9 +696,11 @@
  * text change, so the lines would visibly reflow through the scramble.
  */
 /*
- * The index bio wraps naturally. pretty re-optimises the whole block and pushed
- * the paragraph into short, stacked lines that read like a list.
+ * Safe on the bio again now that it is two real paragraphs: pretty resolves each
+ * one's rag on its own rather than optimising across a single block split by
+ * line breaks, which is what previously produced the stacked, list-like lines.
  */
+.portfolio-bio p,
 .case-study-summary p:not(.case-study-period),
 .case-study-text-block p {
   text-wrap: pretty;
