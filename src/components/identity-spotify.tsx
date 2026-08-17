@@ -53,6 +53,7 @@ export function PersistentIdentityHeader() {
   const [trackHugWidth, setTrackHugWidth] = useState(0);
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
+  const identityRef = useRef<HTMLDivElement>(null);
   const navigationShuffleTimer = useRef<number | null>(null);
   const projectLogoSwapTimer = useRef<number | null>(null);
   const projectLogoSwapResetFrame = useRef<number | null>(null);
@@ -279,6 +280,32 @@ export function PersistentIdentityHeader() {
     }
   };
 
+  /*
+   * Suppression exists so landing on the index with the cursor already resting on
+   * the header does not fire the animation. It was lifted only by pointerleave,
+   * but the header changes size between routes, so the cursor is often outside it
+   * on arrival and no leave ever fires -- the next enter was then swallowed and
+   * the reader had to leave and re-enter a second time. Lift it as soon as the
+   * pointer is observed anywhere outside the header instead.
+   */
+  useEffect(() => {
+    if (!isHomeHoverSuppressed) {
+      return;
+    }
+
+    const releaseWhenPointerIsOutside = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && identityRef.current?.contains(target)) {
+        return;
+      }
+
+      setIsHomeHoverSuppressed(false);
+    };
+
+    document.addEventListener("pointermove", releaseWhenPointerIsOutside);
+    return () => document.removeEventListener("pointermove", releaseWhenPointerIsOutside);
+  }, [isHomeHoverSuppressed]);
+
   const status = data?.isPlaying ? "Listening now" : "Last listened to";
   const isVisibleHover = isHovered && !(isHomeHoverSuppressed && !isProject);
   const isSongMarqueeActive = !isProject && songOverflow > 0 && (isTapped || isVisibleHover);
@@ -401,6 +428,7 @@ export function PersistentIdentityHeader() {
   return (
     <div className={`persistent-identity-header ${isProject ? "is-project-route" : "is-index-route"}`}>
       <div
+        ref={identityRef}
         className={`identity-spotify persistent-identity${isProject ? " is-project" : " is-index"}${isTapped ? " is-tapped" : ""}${isVisibleHover ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
         style={
           {
