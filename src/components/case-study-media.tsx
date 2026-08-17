@@ -83,6 +83,33 @@ function CaseStudyVideo({
   );
 
   useEffect(() => {
+    const video = localVideoRef.current;
+    if (!video) {
+      return;
+    }
+
+    let cancelled = false;
+    const revealPresentedFrame = () => {
+      waitForVideoFrame(video, () => {
+        if (!cancelled) {
+          setIsFrameReady(true);
+        }
+      });
+    };
+
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      revealPresentedFrame();
+    } else {
+      video.addEventListener("loadeddata", revealPresentedFrame, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("loadeddata", revealPresentedFrame);
+    };
+  }, [src]);
+
+  useEffect(() => {
     if (!freezeOnNavigation) {
       return;
     }
@@ -122,9 +149,6 @@ function CaseStudyVideo({
         loop
         playsInline
         preload="auto"
-        onLoadedData={(event) => {
-          waitForVideoFrame(event.currentTarget, () => setIsFrameReady(true));
-        }}
       />
       {freezeOnNavigation ? (
         <canvas ref={snapshotRef} className="case-study-video-snapshot" aria-hidden="true" />
