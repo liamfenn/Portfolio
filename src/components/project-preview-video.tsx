@@ -5,11 +5,18 @@ import type { PortfolioVideoAsset } from "@/lib/media-assets";
 
 export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isFrameReady, setIsFrameReady] = useState(false);
+  const [isFrameReady, setIsFrameReady] = useState(Boolean(asset.poster));
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (reduceMotion.matches || connection?.saveData) {
+      video.pause();
       return;
     }
 
@@ -46,7 +53,7 @@ export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
     <video
       ref={videoRef}
       className={`project-preview-video${isFrameReady ? " is-frame-ready" : ""}`}
-      src={asset.src}
+      src={asset.previewSrc ?? asset.src}
       poster={asset.poster}
       aria-label={asset.alt}
       muted

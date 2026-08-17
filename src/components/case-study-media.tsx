@@ -60,17 +60,19 @@ function waitForVideoFrame(video: HTMLVideoElement, callback: () => void) {
 function CaseStudyVideo({
   src,
   alt,
+  poster,
   videoRef,
   freezeOnNavigation,
 }: {
   src: string;
   alt?: string;
+  poster?: string;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   freezeOnNavigation: boolean;
 }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const snapshotRef = useRef<HTMLCanvasElement>(null);
-  const [isFrameReady, setIsFrameReady] = useState(false);
+  const [isFrameReady, setIsFrameReady] = useState(Boolean(poster));
 
   const setVideoRef = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -114,6 +116,38 @@ function CaseStudyVideo({
       return;
     }
 
+    const video = localVideoRef.current;
+    if (!video) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (reduceMotion.matches || connection?.saveData) {
+      video.pause();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "400px 0px", threshold: 0.01 },
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [freezeOnNavigation]);
+
+  useEffect(() => {
+    if (!freezeOnNavigation) {
+      return;
+    }
+
     const freezePresentedFrame = () => {
       const video = localVideoRef.current;
       const snapshot = snapshotRef.current;
@@ -143,12 +177,13 @@ function CaseStudyVideo({
         ref={setVideoRef}
         className={isFrameReady ? "is-frame-ready" : undefined}
         src={src}
+        poster={poster}
         aria-label={alt}
-        autoPlay
+        autoPlay={!freezeOnNavigation}
         muted
         loop
         playsInline
-        preload="auto"
+        preload={freezeOnNavigation ? "metadata" : "auto"}
       />
       {freezeOnNavigation ? (
         <canvas ref={snapshotRef} className="case-study-video-snapshot" aria-hidden="true" />
@@ -188,6 +223,7 @@ function MediaSurface({
         <CaseStudyVideo
           src={media.src}
           alt={media.alt}
+          poster={media.poster}
           videoRef={videoRef}
           freezeOnNavigation={!isFocused}
         />

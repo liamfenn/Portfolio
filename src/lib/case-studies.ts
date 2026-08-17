@@ -1,4 +1,14 @@
+import type { PortfolioMediaAsset } from "@/lib/media-assets";
 import { MEDIA_ASSETS } from "@/lib/media-assets";
+
+interface PlaceholderMedia {
+  kind: "placeholder";
+}
+
+interface InteractiveMedia {
+  kind: "interactive";
+  demoId?: string;
+}
 
 export interface CaseStudyTechnology {
   label: string;
@@ -8,12 +18,7 @@ export interface CaseStudyMediaBlock {
   id: string;
   type: "media";
   caption?: string;
-  media: {
-    kind: "placeholder" | "image" | "video" | "interactive";
-    src?: string;
-    alt?: string;
-    demoId?: string;
-  };
+  media: PortfolioMediaAsset | PlaceholderMedia | InteractiveMedia;
 }
 
 export interface CaseStudyCopyBlock {
