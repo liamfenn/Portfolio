@@ -164,15 +164,23 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
   const randomizedBlocks = shuffled(blocks, random);
 
   if (slug === "shop") {
-    const firstMedia = randomizedBlocks.find(
+    const shopMedia = randomizedBlocks.filter(
       (block): block is CaseStudyMediaBlock => block.type === "media",
     );
 
-    if (firstMedia) {
-      firstMedia.media = {
+    if (shopMedia[0]) {
+      shopMedia[0].media = {
         kind: "video",
         src: "/videos/baskets-final.mp4",
         alt: "Shoppable Baskets interaction prototype",
+      };
+    }
+
+    if (shopMedia[1]) {
+      shopMedia[1].media = {
+        kind: "video",
+        src: "/videos/baskets-flare.mp4",
+        alt: "Shoppable Baskets flared interaction prototype",
       };
     }
   }
