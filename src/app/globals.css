@@ -1043,6 +1043,12 @@
   text-decoration: none;
 }
 
+@media (hover: hover) {
+  .persistent-project-details-link:hover {
+    opacity: 1;
+  }
+}
+
 .persistent-project-details-link:focus-visible {
   border-radius: 2px;
   outline: 1px solid rgba(0, 0, 0, 0.35);
