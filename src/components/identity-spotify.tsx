@@ -24,7 +24,7 @@ const SURFACE_TRANSITION = {
 } as const;
 
 const PROJECT_SHUFFLE_HALF_DURATION = 380;
-const PROJECT_LOGO_SWAP_DELAY = PROJECT_SHUFFLE_HALF_DURATION + 125;
+const PROJECT_LOGO_SWAP_DELAY = PROJECT_SHUFFLE_HALF_DURATION + 100;
 
 interface ProjectSurface {
   image: string;
@@ -44,6 +44,7 @@ export function PersistentIdentityHeader() {
   const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
   const [isNavigationShuffling, setIsNavigationShuffling] = useState(false);
   const [heldProjectSurface, setHeldProjectSurface] = useState<ProjectSurface | null>(null);
+  const [isProjectLogoSwapInstant, setIsProjectLogoSwapInstant] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
   const [trackHugWidth, setTrackHugWidth] = useState(0);
@@ -51,6 +52,7 @@ export function PersistentIdentityHeader() {
   const hoverExitTimer = useRef<number | null>(null);
   const navigationShuffleTimer = useRef<number | null>(null);
   const projectLogoSwapTimer = useRef<number | null>(null);
+  const projectLogoSwapResetFrame = useRef<number | null>(null);
   const currentProjectSurface = useRef<ProjectSurface | null>(
     study
       ? {
@@ -87,6 +89,10 @@ export function PersistentIdentityHeader() {
 
       if (projectLogoSwapTimer.current !== null) {
         window.clearTimeout(projectLogoSwapTimer.current);
+      }
+
+      if (projectLogoSwapResetFrame.current !== null) {
+        window.cancelAnimationFrame(projectLogoSwapResetFrame.current);
       }
     };
   }, []);
@@ -141,6 +147,11 @@ export function PersistentIdentityHeader() {
         window.clearTimeout(projectLogoSwapTimer.current);
       }
 
+      if (projectLogoSwapResetFrame.current !== null) {
+        window.cancelAnimationFrame(projectLogoSwapResetFrame.current);
+        projectLogoSwapResetFrame.current = null;
+      }
+
       if (prefersReducedMotion) {
         setHeldProjectSurface(null);
         setIsNavigationShuffling(false);
@@ -154,7 +165,12 @@ export function PersistentIdentityHeader() {
         navigationShuffleTimer.current = null;
       }, PROJECT_SHUFFLE_HALF_DURATION);
       projectLogoSwapTimer.current = window.setTimeout(() => {
+        setIsProjectLogoSwapInstant(true);
         setHeldProjectSurface(null);
+        projectLogoSwapResetFrame.current = window.requestAnimationFrame(() => {
+          setIsProjectLogoSwapInstant(false);
+          projectLogoSwapResetFrame.current = null;
+        });
         projectLogoSwapTimer.current = null;
       }, PROJECT_LOGO_SWAP_DELAY);
     };
@@ -277,7 +293,9 @@ export function PersistentIdentityHeader() {
     ? heldProjectSurface?.background ?? study?.companyLogoBackground ?? "#f5f5f5"
     : "#f5f5f5";
   const layerTransition = prefersReducedMotion ? { duration: 0 } : STACK_SPRING;
-  const secondaryImageTransition = prefersReducedMotion ? { duration: 0 } : SURFACE_TRANSITION;
+  const secondaryImageTransition = prefersReducedMotion || isProjectLogoSwapInstant
+    ? { duration: 0 }
+    : SURFACE_TRANSITION;
   const getLayerTarget = (isFront: boolean) => ({
     x: isFront ? 0 : stackOffset,
     y: isFront ? 0 : stackOffset,
