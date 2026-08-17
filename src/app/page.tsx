@@ -35,8 +35,9 @@ export default function Home() {
         <div className="portfolio-bio-group">
           <div className="persistent-identity-spacer" aria-hidden="true" />
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
-          <p className="portfolio-bio">
-            <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at{" "}
+          <div className="portfolio-bio">
+            <p>
+              <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at{" "}
             <a className="portfolio-link-strong" href="https://shop.app" target="_blank" rel="noreferrer">
               Shop
             </a>
@@ -52,13 +53,14 @@ export default function Home() {
             <a className="portfolio-link-strong" href="https://azura.xyz" target="_blank" rel="noreferrer">
               Azura
             </a>{" "}
-            &amp; more.
-            <br />
-            <br />
-            His practice explores how products can recede around intent without flattening their character. He
-            treats design as a reflective conversation with the thing being made, moving between conception and
-            execution to shape interaction and introduce expression where it earns attention.
-          </p>
+              &amp; more.
+            </p>
+            <p>
+              His practice explores how products can recede around intent without flattening their character. He
+              treats design as a reflective conversation with the thing being made, moving between conception and
+              execution to shape interaction and introduce expression where it earns attention.
+            </p>
+          </div>
         </div>
         <ContactLinks />
       </header>

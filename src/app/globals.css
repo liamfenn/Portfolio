@@ -292,6 +292,15 @@
   color: #555;
 }
 
+/* Real paragraphs, so text-wrap: pretty resolves each one's rag independently. */
+.portfolio-bio p {
+  margin: 0;
+}
+
+.portfolio-bio p + p {
+  margin-top: 1.35em;
+}
+
 .portfolio-bio strong,
 .portfolio-link-strong,
 .portfolio-contact a {
@@ -686,7 +695,10 @@
  * to the scrambled title and period -- balance recomputes line breaking on every
  * text change, so the lines would visibly reflow through the scramble.
  */
-.portfolio-bio,
+/*
+ * The index bio wraps naturally. pretty re-optimises the whole block and pushed
+ * the paragraph into short, stacked lines that read like a list.
+ */
 .case-study-summary p:not(.case-study-period),
 .case-study-text-block p {
   text-wrap: pretty;
