@@ -31,9 +31,13 @@ function getBackdropStyle(block: CaseStudyMediaBlock): CSSProperties | undefined
   return backdrop ? ({ "--case-study-media-backdrop": backdrop } as CSSProperties) : undefined;
 }
 
-/** Never smaller than the old fixed size, but scales up on roomier displays. */
+/**
+ * Never smaller than the old fixed size, but scales up on roomier displays. The
+ * cap is what a Studio Display lands on; without it the short edge would drive
+ * the size and the media reads as oversized even though it fits.
+ */
 const FOCUS_MIN_SIZE = 796;
-const FOCUS_MAX_SIZE = 1400;
+const FOCUS_MAX_SIZE = 1120;
 const FOCUS_VIEWPORT_SHARE = 0.55;
 const FOCUS_VIEWPORT_INSET = 96;
 
