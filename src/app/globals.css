@@ -633,6 +633,11 @@
   object-fit: cover;
 }
 
+.case-study-media video {
+  border: 0;
+  outline: 0;
+}
+
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   .case-study-media-trigger.is-focusable {
     cursor: ne-resize;

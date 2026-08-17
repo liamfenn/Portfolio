@@ -33,12 +33,24 @@ function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock
         />
       ) : null}
       {media.kind === "video" && media.src ? (
-        <simple-player
-          className="case-study-simple-player"
-          src={media.src}
-          aspect-ratio="1 / 1"
-          aria-label={media.alt}
-        />
+        isFocused ? (
+          <simple-player
+            className="case-study-simple-player"
+            src={media.src}
+            aspect-ratio="1 / 1"
+            aria-label={media.alt}
+          />
+        ) : (
+          <video
+            src={media.src}
+            aria-label={media.alt}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        )
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
