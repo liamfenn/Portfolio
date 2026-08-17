@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { CaseStudyMediaBlock } from "@/lib/case-studies";
+import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
 const IMAGE_FOCUS_EXIT_DURATION = 540;
@@ -55,6 +56,82 @@ function waitForVideoFrame(video: HTMLVideoElement, callback: () => void) {
   window.requestAnimationFrame(finish);
 }
 
+function CaseStudyVideo({
+  src,
+  alt,
+  videoRef,
+  freezeOnNavigation,
+}: {
+  src: string;
+  alt?: string;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  freezeOnNavigation: boolean;
+}) {
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const snapshotRef = useRef<HTMLCanvasElement>(null);
+  const [isFrameReady, setIsFrameReady] = useState(false);
+
+  const setVideoRef = useCallback(
+    (node: HTMLVideoElement | null) => {
+      localVideoRef.current = node;
+      if (videoRef) {
+        videoRef.current = node;
+      }
+    },
+    [videoRef],
+  );
+
+  useEffect(() => {
+    if (!freezeOnNavigation) {
+      return;
+    }
+
+    const freezePresentedFrame = () => {
+      const video = localVideoRef.current;
+      const snapshot = snapshotRef.current;
+      if (!video || !snapshot || video.videoWidth === 0 || video.videoHeight === 0) {
+        return;
+      }
+
+      const context = snapshot.getContext("2d");
+      if (!context) {
+        return;
+      }
+
+      snapshot.width = video.videoWidth;
+      snapshot.height = video.videoHeight;
+      context.drawImage(video, 0, 0, snapshot.width, snapshot.height);
+      snapshot.classList.add("is-visible");
+      video.classList.add("is-route-exiting");
+    };
+
+    window.addEventListener(CASE_STUDY_NAVIGATION_EVENT, freezePresentedFrame);
+    return () => window.removeEventListener(CASE_STUDY_NAVIGATION_EVENT, freezePresentedFrame);
+  }, [freezeOnNavigation]);
+
+  return (
+    <div className="case-study-video-viewport">
+      <video
+        ref={setVideoRef}
+        className={isFrameReady ? "is-frame-ready" : undefined}
+        src={src}
+        aria-label={alt}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        onLoadedData={(event) => {
+          waitForVideoFrame(event.currentTarget, () => setIsFrameReady(true));
+        }}
+      />
+      {freezeOnNavigation ? (
+        <canvas ref={snapshotRef} className="case-study-video-snapshot" aria-hidden="true" />
+      ) : null}
+    </div>
+  );
+}
+
 function MediaSurface({
   block,
   isFocused = false,
@@ -83,18 +160,12 @@ function MediaSurface({
         />
       ) : null}
       {media.kind === "video" && media.src ? (
-        <div className="case-study-video-viewport">
-          <video
-            ref={videoRef}
-            src={media.src}
-            aria-label={media.alt}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-          />
-        </div>
+        <CaseStudyVideo
+          src={media.src}
+          alt={media.alt}
+          videoRef={videoRef}
+          freezeOnNavigation={!isFocused}
+        />
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
