@@ -8,8 +8,8 @@ import type { CaseStudyMediaBlock } from "@/lib/case-studies";
 import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
-const IMAGE_FOCUS_EXIT_DURATION = 320;
-const VIDEO_FOCUS_EXIT_DURATION = 230;
+const IMAGE_FOCUS_EXIT_DURATION = 370;
+const VIDEO_FOCUS_EXIT_DURATION = 270;
 const VIDEO_FOCUS_HANDOFF_DURATION = 70;
 
 interface MediaBounds {
