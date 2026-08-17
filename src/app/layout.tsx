@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
 import { PersistentIdentityHeader } from "@/components/identity-spotify";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
+import { PortfolioRouteTransition } from "@/components/portfolio-route-transition";
 import "./globals.css";
 
 const suisseIntl = localFont({
@@ -77,7 +78,7 @@ export default function RootLayout({
       >
         <ProjectDisplayProvider>
           <PersistentIdentityHeader />
-          {children}
+          <PortfolioRouteTransition>{children}</PortfolioRouteTransition>
         </ProjectDisplayProvider>
         <Analytics />
         <AgentationProvider />
