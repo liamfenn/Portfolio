@@ -42,8 +42,56 @@ export interface CaseStudy {
   blocks: CaseStudyBlock[];
 }
 
-const PLACEHOLDER_DESCRIPTION =
-  "Experiential campaign centered around social graph of personalized baskets with real products selected from the canvas. Each card is generated on device, dynamic layout and physics every time.";
+const PLACEHOLDER_DESCRIPTIONS = [
+  "Experiential campaign centered around a social graph of personalized baskets, with real products selected from the canvas and generated dynamically on device.",
+  "A product-system exploration focused on making complex tools feel direct, legible, and responsive across the full customer journey.",
+  "A new interaction model that brings discovery and utility into one flexible surface, balancing expressive moments with familiar product patterns.",
+  "An end-to-end redesign shaped through prototypes, motion studies, and close collaboration across product, engineering, and brand.",
+] as const;
+
+const PLACEHOLDER_COPY = [
+  {
+    title: "Platform refresh",
+    paragraphs: [
+      "The first phase focused on simplifying the platform's core structure and clarifying the path from discovery to action. The resulting system keeps the primary task legible while leaving room for contextual detail.",
+    ],
+  },
+  {
+    title: "Interaction model",
+    paragraphs: [
+      "Early prototypes explored how the interface could respond naturally as content changed. Motion, hierarchy, and progressive disclosure were tuned together rather than treated as separate layers.",
+      "The final model uses a small set of repeatable behaviors so new features can feel familiar without becoming visually repetitive.",
+    ],
+  },
+  {
+    title: "From prototype to product",
+    paragraphs: [
+      "High-fidelity prototypes helped the team evaluate pacing, edge cases, and technical constraints before committing to a production direction.",
+    ],
+  },
+  {
+    title: "A flexible foundation",
+    paragraphs: [
+      "The system was designed to accommodate very different content densities while preserving a consistent rhythm, clear hierarchy, and predictable interaction language.",
+      "Reusable primitives made it possible to iterate quickly without losing the specific character of each surface.",
+    ],
+  },
+  {
+    title: "Details at scale",
+    paragraphs: [
+      "Small decisions around typography, feedback, and transitions became especially important once the concept was tested across a wider range of real-world states.",
+    ],
+  },
+] as const;
+
+const PLACEHOLDER_CAPTIONS = [
+  "Early interaction study",
+  "Selected interface direction",
+  "Prototype detail",
+  "System behavior",
+  "Exploratory layout",
+  "Final interaction model",
+] as const;
 
 const TECHNOLOGIES: CaseStudyTechnology[] = [
   { label: "SwiftUI" },
@@ -52,30 +100,68 @@ const TECHNOLOGIES: CaseStudyTechnology[] = [
   { label: "Codex" },
 ];
 
+function hashString(value: string) {
+  return Array.from(value).reduce((hash, character) => {
+    return Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
+  }, 2166136261);
+}
+
+function createSeededRandom(seed: number) {
+  let state = seed;
+
+  return () => {
+    state += 0x6d2b79f5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffled<T>(items: readonly T[], random: () => number) {
+  const result = [...items];
+
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const replacementIndex = Math.floor(random() * (index + 1));
+    [result[index], result[replacementIndex]] = [result[replacementIndex], result[index]];
+  }
+
+  return result;
+}
+
 function placeholderBlocks(slug: string): CaseStudyBlock[] {
-  return [
-    {
-      id: `${slug}-media-01`,
+  const seed = hashString(slug);
+  const random = createSeededRandom(seed);
+  const mediaCount = 2 + (seed % 3);
+  const copyCount = 2 + ((seed >>> 3) % 2);
+  const captions = shuffled(PLACEHOLDER_CAPTIONS, random);
+  const copy = shuffled(PLACEHOLDER_COPY, random);
+  const technologies = shuffled(TECHNOLOGIES, random).slice(0, 3 + (seed % 2));
+
+  const blocks: CaseStudyBlock[] = [
+    ...Array.from({ length: mediaCount }, (_, index): CaseStudyMediaBlock => ({
+      id: `${slug}-media-${String(index + 1).padStart(2, "0")}`,
       type: "media",
-      caption: "Early version",
+      caption: index === mediaCount - 1 && seed % 2 === 0 ? undefined : captions[index],
       media: { kind: "placeholder" },
-    },
+    })),
+    ...copy.slice(0, copyCount).map(
+      (block, index): CaseStudyCopyBlock => ({
+        id: `${slug}-copy-${String(index + 1).padStart(2, "0")}`,
+        type: "copy",
+        title: block.title,
+        paragraphs: [...block.paragraphs],
+      }),
+    ),
     {
-      id: `${slug}-copy-01`,
-      type: "copy",
-      title: "Platform refresh",
-      paragraphs: [PLACEHOLDER_DESCRIPTION],
+      id: `${slug}-technology`,
+      type: "technology",
+      title: "Technology",
+      items: technologies,
     },
-    { id: `${slug}-technology`, type: "technology", title: "Technology", items: TECHNOLOGIES },
-    { id: `${slug}-media-02`, type: "media", media: { kind: "placeholder" } },
-    {
-      id: `${slug}-copy-02`,
-      type: "copy",
-      title: "Platform refresh",
-      paragraphs: [PLACEHOLDER_DESCRIPTION, PLACEHOLDER_DESCRIPTION],
-    },
-    { id: `${slug}-media-03`, type: "media", media: { kind: "placeholder" } },
   ];
+
+  return shuffled(blocks, random);
 }
 
 export const CASE_STUDIES: CaseStudy[] = [
@@ -85,7 +171,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Shop",
     role: "Senior Product Designer",
     period: "Q2 2026",
-    description: PLACEHOLDER_DESCRIPTION,
+    description: PLACEHOLDER_DESCRIPTIONS[0],
     companyLogo: "/images/logos/Shop.png",
     companyLogoBackground: "#5533ea",
     blocks: placeholderBlocks("shop"),
@@ -96,7 +182,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Bird",
     role: "Product Designer",
     period: "2025",
-    description: PLACEHOLDER_DESCRIPTION,
+    description: PLACEHOLDER_DESCRIPTIONS[1],
     companyLogo: "/images/logos/Bird.png",
     companyLogoBackground: "#000000",
     blocks: placeholderBlocks("bird"),
@@ -107,7 +193,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Plasticity",
     role: "Product Designer",
     period: "2025",
-    description: PLACEHOLDER_DESCRIPTION,
+    description: PLACEHOLDER_DESCRIPTIONS[2],
     companyLogo: "/images/logos/Plasticity.png",
     companyLogoBackground: "#494578",
     blocks: placeholderBlocks("plasticity"),
@@ -118,7 +204,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Azura",
     role: "Product Designer",
     period: "2024",
-    description: PLACEHOLDER_DESCRIPTION,
+    description: PLACEHOLDER_DESCRIPTIONS[3],
     companyLogo: "/images/logos/Azura.png",
     companyLogoBackground: "#65fc9f",
     blocks: placeholderBlocks("azura"),
