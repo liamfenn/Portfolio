@@ -40,7 +40,7 @@ export default function Home() {
             <a className="portfolio-link-strong" href="https://shop.app" target="_blank" rel="noreferrer">
               Shop
             </a>
-            . Previously, he worked at OpenPurpose with{" "}
+            . Previously at OpenPurpose where he designed interfaces for{" "}
             <a className="portfolio-link-strong" href="https://bird.com" target="_blank" rel="noreferrer">
               Bird
             </a>
@@ -52,7 +52,7 @@ export default function Home() {
             <a className="portfolio-link-strong" href="https://azura.xyz" target="_blank" rel="noreferrer">
               Azura
             </a>{" "}
-            &amp; others.
+            &amp; more.
             <br />
             <br />
             His practice explores how products can recede around intent without flattening their character. He
