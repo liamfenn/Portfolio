@@ -1,4 +1,3 @@
-import { IdentitySpotify } from "@/components/identity-spotify";
 import { PortfolioFooter } from "@/components/portfolio-footer";
 import { ProjectWork } from "@/components/project-work";
 
@@ -34,7 +33,7 @@ export default function Home() {
     <main className="portfolio-v2">
       <header className="portfolio-intro">
         <div className="portfolio-bio-group">
-          <IdentitySpotify />
+          <div className="persistent-identity-spacer" aria-hidden="true" />
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
           <p className="portfolio-bio">
             <strong>Liam Fennell</strong> is a designer based in Atlanta, currently working with the talented team at{" "}

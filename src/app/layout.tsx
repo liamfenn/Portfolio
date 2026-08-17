@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
+import { PersistentIdentityHeader } from "@/components/identity-spotify";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
 import "./globals.css";
 
@@ -74,7 +75,10 @@ export default function RootLayout({
       <body
         className={`${suisseIntl.variable} ${oracle.variable} ${otto.variable} ${GeistMono.variable} font-sans antialiased`}
       >
-        <ProjectDisplayProvider>{children}</ProjectDisplayProvider>
+        <ProjectDisplayProvider>
+          <PersistentIdentityHeader />
+          {children}
+        </ProjectDisplayProvider>
         <Analytics />
         <AgentationProvider />
       </body>

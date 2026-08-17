@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CaseStudyControls } from "@/components/case-study-controls";
-import { ProjectIdentity } from "@/components/project-identity";
 import {
   CASE_STUDIES,
   getAdjacentCaseStudies,
@@ -66,11 +65,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
     <main className="portfolio-v2 case-study-page">
       <article className="case-study-content">
         <header className="case-study-header">
-          <ProjectIdentity
-            company={study.company}
-            companyLogo={study.companyLogo}
-            companyLogoBackground={study.companyLogoBackground}
-          />
+          <div className="persistent-identity-spacer" aria-hidden="true" />
           <div className="case-study-summary">
             <p className="case-study-period">{study.period}</p>
             <h1>{study.title}</h1>
