@@ -44,6 +44,10 @@ for WIDTH in $WIDTHS; do
   # -2 keeps the height even, which both encoders require for yuv420p.
   SCALE="scale=w=${WIDTH}:h=-2:flags=lanczos,fps=${FRAME_RATE},format=yuv420p"
 
+  # A keyframe every second (-g below) keeps seeking cheap. The focused view syncs
+  # to the inline video's currentTime, and with a default multi-second GOP that seek
+  # has to decode from the opening keyframe, which stalls the transition.
+
   # Smaller renditions carry fewer pixels to hide artefacts in, so give them a
   # slightly richer budget rather than a flat CRF across the ladder.
   if [[ "$WIDTH" -le 800 ]]; then
@@ -66,6 +70,7 @@ for WIDTH in $WIDTHS; do
     -c:v libsvtav1 \
     -preset 6 \
     -crf "$AV1_CRF" \
+    -g "$FRAME_RATE" \
     -svtav1-params "tune=0:film-grain=0" \
     -movflags +faststart \
     "${OUTPUT_BASE}-${WIDTH}.av1.mp4"
@@ -79,6 +84,8 @@ for WIDTH in $WIDTHS; do
     -c:v libx264 \
     -preset slow \
     -crf "$X264_CRF" \
+    -g "$FRAME_RATE" \
+    -keyint_min "$FRAME_RATE" \
     -profile:v high \
     -pix_fmt yuv420p \
     -movflags +faststart \

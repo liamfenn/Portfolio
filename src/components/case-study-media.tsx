@@ -95,7 +95,11 @@ function CaseStudyVideo({
   // Both copies reserve the focused size. The inline one so opening focus needs
   // no extra fetch, and the focused one because it opens from the source bounds
   // and would otherwise measure itself mid-animation at the smaller inline size.
-  const rendition = useVideoRendition(asset, localVideoRef, getFocusReservedWidth());
+  // The focused copy is portal-mounted on demand and never server-rendered, so it
+  // can resolve its rendition during the first render and skip the reload entirely.
+  const rendition = useVideoRendition(asset, localVideoRef, getFocusReservedWidth(), {
+    immediate: !freezeOnNavigation,
+  });
 
   const setVideoRef = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -107,11 +111,19 @@ function CaseStudyVideo({
     [videoRef],
   );
 
-  // Sources are attached after mount, so the element needs a reload to pick them up.
+  // A <source> added after mount is invisible to the element until it reloads, but
+  // load() wipes playback state. When the rendition was already known on the first
+  // render the sources shipped with the element, so no reload is needed at all —
+  // currentSrc cannot be consulted here because resource selection runs async.
+  const hadSourcesAtMount = useRef(rendition !== null);
+  const hasLoadedRef = useRef(false);
   useEffect(() => {
-    if (rendition) {
-      localVideoRef.current?.load();
+    if (hadSourcesAtMount.current || !rendition || hasLoadedRef.current) {
+      return;
     }
+
+    hasLoadedRef.current = true;
+    localVideoRef.current?.load();
   }, [rendition]);
 
   useEffect(() => {
@@ -212,7 +224,9 @@ function CaseStudyVideo({
         muted
         loop
         playsInline
-        preload={freezeOnNavigation ? "metadata" : "auto"}
+        // Both copies loop visibly off a remote origin, where "metadata" leaves too
+        // little buffered and the element starves at the loop point and on seek.
+        preload="auto"
       >
         {rendition ? (
           <>

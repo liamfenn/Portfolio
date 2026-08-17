@@ -18,13 +18,23 @@ export function useVideoRendition(
   asset: PortfolioVideoAsset,
   elementRef: RefObject<HTMLElement | null>,
   minimumWidth = 0,
+  { immediate = false }: { immediate?: boolean } = {},
 ): PortfolioVideoRendition | null {
-  const [rendition, setRendition] = useState<PortfolioVideoRendition | null>(null);
+  // `immediate` is only safe for elements that never render on the server. It
+  // resolves during the first render so the <source> tags exist in the very
+  // first DOM the element has, which avoids a destructive load() afterwards.
+  const [rendition, setRendition] = useState<PortfolioVideoRendition | null>(() =>
+    immediate ? pickRendition(asset, minimumWidth) : null,
+  );
 
   useEffect(() => {
+    if (rendition) {
+      return;
+    }
+
     const measured = elementRef.current?.getBoundingClientRect().width ?? 0;
     setRendition(pickRendition(asset, Math.max(measured, minimumWidth)));
-  }, [asset, elementRef, minimumWidth]);
+  }, [asset, elementRef, minimumWidth, rendition]);
 
   return rendition;
 }
