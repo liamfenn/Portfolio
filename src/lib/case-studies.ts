@@ -1,3 +1,5 @@
+import { MEDIA_ASSETS } from "@/lib/media-assets";
+
 export interface CaseStudyTechnology {
   label: string;
 }
@@ -169,19 +171,11 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
     );
 
     if (shopMedia[0]) {
-      shopMedia[0].media = {
-        kind: "video",
-        src: "/videos/baskets-final.mp4",
-        alt: "Shoppable Baskets interaction prototype",
-      };
+      shopMedia[0].media = { ...MEDIA_ASSETS.shoppableBasketsMain };
     }
 
     if (shopMedia[1]) {
-      shopMedia[1].media = {
-        kind: "video",
-        src: "/videos/baskets-flare.mp4",
-        alt: "Shoppable Baskets flared interaction prototype",
-      };
+      shopMedia[1].media = { ...MEDIA_ASSETS.shoppableBasketsFlare };
     }
   }
 

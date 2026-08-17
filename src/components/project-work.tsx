@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
+import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
 const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
@@ -543,6 +544,7 @@ export function ProjectWork() {
               href={`/work/${preview.caseStudySlug}`}
               aria-label={`View the ${preview.label} case study`}
             >
+              {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
               <span className="sr-only">{preview.label} case study preview.</span>
             </Link>
           </li>
