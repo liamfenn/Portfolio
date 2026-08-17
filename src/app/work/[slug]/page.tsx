@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CaseStudyControls } from "@/components/case-study-controls";
+import { CaseStudySummary } from "@/components/case-study-summary";
 import {
   CASE_STUDIES,
   getAdjacentCaseStudies,
@@ -66,11 +67,13 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
       <article className="case-study-content">
         <header className="case-study-header">
           <div className="persistent-identity-spacer" aria-hidden="true" />
-          <div className="case-study-summary">
-            <p className="case-study-period">{study.period}</p>
-            <h1>{study.title}</h1>
-            <p>{study.description}</p>
-          </div>
+          <CaseStudySummary
+            key={study.slug}
+            slug={study.slug}
+            period={study.period}
+            title={study.title}
+            description={study.description}
+          />
         </header>
 
         {study.blocks.map((block) => {
@@ -105,9 +108,14 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
       </article>
 
       <CaseStudyControls
+        currentSlug={study.slug}
+        currentPeriod={study.period}
+        currentTitle={study.title}
         previousSlug={adjacentStudies.previous.slug}
+        previousPeriod={adjacentStudies.previous.period}
         previousTitle={adjacentStudies.previous.title}
         nextSlug={adjacentStudies.next.slug}
+        nextPeriod={adjacentStudies.next.period}
         nextTitle={adjacentStudies.next.title}
       />
     </main>

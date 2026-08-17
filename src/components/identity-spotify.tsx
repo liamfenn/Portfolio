@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
 import { useSmoothCorners } from "@lisse/react";
 import { useEffect, useRef, useState } from "react";
-import { useScramble } from "use-scramble";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
-import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
+import {
+  CASE_STUDY_IDENTITY_SWAP_DELAY,
+  CASE_STUDY_NAVIGATION_EVENT,
+} from "@/lib/case-study-navigation";
 import { getCaseStudy } from "@/lib/case-studies";
 
 const STACK_SPRING = {
@@ -25,16 +27,11 @@ const SURFACE_TRANSITION = {
 } as const;
 
 const PROJECT_SHUFFLE_HALF_DURATION = 380;
-const PROJECT_LOGO_SWAP_DELAY = PROJECT_SHUFFLE_HALF_DURATION + 100;
-const PROJECT_SHUFFLE_TOTAL_DURATION = PROJECT_SHUFFLE_HALF_DURATION * 2;
-const IDENTITY_LABEL_GLYPHS = Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map((glyph) =>
-  glyph.charCodeAt(0),
-) as [number, number, ...number[]];
+const PROJECT_LOGO_SWAP_DELAY = CASE_STUDY_IDENTITY_SWAP_DELAY;
 
 interface ProjectSurface {
   image: string;
   background: string;
-  label: string;
 }
 
 export function PersistentIdentityHeader() {
@@ -49,7 +46,6 @@ export function PersistentIdentityHeader() {
   const [isHovered, setIsHovered] = useState(false);
   const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
   const [isNavigationShuffling, setIsNavigationShuffling] = useState(false);
-  const [isNavigationSequenceActive, setIsNavigationSequenceActive] = useState(false);
   const [heldProjectSurface, setHeldProjectSurface] = useState<ProjectSurface | null>(null);
   const [isProjectLogoSwapInstant, setIsProjectLogoSwapInstant] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
@@ -58,7 +54,6 @@ export function PersistentIdentityHeader() {
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
   const navigationShuffleTimer = useRef<number | null>(null);
-  const navigationSequenceTimer = useRef<number | null>(null);
   const projectLogoSwapTimer = useRef<number | null>(null);
   const projectLogoSwapResetFrame = useRef<number | null>(null);
   const currentProjectSurface = useRef<ProjectSurface | null>(
@@ -66,7 +61,6 @@ export function PersistentIdentityHeader() {
       ? {
           image: study.companyLogo,
           background: study.companyLogoBackground,
-          label: study.company,
         }
       : null,
   );
@@ -81,36 +75,6 @@ export function PersistentIdentityHeader() {
   const [avatarStrokeWidth, setAvatarStrokeWidth] = useState(1);
   const [secondaryStrokeWidth, setSecondaryStrokeWidth] = useState(isProject ? 1 : 3.071);
   const [smoothedSecondaryRadius, setSmoothedSecondaryRadius] = useState(isProject ? 999 : 15.35);
-  const displayedProjectCompany = heldProjectSurface?.label ?? study?.company ?? "";
-  const { ref: projectCompanyLabelRef } = useScramble({
-    text: displayedProjectCompany,
-    playOnMount: false,
-    speed: 0.68,
-    tick: 1,
-    step: 1,
-    scramble: 2,
-    seed: 1,
-    chance: 1,
-    range: IDENTITY_LABEL_GLYPHS,
-    overdrive: false,
-    overflow: true,
-    ignore: [" "],
-  });
-  const { ref: projectIndexLabelRef, replay: replayProjectIndexLabel } = useScramble({
-    text: "Back to Index",
-    playOnMount: false,
-    speed: 0.68,
-    tick: 1,
-    step: 1,
-    scramble: 2,
-    seed: 1,
-    chance: 1,
-    range: IDENTITY_LABEL_GLYPHS,
-    overdrive: false,
-    overflow: true,
-    ignore: [" "],
-  });
-  const replayProjectIndexLabelRef = useRef(replayProjectIndexLabel);
 
   useEffect(() => {
     return () => {
@@ -126,10 +90,6 @@ export function PersistentIdentityHeader() {
         window.clearTimeout(navigationShuffleTimer.current);
       }
 
-      if (navigationSequenceTimer.current !== null) {
-        window.clearTimeout(navigationSequenceTimer.current);
-      }
-
       if (projectLogoSwapTimer.current !== null) {
         window.clearTimeout(projectLogoSwapTimer.current);
       }
@@ -141,15 +101,10 @@ export function PersistentIdentityHeader() {
   }, []);
 
   useEffect(() => {
-    replayProjectIndexLabelRef.current = replayProjectIndexLabel;
-  }, [replayProjectIndexLabel]);
-
-  useEffect(() => {
     currentProjectSurface.current = study
       ? {
           image: study.companyLogo,
           background: study.companyLogoBackground,
-          label: study.company,
         }
       : null;
   }, [study]);
@@ -191,10 +146,6 @@ export function PersistentIdentityHeader() {
         window.clearTimeout(navigationShuffleTimer.current);
       }
 
-      if (navigationSequenceTimer.current !== null) {
-        window.clearTimeout(navigationSequenceTimer.current);
-      }
-
       if (projectLogoSwapTimer.current !== null) {
         window.clearTimeout(projectLogoSwapTimer.current);
       }
@@ -207,13 +158,11 @@ export function PersistentIdentityHeader() {
       if (prefersReducedMotion) {
         setHeldProjectSurface(null);
         setIsNavigationShuffling(false);
-        setIsNavigationSequenceActive(false);
         return;
       }
 
       setHeldProjectSurface(currentProjectSurface.current);
       setIsNavigationShuffling(true);
-      setIsNavigationSequenceActive(true);
       navigationShuffleTimer.current = window.setTimeout(() => {
         setIsNavigationShuffling(false);
         navigationShuffleTimer.current = null;
@@ -221,17 +170,12 @@ export function PersistentIdentityHeader() {
       projectLogoSwapTimer.current = window.setTimeout(() => {
         setIsProjectLogoSwapInstant(true);
         setHeldProjectSurface(null);
-        replayProjectIndexLabelRef.current();
         projectLogoSwapResetFrame.current = window.requestAnimationFrame(() => {
           setIsProjectLogoSwapInstant(false);
           projectLogoSwapResetFrame.current = null;
         });
         projectLogoSwapTimer.current = null;
       }, PROJECT_LOGO_SWAP_DELAY);
-      navigationSequenceTimer.current = window.setTimeout(() => {
-        setIsNavigationSequenceActive(false);
-        navigationSequenceTimer.current = null;
-      }, PROJECT_SHUFFLE_TOTAL_DURATION);
     };
 
     window.addEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
@@ -457,7 +401,7 @@ export function PersistentIdentityHeader() {
   return (
     <div className={`persistent-identity-header ${isProject ? "is-project-route" : "is-index-route"}`}>
       <div
-        className={`identity-spotify persistent-identity${isProject ? " is-project" : " is-index"}${isTapped ? " is-tapped" : ""}${isVisibleHover ? " is-hovered" : ""}${isNavigationSequenceActive ? " is-navigation-shuffling" : ""}${isExiting ? " is-exiting" : ""}`}
+        className={`identity-spotify persistent-identity${isProject ? " is-project" : " is-index"}${isTapped ? " is-tapped" : ""}${isVisibleHover ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
         style={
           {
             "--identity-track-hug-width": trackHugWidth > 0 ? `${trackHugWidth}px` : "var(--identity-track-width)",
@@ -598,15 +542,11 @@ export function PersistentIdentityHeader() {
             className="project-identity-details persistent-project-details-link"
             href="/"
             aria-label="Back to Index"
-            aria-hidden={!isVisibleHover && !isNavigationSequenceActive}
+            aria-hidden={!isVisibleHover}
             onPointerDown={suppressSpotifyHoverOnReturn}
           >
-            <span ref={projectCompanyLabelRef} className="project-identity-company-name">
-              {displayedProjectCompany}
-            </span>
-            <span ref={projectIndexLabelRef} className="project-identity-index-label">
-              Back to Index
-            </span>
+            <span className="project-identity-company-name">{study.company}</span>
+            <span className="project-identity-index-label">Back to Index</span>
           </Link>
         ) : null}
       </div>

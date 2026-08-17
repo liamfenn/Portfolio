@@ -10,16 +10,26 @@ import {
 } from "@/lib/case-study-navigation";
 
 interface CaseStudyControlsProps {
+  currentSlug: string;
+  currentPeriod: string;
+  currentTitle: string;
   previousSlug: string;
+  previousPeriod: string;
   previousTitle: string;
   nextSlug: string;
+  nextPeriod: string;
   nextTitle: string;
 }
 
 export function CaseStudyControls({
+  currentSlug,
+  currentPeriod,
+  currentTitle,
   previousSlug,
+  previousPeriod,
   previousTitle,
   nextSlug,
+  nextPeriod,
   nextTitle,
 }: CaseStudyControlsProps) {
   const router = useRouter();
@@ -94,13 +104,32 @@ export function CaseStudyControls({
       event.preventDefault();
       const direction: CaseStudyNavigationDirection = key === "p" ? -1 : 1;
       const destination = key === "p" ? previousSlug : nextSlug;
-      announceCaseStudyNavigation(direction);
+      announceCaseStudyNavigation(
+        direction,
+        { slug: currentSlug, period: currentPeriod, title: currentTitle },
+        {
+          slug: destination,
+          period: key === "p" ? previousPeriod : nextPeriod,
+          title: key === "p" ? previousTitle : nextTitle,
+        },
+      );
       router.push(`/work/${destination}`);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nextSlug, previousSlug, router]);
+  }, [
+    currentPeriod,
+    currentSlug,
+    currentTitle,
+    nextPeriod,
+    nextSlug,
+    nextTitle,
+    previousPeriod,
+    previousSlug,
+    previousTitle,
+    router,
+  ]);
 
   const handleNavigationClick = (
     event: ReactMouseEvent<HTMLAnchorElement>,
@@ -110,7 +139,13 @@ export function CaseStudyControls({
       return;
     }
 
-    announceCaseStudyNavigation(direction);
+    announceCaseStudyNavigation(
+      direction,
+      { slug: currentSlug, period: currentPeriod, title: currentTitle },
+      direction === -1
+        ? { slug: previousSlug, period: previousPeriod, title: previousTitle }
+        : { slug: nextSlug, period: nextPeriod, title: nextTitle },
+    );
   };
 
   return (
