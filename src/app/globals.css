@@ -190,12 +190,23 @@
 }
 
 /* Portfolio v2 */
+/*
+ * One measure for the index intro, the case study column and the persistent
+ * header. Declared on :root because the header and controls render outside
+ * .portfolio-v2 and would not inherit it from there.
+ */
+:root {
+  --portfolio-column-width: 600px;
+  --portfolio-column-padding: 12px;
+  /* Distance from the viewport centre to the column's text edge. */
+  --portfolio-column-inset: calc(
+    var(--portfolio-column-width) / 2 - var(--portfolio-column-padding)
+  );
+}
+
 .portfolio-v2 {
   --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
   --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
-  /* One measure for the index intro and the case study column. */
-  --portfolio-column-width: 600px;
-  --portfolio-column-padding: 12px;
   min-height: 100vh;
   overflow-x: clip;
   background: #fff;
@@ -1117,12 +1128,13 @@ body.is-media-focused .case-study-controls {
   will-change: left;
 }
 
-.persistent-identity-header.is-index-route {
-  left: calc((100vw - ((100vw - 32px) / 3)) / 2);
-}
-
+/*
+ * Both routes align to the shared column, so the header sits flush with the
+ * index description and the case study body at any width.
+ */
+.persistent-identity-header.is-index-route,
 .persistent-identity-header.is-project-route {
-  left: max(12px, calc(50vw - 288px));
+  left: max(var(--portfolio-column-padding), calc(50vw - var(--portfolio-column-inset)));
 }
 
 .persistent-identity-spacer {
@@ -1132,7 +1144,9 @@ body.is-media-focused .case-study-controls {
 }
 
 .identity-spotify {
-  --identity-track-width: calc((100vw - 32px) / 3 - 62px);
+  --identity-track-width: calc(
+    var(--portfolio-column-width) - 2 * var(--portfolio-column-padding) - 62px
+  );
   display: flex;
   align-items: flex-end;
   width: max-content;
