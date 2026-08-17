@@ -545,8 +545,10 @@ export function PersistentIdentityHeader() {
             aria-hidden={!isVisibleHover}
             onPointerDown={suppressSpotifyHoverOnReturn}
           >
-            <span className="project-identity-company-name">{study.company}</span>
-            <span className="project-identity-index-label">Back to Index</span>
+            <span className="project-identity-details-content">
+              <span className="project-identity-company-name">{study.company}</span>
+              <span className="project-identity-index-label">Back to Index</span>
+            </span>
           </Link>
         ) : null}
       </div>

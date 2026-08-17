@@ -155,8 +155,10 @@ export function ProjectIdentity({ company, companyLogo, companyLogoBackground }:
       </span>
 
       <span className="project-identity-details" aria-hidden={!isHovered}>
-        <span className="project-identity-company-name">{company}</span>
-        <span className="project-identity-index-label">Back to Index</span>
+        <span className="project-identity-details-content">
+          <span className="project-identity-company-name">{company}</span>
+          <span className="project-identity-index-label">Back to Index</span>
+        </span>
       </span>
     </Link>
   );

@@ -734,20 +734,30 @@
   padding-bottom: 1px;
   flex-direction: column;
   justify-content: center;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateX(-8px);
-  transform-origin: left center;
+  overflow: visible;
+  white-space: nowrap;
   font-family: var(--font-oracle);
   font-weight: 400;
   line-height: 1.35;
-  white-space: nowrap;
-  pointer-events: auto;
+  pointer-events: none;
+  transition: width 360ms cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: width;
+}
+
+.project-identity-details-content {
+  display: flex;
+  width: 120px;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  filter: blur(2px);
+  transform: translateX(-12px) scale(0.96);
+  transform-origin: left center;
   transition:
-    width 320ms cubic-bezier(0.45, 0, 0.55, 1),
-    opacity 220ms cubic-bezier(0.4, 0, 0.2, 1) 20ms,
+    opacity 100ms ease-out,
+    filter 220ms ease-out,
     transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: width, opacity, transform;
+  will-change: opacity, filter, transform;
 }
 
 .project-identity-company-name {
@@ -772,10 +782,21 @@
     opacity: 0.4;
   }
 
-  .project-identity.is-hovered .project-identity-details {
+  .project-identity.is-hovered .project-identity-details,
+  .persistent-identity.is-project.is-hovered .project-identity-details {
     width: 120px;
+    pointer-events: auto;
+  }
+
+  .project-identity.is-hovered .project-identity-details-content,
+  .persistent-identity.is-project.is-hovered .project-identity-details-content {
     opacity: 1;
-    transform: translateX(0);
+    filter: blur(0);
+    transform: translateX(0) scale(1);
+    transition:
+      opacity 240ms cubic-bezier(0.4, 0, 0.2, 1) 20ms,
+      filter 300ms cubic-bezier(0.4, 0, 0.2, 1) 10ms,
+      transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -1235,10 +1256,9 @@
       transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .persistent-identity.is-project.is-hovered .project-identity-details {
+  .persistent-identity.is-project.is-exiting .project-identity-details {
     width: 120px;
-    opacity: 1;
-    transform: translateX(0);
+    pointer-events: none;
   }
 
 }
