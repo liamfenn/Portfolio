@@ -10,7 +10,6 @@ import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
 const IMAGE_FOCUS_EXIT_DURATION = 540;
 const VIDEO_FOCUS_EXIT_DURATION = 380;
-const VIDEO_SOURCE_RESTORE_LEAD = 64;
 
 interface MediaBounds {
   top: number;
@@ -182,7 +181,6 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const [isFocusReady, setIsFocusReady] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
   const [isFocusClosing, setIsFocusClosing] = useState(false);
-  const [isSourceRestored, setIsSourceRestored] = useState(false);
   const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -190,9 +188,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const inlineVideoRef = useRef<HTMLVideoElement>(null);
   const focusedVideoRef = useRef<HTMLVideoElement>(null);
   const openFrame = useRef<number | null>(null);
-  const handoffFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
-  const sourceRestoreTimer = useRef<number | null>(null);
 
   const revealFocus = useCallback(() => {
     setIsFocusReady(true);
@@ -220,37 +216,12 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     if (closeTimer.current !== null) {
       window.clearTimeout(closeTimer.current);
     }
-    if (sourceRestoreTimer.current !== null) {
-      window.clearTimeout(sourceRestoreTimer.current);
-    }
-    if (isVideo) {
-      sourceRestoreTimer.current = window.setTimeout(() => {
-        setIsSourceRestored(true);
-        sourceRestoreTimer.current = null;
-      }, VIDEO_FOCUS_EXIT_DURATION - VIDEO_SOURCE_RESTORE_LEAD);
-    }
     closeTimer.current = window.setTimeout(() => {
-      const finishClose = () => {
-        setIsFocusRendered(false);
-        setIsFocusReady(false);
-        setIsFocusClosing(false);
-        setIsSourceRestored(false);
-        triggerRef.current?.focus({ preventScroll: true });
-        closeTimer.current = null;
-      };
-
-      if (isVideo && inlineVideoRef.current) {
-        handoffFrame.current = window.requestAnimationFrame(() => {
-          if (inlineVideoRef.current) {
-            waitForVideoFrame(inlineVideoRef.current, finishClose);
-          } else {
-            finishClose();
-          }
-          handoffFrame.current = null;
-        });
-      } else {
-        finishClose();
-      }
+      setIsFocusRendered(false);
+      setIsFocusReady(false);
+      setIsFocusClosing(false);
+      triggerRef.current?.focus({ preventScroll: true });
+      closeTimer.current = null;
     }, isVideo ? VIDEO_FOCUS_EXIT_DURATION : IMAGE_FOCUS_EXIT_DURATION);
   }, [isFocusClosing, isFocusRendered, isVideo]);
 
@@ -268,13 +239,8 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
-    if (sourceRestoreTimer.current !== null) {
-      window.clearTimeout(sourceRestoreTimer.current);
-      sourceRestoreTimer.current = null;
-    }
     setSourceBounds(getFocusBounds(source));
     setIsFocusClosing(false);
-    setIsSourceRestored(false);
     setIsFocusRendered(true);
 
     if (!isVideo) {
@@ -365,14 +331,8 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       if (openFrame.current !== null) {
         window.cancelAnimationFrame(openFrame.current);
       }
-      if (handoffFrame.current !== null) {
-        window.cancelAnimationFrame(handoffFrame.current);
-      }
       if (closeTimer.current !== null) {
         window.clearTimeout(closeTimer.current);
-      }
-      if (sourceRestoreTimer.current !== null) {
-        window.clearTimeout(sourceRestoreTimer.current);
       }
     };
   }, []);
@@ -419,7 +379,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   return (
     <>
       <figure
-        className={`case-study-media-block${isFocusReady ? " is-focused" : ""}${isSourceRestored ? " is-source-restored" : ""}`}
+        className={`case-study-media-block${isFocusReady ? " is-focused" : ""}`}
         aria-hidden={isFocusReady || undefined}
       >
         <div

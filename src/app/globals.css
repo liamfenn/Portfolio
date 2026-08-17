@@ -691,13 +691,12 @@
   }
 
   .case-study-media-block.is-focused
-    .case-study-media[data-media-kind="video"] {
-    opacity: 0;
-  }
-
-  .case-study-media-block.is-focused.is-source-restored
-    .case-study-media[data-media-kind="video"] {
-    opacity: 1;
+    .case-study-media[data-media-kind="video"]::after {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    content: "";
+    background: #fff;
   }
 
 }
