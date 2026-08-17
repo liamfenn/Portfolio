@@ -690,15 +690,6 @@
     outline-offset: 2px;
   }
 
-  .case-study-media-block.is-focused
-    .case-study-media[data-media-kind="video"]::after {
-    position: absolute;
-    z-index: 2;
-    inset: 0;
-    content: "";
-    background: #fff;
-  }
-
 }
 
 .case-study-focus-overlay {
@@ -711,6 +702,7 @@
 
 .case-study-focus-overlay::before {
   position: absolute;
+  z-index: 0;
   inset: 0;
   content: "";
   opacity: 0;
@@ -724,9 +716,29 @@
   opacity: 1;
 }
 
-.case-study-focus-content {
+.case-study-focus-source-cover {
   position: fixed;
   z-index: 1;
+  top: var(--case-study-focus-source-top);
+  left: var(--case-study-focus-source-left);
+  width: var(--case-study-focus-source-width);
+  height: var(--case-study-focus-source-height);
+  opacity: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+.case-study-focus-overlay.is-ready .case-study-focus-source-cover {
+  opacity: 1;
+}
+
+.case-study-focus-overlay.is-handoff .case-study-focus-source-cover {
+  opacity: 0;
+}
+
+.case-study-focus-content {
+  position: fixed;
+  z-index: 2;
   top: var(--case-study-focus-source-top);
   left: var(--case-study-focus-source-left);
   width: var(--case-study-focus-source-width);
@@ -765,6 +777,11 @@
     left 380ms cubic-bezier(0.4, 0, 0.6, 1),
     width 380ms cubic-bezier(0.4, 0, 0.6, 1),
     height 380ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.case-study-focus-overlay.is-handoff .case-study-focus-content.is-video {
+  opacity: 0;
+  transition: opacity 60ms linear;
 }
 
 .case-study-focused-media {

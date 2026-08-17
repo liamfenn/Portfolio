@@ -10,6 +10,7 @@ import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
 const IMAGE_FOCUS_EXIT_DURATION = 540;
 const VIDEO_FOCUS_EXIT_DURATION = 380;
+const VIDEO_FOCUS_HANDOFF_DURATION = 70;
 
 interface MediaBounds {
   top: number;
@@ -181,6 +182,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const [isFocusReady, setIsFocusReady] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
   const [isFocusClosing, setIsFocusClosing] = useState(false);
+  const [isFocusHandoff, setIsFocusHandoff] = useState(false);
   const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -189,6 +191,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const focusedVideoRef = useRef<HTMLVideoElement>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
+  const handoffTimer = useRef<number | null>(null);
 
   const revealFocus = useCallback(() => {
     setIsFocusReady(true);
@@ -217,11 +220,22 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       window.clearTimeout(closeTimer.current);
     }
     closeTimer.current = window.setTimeout(() => {
-      setIsFocusRendered(false);
-      setIsFocusReady(false);
-      setIsFocusClosing(false);
-      triggerRef.current?.focus({ preventScroll: true });
-      closeTimer.current = null;
+      const finishClose = () => {
+        setIsFocusRendered(false);
+        setIsFocusReady(false);
+        setIsFocusClosing(false);
+        setIsFocusHandoff(false);
+        triggerRef.current?.focus({ preventScroll: true });
+        closeTimer.current = null;
+        handoffTimer.current = null;
+      };
+
+      if (isVideo) {
+        setIsFocusHandoff(true);
+        handoffTimer.current = window.setTimeout(finishClose, VIDEO_FOCUS_HANDOFF_DURATION);
+      } else {
+        finishClose();
+      }
     }, isVideo ? VIDEO_FOCUS_EXIT_DURATION : IMAGE_FOCUS_EXIT_DURATION);
   }, [isFocusClosing, isFocusRendered, isVideo]);
 
@@ -241,6 +255,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     }
     setSourceBounds(getFocusBounds(source));
     setIsFocusClosing(false);
+    setIsFocusHandoff(false);
     setIsFocusRendered(true);
 
     if (!isVideo) {
@@ -334,6 +349,9 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       if (closeTimer.current !== null) {
         window.clearTimeout(closeTimer.current);
       }
+      if (handoffTimer.current !== null) {
+        window.clearTimeout(handoffTimer.current);
+      }
     };
   }, []);
 
@@ -360,7 +378,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     ? createPortal(
         <div
           ref={overlayRef}
-          className={`case-study-focus-overlay${isFocusReady ? " is-ready" : ""}${isFocusVisible ? " is-visible" : ""}${isFocusClosing ? " is-closing" : ""}`}
+          className={`case-study-focus-overlay${isFocusReady ? " is-ready" : ""}${isFocusVisible ? " is-visible" : ""}${isFocusClosing ? " is-closing" : ""}${isFocusHandoff ? " is-handoff" : ""}`}
           role="dialog"
           aria-modal="true"
           aria-label="Focused project media. Click anywhere or press Escape to close."
@@ -368,6 +386,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           style={focusStyle}
           onClick={closeFocus}
         >
+          {isVideo ? <div className="case-study-focus-source-cover" aria-hidden="true" /> : null}
           <div className={`case-study-focus-content${isVideo ? " is-video" : ""}`}>
             <MediaSurface block={block} isFocused videoRef={focusedVideoRef} />
           </div>
