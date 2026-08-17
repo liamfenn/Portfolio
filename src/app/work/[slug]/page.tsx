@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CaseStudyControls } from "@/components/case-study-controls";
+import { CaseStudyMedia } from "@/components/case-study-media";
 import { CaseStudySummary } from "@/components/case-study-summary";
-import {
-  CASE_STUDIES,
-  getAdjacentCaseStudies,
-  getCaseStudy,
-  type CaseStudyMediaBlock,
-} from "@/lib/case-studies";
+import { CASE_STUDIES, getAdjacentCaseStudies, getCaseStudy } from "@/lib/case-studies";
 
 interface CaseStudyPageProps {
   params: Promise<{ slug: string }>;
@@ -30,27 +25,6 @@ export async function generateMetadata({ params }: CaseStudyPageProps): Promise<
     title: `${study.title} — Liam Fennell`,
     description: study.description,
   };
-}
-
-function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
-  const { media } = block;
-
-  return (
-    <figure className="case-study-media-block">
-      <div className="case-study-media" data-media-kind={media.kind}>
-        {media.kind === "image" && media.src ? (
-          <Image src={media.src} alt={media.alt ?? ""} fill sizes="(max-width: 767px) 100vw, 600px" />
-        ) : null}
-        {media.kind === "video" && media.src ? (
-          <video src={media.src} aria-label={media.alt} autoPlay muted loop playsInline preload="metadata" />
-        ) : null}
-        {media.kind === "interactive" ? (
-          <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
-        ) : null}
-      </div>
-      {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
-    </figure>
-  );
 }
 
 export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
