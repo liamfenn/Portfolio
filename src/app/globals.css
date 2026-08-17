@@ -1236,6 +1236,12 @@
     transform: translateX(0);
   }
 
+  .persistent-identity.is-project.is-navigation-shuffling .project-identity-details {
+    width: 120px;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
 }
 
 .portfolio-footer {
