@@ -8,10 +8,7 @@ import { useSmoothCorners } from "@lisse/react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
-import {
-  CASE_STUDY_NAVIGATION_EVENT,
-  type CaseStudyNavigationDirection,
-} from "@/lib/case-study-navigation";
+import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 import { getCaseStudy } from "@/lib/case-studies";
 
 const STACK_SPRING = {
@@ -26,10 +23,7 @@ const SURFACE_TRANSITION = {
   ease: [0.16, 1, 0.3, 1],
 } as const;
 
-const PROJECT_SPIN_TRANSITION = {
-  duration: 0.72,
-  ease: [0.65, 0, 0.35, 1],
-} as const;
+const PROJECT_SHUFFLE_HALF_DURATION = 380;
 
 export function PersistentIdentityHeader() {
   const pathname = usePathname();
@@ -42,12 +36,13 @@ export function PersistentIdentityHeader() {
   const [isExiting, setIsExiting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
-  const [projectRotation, setProjectRotation] = useState(0);
+  const [isNavigationShuffling, setIsNavigationShuffling] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
   const [trackHugWidth, setTrackHugWidth] = useState(0);
   const exitCollapseTimer = useRef<number | null>(null);
   const hoverExitTimer = useRef<number | null>(null);
+  const navigationShuffleTimer = useRef<number | null>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const songLineRef = useRef<HTMLSpanElement>(null);
   const songMarqueeRef = useRef<HTMLSpanElement>(null);
@@ -68,6 +63,10 @@ export function PersistentIdentityHeader() {
 
       if (exitCollapseTimer.current !== null) {
         window.clearTimeout(exitCollapseTimer.current);
+      }
+
+      if (navigationShuffleTimer.current !== null) {
+        window.clearTimeout(navigationShuffleTimer.current);
       }
     };
   }, []);
@@ -104,9 +103,16 @@ export function PersistentIdentityHeader() {
   }, []);
 
   useEffect(() => {
-    const handleCaseStudyNavigation = (event: Event) => {
-      const { direction } = (event as CustomEvent<{ direction: CaseStudyNavigationDirection }>).detail;
-      setProjectRotation((current) => current + direction * 360);
+    const handleCaseStudyNavigation = () => {
+      if (navigationShuffleTimer.current !== null) {
+        window.clearTimeout(navigationShuffleTimer.current);
+      }
+
+      setIsNavigationShuffling(true);
+      navigationShuffleTimer.current = window.setTimeout(() => {
+        setIsNavigationShuffling(false);
+        navigationShuffleTimer.current = null;
+      }, PROJECT_SHUFFLE_HALF_DURATION);
     };
 
     window.addEventListener(CASE_STUDY_NAVIGATION_EVENT, handleCaseStudyNavigation);
@@ -213,7 +219,8 @@ export function PersistentIdentityHeader() {
   const status = data?.isPlaying ? "Listening now" : "Last listened to";
   const isVisibleHover = isHovered && !(isHomeHoverSuppressed && !isProject);
   const isSongMarqueeActive = !isProject && songOverflow > 0 && (isTapped || isVisibleHover);
-  const isAvatarFront = isProject ? !isVisibleHover : isTapped || isVisibleHover;
+  const isProjectStackSwapped = isProject && (isNavigationShuffling || isVisibleHover);
+  const isAvatarFront = isProject ? !isProjectStackSwapped : isTapped || isVisibleHover;
   const stackOffset = isCompact ? 8 : isProject ? 9.45 : 9;
   const smallScale = isCompact ? 24 / 36 : isProject ? 28.364 / 43 : 28 / 43;
   const frontStroke = isCompact ? 2.25 : isProject ? 2.66 : 3.071;
@@ -224,6 +231,11 @@ export function PersistentIdentityHeader() {
   const secondaryImage = isProject ? study?.companyLogo : data?.albumImageUrl;
   const secondaryBackground = isProject ? study?.companyLogoBackground ?? "#f5f5f5" : "#f5f5f5";
   const layerTransition = prefersReducedMotion ? { duration: 0 } : STACK_SPRING;
+  const secondaryImageTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : isProject && isNavigationShuffling
+      ? { ...SURFACE_TRANSITION, delay: 0.28 }
+      : SURFACE_TRANSITION;
   const getLayerTarget = (isFront: boolean) => ({
     x: isFront ? 0 : stackOffset,
     y: isFront ? 0 : stackOffset,
@@ -304,7 +316,7 @@ export function PersistentIdentityHeader() {
                 opacity: 0.08,
               },
             }),
-        ...(isCompact
+        ...(isProject || isCompact
           ? {
               middleBorder: {
                 width: secondaryStrokeWidth,
@@ -335,12 +347,7 @@ export function PersistentIdentityHeader() {
         onPointerEnter={triggerHoverInMotion}
         onPointerLeave={triggerHoverOutMotion}
       >
-        <motion.div
-          className="identity-artwork"
-          initial={false}
-          animate={{ rotate: projectRotation }}
-          transition={prefersReducedMotion ? { duration: 0 } : PROJECT_SPIN_TRANSITION}
-        >
+        <div className="identity-artwork">
           <motion.span
             className="identity-card-motion identity-avatar-motion"
             aria-hidden="true"
@@ -365,7 +372,7 @@ export function PersistentIdentityHeader() {
               ref={secondarySurfaceRef}
               className="identity-album identity-secondary"
               animate={{ backgroundColor: secondaryBackground }}
-              transition={prefersReducedMotion ? { duration: 0 } : SURFACE_TRANSITION}
+              transition={secondaryImageTransition}
             >
               <AnimatePresence initial={false} mode="sync">
                 {secondaryImage ? (
@@ -375,7 +382,7 @@ export function PersistentIdentityHeader() {
                     initial={{ opacity: 0, scale: 0.94, filter: "blur(2px)" }}
                     animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                     exit={{ opacity: 0, scale: 1.03, filter: "blur(1px)" }}
-                    transition={prefersReducedMotion ? { duration: 0 } : SURFACE_TRANSITION}
+                    transition={secondaryImageTransition}
                   >
                     <Image src={secondaryImage} alt="" fill sizes="44px" />
                   </motion.span>
@@ -402,7 +409,7 @@ export function PersistentIdentityHeader() {
               onClick={toggleMobileState}
             />
           ) : null}
-        </motion.div>
+        </div>
 
         {!isProject && data ? (
           <a

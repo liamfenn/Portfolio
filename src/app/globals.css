@@ -985,6 +985,7 @@
 }
 
 .persistent-identity.is-project .identity-album {
+  overflow: hidden;
   border-radius: 999px;
 }
 
