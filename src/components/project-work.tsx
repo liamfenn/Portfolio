@@ -15,7 +15,6 @@ const SORT_OPTIONS = [
   { value: "az", label: "A–Z" },
   { value: "za", label: "Z–A" },
 ] as const;
-type SortMode = (typeof SORT_OPTIONS)[number]["value"];
 
 const WORK_LABEL_GLYPHS = Array.from("GridListSortRecentOldestAZ2345x–").map((glyph) => glyph.charCodeAt(0)) as [
   number,
@@ -98,8 +97,8 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const { desktopDensity, setDesktopDensity, mobileColumns, setMobileColumns } = useProjectDisplayState();
-  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const { desktopDensity, setDesktopDensity, mobileColumns, setMobileColumns, sortMode, setSortMode } =
+    useProjectDisplayState();
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
@@ -357,7 +356,7 @@ export function ProjectWork() {
     }
   };
 
-  const selectDesktopSort = (nextSortMode: SortMode) => {
+  const selectDesktopSort = (nextSortMode: (typeof SORT_OPTIONS)[number]["value"]) => {
     setHasChangedSort(true);
     setSortMode(nextSortMode);
   };
