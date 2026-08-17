@@ -33,7 +33,12 @@ function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock
         />
       ) : null}
       {media.kind === "video" && media.src ? (
-        <video src={media.src} aria-label={media.alt} autoPlay muted loop playsInline preload="metadata" />
+        <simple-player
+          className="case-study-simple-player"
+          src={media.src}
+          aspect-ratio="1 / 1"
+          aria-label={media.alt}
+        />
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
@@ -51,6 +56,12 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (block.media.kind === "video") {
+      void import("@grizzshutsdown/simpleplayer");
+    }
+  }, [block.media.kind]);
 
   const closeFocus = useCallback(() => {
     if (!isFocusRendered) {
@@ -175,7 +186,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           style={focusStyle}
           onClick={closeFocus}
         >
-          <div className="case-study-focus-content">
+          <div className="case-study-focus-content" onClick={(event) => event.stopPropagation()}>
             <MediaSurface block={block} isFocused />
           </div>
         </div>,

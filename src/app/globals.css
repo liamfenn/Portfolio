@@ -621,6 +621,7 @@
 
 .case-study-media img,
 .case-study-media video,
+.case-study-simple-player,
 .case-study-focused-media img,
 .case-study-focused-media video,
 .case-study-interactive-slot {
@@ -679,7 +680,8 @@
   height: var(--case-study-focus-source-height);
   transform: translate(0, 0);
   transform-origin: center;
-  pointer-events: none;
+  cursor: default;
+  pointer-events: auto;
   transition:
     top 520ms cubic-bezier(0.16, 1, 0.3, 1),
     left 520ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -703,6 +705,10 @@
   height: 100%;
   overflow: hidden;
   background: #f5f5f5;
+}
+
+.case-study-simple-player {
+  --overlay-blur: 0px;
 }
 
 .case-study-technology-list {

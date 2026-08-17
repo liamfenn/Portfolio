@@ -161,7 +161,23 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
     },
   ];
 
-  return shuffled(blocks, random);
+  const randomizedBlocks = shuffled(blocks, random);
+
+  if (slug === "shop") {
+    const firstMedia = randomizedBlocks.find(
+      (block): block is CaseStudyMediaBlock => block.type === "media",
+    );
+
+    if (firstMedia) {
+      firstMedia.media = {
+        kind: "video",
+        src: "/videos/baskets-final.mp4",
+        alt: "Shoppable Baskets interaction prototype",
+      };
+    }
+  }
+
+  return randomizedBlocks;
 }
 
 export const CASE_STUDIES: CaseStudy[] = [
