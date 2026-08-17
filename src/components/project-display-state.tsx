@@ -1,15 +1,30 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
-export type DesktopDensity = 2 | 3 | 4 | 5;
+export type DesktopDensity = 2 | 3 | 4 | 5 | 6;
 export type MobileColumns = 1 | 2;
 export type ProjectSortMode = "recent" | "oldest" | "az" | "za";
+
+/**
+ * Above this width a 2-up grid leaves tiles absurdly large, so the ladder shifts
+ * up a rung. Every current MacBook sits below it (the 16" is 1728pt at default
+ * scaling) while a Studio Display at 2560pt sits well above.
+ */
+const WIDE_VIEWPORT_QUERY = "(min-width: 1920px)";
+
+export const NARROW_DENSITIES = [2, 3, 4, 5] as const;
+export const WIDE_DENSITIES = [3, 4, 5, 6] as const;
+
+const NARROW_DEFAULT_DENSITY: DesktopDensity = 3;
+const WIDE_DEFAULT_DENSITY: DesktopDensity = 4;
 
 interface ProjectDisplayState {
   desktopDensity: DesktopDensity;
   setDesktopDensity: Dispatch<SetStateAction<DesktopDensity>>;
+  /** Densities offered at the current viewport width, ascending. */
+  densityChoices: readonly DesktopDensity[];
   mobileColumns: MobileColumns;
   setMobileColumns: Dispatch<SetStateAction<MobileColumns>>;
   sortMode: ProjectSortMode;
@@ -19,13 +34,53 @@ interface ProjectDisplayState {
 const ProjectDisplayContext = createContext<ProjectDisplayState | null>(null);
 
 export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
-  const [desktopDensity, setDesktopDensity] = useState<DesktopDensity>(3);
+  const [desktopDensity, setDensityState] = useState<DesktopDensity>(NARROW_DEFAULT_DENSITY);
+  const [isWideViewport, setIsWideViewport] = useState(false);
   const [mobileColumns, setMobileColumns] = useState<MobileColumns>(1);
   const [sortMode, setSortMode] = useState<ProjectSortMode>("recent");
+  // Once the reader picks a density we keep it across resizes rather than
+  // snapping back to the width default, clamping only if it leaves the range.
+  const hasChosenDensity = useRef(false);
+
+  const setDesktopDensity = useCallback<Dispatch<SetStateAction<DesktopDensity>>>((value) => {
+    hasChosenDensity.current = true;
+    setDensityState(value);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia(WIDE_VIEWPORT_QUERY);
+
+    const apply = () => {
+      const isWide = query.matches;
+      setIsWideViewport(isWide);
+      setDensityState((current) => {
+        const choices = isWide ? WIDE_DENSITIES : NARROW_DENSITIES;
+        const fallback = isWide ? WIDE_DEFAULT_DENSITY : NARROW_DEFAULT_DENSITY;
+
+        if (!hasChosenDensity.current) {
+          return fallback;
+        }
+
+        return (choices as readonly DesktopDensity[]).includes(current) ? current : fallback;
+      });
+    };
+
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
 
   return (
     <ProjectDisplayContext.Provider
-      value={{ desktopDensity, setDesktopDensity, mobileColumns, setMobileColumns, sortMode, setSortMode }}
+      value={{
+        desktopDensity,
+        setDesktopDensity,
+        densityChoices: isWideViewport ? WIDE_DENSITIES : NARROW_DENSITIES,
+        mobileColumns,
+        setMobileColumns,
+        sortMode,
+        setSortMode,
+      }}
     >
       {children}
     </ProjectDisplayContext.Provider>

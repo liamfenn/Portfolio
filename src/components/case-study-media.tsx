@@ -31,8 +31,23 @@ function getBackdropStyle(block: CaseStudyMediaBlock): CSSProperties | undefined
   return backdrop ? ({ "--case-study-media-backdrop": backdrop } as CSSProperties) : undefined;
 }
 
+/** Never smaller than the old fixed size, but scales up on roomier displays. */
+const FOCUS_MIN_SIZE = 796;
+const FOCUS_MAX_SIZE = 1400;
+const FOCUS_VIEWPORT_SHARE = 0.55;
+const FOCUS_VIEWPORT_INSET = 96;
+
+function getFocusTargetSize() {
+  return Math.min(
+    Math.max(FOCUS_MIN_SIZE, window.innerWidth * FOCUS_VIEWPORT_SHARE),
+    window.innerWidth - FOCUS_VIEWPORT_INSET,
+    window.innerHeight - FOCUS_VIEWPORT_INSET,
+    FOCUS_MAX_SIZE,
+  );
+}
+
 function getFocusBounds(source: DOMRect): MediaBounds {
-  const targetSize = Math.min(796, window.innerWidth - 48, window.innerHeight - 48);
+  const targetSize = getFocusTargetSize();
 
   return {
     top: source.top,
@@ -67,16 +82,15 @@ function waitForVideoFrame(video: HTMLVideoElement, callback: () => void) {
 }
 
 /**
- * The focused view grows to at most 796px, so the inline video reserves that
- * rung up front on devices that can focus. Both views then share one file and
- * opening focus costs no extra fetch.
+ * The inline video reserves the focused size up front on devices that can focus,
+ * so both views share one file and opening focus costs no extra fetch.
  */
 function getFocusReservedWidth() {
   if (typeof window === "undefined" || !window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
     return 0;
   }
 
-  return Math.min(796, window.innerWidth - 48, window.innerHeight - 48);
+  return getFocusTargetSize();
 }
 
 function CaseStudyVideo({
@@ -432,6 +446,18 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       focusedVideo.removeEventListener("loadedmetadata", prepareFocusedVideo);
     };
   }, [isFocusReady, isFocusRendered, isVideo, revealFocus]);
+
+  // Chrome does not include hardware-composited video layers in a backdrop-filter,
+  // so the page content is blurred directly instead. Keyed on visibility rather
+  // than render so the blur fades out with the scrim instead of snapping off.
+  useEffect(() => {
+    if (!isFocusVisible) {
+      return;
+    }
+
+    document.body.classList.add("is-media-focused");
+    return () => document.body.classList.remove("is-media-focused");
+  }, [isFocusVisible]);
 
   useEffect(() => {
     if (!isFocusRendered) {

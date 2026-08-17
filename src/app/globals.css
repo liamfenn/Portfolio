@@ -193,6 +193,9 @@
 .portfolio-v2 {
   --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
   --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
+  /* One measure for the index intro and the case study column. */
+  --portfolio-column-width: 600px;
+  --portfolio-column-padding: 12px;
   min-height: 100vh;
   overflow-x: clip;
   background: #fff;
@@ -235,11 +238,14 @@
   }
 }
 
+/* Shares the case study column measure so the index and a case study line up. */
 .portfolio-intro {
   display: flex;
-  width: calc((100vw - 32px) / 3);
+  width: var(--portfolio-column-width);
+  max-width: 100%;
   margin: 0 auto 72px;
   padding-top: 84px;
+  padding-inline: var(--portfolio-column-padding);
   flex-direction: column;
   gap: 32px;
 }
@@ -558,7 +564,7 @@
 
 .case-study-content {
   display: flex;
-  width: 600px;
+  width: var(--portfolio-column-width);
   max-width: 100%;
   margin: 0 auto;
   padding-top: 84px;
@@ -568,7 +574,7 @@
 
 .case-study-header {
   display: flex;
-  padding: 0 12px;
+  padding-inline: var(--portfolio-column-padding);
   flex-direction: column;
   gap: 16px;
 }
@@ -618,7 +624,7 @@
 }
 
 .case-study-text-block {
-  padding: 0 12px;
+  padding-inline: var(--portfolio-column-padding);
 }
 
 .case-study-text-block p + p {
@@ -741,6 +747,30 @@
   cursor: sw-resize;
 }
 
+/*
+ * backdrop-filter cannot reach composited video layers in Chrome, which is most
+ * of what sits behind a focused case study, so the page itself is blurred.
+ */
+.portfolio-route-shell,
+.persistent-identity-header,
+.case-study-controls {
+  transition: filter 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.is-media-focused .portfolio-route-shell,
+body.is-media-focused .persistent-identity-header,
+body.is-media-focused .case-study-controls {
+  filter: blur(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-route-shell,
+  .persistent-identity-header,
+  .case-study-controls {
+    transition: none;
+  }
+}
+
 .case-study-focus-overlay::before {
   position: absolute;
   z-index: 1;
@@ -748,8 +778,6 @@
   content: "";
   opacity: 0;
   background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 

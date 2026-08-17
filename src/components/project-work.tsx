@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
+import type { DesktopDensity } from "@/components/project-display-state";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 
-const DESKTOP_DENSITIES = [2, 3, 4, 5] as const;
 const SORT_OPTIONS = [
   { value: "recent", label: "Recent" },
   { value: "oldest", label: "Oldest" },
@@ -98,7 +98,7 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const { desktopDensity, setDesktopDensity, mobileColumns, setMobileColumns, sortMode, setSortMode } =
+  const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode } =
     useProjectDisplayState();
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -344,7 +344,7 @@ export function ProjectWork() {
     }
   };
 
-  const selectDesktopDensity = (density: (typeof DESKTOP_DENSITIES)[number]) => {
+  const selectDesktopDensity = (density: DesktopDensity) => {
     beginGridLabelTransition();
     setHasChangedDensity(true);
     setDesktopDensity(density);
@@ -371,7 +371,7 @@ export function ProjectWork() {
     }
   };
 
-  const densityOptions = DESKTOP_DENSITIES.filter((density) => density !== desktopDensity);
+  const densityOptions = densityChoices.filter((density) => density !== desktopDensity);
   const selectedSort = SORT_OPTIONS.find((option) => option.value === sortMode) ?? SORT_OPTIONS[0];
   const sortOptions = SORT_OPTIONS.filter((option) => option.value !== sortMode);
   const sortLabel = selectedSort.label;
