@@ -14,15 +14,58 @@ interface MediaBounds {
   left: number;
   width: number;
   height: number;
+  targetTop: number;
+  targetLeft: number;
+  targetSize: number;
+  sourceScale: number;
 }
 
-function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock; isFocused?: boolean }) {
+function getFocusBounds(source: DOMRect): MediaBounds {
+  const targetSize = Math.min(796, window.innerWidth - 48, window.innerHeight - 48);
+
+  return {
+    top: source.top,
+    left: source.left,
+    width: source.width,
+    height: source.height,
+    targetTop: (window.innerHeight - targetSize) / 2,
+    targetLeft: (window.innerWidth - targetSize) / 2,
+    targetSize,
+    sourceScale: source.width / targetSize,
+  };
+}
+
+function refreshVideoCompositor(video: HTMLVideoElement) {
+  video.classList.remove("is-compositor-ready");
+  void video.offsetWidth;
+  video.classList.add("is-compositor-ready");
+}
+
+function MediaSurface({
+  block,
+  isFocused = false,
+  videoRef,
+}: {
+  block: CaseStudyMediaBlock;
+  isFocused?: boolean;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+}) {
   const { media } = block;
 
   return (
     <div
       className={isFocused ? "case-study-focused-media" : "case-study-media"}
       data-media-kind={media.kind}
+      onTransitionEnd={(event) => {
+        if (
+          media.kind === "video" &&
+          event.target === event.currentTarget &&
+          event.propertyName === "transform" &&
+          videoRef?.current
+        ) {
+          refreshVideoCompositor(videoRef.current);
+        }
+      }}
     >
       {media.kind === "image" && media.src ? (
         <Image
@@ -34,6 +77,7 @@ function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock
       ) : null}
       {media.kind === "video" && media.src ? (
         <video
+          ref={videoRef}
           src={media.src}
           aria-label={media.alt}
           autoPlay
@@ -41,6 +85,7 @@ function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock
           loop
           playsInline
           preload="auto"
+          onLoadedData={(event) => refreshVideoCompositor(event.currentTarget)}
         />
       ) : null}
       {media.kind === "interactive" ? (
@@ -58,6 +103,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
 
@@ -68,12 +114,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
 
     const source = triggerRef.current?.getBoundingClientRect();
     if (source) {
-      setSourceBounds({
-        top: source.top,
-        left: source.left,
-        width: source.width,
-        height: source.height,
-      });
+      setSourceBounds(getFocusBounds(source));
     }
     setIsFocusVisible(false);
     if (closeTimer.current !== null) {
@@ -100,12 +141,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
-    setSourceBounds({
-      top: source.top,
-      left: source.left,
-      width: source.width,
-      height: source.height,
-    });
+    setSourceBounds(getFocusBounds(source));
     setIsFocusRendered(true);
     openFrame.current = window.requestAnimationFrame(() => {
       setIsFocusVisible(true);
@@ -146,6 +182,12 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   }, [closeFocus, isFocusRendered]);
 
   useEffect(() => {
+    if (isVideo && videoRef.current) {
+      refreshVideoCompositor(videoRef.current);
+    }
+  }, [isFocusRendered, isFocusVisible, isVideo]);
+
+  useEffect(() => {
     return () => {
       if (openFrame.current !== null) {
         window.cancelAnimationFrame(openFrame.current);
@@ -169,6 +211,10 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
         "--case-study-focus-source-left": `${sourceBounds.left}px`,
         "--case-study-focus-source-width": `${sourceBounds.width}px`,
         "--case-study-focus-source-height": `${sourceBounds.height}px`,
+        "--case-study-focus-target-top": `${sourceBounds.targetTop}px`,
+        "--case-study-focus-target-left": `${sourceBounds.targetLeft}px`,
+        "--case-study-focus-target-size": `${sourceBounds.targetSize}px`,
+        "--case-study-focus-source-scale": sourceBounds.sourceScale,
       } as CSSProperties)
     : undefined;
 
@@ -210,7 +256,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           onClick={openFocus}
           onKeyDown={handleTriggerKeyDown}
         >
-          <MediaSurface block={block} />
+          <MediaSurface block={block} videoRef={videoRef} />
         </div>
         {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
       </figure>

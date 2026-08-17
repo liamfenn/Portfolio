@@ -637,7 +637,24 @@
   border: 0;
   outline: 0;
   background: #fff;
+  backface-visibility: hidden;
   box-shadow: none;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+}
+
+.case-study-media video.is-compositor-ready {
+  animation: case-study-video-compositor-refresh 16ms linear;
+}
+
+@keyframes case-study-video-compositor-refresh {
+  from {
+    opacity: 0.999;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .case-study-media[data-media-kind="video"] {
@@ -662,28 +679,29 @@
   .case-study-media-block.is-video-block.is-focused .case-study-media {
     position: fixed;
     z-index: 101;
-    top: var(--case-study-focus-source-top);
-    left: var(--case-study-focus-source-left);
-    width: var(--case-study-focus-source-width);
-    height: var(--case-study-focus-source-height);
+    top: 0;
+    left: 0;
+    width: var(--case-study-focus-target-size);
+    height: var(--case-study-focus-target-size);
     cursor: default;
-    transform: translate(0, 0);
-    transform-origin: center;
-    transition:
-      top 520ms cubic-bezier(0.16, 1, 0.3, 1),
-      left 520ms cubic-bezier(0.16, 1, 0.3, 1),
-      width 520ms cubic-bezier(0.16, 1, 0.3, 1),
-      height 520ms cubic-bezier(0.16, 1, 0.3, 1),
-      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: top, left, width, height, transform;
+    transform: translate3d(
+        var(--case-study-focus-source-left),
+        var(--case-study-focus-source-top),
+        0
+      )
+      scale(var(--case-study-focus-source-scale));
+    transform-origin: top left;
+    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
   }
 
   .case-study-media-block.is-video-block.is-focused.is-focus-visible .case-study-media {
-    top: 50%;
-    left: 50%;
-    width: min(796px, calc(100vw - 48px), calc(100vh - 48px));
-    height: min(796px, calc(100vw - 48px), calc(100vh - 48px));
-    transform: translate(-50%, -50%);
+    transform: translate3d(
+        var(--case-study-focus-target-left),
+        var(--case-study-focus-target-top),
+        0
+      )
+      scale(1);
   }
 }
 

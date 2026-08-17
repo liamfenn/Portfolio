@@ -85,8 +85,7 @@ export function CaseStudyControls({
         event.repeat ||
         event.metaKey ||
         event.ctrlKey ||
-        event.altKey ||
-        event.shiftKey
+        event.altKey
       ) {
         return;
       }
