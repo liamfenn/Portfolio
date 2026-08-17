@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CaseStudyControls } from "@/components/case-study-controls";
 import { CaseStudyMedia } from "@/components/case-study-media";
 import { CaseStudySummary } from "@/components/case-study-summary";
 import { CASE_STUDIES, getAdjacentCaseStudies, getCaseStudy } from "@/lib/case-studies";
@@ -80,18 +79,6 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           );
         })}
       </article>
-
-      <CaseStudyControls
-        currentSlug={study.slug}
-        currentPeriod={study.period}
-        currentTitle={study.title}
-        previousSlug={adjacentStudies.previous.slug}
-        previousPeriod={adjacentStudies.previous.period}
-        previousTitle={adjacentStudies.previous.title}
-        nextSlug={adjacentStudies.next.slug}
-        nextPeriod={adjacentStudies.next.period}
-        nextTitle={adjacentStudies.next.title}
-      />
     </main>
   );
 }

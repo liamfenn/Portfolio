@@ -4,6 +4,8 @@ interface PortfolioMediaBase {
   alt: string;
   width: number;
   height: number;
+  /** Colour painted behind the media so sub-pixel seams match its edges. */
+  backdrop?: string;
 }
 
 export interface PortfolioImageAsset extends PortfolioMediaBase {
@@ -29,6 +31,7 @@ export const MEDIA_ASSETS = {
     alt: "Shoppable Baskets interaction prototype",
     width: 1600,
     height: 1600,
+    backdrop: "#f5f5f5",
   },
   shoppableBasketsFlare: {
     id: "shop-baskets-flare",
@@ -38,5 +41,6 @@ export const MEDIA_ASSETS = {
     alt: "Shoppable Baskets flared interaction prototype",
     width: 1600,
     height: 1600,
+    backdrop: "#000000",
   },
 } as const satisfies Record<string, PortfolioMediaAsset>;

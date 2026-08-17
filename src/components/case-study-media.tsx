@@ -22,6 +22,12 @@ interface MediaBounds {
   targetSize: number;
 }
 
+function getBackdropStyle(block: CaseStudyMediaBlock): CSSProperties | undefined {
+  const backdrop = "backdrop" in block.media ? block.media.backdrop : undefined;
+
+  return backdrop ? ({ "--case-study-media-backdrop": backdrop } as CSSProperties) : undefined;
+}
+
 function getFocusBounds(source: DOMRect): MediaBounds {
   const targetSize = Math.min(796, window.innerWidth - 48, window.innerHeight - 48);
 
@@ -422,8 +428,10 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     }
   };
 
+  const backdropStyle = getBackdropStyle(block);
   const focusStyle = sourceBounds
     ? ({
+        ...backdropStyle,
         "--case-study-focus-source-top": `${sourceBounds.top}px`,
         "--case-study-focus-source-left": `${sourceBounds.left}px`,
         "--case-study-focus-source-width": `${sourceBounds.width}px`,
@@ -459,6 +467,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     <>
       <figure
         className={`case-study-media-block${isFocusReady ? " is-focused" : ""}`}
+        style={backdropStyle}
         aria-hidden={isFocusReady || undefined}
       >
         <div

@@ -670,7 +670,7 @@
   aspect-ratio: 1;
   width: 100%;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--case-study-media-backdrop, #f5f5f5);
 }
 
 .case-study-media-trigger {
@@ -678,6 +678,7 @@
   aspect-ratio: 1;
   width: 100%;
   outline: none;
+  background: var(--case-study-media-backdrop, #f5f5f5);
 }
 
 .case-study-media-block {
@@ -715,8 +716,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #f5f5f5;
-  clip-path: inset(0);
+  background: var(--case-study-media-backdrop, #f5f5f5);
   contain: paint;
 }
 
@@ -729,7 +729,7 @@
   object-fit: cover;
   border: 0;
   outline: 0;
-  background: #f5f5f5;
+  background: var(--case-study-media-backdrop, #f5f5f5);
   box-shadow: none;
   opacity: 0;
 }
@@ -757,7 +757,7 @@
 }
 
 .case-study-media[data-media-kind="video"] {
-  background: #f5f5f5;
+  background: var(--case-study-media-backdrop, #f5f5f5);
 }
 
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
@@ -869,7 +869,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--case-study-media-backdrop, #f5f5f5);
 }
 
 .case-study-technology-list {

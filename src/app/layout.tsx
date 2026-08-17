@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
+import { CaseStudyControls } from "@/components/case-study-controls";
 import { PersistentIdentityHeader } from "@/components/identity-spotify";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
 import { PortfolioRouteTransition } from "@/components/portfolio-route-transition";
@@ -78,7 +79,9 @@ export default function RootLayout({
       >
         <ProjectDisplayProvider>
           <PersistentIdentityHeader />
-          <PortfolioRouteTransition>{children}</PortfolioRouteTransition>
+          <PortfolioRouteTransition overlay={<CaseStudyControls />}>
+            {children}
+          </PortfolioRouteTransition>
         </ProjectDisplayProvider>
         <Analytics />
         <AgentationProvider />
