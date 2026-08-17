@@ -197,26 +197,24 @@
  */
 :root {
   /*
-   * One column of the default grid, bounded to a readable measure. The grid is
-   * 8px padding with 8px gaps, so a 3-up column is (100vw - 16 - 16) / 3. The
-   * reference density is deliberately the default rather than the live one, so
-   * changing the grid never reflows the prose. Above ~2450px the cap wins and
-   * the column stops tracking the grid, because the alternative is a line
-   * length no one can read.
+   * One column of a 3-up grid, bounded to a readable measure. The grid is 8px
+   * padding with 8px gaps, so a 3-up column is (100vw - 16 - 16) / 3.
+   *
+   * The reference is fixed at 3-up rather than following the live density, for
+   * two reasons. Changing the grid should not reflow the prose, and a centred
+   * block can only land on a column when the count is odd -- with an even grid
+   * the page centre falls in a gutter, so tracking a 4-up column would match its
+   * width while never matching its position.
+   *
+   * The cap is the widest 3-up column that occurs while 3-up is still the
+   * default, so alignment is exact across that whole range.
    */
-  --portfolio-column-width: clamp(460px, calc((100vw - 32px) / 3), 600px);
+  --portfolio-column-width: clamp(460px, calc((100vw - 32px) / 3), 630px);
   --portfolio-column-padding: 12px;
   /* Distance from the viewport centre to the column's text edge. */
   --portfolio-column-inset: calc(
     var(--portfolio-column-width) / 2 - var(--portfolio-column-padding)
   );
-}
-
-/* Past this width the grid defaults to 4-up, so the column follows it. */
-@media (min-width: 1920px) {
-  :root {
-    --portfolio-column-width: clamp(460px, calc((100vw - 40px) / 4), 600px);
-  }
 }
 
 .portfolio-v2 {
