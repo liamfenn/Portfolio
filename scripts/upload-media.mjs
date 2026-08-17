@@ -14,6 +14,16 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { put } from "@vercel/blob";
 
+// BLOB_READ_WRITE_TOKEN normally arrives via `vercel env pull .env.local`,
+// which Node does not read on its own.
+if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  try {
+    process.loadEnvFile(".env.local");
+  } catch {
+    // No local env file; the token may still be set in the environment.
+  }
+}
+
 const MEDIA_ROOT = "public/media";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 

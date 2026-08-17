@@ -92,10 +92,10 @@ function CaseStudyVideo({
   const snapshotRef = useRef<HTMLCanvasElement>(null);
   const poster = asset.poster;
   const [isFrameReady, setIsFrameReady] = useState(Boolean(poster));
-  // Only the inline copy reserves the focused size; the focused copy is already
-  // rendered at that size and measures it directly.
-  const reservedWidth = freezeOnNavigation ? getFocusReservedWidth() : 0;
-  const rendition = useVideoRendition(asset, localVideoRef, reservedWidth);
+  // Both copies reserve the focused size. The inline one so opening focus needs
+  // no extra fetch, and the focused one because it opens from the source bounds
+  // and would otherwise measure itself mid-animation at the smaller inline size.
+  const rendition = useVideoRendition(asset, localVideoRef, getFocusReservedWidth());
 
   const setVideoRef = useCallback(
     (node: HTMLVideoElement | null) => {
