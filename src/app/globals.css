@@ -682,6 +682,23 @@
   gap: 12px;
 }
 
+/*
+ * pretty for prose, which pulls up orphaned last words; balance for short
+ * headings and captions, which evens the line lengths. Deliberately not applied
+ * to the scrambled title and period -- balance recomputes line breaking on every
+ * text change, so the lines would visibly reflow through the scramble.
+ */
+.portfolio-bio,
+.case-study-summary p:not(.case-study-period),
+.case-study-text-block p {
+  text-wrap: pretty;
+}
+
+.case-study-text-block h2,
+.case-study-media-caption {
+  text-wrap: balance;
+}
+
 .case-study-media-caption {
   margin: 0;
   font-family: var(--font-oracle);
