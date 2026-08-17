@@ -469,6 +469,14 @@ export function PersistentIdentityHeader() {
               onClick={toggleMobileState}
             />
           ) : null}
+          {isProject ? (
+            <Link
+              className="identity-artwork-action persistent-project-artwork-link"
+              href="/"
+              aria-label="Back to Index"
+              onPointerDown={suppressSpotifyHoverOnReturn}
+            />
+          ) : null}
         </div>
 
         {!isProject && data ? (
@@ -527,19 +535,16 @@ export function PersistentIdentityHeader() {
         ) : null}
 
         {isProject && study ? (
-          <span className="project-identity-details" aria-hidden={!isVisibleHover}>
-            <span className="project-identity-company-name">{study.company}</span>
-            <span className="project-identity-index-label">Back to Index</span>
-          </span>
-        ) : null}
-
-        {isProject ? (
           <Link
-            className="persistent-project-identity-link"
+            className="project-identity-details persistent-project-details-link"
             href="/"
             aria-label="Back to Index"
+            aria-hidden={!isVisibleHover}
             onPointerDown={suppressSpotifyHoverOnReturn}
-          />
+          >
+            <span className="project-identity-company-name">{study.company}</span>
+            <span className="project-identity-index-label">Back to Index</span>
+          </Link>
         ) : null}
       </div>
     </div>
