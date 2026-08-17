@@ -81,7 +81,6 @@ export function CaseStudyControls({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
-        event.defaultPrevented ||
         event.repeat ||
         event.metaKey ||
         event.ctrlKey ||
@@ -95,28 +94,30 @@ export function CaseStudyControls({
         return;
       }
 
-      const key = event.key.toLowerCase();
-      if (key !== "p" && key !== "n") {
+      const isPrevious = event.code === "KeyP" || event.key.toLowerCase() === "p";
+      const isNext = event.code === "KeyN" || event.key.toLowerCase() === "n";
+      if (!isPrevious && !isNext) {
         return;
       }
 
       event.preventDefault();
-      const direction: CaseStudyNavigationDirection = key === "p" ? -1 : 1;
-      const destination = key === "p" ? previousSlug : nextSlug;
+      event.stopPropagation();
+      const direction: CaseStudyNavigationDirection = isPrevious ? -1 : 1;
+      const destination = isPrevious ? previousSlug : nextSlug;
       announceCaseStudyNavigation(
         direction,
         { slug: currentSlug, period: currentPeriod, title: currentTitle },
         {
           slug: destination,
-          period: key === "p" ? previousPeriod : nextPeriod,
-          title: key === "p" ? previousTitle : nextTitle,
+          period: isPrevious ? previousPeriod : nextPeriod,
+          title: isPrevious ? previousTitle : nextTitle,
         },
       );
       router.push(`/work/${destination}`);
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => document.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, [
     currentPeriod,
     currentSlug,
