@@ -846,11 +846,14 @@
 }
 
 .persistent-identity-header {
+  --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
+  --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
   position: absolute;
   z-index: 30;
   top: 84px;
   width: max-content;
   max-width: calc(100vw - 24px);
+  color: #000;
   transition: left 440ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: left;
 }

@@ -32,6 +32,7 @@ export function PersistentIdentityHeader() {
   const [isTapped, setIsTapped] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isHomeHoverSuppressed, setIsHomeHoverSuppressed] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const [songOverflow, setSongOverflow] = useState(0);
   const [trackHugWidth, setTrackHugWidth] = useState(0);
@@ -139,6 +140,10 @@ export function PersistentIdentityHeader() {
 
   const triggerHoverInMotion = () => {
     if (window.matchMedia("(hover: hover)").matches) {
+      if (isHomeHoverSuppressed) {
+        return;
+      }
+
       if (hoverExitTimer.current !== null) {
         window.clearTimeout(hoverExitTimer.current);
         hoverExitTimer.current = null;
@@ -156,6 +161,13 @@ export function PersistentIdentityHeader() {
 
   const triggerHoverOutMotion = () => {
     if (window.matchMedia("(hover: hover)").matches) {
+      if (isHomeHoverSuppressed) {
+        setIsHomeHoverSuppressed(false);
+        setIsHovered(false);
+        setIsExiting(false);
+        return;
+      }
+
       if (hoverExitTimer.current !== null) {
         window.clearTimeout(hoverExitTimer.current);
       }
@@ -172,9 +184,16 @@ export function PersistentIdentityHeader() {
     }
   };
 
+  const suppressSpotifyHoverOnReturn = () => {
+    if (window.matchMedia("(hover: hover)").matches) {
+      setIsHomeHoverSuppressed(true);
+    }
+  };
+
   const status = data?.isPlaying ? "Listening now" : "Last listened to";
-  const isSongMarqueeActive = !isProject && songOverflow > 0 && (isTapped || isHovered);
-  const isAvatarFront = isProject ? !isHovered : isTapped || isHovered;
+  const isVisibleHover = isHovered && !(isHomeHoverSuppressed && !isProject);
+  const isSongMarqueeActive = !isProject && songOverflow > 0 && (isTapped || isVisibleHover);
+  const isAvatarFront = isProject ? !isVisibleHover : isTapped || isVisibleHover;
   const stackOffset = isCompact ? 8 : isProject ? 9.45 : 9;
   const smallScale = isCompact ? 24 / 36 : isProject ? 28.364 / 43 : 28 / 43;
   const frontStroke = isCompact ? 2.25 : isProject ? 2.66 : 3.071;
@@ -287,7 +306,7 @@ export function PersistentIdentityHeader() {
   return (
     <div className={`persistent-identity-header ${isProject ? "is-project-route" : "is-index-route"}`}>
       <div
-        className={`identity-spotify persistent-identity${isProject ? " is-project" : " is-index"}${isTapped ? " is-tapped" : ""}${isHovered ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
+        className={`identity-spotify persistent-identity${isProject ? " is-project" : " is-index"}${isTapped ? " is-tapped" : ""}${isVisibleHover ? " is-hovered" : ""}${isExiting ? " is-exiting" : ""}`}
         style={
           {
             "--identity-track-hug-width": trackHugWidth > 0 ? `${trackHugWidth}px` : "var(--identity-track-width)",
@@ -416,13 +435,20 @@ export function PersistentIdentityHeader() {
         ) : null}
 
         {isProject && study ? (
-          <span className="project-identity-details" aria-hidden={!isHovered}>
+          <span className="project-identity-details" aria-hidden={!isVisibleHover}>
             <span className="project-identity-company-name">{study.company}</span>
             <span className="project-identity-index-label">Back to Index</span>
           </span>
         ) : null}
 
-        {isProject ? <Link className="persistent-project-identity-link" href="/" aria-label="Back to Index" /> : null}
+        {isProject ? (
+          <Link
+            className="persistent-project-identity-link"
+            href="/"
+            aria-label="Back to Index"
+            onPointerDown={suppressSpotifyHoverOnReturn}
+          />
+        ) : null}
       </div>
     </div>
   );

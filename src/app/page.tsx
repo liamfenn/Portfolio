@@ -44,9 +44,7 @@ export default function Home() {
             <br />
             <br />
             Previously at{" "}
-            <a className="portfolio-link-strong" href="https://openpurpose.com" target="_blank" rel="noreferrer">
-              OpenPurpose
-            </a>{" "}
+            <strong>OpenPurpose</strong>{" "}
             where he designed interfaces for{" "}
             <a className="portfolio-link-strong" href="https://bird.com" target="_blank" rel="noreferrer">
               Bird
