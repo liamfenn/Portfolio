@@ -10,7 +10,6 @@
     "spotify:authorize": "node scripts/spotify-authorize.mjs"
   },
   "dependencies": {
-    "@grizzshutsdown/simpleplayer": "^0.1.20",
     "@lisse/react": "^0.7.0",
     "@vercel/analytics": "^1.6.1",
     "geist": "^1.7.0",

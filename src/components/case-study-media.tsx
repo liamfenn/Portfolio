@@ -16,135 +16,7 @@ interface MediaBounds {
   height: number;
 }
 
-function FocusedVideoPlayer({
-  src,
-  alt,
-  startTime,
-  shouldPlay,
-  onVideoReady,
-}: {
-  src: string;
-  alt?: string;
-  startTime: number;
-  shouldPlay: boolean;
-  onVideoReady: (video: HTMLVideoElement | null) => void;
-}) {
-  const playerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    let isCancelled = false;
-    let idleStyle: HTMLStyleElement | null = null;
-
-    const preparePlayer = async () => {
-      await import("@grizzshutsdown/simpleplayer");
-      await window.customElements.whenDefined("simple-player");
-
-      const player = playerRef.current;
-      const shadowRoot = player?.shadowRoot;
-
-      if (isCancelled || !player || !shadowRoot) {
-        return;
-      }
-
-      const video = shadowRoot.querySelector<HTMLVideoElement>(".sp-video");
-
-      if (!video) {
-        return;
-      }
-
-      const revealSyncedFrame = () => {
-        if (isCancelled) {
-          return;
-        }
-
-        player.classList.add("is-playback-ready");
-        onVideoReady(video);
-        if (shouldPlay) {
-          void video.play().catch(() => undefined);
-        } else {
-          video.pause();
-        }
-      };
-
-      const syncPlaybackPosition = () => {
-        const targetTime = Number.isFinite(video.duration) && video.duration > 0
-          ? startTime % video.duration
-          : startTime;
-
-        if (Math.abs(video.currentTime - targetTime) <= 1 / 30) {
-          revealSyncedFrame();
-          return;
-        }
-
-        video.addEventListener("seeked", revealSyncedFrame, { once: true });
-        video.currentTime = targetTime;
-      };
-
-      if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
-        syncPlaybackPosition();
-      } else {
-        video.addEventListener("loadedmetadata", syncPlaybackPosition, { once: true });
-      }
-
-      idleStyle = document.createElement("style");
-      idleStyle.dataset.caseStudyPlayer = "idle-controls";
-      idleStyle.textContent = `
-        .sp-progress-cluster {
-          opacity: 0;
-          pointer-events: none;
-          transition:
-            opacity 180ms ease,
-            top 360ms cubic-bezier(0.23, 1, 0.32, 1),
-            width 360ms cubic-bezier(0.23, 1, 0.32, 1),
-            height 360ms cubic-bezier(0.23, 1, 0.32, 1),
-            transform 360ms cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .sp-player.is-pointer-active .sp-progress-cluster,
-        .sp-player.is-scrubbing .sp-progress-cluster,
-        .sp-progress-cluster:focus-within {
-          opacity: 1;
-          pointer-events: auto;
-        }
-      `;
-      shadowRoot.append(idleStyle);
-    };
-
-    void preparePlayer();
-
-    return () => {
-      isCancelled = true;
-      onVideoReady(null);
-      idleStyle?.remove();
-    };
-  }, [onVideoReady, shouldPlay, startTime]);
-
-  return (
-    <simple-player
-      ref={playerRef}
-      className="case-study-simple-player"
-      src={src}
-      aspect-ratio="1 / 1"
-      aria-label={alt}
-    />
-  );
-}
-
-function MediaSurface({
-  block,
-  isFocused = false,
-  inlineVideoRef,
-  focusedVideoStartTime = 0,
-  focusedVideoShouldPlay = true,
-  onFocusedVideoReady,
-}: {
-  block: CaseStudyMediaBlock;
-  isFocused?: boolean;
-  inlineVideoRef?: React.RefObject<HTMLVideoElement | null>;
-  focusedVideoStartTime?: number;
-  focusedVideoShouldPlay?: boolean;
-  onFocusedVideoReady?: (video: HTMLVideoElement | null) => void;
-}) {
+function MediaSurface({ block, isFocused = false }: { block: CaseStudyMediaBlock; isFocused?: boolean }) {
   const { media } = block;
 
   return (
@@ -161,26 +33,15 @@ function MediaSurface({
         />
       ) : null}
       {media.kind === "video" && media.src ? (
-        isFocused ? (
-          <FocusedVideoPlayer
-            src={media.src}
-            alt={media.alt}
-            startTime={focusedVideoStartTime}
-            shouldPlay={focusedVideoShouldPlay}
-            onVideoReady={onFocusedVideoReady ?? (() => undefined)}
-          />
-        ) : (
-          <video
-            ref={inlineVideoRef}
-            src={media.src}
-            aria-label={media.alt}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-          />
-        )
+        <video
+          src={media.src}
+          aria-label={media.alt}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
@@ -191,46 +52,18 @@ function MediaSurface({
 
 export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   const canFocus = block.media.kind !== "interactive";
+  const isVideo = block.media.kind === "video";
   const [isFocusRendered, setIsFocusRendered] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
   const [sourceBounds, setSourceBounds] = useState<MediaBounds | null>(null);
-  const [focusedVideoStartTime, setFocusedVideoStartTime] = useState(0);
-  const [focusedVideoShouldPlay, setFocusedVideoShouldPlay] = useState(true);
   const triggerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const inlineVideoRef = useRef<HTMLVideoElement>(null);
-  const focusedVideoRef = useRef<HTMLVideoElement | null>(null);
   const openFrame = useRef<number | null>(null);
   const closeTimer = useRef<number | null>(null);
-
-  const handleFocusedVideoReady = useCallback((video: HTMLVideoElement | null) => {
-    focusedVideoRef.current = video;
-  }, []);
-
-  useEffect(() => {
-    if (block.media.kind === "video" && window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
-      void import("@grizzshutsdown/simpleplayer");
-    }
-  }, [block.media.kind]);
 
   const closeFocus = useCallback(() => {
     if (!isFocusRendered) {
       return;
-    }
-
-    if (block.media.kind === "video" && inlineVideoRef.current) {
-      const inlineVideo = inlineVideoRef.current;
-      const focusedVideo = focusedVideoRef.current;
-
-      if (focusedVideo && Number.isFinite(focusedVideo.currentTime)) {
-        inlineVideo.currentTime = focusedVideo.currentTime;
-      }
-
-      if (focusedVideo?.paused ?? !focusedVideoShouldPlay) {
-        inlineVideo.pause();
-      } else {
-        void inlineVideo.play().catch(() => undefined);
-      }
     }
 
     const source = triggerRef.current?.getBoundingClientRect();
@@ -251,22 +84,16 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       triggerRef.current?.focus({ preventScroll: true });
       closeTimer.current = null;
     }, FOCUS_EXIT_DURATION);
-  }, [block.media.kind, focusedVideoShouldPlay, isFocusRendered]);
+  }, [isFocusRendered]);
 
   const openFocus = useCallback(() => {
-    if (!canFocus || !window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
+    if (isFocusRendered || !canFocus || !window.matchMedia(DESKTOP_FOCUS_QUERY).matches) {
       return;
     }
 
     const source = triggerRef.current?.getBoundingClientRect();
     if (!source) {
       return;
-    }
-
-    if (block.media.kind === "video" && inlineVideoRef.current) {
-      setFocusedVideoStartTime(inlineVideoRef.current.currentTime);
-      setFocusedVideoShouldPlay(!inlineVideoRef.current.paused);
-      inlineVideoRef.current.pause();
     }
 
     if (closeTimer.current !== null) {
@@ -285,7 +112,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       overlayRef.current?.focus({ preventScroll: true });
       openFrame.current = null;
     });
-  }, [block.media.kind, canFocus]);
+  }, [canFocus, isFocusRendered]);
 
   useEffect(() => {
     if (!isFocusRendered) {
@@ -352,20 +179,16 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           className={`case-study-focus-overlay${isFocusVisible ? " is-visible" : ""}`}
           role="dialog"
           aria-modal="true"
-          aria-label="Focused project media. Click anywhere or press Escape to close."
+          aria-label="Focused project media. Click outside the media or press Escape to close."
           tabIndex={-1}
           style={focusStyle}
           onClick={closeFocus}
         >
-          <div className="case-study-focus-content" onClick={(event) => event.stopPropagation()}>
-            <MediaSurface
-              block={block}
-              isFocused
-              focusedVideoStartTime={focusedVideoStartTime}
-              focusedVideoShouldPlay={focusedVideoShouldPlay}
-              onFocusedVideoReady={handleFocusedVideoReady}
-            />
-          </div>
+          {!isVideo ? (
+            <div className="case-study-focus-content" onClick={(event) => event.stopPropagation()}>
+              <MediaSurface block={block} isFocused />
+            </div>
+          ) : null}
         </div>,
         document.body,
       )
@@ -374,8 +197,9 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   return (
     <>
       <figure
-        className={`case-study-media-block${isFocusRendered ? " is-focused" : ""}`}
+        className={`case-study-media-block${isVideo ? " is-video-block" : ""}${isFocusRendered ? " is-focused" : ""}${isFocusVisible ? " is-focus-visible" : ""}`}
         aria-hidden={isFocusRendered || undefined}
+        style={isVideo && isFocusRendered ? focusStyle : undefined}
       >
         <div
           ref={triggerRef}
@@ -386,7 +210,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           onClick={openFocus}
           onKeyDown={handleTriggerKeyDown}
         >
-          <MediaSurface block={block} inlineVideoRef={inlineVideoRef} />
+          <MediaSurface block={block} />
         </div>
         {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
       </figure>
