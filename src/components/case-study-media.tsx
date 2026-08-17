@@ -140,32 +140,17 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
       setSourceBounds(getFocusBounds(source));
     }
 
-    if (isVideo && inlineVideoRef.current && focusedVideoRef.current) {
-      inlineVideoRef.current.currentTime = focusedVideoRef.current.currentTime;
-      void inlineVideoRef.current.play().catch(() => undefined);
-    }
-
     setIsFocusClosing(true);
     setIsFocusVisible(false);
     if (closeTimer.current !== null) {
       window.clearTimeout(closeTimer.current);
     }
     closeTimer.current = window.setTimeout(() => {
-      const finishClose = () => {
-        setIsFocusRendered(false);
-        setIsFocusReady(false);
-        setIsFocusClosing(false);
-        triggerRef.current?.focus({ preventScroll: true });
-        closeTimer.current = null;
-      };
-
-      if (isVideo && inlineVideoRef.current && focusedVideoRef.current) {
-        inlineVideoRef.current.currentTime = focusedVideoRef.current.currentTime;
-        void inlineVideoRef.current.play().catch(() => undefined);
-        waitForVideoFrame(inlineVideoRef.current, finishClose);
-      } else {
-        finishClose();
-      }
+      setIsFocusRendered(false);
+      setIsFocusReady(false);
+      setIsFocusClosing(false);
+      triggerRef.current?.focus({ preventScroll: true });
+      closeTimer.current = null;
     }, isVideo ? VIDEO_FOCUS_EXIT_DURATION : IMAGE_FOCUS_EXIT_DURATION);
   }, [isFocusClosing, isFocusRendered, isVideo]);
 
