@@ -1790,7 +1790,12 @@ body.is-media-focused .case-study-controls {
   }
 
   .case-study-controls {
-    bottom: max(24px, env(safe-area-inset-bottom));
+    /*
+     * Sits close to Safari's bottom bar, which supplies its own clearance. The
+     * safe-area floor only takes over once that bar is hidden, where the controls
+     * would otherwise crowd the home indicator.
+     */
+    bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .case-study-control {
