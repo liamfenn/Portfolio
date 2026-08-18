@@ -196,6 +196,20 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
 
     if (shopMedia[1]) {
       shopMedia[1].media = { ...MEDIA_ASSETS.shoppableBasketsFlare };
+
+      // The second video reads better after the copy that follows it, so it is
+      // moved below the next text block rather than sitting directly under the
+      // first video.
+      const mediaIndex = randomizedBlocks.indexOf(shopMedia[1]);
+      const copyOffset = randomizedBlocks
+        .slice(mediaIndex + 1)
+        .findIndex((block) => block.type === "copy");
+
+      if (mediaIndex !== -1 && copyOffset !== -1) {
+        const [moved] = randomizedBlocks.splice(mediaIndex, 1);
+        // Removing it shifted the copy block down one, so land just past it.
+        randomizedBlocks.splice(mediaIndex + copyOffset + 1, 0, moved);
+      }
     }
   }
 
