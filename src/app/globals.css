@@ -782,7 +782,7 @@
  */
 .case-study-media,
 .case-study-focused-media {
-  --pip-size: 104px;
+  --pip-size: 17.34%;
   --pip-inset: 8px;
   --pip-radius: 16px;
   --pip-visible: 20px;
@@ -799,7 +799,7 @@
   position: absolute;
   z-index: 3;
   top: var(--pip-inset);
-  left: var(--pip-inset);
+  right: var(--pip-inset);
   width: var(--pip-size);
   height: var(--pip-size);
   overflow: hidden;
@@ -820,14 +820,14 @@
 
 /* Tucked: pushed left until only --pip-visible remains against the frame. */
 .case-study-pip.is-tucked {
-  translate: calc(var(--pip-drag-x) - var(--pip-inset) - var(--pip-size) + var(--pip-visible))
+  translate: calc(var(--pip-drag-x) + var(--pip-inset) + 100% - var(--pip-visible))
     var(--pip-drag-y);
 }
 
 /* Hovering a tucked tile eases it out to show it can be pulled back. */
 @media (hover: hover) and (pointer: fine) {
   .case-study-pip.is-tucked:not(.is-dragging):hover {
-    translate: calc(var(--pip-drag-x) - var(--pip-inset) - var(--pip-size) + var(--pip-visible) + 10px)
+    translate: calc(var(--pip-drag-x) + var(--pip-inset) + 100% - var(--pip-visible) - 10px)
       var(--pip-drag-y);
   }
 }
@@ -845,7 +845,28 @@
   transition: opacity 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.case-study-pip-grip {
+  position: absolute;
+  top: 50%;
+  right: calc((var(--pip-visible) - 8px) / 2);
+  width: 8px;
+  height: 14px;
+  translate: 0 -50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.case-study-pip.is-tucked .case-study-pip-grip {
+  opacity: 1;
+}
+
+.case-study-pip.is-tucked .case-study-pip-play {
+  opacity: 0;
+}
+
 .case-study-pip-play {
+  transition: opacity 200ms ease;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -869,7 +890,7 @@
 @media (max-width: 767px) {
   .case-study-media,
   .case-study-focused-media {
-    --pip-size: 72px;
+    --pip-size: 24.43%;
     --pip-inset: 6px;
     --pip-radius: 12px;
     --pip-visible: 12px;

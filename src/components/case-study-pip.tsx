@@ -92,10 +92,10 @@ export function usePipState(): PipState {
     const commit = tuckDistance * COMMIT_FRACTION;
     setIsTucked((tucked) => {
       if (!tucked) {
-        return next.x <= -commit;
+        return next.x >= commit;
       }
 
-      return next.x < commit;
+      return next.x > -commit;
     });
     // The tile always returns to a resting spot; the drag only ever bends it.
     setOffset({ x: 0, y: 0 });
@@ -125,22 +125,23 @@ export function CaseStudyPip({
 
     const styles = getComputedStyle(element);
     const visible = parseFloat(styles.getPropertyValue("--pip-visible")) || 0;
-    return element.offsetLeft + element.offsetWidth - visible;
+    const inset = parseFloat(styles.getPropertyValue("--pip-inset")) || 0;
+    return inset + element.offsetWidth - visible;
   };
 
   /**
-   * Leftward travel is free up to the tuck point, since that is the only gesture
+   * Rightward travel is free up to the tuck point, since that is the only gesture
    * that commits. Everything else is slack with resistance beyond it.
    */
   const constrain = (raw: { x: number; y: number }) => {
     const travel = tuckDistance();
-    // Absolute position measured from rest: 0 at rest, -travel when tucked.
-    const fromTucked = state.isTucked ? -travel : 0;
+    // Absolute position measured from rest: 0 at rest, +travel when tucked right.
+    const fromTucked = state.isTucked ? travel : 0;
     const x = raw.x + fromTucked;
 
     // The tuck axis is the only direction with free travel; everything past it
     // is overflow that gets bent back, so the tile can never leave the media box.
-    const freeX = Math.min(0, Math.max(-travel, x));
+    const freeX = Math.max(0, Math.min(travel, x));
     const eased = resistRadially({ x: x - freeX, y: raw.y });
 
     return { x: freeX + eased.x - fromTucked, y: eased.y };
@@ -205,7 +206,7 @@ export function CaseStudyPip({
         {
           "--pip-drag-x": `${state.offset.x}px`,
           "--pip-drag-y": `${state.offset.y}px`,
-          "--pip-scrim": state.isTucked ? 1 : Math.min(1, Math.max(0, -state.offset.x / Math.max(tuckDistance(), 1))),
+          "--pip-scrim": state.isTucked ? 1 : Math.min(1, Math.max(0, state.offset.x / Math.max(tuckDistance(), 1))),
         } as CSSProperties
       }
       onPointerDown={handlePointerDown}
@@ -240,6 +241,17 @@ export function CaseStudyPip({
         <Image className="case-study-pip-media" src={mediaUrl(asset.src)} alt={asset.alt ?? ""} fill sizes="120px" />
       )}
       <span className="case-study-pip-scrim" aria-hidden="true" />
+      {/* Grip on the sliver that stays on screen while tucked. */}
+      <svg className="case-study-pip-grip" viewBox="0 0 8 14" aria-hidden="true">
+        <g fill="#fff" fillOpacity="0.48">
+          <circle cx="1.6" cy="1.615" r="1.6" />
+          <circle cx="1.6" cy="7" r="1.6" />
+          <circle cx="1.6" cy="12.385" r="1.6" />
+          <circle cx="6.4" cy="1.615" r="1.6" />
+          <circle cx="6.4" cy="7" r="1.6" />
+          <circle cx="6.4" cy="12.385" r="1.6" />
+        </g>
+      </svg>
       {asset.kind === "video" ? (
         // SF Symbols play.fill: the tile is paused until it becomes primary.
         <svg className="case-study-pip-play" viewBox="0 0 12 14" aria-hidden="true">
