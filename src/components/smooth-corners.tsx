@@ -21,6 +21,15 @@ function getServerSnapshot() {
   return false;
 }
 
+/**
+ * Shared by anything that needs a different corner radius per breakpoint without
+ * a second render pass. Returns false on the server so the mobile radius paints
+ * first and desktop upgrades on hydration.
+ */
+export function useIsDesktopViewport() {
+  return useSyncExternalStore(subscribeToDesktopQuery, getDesktopSnapshot, getServerSnapshot);
+}
+
 type SmoothCornersProps = {
   radius: number;
   desktopRadius?: number;
@@ -32,11 +41,7 @@ export function SmoothCorners({
   desktopRadius = radius,
   children,
 }: SmoothCornersProps) {
-  const isDesktop = useSyncExternalStore(
-    subscribeToDesktopQuery,
-    getDesktopSnapshot,
-    getServerSnapshot,
-  );
+  const isDesktop = useIsDesktopViewport();
 
   return (
     <LisseSmoothCorners

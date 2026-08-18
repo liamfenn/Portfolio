@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -297,6 +297,7 @@ function MediaSurface({
   surfaceRef?: React.RefObject<HTMLDivElement | null>;
   pip?: PipState;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   // With a secondary asset the two trade places, so which one is "media" depends
   // on the flip rather than on the block.
   const media = pip?.isFlipped && block.secondaryMedia ? block.secondaryMedia : block.media;
@@ -321,10 +322,29 @@ function MediaSurface({
           // the incoming one, dissolving rather than cutting.
           key={"id" in media ? media.id : media.kind}
           className="case-study-media-layer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          // A straight opacity cross-fade reads as a cut at this size. Pairing it
+          // with a short defocus and a little scale drift makes the two frames
+          // pass through each other instead of stacking, which is what sells the
+          // swap as one continuous move.
+          initial={
+            prefersReducedMotion
+              ? { opacity: 0 }
+              : { opacity: 0, scale: 1.035, filter: "blur(10px)" }
+          }
+          animate={
+            prefersReducedMotion
+              ? { opacity: 1 }
+              : { opacity: 1, scale: 1, filter: "blur(0px)" }
+          }
+          exit={
+            prefersReducedMotion
+              ? { opacity: 0 }
+              : { opacity: 0, scale: 0.985, filter: "blur(10px)" }
+          }
+          transition={{
+            duration: prefersReducedMotion ? 0.2 : 0.52,
+            ease: [0.32, 0.72, 0, 1],
+          }}
         >
           {media.kind === "image" && media.src ? (
             <Image

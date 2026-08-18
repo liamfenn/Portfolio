@@ -2,106 +2,114 @@
 
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
+import { useSmoothCorners } from "@lisse/react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 import { mediaUrl } from "@/lib/media-delivery";
+import { useIsDesktopViewport } from "@/components/smooth-corners";
 
 /**
- * Slack the tile can be pulled into before resistance takes over. Deliberately
- * tight: it should feel pinned to its corner, not loosely parked there.
+ * Asymptote for the elastic pull on the tile's free edges. The edge approaches
+ * it but never arrives, so a hard drag firms up instead of stopping dead.
  */
-const SLACK = 12;
-const SLACK_UP = 8;
-/** Fraction of the tuck travel that commits the gesture on release. */
+const PULL_LIMIT = 22;
+/** Fraction of the tuck travel that flips the tile into its tucked state. */
 const COMMIT_FRACTION = 0.5;
 const TAP_SLOP = 4;
+const CORNER_SMOOTHING = 0.6;
+const MOBILE_RADIUS = 12;
+const DESKTOP_RADIUS = 16;
 
 /**
- * iOS-style rubber band. Movement past the limit keeps responding but with
- * sharply falling returns, so it reads as pulling against something anchored.
+ * Elastic response: 1:1 for the first pixel, then progressively stiffer, and
+ * asymptotic at `limit` so the edge can never pass it. Used for the upward pull
+ * with the frame inset as the limit, which is what keeps the tile inside the
+ * media box no matter how hard it is dragged.
  */
-function rubberBand(distance: number, limit: number) {
-  if (distance <= 0) {
+function elastic(distance: number, limit: number) {
+  if (distance <= 0 || limit <= 0) {
     return 0;
   }
 
-  const resisted = (distance * limit * 0.55) / (limit + 0.55 * distance);
-  return Math.min(distance, limit + resisted);
+  return (distance * limit) / (distance + limit);
 }
 
-/**
- * Resistance applied to the overflow vector as a whole rather than per axis, so
- * the reachable area is a rounded blob. Clamping x and y separately would leave
- * square corners for the tile to click into on a diagonal drag.
- */
-function resistRadially(overflow: { x: number; y: number }) {
-  const distance = Math.hypot(overflow.x, overflow.y);
-  if (distance === 0) {
-    return overflow;
-  }
-
-  const limit = overflow.y < 0 ? SLACK_UP : SLACK;
-  const resisted = rubberBand(distance, limit);
-  return { x: (overflow.x / distance) * resisted, y: (overflow.y / distance) * resisted };
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
+
+export interface PipMotion {
+  /** Travel along the tuck axis, relative to whichever rest position applies. */
+  x: number;
+  /** Scale factors that stretch the pulled edge away from the anchored one. */
+  stretchX: number;
+  stretchY: number;
+  /** The anchored corner the stretch pivots around. */
+  origin: string;
+  /** 0-1 darkening as the tile approaches the tuck. */
+  scrim: number;
+}
+
+/** At rest the tile hangs off its top-right corner, which is where it is pinned. */
+const REST: PipMotion = { x: 0, stretchX: 1, stretchY: 1, origin: "100% 0%", scrim: 0 };
+const TUCKED_REST: PipMotion = { ...REST, scrim: 1 };
 
 export interface PipState {
   isFlipped: boolean;
   isTucked: boolean;
-  offset: { x: number; y: number };
+  motion: PipMotion;
   isDragging: boolean;
-  isSwapping: boolean;
   flip: () => void;
   untuck: () => void;
   beginDrag: () => void;
-  moveTo: (offset: { x: number; y: number }) => void;
-  endDrag: (offset: { x: number; y: number }, tuckDistance: number) => void;
+  moveTo: (motion: PipMotion, tucked: boolean) => void;
+  endDrag: (tucked: boolean) => void;
 }
 
 /** Shared by the inline and focused surfaces so state survives focus opening. */
 export function usePipState(): PipState {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isTucked, setIsTucked] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [motion, setMotion] = useState<PipMotion>(REST);
   const [isDragging, setIsDragging] = useState(false);
-  const [isSwapping, setIsSwapping] = useState(false);
-  const swapTimer = useRef<number | null>(null);
 
-  const flip = useCallback(() => {
-    setIsFlipped((current) => !current);
-    setIsSwapping(true);
-    if (swapTimer.current !== null) {
-      window.clearTimeout(swapTimer.current);
-    }
-    swapTimer.current = window.setTimeout(() => {
-      setIsSwapping(false);
-      swapTimer.current = null;
-    }, 340);
-  }, []);
+  const flip = useCallback(() => setIsFlipped((current) => !current), []);
 
   const untuck = useCallback(() => {
     setIsTucked(false);
-    setOffset({ x: 0, y: 0 });
+    setMotion(REST);
   }, []);
 
   const beginDrag = useCallback(() => setIsDragging(true), []);
-  const moveTo = useCallback((next: { x: number; y: number }) => setOffset(next), []);
 
-  const endDrag = useCallback((next: { x: number; y: number }, tuckDistance: number) => {
-    setIsDragging(false);
-    const commit = tuckDistance * COMMIT_FRACTION;
-    setIsTucked((tucked) => {
-      if (!tucked) {
-        return next.x >= commit;
-      }
-
-      return next.x > -commit;
-    });
-    // The tile always returns to a resting spot; the drag only ever bends it.
-    setOffset({ x: 0, y: 0 });
+  // Tuck resolves live rather than on release, so the tile reads as tucked the
+  // moment it crosses the commit point and un-tucks again if it is dragged back.
+  const moveTo = useCallback((next: PipMotion, tucked: boolean) => {
+    setMotion(next);
+    setIsTucked(tucked);
   }, []);
 
-  return { isFlipped, isTucked, offset, isDragging, isSwapping, flip, untuck, beginDrag, moveTo, endDrag };
+  const endDrag = useCallback((tucked: boolean) => {
+    setIsDragging(false);
+    setIsTucked(tucked);
+    // Only the bend has to settle; the tuck was already decided mid-drag.
+    setMotion(tucked ? TUCKED_REST : REST);
+  }, []);
+
+  return { isFlipped, isTucked, motion, isDragging, flip, untuck, beginDrag, moveTo, endDrag };
+}
+
+interface DragOrigin {
+  x: number;
+  y: number;
+  moved: boolean;
+  /** Position along the tuck axis when the drag started: 0 or the full travel. */
+  startAbs: number;
+  travel: number;
+  inset: number;
+  width: number;
+  height: number;
+  tucked: boolean;
 }
 
 export function CaseStudyPip({
@@ -114,43 +122,72 @@ export function CaseStudyPip({
   isFocused: boolean;
 }) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const dragRef = useRef<DragOrigin | null>(null);
+  const isDesktop = useIsDesktopViewport();
 
-  /** How far left the tile travels to sit tucked against the frame. */
-  const tuckDistance = () => {
+  useSmoothCorners(elementRef, {
+    radius: isDesktop ? DESKTOP_RADIUS : MOBILE_RADIUS,
+    smoothing: CORNER_SMOOTHING,
+  });
+
+  /** Layout numbers the drag needs, read once per gesture rather than per move. */
+  const measure = () => {
     const element = elementRef.current;
     if (!element) {
-      return 0;
+      return { travel: 0, inset: 0, width: 1, height: 1 };
     }
 
     const styles = getComputedStyle(element);
     const visible = parseFloat(styles.getPropertyValue("--pip-visible")) || 0;
     const inset = parseFloat(styles.getPropertyValue("--pip-inset")) || 0;
-    return inset + element.offsetWidth - visible;
+    const width = element.offsetWidth || 1;
+    const height = element.offsetHeight || 1;
+    return { travel: inset + width - visible, inset, width, height };
   };
 
   /**
-   * Rightward travel is free up to the tuck point, since that is the only gesture
-   * that commits. Everything else is slack with resistance beyond it.
+   * Rightward travel is the tuck, and the only direction the tile actually
+   * moves. Every other direction stretches it instead: the pulled edge follows
+   * the pointer while the opposite corner stays pinned, and lets go on release.
    */
-  const constrain = (raw: { x: number; y: number }) => {
-    const travel = tuckDistance();
-    // Absolute position measured from rest: 0 at rest, +travel when tucked right.
-    const fromTucked = state.isTucked ? travel : 0;
-    const x = raw.x + fromTucked;
+  const resolve = (origin: DragOrigin, raw: { x: number; y: number }): [PipMotion, boolean] => {
+    const abs = origin.startAbs + raw.x;
+    const freeX = clamp(abs, 0, origin.travel);
+    const tucked = abs >= origin.travel * COMMIT_FRACTION;
 
-    // The tuck axis is the only direction with free travel; everything past it
-    // is overflow that gets bent back, so the tile can never leave the media box.
-    const freeX = Math.max(0, Math.min(travel, x));
-    const eased = resistRadially({ x: x - freeX, y: raw.y });
+    // Past the tuck the tile is against the frame, so there is nowhere left to
+    // go; before rest it stretches out to the left instead of sliding.
+    const pullLeft = abs < 0 ? elastic(-abs, PULL_LIMIT) : 0;
+    // Upward is capped by the inset, which puts the ceiling exactly at the top
+    // of the media box: the tile can bulge up to the frame but never past it.
+    const pullUp = raw.y < 0 ? elastic(-raw.y, origin.inset) : 0;
+    const pullDown = raw.y > 0 ? elastic(raw.y, PULL_LIMIT) : 0;
 
-    return { x: freeX + eased.x - fromTucked, y: eased.y };
+    return [
+      {
+        x: freeX - (tucked ? origin.travel : 0),
+        stretchX: (origin.width + pullLeft) / origin.width,
+        stretchY: (origin.height + pullUp + pullDown) / origin.height,
+        // Anchor the corner opposite the pull so only the grabbed edge moves.
+        origin: `100% ${pullUp > 0 ? "100%" : "0%"}`,
+        scrim: clamp(abs / Math.max(origin.travel, 1), 0, 1),
+      },
+      tucked,
+    ];
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = { x: event.clientX, y: event.clientY, moved: false };
+    const metrics = measure();
+    dragRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      moved: false,
+      startAbs: state.isTucked ? metrics.travel : 0,
+      tucked: state.isTucked,
+      ...metrics,
+    };
     state.beginDrag();
   };
 
@@ -164,7 +201,10 @@ export function CaseStudyPip({
     if (Math.abs(raw.x) > TAP_SLOP || Math.abs(raw.y) > TAP_SLOP) {
       origin.moved = true;
     }
-    state.moveTo(constrain(raw));
+
+    const [motion, tucked] = resolve(origin, raw);
+    origin.tucked = tucked;
+    state.moveTo(motion, tucked);
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -177,16 +217,15 @@ export function CaseStudyPip({
     event.stopPropagation();
     if (!origin.moved) {
       // Tucked tiles come back out first; a second tap then swaps.
-      state.endDrag({ x: 0, y: 0 }, tuckDistance());
-      if (state.isTucked) {
-        state.untuck();
-      } else {
+      const wasTucked = origin.startAbs > 0;
+      state.endDrag(false);
+      if (!wasTucked) {
         state.flip();
       }
       return;
     }
 
-    state.endDrag(constrain({ x: event.clientX - origin.x, y: event.clientY - origin.y }), tuckDistance());
+    state.endDrag(origin.tucked);
   };
 
   const className = [
@@ -204,9 +243,11 @@ export function CaseStudyPip({
       className={className}
       style={
         {
-          "--pip-drag-x": `${state.offset.x}px`,
-          "--pip-drag-y": `${state.offset.y}px`,
-          "--pip-scrim": state.isTucked ? 1 : Math.min(1, Math.max(0, state.offset.x / Math.max(tuckDistance(), 1))),
+          "--pip-drag-x": `${state.motion.x}px`,
+          "--pip-stretch-x": state.motion.stretchX,
+          "--pip-stretch-y": state.motion.stretchY,
+          "--pip-origin": state.motion.origin,
+          "--pip-scrim": state.motion.scrim,
         } as CSSProperties
       }
       onPointerDown={handlePointerDown}
