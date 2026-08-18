@@ -8,6 +8,8 @@ import type { CaseStudyMediaBlock } from "@/lib/case-studies";
 import type { PortfolioVideoAsset } from "@/lib/media-assets";
 import { AV1_MIME, H264_MIME, mediaUrl } from "@/lib/media-delivery";
 import { useVideoRendition } from "@/hooks/use-video-rendition";
+import { CaseStudyPip, usePipState } from "@/components/case-study-pip";
+import type { PipState } from "@/components/case-study-pip";
 import { CASE_STUDY_NAVIGATION_EVENT } from "@/lib/case-study-navigation";
 
 const DESKTOP_FOCUS_QUERY = "(min-width: 768px) and (hover: hover) and (pointer: fine)";
@@ -286,13 +288,25 @@ function MediaSurface({
   isFocused = false,
   videoRef,
   surfaceRef,
+  pip,
 }: {
   block: CaseStudyMediaBlock;
   isFocused?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   surfaceRef?: React.RefObject<HTMLDivElement | null>;
+  pip?: PipState;
 }) {
-  const { media } = block;
+  // With a secondary asset the two trade places, so which one is "media" depends
+  // on the flip rather than on the block.
+  const media = pip?.isFlipped && block.secondaryMedia ? block.secondaryMedia : block.media;
+  // Only real assets can trade places; placeholders and interactive slots cannot.
+  const swappable = block.media.kind === "image" || block.media.kind === "video" ? block.media : undefined;
+  const tile =
+    block.secondaryMedia && swappable
+      ? pip?.isFlipped
+        ? swappable
+        : block.secondaryMedia
+      : undefined;
 
   return (
     <div
@@ -310,16 +324,26 @@ function MediaSurface({
         />
       ) : null}
       {media.kind === "video" ? (
-        <CaseStudyVideo asset={media} videoRef={videoRef} freezeOnNavigation={!isFocused} />
+        <CaseStudyVideo
+          // Keyed so swapping the tile remounts against the new asset; the
+          // rendition hook resolves once per element and would otherwise keep
+          // serving the previous asset's files.
+          key={media.id}
+          asset={media}
+          videoRef={videoRef}
+          freezeOnNavigation={!isFocused}
+        />
       ) : null}
       {media.kind === "interactive" ? (
         <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
       ) : null}
+      {tile && pip ? <CaseStudyPip asset={tile} state={pip} isFocused={isFocused} /> : null}
     </div>
   );
 }
 
 export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
+  const pip = usePipState();
   const canFocus = block.media.kind !== "interactive";
   const isVideo = block.media.kind === "video";
   const [isFocusRendered, setIsFocusRendered] = useState(false);
@@ -519,6 +543,9 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
   };
 
   const backdropStyle = getBackdropStyle(block);
+  // Caption tracks the primary asset, so swapping the tile relabels the block.
+  const activeCaption =
+    pip.isFlipped && block.secondaryMedia ? block.secondaryCaption ?? block.caption : block.caption;
   const focusStyle = sourceBounds
     ? ({
         ...backdropStyle,
@@ -546,7 +573,7 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
         >
           {isVideo ? <div className="case-study-focus-source-cover" aria-hidden="true" /> : null}
           <div className={`case-study-focus-content${isVideo ? " is-video" : ""}`}>
-            <MediaSurface block={block} isFocused videoRef={focusedVideoRef} />
+            <MediaSurface block={block} isFocused videoRef={focusedVideoRef} pip={pip} />
           </div>
         </div>,
         document.body,
@@ -569,9 +596,11 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
           onClick={openFocus}
           onKeyDown={handleTriggerKeyDown}
         >
-          <MediaSurface block={block} videoRef={inlineVideoRef} surfaceRef={mediaSurfaceRef} />
+          <MediaSurface block={block} videoRef={inlineVideoRef} surfaceRef={mediaSurfaceRef} pip={pip} />
         </div>
-        {block.caption ? <figcaption className="case-study-media-caption">{block.caption}</figcaption> : null}
+        {activeCaption ? (
+          <figcaption className="case-study-media-caption">{activeCaption}</figcaption>
+        ) : null}
       </figure>
       {focusedView}
     </>

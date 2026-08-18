@@ -19,6 +19,10 @@ export interface CaseStudyMediaBlock {
   type: "media";
   caption?: string;
   media: PortfolioMediaAsset | PlaceholderMedia | InteractiveMedia;
+  /** Sits as a tile over the primary media; tapping it swaps the two. */
+  secondaryMedia?: PortfolioMediaAsset;
+  /** Shown while the secondary asset is the primary one. */
+  secondaryCaption?: string;
 }
 
 export interface CaseStudyCopyBlock {
@@ -183,6 +187,11 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
 
     if (shopMedia[0]) {
       shopMedia[0].media = { ...MEDIA_ASSETS.shoppableBasketsMain };
+    }
+
+    if (shopMedia[0]) {
+      shopMedia[0].secondaryMedia = { ...MEDIA_ASSETS.shoppableBasketsFlare };
+      shopMedia[0].secondaryCaption = "Flared interaction";
     }
 
     if (shopMedia[1]) {
