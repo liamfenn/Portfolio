@@ -509,11 +509,35 @@
 }
 
 .work-control-dot,
+/*
+ * Four cells that tile seamlessly into a solid square at gap 0, and separate into
+ * the 2x2 grid glyph as the gap opens. Animating the gap morphs between the two
+ * rather than swapping one mark for another. At the mobile size of 8px a 1px gap
+ * lands the cells on 3.5px, matching the source artwork exactly.
+ */
 .work-control-square {
-  display: block;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
   width: 10px;
   height: 10px;
   flex: 0 0 10px;
+  transition: gap 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.work-control-square i {
+  background: #000;
+}
+
+.work-control-square.is-split {
+  gap: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-control-square {
+    transition: none;
+  }
 }
 
 .work-control-dot {
@@ -521,9 +545,6 @@
   clip-path: circle(50%);
 }
 
-.work-control-square {
-  background: #000;
-}
 
 .project-grid {
   display: grid;

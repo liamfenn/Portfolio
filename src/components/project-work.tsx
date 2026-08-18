@@ -63,10 +63,13 @@ function WorkGlyphControl({
   text,
   reserveScrambleWidth = false,
   variant = "grid",
+  isSplit = false,
 }: {
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
+  /** Splits the solid square into a 2x2 grid glyph. */
+  isSplit?: boolean;
 }) {
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
@@ -104,10 +107,15 @@ function WorkGlyphControl({
       ) : (
         <motion.span
           layout="position"
-          className="work-control-square"
+          className={`work-control-square${isSplit ? " is-split" : ""}`}
           aria-hidden="true"
           transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
-        />
+        >
+          <i />
+          <i />
+          <i />
+          <i />
+        </motion.span>
       )}
       <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
         {text}
@@ -566,6 +574,7 @@ export function ProjectWork() {
               <WorkGlyphControl
                 text={mobileGridLabel}
                 reserveScrambleWidth={isGridLabelTransitioning}
+                isSplit={mobileColumns === 2}
               />
             </span>
           </button>
