@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
-import type { DesktopDensity, ProjectSortMode } from "@/components/project-display-state";
+import type { DesktopDensity } from "@/components/project-display-state";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { getCaseStudyOrder } from "@/lib/case-studies";
@@ -59,36 +59,14 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
-/**
- * Five nodes that all start centred and move into place per sort mode, so the
- * marks morph into one another instead of swapping. Driven by transform rather
- * than the cx/cy/r geometry attributes, which are far less portable.
- */
-function SortGlyph({ mode }: { mode: ProjectSortMode }) {
-  return (
-    <svg className="work-sort-glyph" viewBox="0 0 10 10" data-sort={mode} aria-hidden="true">
-      <circle className="work-sort-node work-sort-node-center" cx="5" cy="5" r="1.5625" />
-      <circle className="work-sort-node work-sort-node-a" cx="5" cy="5" r="1.5625" />
-      <circle className="work-sort-node work-sort-node-b" cx="5" cy="5" r="1.5625" />
-      <circle className="work-sort-node work-sort-node-c" cx="5" cy="5" r="1.5625" />
-      <circle className="work-sort-node work-sort-node-d" cx="5" cy="5" r="1.5625" />
-    </svg>
-  );
-}
-
 function WorkGlyphControl({
   text,
   reserveScrambleWidth = false,
   variant = "grid",
-  isSplit = false,
-  sortMode = "featured",
 }: {
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
-  /** Splits the solid square into the 2x2 grid glyph. */
-  isSplit?: boolean;
-  sortMode?: ProjectSortMode;
 }) {
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
@@ -122,19 +100,14 @@ function WorkGlyphControl({
       }`}
     >
       {variant === "sort" ? (
-        <SortGlyph mode={sortMode} />
+        <span className="work-control-dot" aria-hidden="true" />
       ) : (
         <motion.span
           layout="position"
-          className={`work-control-square${isSplit ? " is-split" : ""}`}
+          className="work-control-square"
           aria-hidden="true"
           transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
-        >
-          <i />
-          <i />
-          <i />
-          <i />
-        </motion.span>
+        />
       )}
       <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
         {text}
@@ -523,7 +496,6 @@ export function ProjectWork() {
             <WorkGlyphControl
               text={sortLabel}
               variant="sort"
-              sortMode={sortMode}
             />
           </button>
         </div>
@@ -594,7 +566,6 @@ export function ProjectWork() {
               <WorkGlyphControl
                 text={mobileGridLabel}
                 reserveScrambleWidth={isGridLabelTransitioning}
-                isSplit={mobileColumns === 2}
               />
             </span>
           </button>
