@@ -508,17 +508,15 @@
   }
 }
 
-.work-control-dot,
 /*
- * Four cells that tile seamlessly into a solid square at gap 0, and separate into
- * the 2x2 grid glyph as the gap opens. Animating the gap morphs between the two
- * rather than swapping one mark for another. At the mobile size of 8px a 1px gap
- * lands the cells on 3.5px, matching the source artwork exactly.
+ * Two cells that tile seamlessly into a solid square at gap 0 and separate into
+ * the two-column grid mark as the gap opens, so List and Grid morph into each
+ * other. At the mobile size of 8px a 1px gap lands the columns on 3.5px, matching
+ * the source artwork exactly.
  */
 .work-control-square {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
   gap: 0;
   width: 10px;
   height: 10px;
@@ -540,9 +538,80 @@
   }
 }
 
-.work-control-dot {
-  background: #000;
-  clip-path: circle(50%);
+/*
+ * Every node sits at the centre and is moved into place, so switching sort slides
+ * the marks between arrangements. Featured is one node scaled to fill the box with
+ * the rest collapsed inside it; Recent puts four on the compass points; Random
+ * slides those to the corners and grows the centre one back.
+ */
+.work-sort-glyph {
+  display: block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+}
+
+.work-sort-node {
+  fill: #000;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Featured: a single filled circle, r 1.25 scaled to 4. */
+.work-sort-glyph[data-sort="featured"] .work-sort-node-center {
+  transform: scale(3.2);
+}
+
+.work-sort-glyph[data-sort="featured"] .work-sort-node-a,
+.work-sort-glyph[data-sort="featured"] .work-sort-node-b,
+.work-sort-glyph[data-sort="featured"] .work-sort-node-c,
+.work-sort-glyph[data-sort="featured"] .work-sort-node-d {
+  transform: scale(0);
+}
+
+/* Recent: four nodes on the compass points. */
+.work-sort-glyph[data-sort="recent"] .work-sort-node-center {
+  transform: scale(0);
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-node-a {
+  transform: translate(0, -2.75px);
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-node-b {
+  transform: translate(2.75px, 0);
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-node-c {
+  transform: translate(0, 2.75px);
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-node-d {
+  transform: translate(-2.75px, 0);
+}
+
+/* Random: the four slide out to the corners and the centre returns. */
+.work-sort-glyph[data-sort="random"] .work-sort-node-a {
+  transform: translate(2.75px, -2.75px);
+}
+
+.work-sort-glyph[data-sort="random"] .work-sort-node-b {
+  transform: translate(2.75px, 2.75px);
+}
+
+.work-sort-glyph[data-sort="random"] .work-sort-node-c {
+  transform: translate(-2.75px, 2.75px);
+}
+
+.work-sort-glyph[data-sort="random"] .work-sort-node-d {
+  transform: translate(-2.75px, -2.75px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-sort-node {
+    transition: none;
+  }
 }
 
 
@@ -1711,8 +1780,8 @@ body.is-media-focused .case-study-controls {
     gap: 4px;
   }
 
-  .work-control-dot,
-  .work-control-square {
+  .work-control-square,
+  .work-sort-glyph {
     width: 8px;
     height: 8px;
     flex-basis: 8px;
