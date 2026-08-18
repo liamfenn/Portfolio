@@ -60,17 +60,17 @@ const DENSITY_VISIBLE = {
 } as const;
 
 /**
- * Three cells on an 8 unit frame. Each state is a division: one cell becomes two,
+ * Three cells on a 9 unit frame. Each state is a division: one cell becomes two,
  * two become three, and the daughters are smaller than the parent they came from.
  * Cells that have not divided yet sit collapsed inside their parent, so they bud
  * out of it rather than fading in from nowhere.
  */
 function SortGlyph({ mode }: { mode: ProjectSortMode }) {
   return (
-    <svg className="work-sort-glyph" viewBox="0 0 8 8" data-sort={mode} aria-hidden="true">
-      <circle className="work-sort-cell work-sort-cell-1" cx="4" cy="4" r="1.875" />
-      <circle className="work-sort-cell work-sort-cell-2" cx="4" cy="4" r="1.875" />
-      <circle className="work-sort-cell work-sort-cell-3" cx="4" cy="4" r="1.875" />
+    <svg className="work-sort-glyph" viewBox="0 0 9 9" data-sort={mode} aria-hidden="true">
+      <circle className="work-sort-cell work-sort-cell-1" cx="4.5" cy="4.5" r="2.109375" />
+      <circle className="work-sort-cell work-sort-cell-2" cx="4.5" cy="4.5" r="2.109375" />
+      <circle className="work-sort-cell work-sort-cell-3" cx="4.5" cy="4.5" r="2.109375" />
     </svg>
   );
 }

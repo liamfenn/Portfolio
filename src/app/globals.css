@@ -325,6 +325,8 @@
 }
 
 .work-toolbar {
+  /* Frame both toolbar marks sit in. */
+  --work-glyph-size: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -511,9 +513,9 @@
 .work-sort-glyph,
 .work-control-square {
   display: block;
-  width: 10px;
-  height: 10px;
-  flex: 0 0 10px;
+  width: var(--work-glyph-size);
+  height: var(--work-glyph-size);
+  flex: 0 0 var(--work-glyph-size);
 }
 
 /*
@@ -523,8 +525,8 @@
  * sliding and resizing. Movement carries a little overshoot so the daughters
  * settle rather than stop dead.
  *
- * Base cell is r 1.875, the smallest state; 1.2 gives Recent's 2.25 and 2.1333
- * gives Featured's 4.
+ * Base cell is r 2.109375, the smallest state; 1.1333 gives Recent's 2.390625
+ * and 2.1333 gives Featured's 4.5.
  */
 .work-sort-cell {
   fill: #000;
@@ -549,31 +551,31 @@
 
 /* Recent: it divides along the diagonal. The third waits inside the first. */
 .work-sort-glyph[data-sort="recent"] .work-sort-cell-1 {
-  translate: -1.75px -1.75px;
-  scale: 1.2;
+  translate: -2.109375px -2.109375px;
+  scale: 1.1333;
 }
 
 .work-sort-glyph[data-sort="recent"] .work-sort-cell-2 {
-  translate: 1.75px 1.75px;
-  scale: 1.2;
+  translate: 2.109375px 2.109375px;
+  scale: 1.1333;
 }
 
 .work-sort-glyph[data-sort="recent"] .work-sort-cell-3 {
-  translate: -1.75px -1.75px;
+  translate: -2.109375px -2.109375px;
   scale: 0;
 }
 
 /* Random: the first divides again, sending a daughter down to the left. */
 .work-sort-glyph[data-sort="random"] .work-sort-cell-1 {
-  translate: 0 -2.125px;
+  translate: 0 -2.390625px;
 }
 
 .work-sort-glyph[data-sort="random"] .work-sort-cell-2 {
-  translate: 2.125px 2.125px;
+  translate: 2.390625px 2.390625px;
 }
 
 .work-sort-glyph[data-sort="random"] .work-sort-cell-3 {
-  translate: -2.125px 2.125px;
+  translate: -2.390625px 2.390625px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1751,11 +1753,8 @@ body.is-media-focused .case-study-controls {
     gap: 4px;
   }
 
-  /* The grid/list mark stays 10px at every width; only the sort glyph shrinks. */
-  .work-sort-glyph {
-    width: 8px;
-    height: 8px;
-    flex-basis: 8px;
+  .work-toolbar {
+    --work-glyph-size: 8px;
   }
 
   .work-density-menu {
