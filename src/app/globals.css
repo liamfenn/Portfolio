@@ -782,7 +782,7 @@
  */
 .case-study-media,
 .case-study-focused-media {
-  --pip-size: 17.34%;
+  --pip-size: 22%;
   --pip-inset: 8px;
   --pip-radius: 16px;
   --pip-visible: 20px;
@@ -848,7 +848,7 @@
 .case-study-pip-grip {
   position: absolute;
   top: 50%;
-  right: calc((var(--pip-visible) - 8px) / 2);
+  left: calc((var(--pip-visible) - 8px) / 2);
   width: 8px;
   height: 14px;
   translate: 0 -50%;
