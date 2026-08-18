@@ -6,10 +6,13 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 import { mediaUrl } from "@/lib/media-delivery";
 
-/** Slack the tile can be pulled into before resistance takes over. */
-const SLACK_RIGHT = 26;
-const SLACK_DOWN = 26;
-const SLACK_UP = 10;
+/**
+ * Slack the tile can be pulled into before resistance takes over. Deliberately
+ * tight: it should feel pinned to its corner, not loosely parked there.
+ */
+const SLACK_RIGHT = 10;
+const SLACK_DOWN = 10;
+const SLACK_UP = 4;
 /** Fraction of the tuck travel that commits the gesture on release. */
 const COMMIT_FRACTION = 0.5;
 const TAP_SLOP = 4;
@@ -122,7 +125,8 @@ export function CaseStudyPip({
    */
   const constrain = (raw: { x: number; y: number }) => {
     const travel = tuckDistance();
-    const fromTucked = state.isTucked ? travel : 0;
+    // Absolute position measured from rest: 0 at rest, -travel when tucked.
+    const fromTucked = state.isTucked ? -travel : 0;
     const x = raw.x + fromTucked;
 
     let constrainedX: number;
