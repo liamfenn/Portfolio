@@ -325,8 +325,9 @@
 }
 
 .work-toolbar {
-  /* Frame both toolbar marks sit in. */
+  /* Square frame both toolbar marks are sized from. */
   --work-glyph-size: 10px;
+  --work-dot-ratio: 1.1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -510,7 +511,6 @@
   }
 }
 
-.work-sort-glyph,
 .work-control-square {
   display: block;
   width: var(--work-glyph-size);
@@ -519,69 +519,17 @@
 }
 
 /*
- * Meiosis: translate and scale run as separate properties so the scale can lag
- * the movement. The cell holds its size as it starts to pull away and only
- * resolves once it has separated, which reads as pinching apart rather than
- * sliding and resizing. Movement carries a little overshoot so the daughters
- * settle rather than stop dead.
- *
- * Base cell is r 2.109375, the smallest state; 1.1333 gives Recent's 2.390625
- * and 2.1333 gives Featured's 4.5.
+ * A circle of the same dimension as a square reads smaller, since the square
+ * owns its corners and covers about a quarter more area. The dot is scaled up to
+ * sit at the same optical weight.
  */
-.work-sort-cell {
-  fill: #000;
-  transform-box: fill-box;
-  transform-origin: center;
-  translate: 0 0;
-  scale: 1;
-  transition:
-    translate 460ms cubic-bezier(0.34, 1.28, 0.64, 1),
-    scale 400ms cubic-bezier(0.16, 1, 0.3, 1) 60ms;
-}
-
-/* Featured: one cell filling the frame, the other two folded inside it. */
-.work-sort-glyph[data-sort="featured"] .work-sort-cell-1 {
-  scale: 2.1333;
-}
-
-.work-sort-glyph[data-sort="featured"] .work-sort-cell-2,
-.work-sort-glyph[data-sort="featured"] .work-sort-cell-3 {
-  scale: 0;
-}
-
-/* Recent: it divides along the diagonal. The third waits inside the first. */
-.work-sort-glyph[data-sort="recent"] .work-sort-cell-1 {
-  translate: -2.109375px -2.109375px;
-  scale: 1.1333;
-}
-
-.work-sort-glyph[data-sort="recent"] .work-sort-cell-2 {
-  translate: 2.109375px 2.109375px;
-  scale: 1.1333;
-}
-
-.work-sort-glyph[data-sort="recent"] .work-sort-cell-3 {
-  translate: -2.109375px -2.109375px;
-  scale: 0;
-}
-
-/* Random: the first divides again, sending a daughter down to the left. */
-.work-sort-glyph[data-sort="random"] .work-sort-cell-1 {
-  translate: 0 -2.390625px;
-}
-
-.work-sort-glyph[data-sort="random"] .work-sort-cell-2 {
-  translate: 2.390625px 2.390625px;
-}
-
-.work-sort-glyph[data-sort="random"] .work-sort-cell-3 {
-  translate: -2.390625px 2.390625px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .work-sort-cell {
-    transition: none;
-  }
+.work-control-dot {
+  display: block;
+  width: calc(var(--work-glyph-size) * var(--work-dot-ratio));
+  height: calc(var(--work-glyph-size) * var(--work-dot-ratio));
+  flex: 0 0 calc(var(--work-glyph-size) * var(--work-dot-ratio));
+  background: #000;
+  clip-path: circle(50%);
 }
 
 .work-control-square {
