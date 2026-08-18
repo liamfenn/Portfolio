@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
-import type { DesktopDensity } from "@/components/project-display-state";
+import type { DesktopDensity, ProjectSortMode } from "@/components/project-display-state";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { getCaseStudyOrder } from "@/lib/case-studies";
@@ -59,14 +59,32 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
+/**
+ * Three cells on an 8 unit frame. Each state is a division: one cell becomes two,
+ * two become three, and the daughters are smaller than the parent they came from.
+ * Cells that have not divided yet sit collapsed inside their parent, so they bud
+ * out of it rather than fading in from nowhere.
+ */
+function SortGlyph({ mode }: { mode: ProjectSortMode }) {
+  return (
+    <svg className="work-sort-glyph" viewBox="0 0 8 8" data-sort={mode} aria-hidden="true">
+      <circle className="work-sort-cell work-sort-cell-1" cx="4" cy="4" r="1.875" />
+      <circle className="work-sort-cell work-sort-cell-2" cx="4" cy="4" r="1.875" />
+      <circle className="work-sort-cell work-sort-cell-3" cx="4" cy="4" r="1.875" />
+    </svg>
+  );
+}
+
 function WorkGlyphControl({
   text,
   reserveScrambleWidth = false,
   variant = "grid",
+  sortMode = "featured",
 }: {
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
+  sortMode?: ProjectSortMode;
 }) {
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
@@ -100,7 +118,7 @@ function WorkGlyphControl({
       }`}
     >
       {variant === "sort" ? (
-        <span className="work-control-dot" aria-hidden="true" />
+        <SortGlyph mode={sortMode} />
       ) : (
         <motion.span
           layout="position"
@@ -496,6 +514,7 @@ export function ProjectWork() {
             <WorkGlyphControl
               text={sortLabel}
               variant="sort"
+              sortMode={sortMode}
             />
           </button>
         </div>

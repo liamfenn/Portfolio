@@ -508,7 +508,7 @@
   }
 }
 
-.work-control-dot,
+.work-sort-glyph,
 .work-control-square {
   display: block;
   width: 10px;
@@ -516,9 +516,70 @@
   flex: 0 0 10px;
 }
 
-.work-control-dot {
-  background: #000;
-  clip-path: circle(50%);
+/*
+ * Meiosis: translate and scale run as separate properties so the scale can lag
+ * the movement. The cell holds its size as it starts to pull away and only
+ * resolves once it has separated, which reads as pinching apart rather than
+ * sliding and resizing. Movement carries a little overshoot so the daughters
+ * settle rather than stop dead.
+ *
+ * Base cell is r 1.875, the smallest state; 1.2 gives Recent's 2.25 and 2.1333
+ * gives Featured's 4.
+ */
+.work-sort-cell {
+  fill: #000;
+  transform-box: fill-box;
+  transform-origin: center;
+  translate: 0 0;
+  scale: 1;
+  transition:
+    translate 460ms cubic-bezier(0.34, 1.28, 0.64, 1),
+    scale 400ms cubic-bezier(0.16, 1, 0.3, 1) 60ms;
+}
+
+/* Featured: one cell filling the frame, the other two folded inside it. */
+.work-sort-glyph[data-sort="featured"] .work-sort-cell-1 {
+  scale: 2.1333;
+}
+
+.work-sort-glyph[data-sort="featured"] .work-sort-cell-2,
+.work-sort-glyph[data-sort="featured"] .work-sort-cell-3 {
+  scale: 0;
+}
+
+/* Recent: it divides along the diagonal. The third waits inside the first. */
+.work-sort-glyph[data-sort="recent"] .work-sort-cell-1 {
+  translate: -1.75px -1.75px;
+  scale: 1.2;
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-cell-2 {
+  translate: 1.75px 1.75px;
+  scale: 1.2;
+}
+
+.work-sort-glyph[data-sort="recent"] .work-sort-cell-3 {
+  translate: -1.75px -1.75px;
+  scale: 0;
+}
+
+/* Random: the first divides again, sending a daughter down to the left. */
+.work-sort-glyph[data-sort="random"] .work-sort-cell-1 {
+  translate: 0 -2.125px;
+}
+
+.work-sort-glyph[data-sort="random"] .work-sort-cell-2 {
+  translate: 2.125px 2.125px;
+}
+
+.work-sort-glyph[data-sort="random"] .work-sort-cell-3 {
+  translate: -2.125px 2.125px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-sort-cell {
+    transition: none;
+  }
 }
 
 .work-control-square {
@@ -1690,8 +1751,8 @@ body.is-media-focused .case-study-controls {
     gap: 4px;
   }
 
-  /* The grid/list mark stays 10px at every width; only the sort dot shrinks. */
-  .work-control-dot {
+  /* The grid/list mark stays 10px at every width; only the sort glyph shrinks. */
+  .work-sort-glyph {
     width: 8px;
     height: 8px;
     flex-basis: 8px;
