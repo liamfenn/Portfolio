@@ -2,60 +2,94 @@
 
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 import { mediaUrl } from "@/lib/media-delivery";
 
-/** Past this leftward drag the tile tucks; past this rightward drag it comes back. */
-const TUCK_THRESHOLD = 28;
-const UNTUCK_THRESHOLD = 24;
-/** Below this movement a pointer sequence counts as a tap rather than a drag. */
+/** Slack the tile can be pulled into before resistance takes over. */
+const SLACK_RIGHT = 26;
+const SLACK_DOWN = 26;
+const SLACK_UP = 10;
+/** Fraction of the tuck travel that commits the gesture on release. */
+const COMMIT_FRACTION = 0.5;
 const TAP_SLOP = 4;
+
+/**
+ * iOS-style rubber band. Movement past the limit keeps responding but with
+ * sharply falling returns, so it reads as pulling against something anchored.
+ */
+function rubberBand(distance: number, limit: number) {
+  if (distance <= 0) {
+    return 0;
+  }
+
+  const resisted = (distance * limit * 0.55) / (limit + 0.55 * distance);
+  return Math.min(distance, limit + resisted);
+}
+
+function resist(distance: number, slack: number) {
+  const overflow = Math.max(0, Math.abs(distance) - slack);
+  const eased = slack + rubberBand(overflow, slack);
+  return Math.sign(distance) * Math.min(Math.abs(distance), eased);
+}
 
 export interface PipState {
   isFlipped: boolean;
   isTucked: boolean;
   offset: { x: number; y: number };
   isDragging: boolean;
+  isSwapping: boolean;
   flip: () => void;
+  untuck: () => void;
   beginDrag: () => void;
   moveTo: (offset: { x: number; y: number }) => void;
-  endDrag: (offset: { x: number; y: number }) => void;
+  endDrag: (offset: { x: number; y: number }, tuckDistance: number) => void;
 }
 
-/**
- * Shared by the inline and focused surfaces so the tile keeps its position and
- * which asset is primary as focus opens and closes.
- */
+/** Shared by the inline and focused surfaces so state survives focus opening. */
 export function usePipState(): PipState {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isTucked, setIsTucked] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const swapTimer = useRef<number | null>(null);
 
-  const flip = useCallback(() => setIsFlipped((current) => !current), []);
+  const flip = useCallback(() => {
+    setIsFlipped((current) => !current);
+    setIsSwapping(true);
+    if (swapTimer.current !== null) {
+      window.clearTimeout(swapTimer.current);
+    }
+    swapTimer.current = window.setTimeout(() => {
+      setIsSwapping(false);
+      swapTimer.current = null;
+    }, 340);
+  }, []);
+
+  const untuck = useCallback(() => {
+    setIsTucked(false);
+    setOffset({ x: 0, y: 0 });
+  }, []);
+
   const beginDrag = useCallback(() => setIsDragging(true), []);
   const moveTo = useCallback((next: { x: number; y: number }) => setOffset(next), []);
 
-  const endDrag = useCallback((next: { x: number; y: number }) => {
+  const endDrag = useCallback((next: { x: number; y: number }, tuckDistance: number) => {
     setIsDragging(false);
+    const commit = tuckDistance * COMMIT_FRACTION;
     setIsTucked((tucked) => {
-      if (!tucked && next.x <= -TUCK_THRESHOLD) {
-        setOffset({ x: 0, y: 0 });
-        return true;
+      if (!tucked) {
+        return next.x <= -commit;
       }
 
-      if (tucked && next.x >= UNTUCK_THRESHOLD) {
-        setOffset({ x: 0, y: 0 });
-        return false;
-      }
-
-      // Tucked tiles spring back to the edge; loose ones keep where they landed.
-      setOffset(tucked ? { x: 0, y: 0 } : next);
-      return tucked;
+      return next.x < commit;
     });
+    // The tile always returns to a resting spot; the drag only ever bends it.
+    setOffset({ x: 0, y: 0 });
   }, []);
 
-  return { isFlipped, isTucked, offset, isDragging, flip, beginDrag, moveTo, endDrag };
+  return { isFlipped, isTucked, offset, isDragging, isSwapping, flip, untuck, beginDrag, moveTo, endDrag };
 }
 
 export function CaseStudyPip({
@@ -70,45 +104,63 @@ export function CaseStudyPip({
   const elementRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
 
-  const clamp = (next: { x: number; y: number }) => {
+  /** How far left the tile travels to sit tucked against the frame. */
+  const tuckDistance = () => {
     const element = elementRef.current;
-    const frame = element?.parentElement;
-    if (!element || !frame) {
-      return next;
+    if (!element) {
+      return 0;
     }
 
-    // Keep the tile inside the media box, measured from its resting corner.
-    const size = element.offsetWidth;
-    const inset = element.offsetLeft;
-    const maxX = frame.clientWidth - size - inset * 2;
-    const maxY = frame.clientHeight - size - inset * 2;
+    const styles = getComputedStyle(element);
+    const visible = parseFloat(styles.getPropertyValue("--pip-visible")) || 0;
+    return element.offsetLeft + element.offsetWidth - visible;
+  };
+
+  /**
+   * Leftward travel is free up to the tuck point, since that is the only gesture
+   * that commits. Everything else is slack with resistance beyond it.
+   */
+  const constrain = (raw: { x: number; y: number }) => {
+    const travel = tuckDistance();
+    const fromTucked = state.isTucked ? travel : 0;
+    const x = raw.x + fromTucked;
+
+    let constrainedX: number;
+    if (x < -travel) {
+      constrainedX = -travel - rubberBand(-travel - x, SLACK_RIGHT);
+    } else if (x > 0) {
+      constrainedX = resist(x, SLACK_RIGHT);
+    } else {
+      constrainedX = x;
+    }
+
     return {
-      x: Math.min(Math.max(next.x, -size), Math.max(maxX, 0)),
-      y: Math.min(Math.max(next.y, -inset), Math.max(maxY, 0)),
+      x: constrainedX - fromTucked,
+      y: resist(raw.y, raw.y < 0 ? SLACK_UP : SLACK_DOWN),
     };
   };
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = { x: event.clientX - state.offset.x, y: event.clientY - state.offset.y, moved: false };
+    dragRef.current = { x: event.clientX, y: event.clientY, moved: false };
     state.beginDrag();
   };
 
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const origin = dragRef.current;
     if (!origin) {
       return;
     }
 
-    const next = clamp({ x: event.clientX - origin.x, y: event.clientY - origin.y });
-    if (Math.abs(next.x) > TAP_SLOP || Math.abs(next.y) > TAP_SLOP) {
+    const raw = { x: event.clientX - origin.x, y: event.clientY - origin.y };
+    if (Math.abs(raw.x) > TAP_SLOP || Math.abs(raw.y) > TAP_SLOP) {
       origin.moved = true;
     }
-    state.moveTo(next);
+    state.moveTo(constrain(raw));
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     const origin = dragRef.current;
     dragRef.current = null;
     if (!origin) {
@@ -116,15 +168,18 @@ export function CaseStudyPip({
     }
 
     event.stopPropagation();
-    const next = clamp({ x: event.clientX - origin.x, y: event.clientY - origin.y });
     if (!origin.moved) {
-      // A tap swaps which asset is primary.
-      state.endDrag({ x: state.offset.x, y: state.offset.y });
-      state.flip();
+      // Tucked tiles come back out first; a second tap then swaps.
+      state.endDrag({ x: 0, y: 0 }, tuckDistance());
+      if (state.isTucked) {
+        state.untuck();
+      } else {
+        state.flip();
+      }
       return;
     }
 
-    state.endDrag(next);
+    state.endDrag(constrain({ x: event.clientX - origin.x, y: event.clientY - origin.y }), tuckDistance());
   };
 
   const className = [
@@ -140,7 +195,9 @@ export function CaseStudyPip({
     <div
       ref={elementRef}
       className={className}
-      style={{ "--pip-drag-x": `${state.offset.x}px`, "--pip-drag-y": `${state.offset.y}px` } as React.CSSProperties}
+      style={
+        { "--pip-drag-x": `${state.offset.x}px`, "--pip-drag-y": `${state.offset.y}px` } as CSSProperties
+      }
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -148,16 +205,19 @@ export function CaseStudyPip({
       onClick={(event) => event.stopPropagation()}
       role="button"
       tabIndex={0}
-      aria-label={`Swap to ${asset.alt}`}
+      aria-label={state.isTucked ? "Show the secondary media" : `Swap to ${asset.alt}`}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          state.flip();
+          if (state.isTucked) {
+            state.untuck();
+          } else {
+            state.flip();
+          }
         }
       }}
     >
       {asset.kind === "video" ? (
-        // Held paused until it becomes the primary asset.
         <video
           className="case-study-pip-media"
           poster={mediaUrl(asset.poster)}

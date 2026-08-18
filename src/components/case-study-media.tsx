@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -314,29 +315,39 @@ function MediaSurface({
       className={isFocused ? "case-study-focused-media" : "case-study-media"}
       data-media-kind={media.kind}
     >
-      {media.kind === "image" && media.src ? (
-        <Image
-          src={mediaUrl(media.src)}
-          alt={media.alt ?? ""}
-          fill
-          quality={90}
-          sizes={isFocused ? "796px" : "(max-width: 767px) 100vw, 600px"}
-        />
-      ) : null}
-      {media.kind === "video" ? (
-        <CaseStudyVideo
-          // Keyed so swapping the tile remounts against the new asset; the
-          // rendition hook resolves once per element and would otherwise keep
-          // serving the previous asset's files.
-          key={media.id}
-          asset={media}
-          videoRef={videoRef}
-          freezeOnNavigation={!isFocused}
-        />
-      ) : null}
-      {media.kind === "interactive" ? (
-        <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
-      ) : null}
+      <AnimatePresence initial={false}>
+        <motion.div
+          // Keyed on the asset so the outgoing layer lingers and fades out under
+          // the incoming one, dissolving rather than cutting.
+          key={"id" in media ? media.id : media.kind}
+          className="case-study-media-layer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {media.kind === "image" && media.src ? (
+            <Image
+              src={mediaUrl(media.src)}
+              alt={media.alt ?? ""}
+              fill
+              quality={90}
+              sizes={isFocused ? "796px" : "(max-width: 767px) 100vw, 600px"}
+            />
+          ) : null}
+          {media.kind === "video" ? (
+            <CaseStudyVideo
+              key={media.id}
+              asset={media}
+              videoRef={videoRef}
+              freezeOnNavigation={!isFocused}
+            />
+          ) : null}
+          {media.kind === "interactive" ? (
+            <div className="case-study-interactive-slot" data-demo-id={media.demoId} aria-hidden="true" />
+          ) : null}
+        </motion.div>
+      </AnimatePresence>
       {tile && pip ? <CaseStudyPip asset={tile} state={pip} isFocused={isFocused} /> : null}
     </div>
   );

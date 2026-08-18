@@ -782,12 +782,17 @@
  */
 .case-study-media,
 .case-study-focused-media {
-  --pip-size: 120px;
+  --pip-size: 104px;
   --pip-inset: 8px;
-  --pip-radius: 10px;
+  --pip-radius: 16px;
   --pip-visible: 20px;
   --pip-drag-x: 0px;
   --pip-drag-y: 0px;
+}
+
+.case-study-media-layer {
+  position: absolute;
+  inset: 0;
 }
 
 .case-study-pip {
@@ -804,7 +809,7 @@
   cursor: grab;
   touch-action: none;
   translate: var(--pip-drag-x) var(--pip-drag-y);
-  transition: translate 320ms cubic-bezier(0.22, 1, 0.32, 1);
+  transition: translate 380ms cubic-bezier(0.22, 1.12, 0.36, 1);
 }
 
 .case-study-pip.is-dragging {
@@ -839,9 +844,9 @@
 @media (max-width: 767px) {
   .case-study-media,
   .case-study-focused-media {
-    --pip-size: 92px;
+    --pip-size: 72px;
     --pip-inset: 6px;
-    --pip-radius: 8px;
+    --pip-radius: 12px;
     --pip-visible: 12px;
   }
 }
