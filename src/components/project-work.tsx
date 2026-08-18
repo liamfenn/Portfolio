@@ -66,12 +66,12 @@ const DENSITY_VISIBLE = {
  */
 function SortGlyph({ mode }: { mode: ProjectSortMode }) {
   return (
-    <svg className="work-sort-glyph" viewBox="0 0 8 8" data-sort={mode} aria-hidden="true">
-      <circle className="work-sort-node work-sort-node-center" cx="4" cy="4" r="1.25" />
-      <circle className="work-sort-node work-sort-node-a" cx="4" cy="4" r="1.25" />
-      <circle className="work-sort-node work-sort-node-b" cx="4" cy="4" r="1.25" />
-      <circle className="work-sort-node work-sort-node-c" cx="4" cy="4" r="1.25" />
-      <circle className="work-sort-node work-sort-node-d" cx="4" cy="4" r="1.25" />
+    <svg className="work-sort-glyph" viewBox="0 0 10 10" data-sort={mode} aria-hidden="true">
+      <circle className="work-sort-node work-sort-node-center" cx="5" cy="5" r="1.5625" />
+      <circle className="work-sort-node work-sort-node-a" cx="5" cy="5" r="1.5625" />
+      <circle className="work-sort-node work-sort-node-b" cx="5" cy="5" r="1.5625" />
+      <circle className="work-sort-node work-sort-node-c" cx="5" cy="5" r="1.5625" />
+      <circle className="work-sort-node work-sort-node-d" cx="5" cy="5" r="1.5625" />
     </svg>
   );
 }
@@ -86,7 +86,7 @@ function WorkGlyphControl({
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
-  /** Splits the solid square into the two-column grid glyph. */
+  /** Splits the solid square into the 2x2 grid glyph. */
   isSplit?: boolean;
   sortMode?: ProjectSortMode;
 }) {
@@ -130,6 +130,8 @@ function WorkGlyphControl({
           aria-hidden="true"
           transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
         >
+          <i />
+          <i />
           <i />
           <i />
         </motion.span>
