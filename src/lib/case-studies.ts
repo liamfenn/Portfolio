@@ -190,8 +190,8 @@ function placeholderBlocks(slug: string): CaseStudyBlock[] {
     }
 
     if (shopMedia[0]) {
-      shopMedia[0].secondaryMedia = { ...MEDIA_ASSETS.shoppableBasketsFlare };
-      shopMedia[0].secondaryCaption = "Flared interaction";
+      shopMedia[0].secondaryMedia = { ...MEDIA_ASSETS.shoppableBasketsStill };
+      shopMedia[0].secondaryCaption = "On device";
     }
 
     if (shopMedia[1]) {

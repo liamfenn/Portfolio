@@ -84,4 +84,13 @@ export const MEDIA_ASSETS = {
       },
     ],
   },
+  shoppableBasketsStill: {
+    id: "shop-baskets-still",
+    kind: "image",
+    src: "/media/shop/fpo.webp",
+    alt: "Shoppable Baskets running on device",
+    width: 816,
+    height: 816,
+    backdrop: "#a8a7a5",
+  },
 } as const satisfies Record<string, PortfolioMediaAsset>;
