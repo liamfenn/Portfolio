@@ -42,7 +42,13 @@ export interface CaseStudy {
   title: string;
   company: string;
   role: string;
+  /** Display string, e.g. "Q2 2026". Sorting uses year/quarter, not this. */
   period: string;
+  /** Hand-set position for the Featured sort. Lower comes first. */
+  featuredOrder: number;
+  year: number;
+  /** 1-4. Omitted when the work is only dated to a year, which sorts last within it. */
+  quarter?: number;
   description: string;
   companyLogo: string;
   companyLogoBackground: string;
@@ -194,6 +200,9 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Shop",
     role: "Senior Product Designer",
     period: "Q2 2026",
+    featuredOrder: 1,
+    year: 2026,
+    quarter: 2,
     description: PLACEHOLDER_DESCRIPTIONS[0],
     companyLogo: "/images/logos/Shop.png",
     companyLogoBackground: "#5533ea",
@@ -205,6 +214,8 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Bird",
     role: "Product Designer",
     period: "2025",
+    featuredOrder: 2,
+    year: 2025,
     description: PLACEHOLDER_DESCRIPTIONS[1],
     companyLogo: "/images/logos/Bird.png",
     companyLogoBackground: "#000000",
@@ -216,6 +227,8 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Plasticity",
     role: "Product Designer",
     period: "2025",
+    featuredOrder: 3,
+    year: 2025,
     description: PLACEHOLDER_DESCRIPTIONS[2],
     companyLogo: "/images/logos/Plasticity.png",
     companyLogoBackground: "#494578",
@@ -227,12 +240,28 @@ export const CASE_STUDIES: CaseStudy[] = [
     company: "Azura",
     role: "Product Designer",
     period: "2024",
+    featuredOrder: 4,
+    year: 2024,
     description: PLACEHOLDER_DESCRIPTIONS[3],
     companyLogo: "/images/logos/Azura.png",
     companyLogoBackground: "#65fc9f",
     blocks: placeholderBlocks("azura"),
   },
 ];
+
+/**
+ * Sort keys for a case study. Anything unmatched sorts to the end of Featured
+ * and to the bottom of Recent rather than jumping to the top.
+ */
+export function getCaseStudyOrder(slug: string) {
+  const study = CASE_STUDIES.find((entry) => entry.slug === slug);
+
+  return {
+    featuredOrder: study?.featuredOrder ?? Number.MAX_SAFE_INTEGER,
+    year: study?.year ?? Number.MIN_SAFE_INTEGER,
+    quarter: study?.quarter ?? 0,
+  };
+}
 
 export function getCaseStudy(slug: string) {
   return CASE_STUDIES.find((study) => study.slug === slug);

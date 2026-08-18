@@ -2,26 +2,45 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { getCaseStudyOrder } from "@/lib/case-studies";
 
 const SORT_OPTIONS = [
+  { value: "featured", label: "Featured" },
   { value: "recent", label: "Recent" },
-  { value: "oldest", label: "Oldest" },
-  { value: "az", label: "A–Z" },
-  { value: "za", label: "Z–A" },
+  { value: "random", label: "Random" },
 ] as const;
 
-const WORK_LABEL_GLYPHS = Array.from("GridListSortRecentOldestAZ2345x–").map((glyph) => glyph.charCodeAt(0)) as [
-  number,
-  number,
-  ...number[],
-];
+const WORK_LABEL_GLYPHS = Array.from("GridListSortFeaturedRecentRandom23456x–").map((glyph) =>
+  glyph.charCodeAt(0),
+) as [number, number, ...number[]];
+
+/**
+ * Deterministic shuffle so a given seed always produces the same order. Reshuffling
+ * on every render would reorder the grid continuously.
+ */
+function shuffleWithSeed<T>(items: readonly T[], seed: number) {
+  const result = [...items];
+  let state = (seed + 1) * 0x6d2b79f5;
+  const random = () => {
+    state = Math.imul(state ^ (state >>> 15), state | 1);
+    state ^= state + Math.imul(state ^ (state >>> 7), state | 61);
+    return ((state ^ (state >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+
+  return result;
+}
 
 const DENSITY_TRANSITION = {
   duration: 0.28,
@@ -98,7 +117,7 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode } =
+  const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
     useProjectDisplayState();
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -359,42 +378,63 @@ export function ProjectWork() {
 
   const selectDesktopSort = (nextSortMode: (typeof SORT_OPTIONS)[number]["value"]) => {
     setHasChangedSort(true);
+    // Picking Random reshuffles, including when it is already the active sort.
+    if (nextSortMode === "random") {
+      reshuffle();
+    }
     setSortMode(nextSortMode);
   };
 
   const cycleMobileSort = () => {
-    if (isMobile) {
-      setSortMode((current) => {
-        const currentIndex = SORT_OPTIONS.findIndex((option) => option.value === current);
-        return SORT_OPTIONS[(currentIndex + 1) % SORT_OPTIONS.length].value;
-      });
+    if (!isMobile) {
+      return;
     }
+
+    const currentIndex = SORT_OPTIONS.findIndex((option) => option.value === sortMode);
+    const next = SORT_OPTIONS[(currentIndex + 1) % SORT_OPTIONS.length].value;
+    if (next === "random") {
+      reshuffle();
+    }
+    setSortMode(next);
   };
 
   const densityOptions = densityChoices.filter((density) => density !== desktopDensity);
   const selectedSort = SORT_OPTIONS.find((option) => option.value === sortMode) ?? SORT_OPTIONS[0];
   const sortOptions = SORT_OPTIONS.filter((option) => option.value !== sortMode);
   const sortLabel = selectedSort.label;
-  const mobileGridLabel = mobileColumns === 2 ? "List" : "Grid";
+  // Names the current layout, matching the desktop density and sort labels rather
+  // than naming the layout the control would switch to.
+  const mobileGridLabel = mobileColumns === 2 ? "Grid" : "List";
   const desktopGridLabel = `${desktopDensity} x ${desktopDensity}`;
   const gridStyle = {
     "--project-columns": desktopDensity,
     "--project-mobile-columns": mobileColumns,
   } as CSSProperties;
-  const sortedPreviews = PROJECT_PREVIEWS.map((preview, index) => ({ preview, index }))
-    .sort((left, right) => {
-      if (sortMode === "recent" || sortMode === "oldest") {
-        const yearDifference =
-          sortMode === "recent"
-            ? right.preview.year - left.preview.year
-            : left.preview.year - right.preview.year;
-        return yearDifference || left.index - right.index;
-      }
+  const sortedPreviews = useMemo(() => {
+    const entries = PROJECT_PREVIEWS.map((preview, index) => ({ preview, index }));
 
-      const labelDifference = left.preview.label.localeCompare(right.preview.label);
-      return (sortMode === "az" ? labelDifference : -labelDifference) || left.index - right.index;
-    })
-    .map(({ preview }) => preview);
+    if (sortMode === "random") {
+      return shuffleWithSeed(entries, randomSeed).map(({ preview }) => preview);
+    }
+
+    return entries
+      .sort((left, right) => {
+        const leftOrder = getCaseStudyOrder(left.preview.caseStudySlug);
+        const rightOrder = getCaseStudyOrder(right.preview.caseStudySlug);
+
+        if (sortMode === "featured") {
+          return leftOrder.featuredOrder - rightOrder.featuredOrder || left.index - right.index;
+        }
+
+        // Recent: newest year first, then newest quarter within it.
+        return (
+          rightOrder.year - leftOrder.year ||
+          rightOrder.quarter - leftOrder.quarter ||
+          left.index - right.index
+        );
+      })
+      .map(({ preview }) => preview);
+  }, [randomSeed, sortMode]);
 
   return (
     <section className="portfolio-work" aria-label="Work" onPointerMoveCapture={handleWorkPointerMove}>
