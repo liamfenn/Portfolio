@@ -10,9 +10,8 @@ import { mediaUrl } from "@/lib/media-delivery";
  * Slack the tile can be pulled into before resistance takes over. Deliberately
  * tight: it should feel pinned to its corner, not loosely parked there.
  */
-const SLACK_RIGHT = 10;
-const SLACK_DOWN = 10;
-const SLACK_UP = 4;
+const SLACK = 12;
+const SLACK_UP = 8;
 /** Fraction of the tuck travel that commits the gesture on release. */
 const COMMIT_FRACTION = 0.5;
 const TAP_SLOP = 4;
@@ -30,10 +29,20 @@ function rubberBand(distance: number, limit: number) {
   return Math.min(distance, limit + resisted);
 }
 
-function resist(distance: number, slack: number) {
-  const overflow = Math.max(0, Math.abs(distance) - slack);
-  const eased = slack + rubberBand(overflow, slack);
-  return Math.sign(distance) * Math.min(Math.abs(distance), eased);
+/**
+ * Resistance applied to the overflow vector as a whole rather than per axis, so
+ * the reachable area is a rounded blob. Clamping x and y separately would leave
+ * square corners for the tile to click into on a diagonal drag.
+ */
+function resistRadially(overflow: { x: number; y: number }) {
+  const distance = Math.hypot(overflow.x, overflow.y);
+  if (distance === 0) {
+    return overflow;
+  }
+
+  const limit = overflow.y < 0 ? SLACK_UP : SLACK;
+  const resisted = rubberBand(distance, limit);
+  return { x: (overflow.x / distance) * resisted, y: (overflow.y / distance) * resisted };
 }
 
 export interface PipState {
@@ -129,19 +138,12 @@ export function CaseStudyPip({
     const fromTucked = state.isTucked ? -travel : 0;
     const x = raw.x + fromTucked;
 
-    let constrainedX: number;
-    if (x < -travel) {
-      constrainedX = -travel - rubberBand(-travel - x, SLACK_RIGHT);
-    } else if (x > 0) {
-      constrainedX = resist(x, SLACK_RIGHT);
-    } else {
-      constrainedX = x;
-    }
+    // The tuck axis is the only direction with free travel; everything past it
+    // is overflow that gets bent back, so the tile can never leave the media box.
+    const freeX = Math.min(0, Math.max(-travel, x));
+    const eased = resistRadially({ x: x - freeX, y: raw.y });
 
-    return {
-      x: constrainedX - fromTucked,
-      y: resist(raw.y, raw.y < 0 ? SLACK_UP : SLACK_DOWN),
-    };
+    return { x: freeX + eased.x - fromTucked, y: eased.y };
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -200,7 +202,11 @@ export function CaseStudyPip({
       ref={elementRef}
       className={className}
       style={
-        { "--pip-drag-x": `${state.offset.x}px`, "--pip-drag-y": `${state.offset.y}px` } as CSSProperties
+        {
+          "--pip-drag-x": `${state.offset.x}px`,
+          "--pip-drag-y": `${state.offset.y}px`,
+          "--pip-scrim": state.isTucked ? 1 : Math.min(1, Math.max(0, -state.offset.x / Math.max(tuckDistance(), 1))),
+        } as CSSProperties
       }
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -233,6 +239,13 @@ export function CaseStudyPip({
       ) : (
         <Image className="case-study-pip-media" src={mediaUrl(asset.src)} alt={asset.alt ?? ""} fill sizes="120px" />
       )}
+      <span className="case-study-pip-scrim" aria-hidden="true" />
+      {asset.kind === "video" ? (
+        // SF Symbols play.fill: the tile is paused until it becomes primary.
+        <svg className="case-study-pip-play" viewBox="0 0 12 14" aria-hidden="true">
+          <path d="M11.5 6.13a1 1 0 0 1 0 1.74l-9.5 5.5A1 1 0 0 1 .5 12.5v-11A1 1 0 0 1 2 .63l9.5 5.5Z" />
+        </svg>
+      ) : null}
     </div>
   );
 }

@@ -84,4 +84,18 @@ export const MEDIA_ASSETS = {
       },
     ],
   },
+  shoppableBasketsSecondary: {
+    id: "shop-baskets-secondary",
+    kind: "video",
+    src: "/media/shop/fpo-1200.mp4",
+    poster: "/media/shop/fpo-poster.webp",
+    alt: "Shoppable Baskets on device",
+    width: 1200,
+    height: 1054,
+    backdrop: "#635e58",
+    renditions: [
+      { width: 800, av1: "/media/shop/fpo-800.av1.mp4", h264: "/media/shop/fpo-800.mp4" },
+      { width: 1200, av1: "/media/shop/fpo-1200.av1.mp4", h264: "/media/shop/fpo-1200.mp4" },
+    ],
+  },
 } as const satisfies Record<string, PortfolioMediaAsset>;
