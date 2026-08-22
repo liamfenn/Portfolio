@@ -28,8 +28,8 @@ interface MediaBounds {
   targetSize: number;
 }
 
-function getBackdropStyle(block: CaseStudyMediaBlock): CSSProperties | undefined {
-  const backdrop = "backdrop" in block.media ? block.media.backdrop : undefined;
+function getBackdropStyle(media: CaseStudyMediaBlock["media"]): CSSProperties | undefined {
+  const backdrop = "backdrop" in media ? media.backdrop : undefined;
 
   return backdrop ? ({ "--case-study-media-backdrop": backdrop } as CSSProperties) : undefined;
 }
@@ -573,7 +573,11 @@ export function CaseStudyMedia({ block }: { block: CaseStudyMediaBlock }) {
     }
   };
 
-  const backdropStyle = getBackdropStyle(block);
+  // Everything that reads off the primary asset has to follow the swap, not the
+  // block: leaving the backdrop on the original asset paints its colour into any
+  // sub-pixel seam around the media that replaced it.
+  const activeMedia = pip.isFlipped && block.secondaryMedia ? block.secondaryMedia : block.media;
+  const backdropStyle = getBackdropStyle(activeMedia);
   // Caption tracks the primary asset, so swapping the tile relabels the block.
   const activeCaption =
     pip.isFlipped && block.secondaryMedia ? block.secondaryCaption ?? block.caption : block.caption;
