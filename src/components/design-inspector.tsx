@@ -46,8 +46,9 @@ export function DesignInspector({ children }: { children: ReactNode }) {
       if (key !== "Escape") event.preventDefault();
       cycle(key as InspectionKey);
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    // Capture runs before document listeners such as Agentation's, which marks P (pause) handled in local dev.
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
   }, [cycle, togglePanel]);
 
   useEffect(() => {
@@ -154,7 +155,7 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
 
 /** The page frame is the outermost padding layer, so it gets its own color. */
 type SpacingAreaKind = SpacingKind | "frame";
-type SpacingArea = { box: Box; value: string; kind: SpacingAreaKind };
+type SpacingArea = { box: Box; value: string; kind: SpacingAreaKind; floating?: boolean };
 const SKIPPED_ELEMENTS = ".spacing-overlay, .design-inspector, script, style, noscript, template";
 
 function inFlowChildren(element: Element): HTMLElement[] {
@@ -165,6 +166,15 @@ function inFlowChildren(element: Element): HTMLElement[] {
     if (style.display === "none" || style.position === "absolute" || style.position === "fixed") return [];
     return [child];
   });
+}
+
+/** Fixed or absolute layers (tooltips, popovers) float over the page rather than spanning it. */
+function isFloating(element: HTMLElement) {
+  for (let node: HTMLElement | null = element; node && node !== document.body; node = node.parentElement) {
+    const { position } = getComputedStyle(node);
+    if (position === "fixed" || position === "absolute") return true;
+  }
+  return false;
 }
 
 function isVisible(element: HTMLElement, rect: DOMRect) {
@@ -184,6 +194,7 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
     if (!isVisible(element, rect)) continue;
     const style = getComputedStyle(element);
     const px = (property: string) => Number.parseFloat(style.getPropertyValue(property)) || 0;
+    const floating = vertical && isFloating(element);
     const inner = {
       left: rect.left + px("border-left-width"), right: rect.right - px("border-right-width"),
       top: rect.top + px("border-top-width"), bottom: rect.bottom - px("border-bottom-width"),
@@ -192,19 +203,19 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
     if (kinds.includes("padding")) {
       const kind = element.hasAttribute("data-page-frame") ? "frame" : "padding";
       const [start, end] = vertical ? [px("padding-top"), px("padding-bottom")] : [px("padding-left"), px("padding-right")];
-      if (start > 0) found[kind].push({ kind, value: formatPixels(start), box: vertical
+      if (start > 0) found[kind].push({ floating, kind, value: formatPixels(start), box: vertical
         ? { ...inner, bottom: inner.top + start } : { ...inner, right: inner.left + start } });
-      if (end > 0) found[kind].push({ kind, value: formatPixels(end), box: vertical
+      if (end > 0) found[kind].push({ floating, kind, value: formatPixels(end), box: vertical
         ? { ...inner, top: inner.bottom - end } : { ...inner, left: inner.right - end } });
     }
 
     if (kinds.includes("margin")) {
       // Negative margins pull elements into each other and have no area to draw.
       const [start, end] = vertical ? [px("margin-top"), px("margin-bottom")] : [px("margin-left"), px("margin-right")];
-      if (start > 0) found.margin.push({ kind: "margin", value: formatPixels(start), box: vertical
+      if (start > 0) found.margin.push({ floating, kind: "margin", value: formatPixels(start), box: vertical
         ? { left: rect.left, right: rect.right, top: rect.top - start, bottom: rect.top }
         : { left: rect.left - start, right: rect.left, top: rect.top, bottom: rect.bottom } });
-      if (end > 0) found.margin.push({ kind: "margin", value: formatPixels(end), box: vertical
+      if (end > 0) found.margin.push({ floating, kind: "margin", value: formatPixels(end), box: vertical
         ? { left: rect.left, right: rect.right, top: rect.bottom, bottom: rect.bottom + end }
         : { left: rect.right, right: rect.right + end, top: rect.top, bottom: rect.bottom } });
     }
@@ -216,7 +227,7 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
     };
     const items = inFlowChildren(element).map(child => child.getBoundingClientRect()).filter(box => box.width > 0 && box.height > 0);
     for (const box of gapBoxes(content, items, vertical ? "vertical" : "horizontal")) {
-      found.gap.push({ kind: "gap", box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
+      found.gap.push({ floating, kind: "gap", box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
     }
   }
   const areas = [...found.frame, ...kinds.flatMap(kind => found[kind])];
@@ -224,6 +235,7 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
   // Vertical spacing reads as horizontal bands across the whole page; draw each band once.
   const seen = new Set<string>();
   return areas.flatMap(area => {
+    if (area.floating) return [area];
     const key = `${area.kind}:${Math.round(area.box.top)}:${Math.round(area.box.bottom)}`;
     if (seen.has(key)) return [];
     seen.add(key);
