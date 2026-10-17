@@ -68,7 +68,6 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 /* F previews the page in one typeface: every serif style swaps to its sans counterpart. */
 html[data-type-preview="sans"] .text-bodySerif { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
 html[data-type-preview="sans"] .text-captionSerif { font: var(--type-captionSans); letter-spacing: var(--tracking-ui); }
-html[data-type-preview="sans"] .footer-otto { font-family: inherit; }
 
 /* Spacing overlay: grid paper over each padding or gap area, value centered. */
 .spacing-overlay {

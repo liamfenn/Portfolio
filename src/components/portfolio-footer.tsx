@@ -46,8 +46,10 @@ export function PortfolioFooter() {
         </span>
       </div>
       <div className="portfolio-footer-row portfolio-footer-bottom">
-        <span className="footer-type-credit text-bodySerif">
-          <InspectableText>Set in Oracle &amp; <span className="footer-otto">Otto</span></InspectableText>
+        {/* Each name is set in its own face; the 4px gap stands in for the space so it still reads as one line. */}
+        <span className="footer-type-credit">
+          <span className="text-bodySans"><InspectableText>Set in Oracle &amp;</InspectableText></span>
+          <span className="text-bodySerif"><InspectableText>Otto</InspectableText></span>
         </span>
         <PaletteToy />
       </div>

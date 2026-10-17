@@ -51,7 +51,7 @@ It works on the homepage and the palette lab:
 - **P**, **M**, and **G** draw padding, margins, and gaps; **S** draws all three.
   Each cycles vertical → horizontal → off. The 8px page frame is its own purple layer.
 - **F** previews the page in one typeface: every serif style (bodySerif,
-  captionSerif, the "Otto" credit) swaps to its sans counterpart. Press again to
+  captionSerif) swaps to its sans counterpart. Press again to
   restore. It works alongside the other modes.
 - **H** (or tapping the avatar on phones) hides or shows the floating panel, even with no mode active.
 - **Escape** restores content. Switching families starts at that family's first

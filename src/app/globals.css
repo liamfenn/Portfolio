@@ -450,12 +450,15 @@
   color: var(--text-secondary);
 }
 
-.footer-clock.is-pending {
-  visibility: hidden;
+.footer-type-credit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
 }
 
-.footer-otto {
-  font-family: var(--font-otto);
+.footer-clock.is-pending {
+  visibility: hidden;
 }
 
 .footer-palette {
