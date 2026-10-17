@@ -54,6 +54,9 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
+  // F swaps every serif text style for its sans counterpart, independent of the inspection mode.
+  const [isAllSans, setIsAllSans] = useState(false);
+  const toggleAllSans = useCallback(() => setIsAllSans(value => !value), []);
   const isPanelVisible = panel === "shown" || (panel === "auto" && inspection.mode !== "content");
   const togglePanel = useCallback(() => setPanel(isPanelVisible ? "hidden" : "shown"), [isPanelVisible]);
   const togglePanelRef = useRef(togglePanel);
@@ -76,6 +79,11 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         togglePanelRef.current();
         return;
       }
+      if (key === "f") {
+        event.preventDefault();
+        toggleAllSans();
+        return;
+      }
       if (!INSPECTION_KEYS.has(key)) return;
       if (key !== "Escape") event.preventDefault();
       cycle(key as InspectionKey);
@@ -83,7 +91,14 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
     // Capture runs before document listeners such as Agentation's, which marks P (pause) handled in local dev.
     window.addEventListener("keydown", onKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
-  }, [cycle]);
+  }, [cycle, toggleAllSans]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isAllSans) root.dataset.typePreview = "sans";
+    else delete root.dataset.typePreview;
+    return () => { delete root.dataset.typePreview; };
+  }, [isAllSans]);
 
   // Phones have no keyboard: tapping an element marked data-inspector-toggle (the avatar) toggles the panel.
   useEffect(() => {
@@ -116,6 +131,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle margin inspection" aria-pressed={inspection.mode.startsWith("margin-")} onClick={() => cycle("m")}><kbd>M</kbd> Margin</button>
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
+        <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
@@ -171,6 +187,8 @@ function MeasuredText({ children, text }: { children: ReactNode; text?: string }
         const name = Array.from(ancestor.classList).find(name => name.startsWith("text-") && style.getPropertyValue(`--type-${name.slice(5)}`).trim());
         if (name) { token = name.slice(5); break; }
       }
+      // Report the style that's rendering while F previews everything in sans.
+      if (document.documentElement.dataset.typePreview === "sans") token = token.replace("Serif", "Sans");
       const hex = colorToHex(style.color);
       const candidate = style.getPropertyValue("--inspect-color-token").trim();
       const colorToken = candidate && colorToHex(style.getPropertyValue(`--${candidate}`)) === hex ? candidate : "unassigned";
