@@ -22,6 +22,9 @@ const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "m", "g", "s", "Escape"]
 
 export function DesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
+  // H hides the floating panel so it doesn't cover what is being inspected; it stays hidden across modes.
+  const [isPanelHidden, setIsPanelHidden] = useState(false);
+  const togglePanel = useCallback(() => setIsPanelHidden(hidden => !hidden), []);
   const cycle = useCallback((key: InspectionKey) => {
     setInspection(current => {
       const mode = nextInspectionMode(current.mode, key);
@@ -34,13 +37,18 @@ export function DesignInspector({ children }: { children: ReactNode }) {
       if (event.defaultPrevented || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')) return;
       const key = event.key === "Escape" ? "Escape" : event.key.toLowerCase();
+      if (key === "h") {
+        event.preventDefault();
+        togglePanel();
+        return;
+      }
       if (!INSPECTION_KEYS.has(key)) return;
       if (key !== "Escape") event.preventDefault();
       cycle(key as InspectionKey);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [cycle]);
+  }, [cycle, togglePanel]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -52,7 +60,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
   return <InspectionContext.Provider value={inspection}>
     {children}
     {inspection.mode !== "content" && !isLabelMode(inspection.mode) && <SpacingOverlay mode={inspection.mode} />}
-    {inspection.mode !== "content" && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
+    {inspection.mode !== "content" && !isPanelHidden && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
@@ -61,6 +69,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle margin inspection" aria-pressed={inspection.mode.startsWith("margin-")} onClick={() => cycle("m")}><kbd>M</kbd> Margin</button>
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
+        <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Close design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
     </aside>}
