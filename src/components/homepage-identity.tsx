@@ -10,7 +10,7 @@ import { InspectableText } from "@/components/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export function HomepageIdentity() {
-  return <a className="homepage-identity homepage-slide-badge" href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
+  return <a className="homepage-identity homepage-slide-badge" data-inspector-toggle href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
     <span className="homepage-brand homepage-shop-brand"><Image src="/images/icons/shop-swirl.svg" alt="" width={24} height={24} /></span>
     <span className="homepage-avatar"><Image src="/images/profile-v2.png" alt="Liam Fennell" width={1536} height={1920} sizes="116px" priority /></span>
   </a>;

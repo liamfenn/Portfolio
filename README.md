@@ -40,8 +40,8 @@ on by default in local development. On previews, open the page with `?inspect`
 to turn it on for that browser (it's remembered), and `?inspect=off` to turn it
 off again. When off, `InspectableText` renders plain text.
 
-On a phone, shake to show or hide the panel, then tap a mode. iOS asks for
-motion access once: tap **Enable shake to inspect** when it appears.
+On a phone, tap the avatar to show or hide the panel (it skips the Shop link
+while the inspector is on), then tap a mode.
 
 It works on the homepage and the palette lab:
 
@@ -50,7 +50,7 @@ It works on the homepage and the palette lab:
   toolbar's comment shortcut on previews.)
 - **P**, **M**, and **G** draw padding, margins, and gaps; **S** draws all three.
   Each cycles vertical → horizontal → off. The 8px page frame is its own purple layer.
-- **H** (or a shake on phones) hides or shows the floating panel, even with no mode active.
+- **H** (or tapping the avatar on phones) hides or shows the floating panel, even with no mode active.
 - **Escape** restores content. Switching families starts at that family's first
   view. Shortcuts ignore editable fields and modifier keys.
 

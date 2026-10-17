@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
 import {
-  colorToHex, createShakeDetector, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode,
+  colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode,
   resolveInspectorFlag, spacingKinds,
 } from "@/lib/design-inspector";
 import type { Box, InspectionKey, InspectionMode, SpacingKind } from "@/lib/design-inspector";
@@ -45,9 +45,6 @@ function readInspectorEnabled() {
 }
 const subscribeToNothing = () => () => {};
 
-type MotionAccess = "unavailable" | "needs-permission" | "on";
-type DeviceMotionWithPermission = typeof DeviceMotionEvent & { requestPermission?: () => Promise<"granted" | "denied"> };
-
 export function DesignInspector({ children }: { children: ReactNode }) {
   // Server render and hydration always start disabled, so production markup never includes the inspector.
   const enabled = useSyncExternalStore(subscribeToNothing, readInspectorEnabled, () => false);
@@ -56,9 +53,8 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
-  // "auto" shows the panel while a mode is active; H or a shake pins it shown or hidden across modes.
+  // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
-  const [motionAccess, setMotionAccess] = useState<MotionAccess>("unavailable");
   const isPanelVisible = panel === "shown" || (panel === "auto" && inspection.mode !== "content");
   const togglePanel = useCallback(() => setPanel(isPanelVisible ? "hidden" : "shown"), [isPanelVisible]);
   const togglePanelRef = useRef(togglePanel);
@@ -90,32 +86,17 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
   }, [cycle]);
 
-  // On phones, shaking toggles the panel. iOS only sends motion after a tap grants permission.
+  // Phones have no keyboard: tapping an element marked data-inspector-toggle (the avatar) toggles the panel.
   useEffect(() => {
-    if (typeof DeviceMotionEvent === "undefined" || !window.matchMedia("(pointer: coarse)").matches) return;
-    const detectShake = createShakeDetector();
-    let hasMotion = false;
-    const onMotion = (event: DeviceMotionEvent) => {
-      const acceleration = event.accelerationIncludingGravity;
-      if (acceleration?.x == null) return;
-      if (!hasMotion) { hasMotion = true; setMotionAccess("on"); }
-      if (detectShake(acceleration.x, acceleration.y ?? 0, acceleration.z ?? 0, event.timeStamp)) togglePanelRef.current();
+    const onClick = (event: MouseEvent) => {
+      if (!window.matchMedia("(pointer: coarse)").matches) return;
+      if (!(event.target instanceof Element) || !event.target.closest("[data-inspector-toggle]")) return;
+      event.preventDefault();
+      togglePanelRef.current();
     };
-    window.addEventListener("devicemotion", onMotion);
-    // Permission may already be granted for this origin; only offer the button if no motion arrives.
-    const needsPermission = typeof (DeviceMotionEvent as DeviceMotionWithPermission).requestPermission === "function";
-    const timer = needsPermission ? window.setTimeout(() => { if (!hasMotion) setMotionAccess("needs-permission"); }, 1000) : undefined;
-    return () => { window.removeEventListener("devicemotion", onMotion); window.clearTimeout(timer); };
+    document.addEventListener("click", onClick, { capture: true });
+    return () => document.removeEventListener("click", onClick, { capture: true });
   }, []);
-
-  const requestMotion = async () => {
-    try {
-      const result = await (DeviceMotionEvent as DeviceMotionWithPermission).requestPermission?.();
-      setMotionAccess(result === "granted" ? "on" : "unavailable");
-    } catch {
-      setMotionAccess("unavailable");
-    }
-  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -127,9 +108,6 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
   return <InspectionContext.Provider value={inspection}>
     {children}
     {inspection.mode !== "content" && !isLabelMode(inspection.mode) && <SpacingOverlay mode={inspection.mode} />}
-    {motionAccess === "needs-permission" && <button type="button" className="design-inspector-motion text-captionSans" onClick={requestMotion}>
-      Enable shake to inspect
-    </button>}
     {isPanelVisible && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">

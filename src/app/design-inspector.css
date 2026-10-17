@@ -35,21 +35,6 @@
   box-shadow: 0 4px 24px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 .design-inspector-mode { min-width: 110px; }
-/* One-time tap iOS needs before it sends motion events; shown only with the debug flag on a phone. */
-.design-inspector-motion {
-  position: fixed;
-  left: 12px;
-  bottom: 12px;
-  z-index: 2100;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 10%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-fill) 90%, transparent);
-  backdrop-filter: blur(12px);
-  color: var(--text-primary);
-  font: inherit;
-  cursor: pointer;
-}
 .design-inspector-controls { display: flex; gap: 6px; }
 .design-inspector button {
   display: flex;
