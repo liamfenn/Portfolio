@@ -39,7 +39,13 @@ export function HomepageSpotify() {
       <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
     </span>
     <span className="homepage-track-info">
-      <span className={`homepage-listening${data?.isPlaying ? " is-playing" : ""}`}>{data?.isPlaying ? "Listening now..." : "Last listened to"}</span>
+      <span className={`homepage-listening${data?.isPlaying ? " is-playing" : ""}`}>
+        {data?.isPlaying ? <>Listening now<span className="identity-status-dots" aria-hidden="true">
+          <span className="identity-status-dot">.</span>
+          <span className="identity-status-dot">.</span>
+          <span className="identity-status-dot">.</span>
+        </span></> : "Last listened to"}
+      </span>
       <span className="homepage-track"><span>{data?.title ?? "Loading track…"}</span>{data && <> <span className="homepage-artist">{data.artist}</span></>}</span>
     </span>
     <span className="homepage-track-time">{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</span>
