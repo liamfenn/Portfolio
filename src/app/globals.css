@@ -685,7 +685,7 @@
   .homepage-track.is-overflowing .homepage-track-fade { position: absolute; top: 0; bottom: 0; display: block; width: 24px; pointer-events: none; }
   .homepage-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); animation: identity-song-left-fade 10s ease-in-out infinite; }
   .homepage-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); animation: homepage-track-right-fade 10s ease-in-out infinite; }
-  .portfolio-v3 .portfolio-footer { margin-top: 32px; padding: 0 12px 24px; }
+  .portfolio-v3 .portfolio-footer { margin-top: 24px; padding: 0 12px 24px; }
 }
 @keyframes homepage-track-right-fade {
   0%, 40%, 60%, 100% { opacity: 1; }
