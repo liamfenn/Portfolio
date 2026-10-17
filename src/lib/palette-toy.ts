@@ -56,6 +56,15 @@ export const GLITCH_CONTROLS = [
   { key: "displacement", label: "Page jitter", min: 0, max: 12, step: 1, unit: "px" },
 ] as const;
 
+/** What tapping the footer palette strip does. */
+export const PLAYFUL_EFFECTS = [
+  { key: "drop", label: "Glyph drop" },
+  { key: "snake", label: "Snake" },
+  { key: "glitch", label: "Glitch" },
+] as const;
+export type PlayfulEffect = typeof PLAYFUL_EFFECTS[number]["key"];
+export const DEFAULT_EFFECT: PlayfulEffect = "drop";
+
 export type PaletteVotes = Record<string, boolean>;
 export function colorsFromVotes(votes: PaletteVotes) {
   const liked = PALETTE_CANDIDATES.filter(color => votes[color.hex] === true);
@@ -65,8 +74,8 @@ export function colorsFromVotes(votes: PaletteVotes) {
   return available.length ? available : [{ name: "Neutral", hex: "#D7DAE1" }];
 }
 
-export function parsePalettePreferences(raw: string | null): { settings: GlitchSettings; votes: PaletteVotes } {
-  const defaults = { settings: { ...DEFAULT_GLITCH }, votes: {} as PaletteVotes };
+export function parsePalettePreferences(raw: string | null): { settings: GlitchSettings; votes: PaletteVotes; effect: PlayfulEffect } {
+  const defaults = { settings: { ...DEFAULT_GLITCH }, votes: {} as PaletteVotes, effect: DEFAULT_EFFECT };
   if (!raw) return defaults;
   try {
     const saved = JSON.parse(raw);
@@ -79,6 +88,8 @@ export function parsePalettePreferences(raw: string | null): { settings: GlitchS
     for (const color of PALETTE_CANDIDATES) {
       if (typeof saved.votes?.[color.hex] === "boolean") defaults.votes[color.hex] = saved.votes[color.hex];
     }
+    const effect = PLAYFUL_EFFECTS.find(option => option.key === saved.effect);
+    if (effect) defaults.effect = effect.key;
   } catch { /* Ignore old or invalid preferences. */ }
   return defaults;
 }

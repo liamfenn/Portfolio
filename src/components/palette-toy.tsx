@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cubicBezier } from "motion";
-import { DEFAULT_GLITCH, GLITCH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
-import type { PaletteVotes } from "@/lib/palette-toy";
+import { DEFAULT_EFFECT, DEFAULT_GLITCH, GLITCH_CONTROLS, PALETTE_CANDIDATES, PLAYFUL_EFFECTS, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
+import type { PaletteVotes, PlayfulEffect } from "@/lib/palette-toy";
+import { dropGlyphs } from "@/lib/glyph-drop";
+import type { GlyphDrop } from "@/lib/glyph-drop";
+import { startSnake } from "@/lib/pixel-snake";
+import type { PixelSnake } from "@/lib/pixel-snake";
 import { InspectableText } from "@/components/design-inspector";
 
 const STORAGE_KEY = "portfolio-palette-lab-v1";
@@ -27,6 +31,10 @@ interface BurnedBlock {
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
   const [settings, setSettings] = useState({ ...DEFAULT_GLITCH });
+  const [effect, setEffect] = useState<PlayfulEffect>(DEFAULT_EFFECT);
+  // The glyph drop and snake stay on screen until the strip is tapped again.
+  const activeRef = useRef<{ kind: "drop"; run: GlyphDrop } | { kind: "snake"; run: PixelSnake } | null>(null);
+  const [isEffectActive, setIsEffectActive] = useState(false);
   const [ready, setReady] = useState(false);
   const [labEnabled, setLabEnabled] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
@@ -101,6 +109,7 @@ export function PaletteToy() {
       const saved = parsePalettePreferences(raw);
       setVotes(saved.votes);
       setSettings(saved.settings);
+      setEffect(saved.effect);
       setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
       updateMotion();
       setReady(true);
@@ -115,8 +124,8 @@ export function PaletteToy() {
 
   useEffect(() => {
     if (!ready) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ votes, settings })); } catch { /* Private browsing may disable storage. */ }
-  }, [ready, votes, settings]);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ votes, settings, effect })); } catch { /* Private browsing may disable storage. */ }
+  }, [ready, votes, settings, effect]);
 
   useEffect(() => {
     if (reducedMotion) stopRef.current?.();
@@ -224,6 +233,38 @@ export function PaletteToy() {
     paint(startedAt);
   }, [drawBurns, palette, reducedMotion, settings]);
 
+  const endEffect = useCallback(() => {
+    const active = activeRef.current;
+    activeRef.current = null;
+    setIsEffectActive(false);
+    if (active?.kind === "drop") void active.run.restore();
+    if (active?.kind === "snake") active.run.stop();
+  }, []);
+
+  // Tap once to start the drop or the snake, tap again to put the letters back or dissolve the snake.
+  const runEffect = useCallback(() => {
+    if (reducedMotion) return;
+    if (effect === "glitch") { startGlitch(); return; }
+    const active = activeRef.current;
+    if (active && (active.kind === "snake" || active.run.isActive())) { endEffect(); return; }
+    const trigger = triggerRef.current;
+    const page = trigger?.closest("main");
+    if (!trigger || !page) return;
+    if (effect === "drop") {
+      activeRef.current = { kind: "drop", run: dropGlyphs(page) };
+    } else {
+      const rect = trigger.getBoundingClientRect();
+      activeRef.current = { kind: "snake", run: startSnake({ x: rect.left + rect.width / 2, y: rect.top }, palette.map(color => color.hex)) };
+    }
+    setIsEffectActive(true);
+  }, [effect, endEffect, palette, reducedMotion, startGlitch]);
+
+  // Switching effects, turning on reduced motion, or leaving the page ends whatever is running.
+  useEffect(() => endEffect, [effect, reducedMotion, endEffect]);
+
+  const effectLabel = effect === "drop" ? (isEffectActive ? "Put the letters back" : "Drop letters")
+    : effect === "snake" ? (isEffectActive ? "Stop the snake" : "Release the snake") : "Play color glitch";
+
   const vote = (keep: boolean) => {
     if (!candidate) return;
     setCopied(false);
@@ -233,15 +274,16 @@ export function PaletteToy() {
 
   const copySettings = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify({ palette: palette.map(color => ({ name: color.name, hex: color.hex })), votes, glitch: settings }, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify({ palette: palette.map(color => ({ name: color.name, hex: color.hex })), votes, effect, glitch: settings }, null, 2));
       setCopied(true);
     } catch { setCopied(false); }
   };
 
   return <>
-    <button ref={triggerRef} type="button" className="footer-palette palette-toy-trigger" aria-label="Play color glitch"
-      onPointerEnter={event => { if (event.pointerType === "mouse") startGlitch(); }}
-      onClick={startGlitch}>
+    <button ref={triggerRef} type="button" className="footer-palette palette-toy-trigger" aria-label={effectLabel}
+      aria-pressed={effect === "glitch" ? undefined : isEffectActive}
+      onPointerEnter={event => { if (event.pointerType === "mouse" && effect === "glitch") startGlitch(); }}
+      onClick={runEffect}>
       <span ref={trackRef} className="palette-toy-track">
         {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
@@ -254,7 +296,7 @@ export function PaletteToy() {
         {panelOpen && <>
           <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or glitch">
             <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}><InspectableText>Colors</InspectableText></button>
-            <button type="button" id="glitch-tab" role="tab" aria-selected={tab === "glitch"} aria-controls="glitch-panel" onClick={() => setTab("glitch")}><InspectableText>Glitch</InspectableText></button>
+            <button type="button" id="glitch-tab" role="tab" aria-selected={tab === "glitch"} aria-controls="glitch-panel" onClick={() => setTab("glitch")}><InspectableText>Effect</InspectableText></button>
           </div>
           <div id="palette-panel" role="tabpanel" aria-labelledby="palette-tab" hidden={tab !== "palette"}>
             <div className="palette-quiz-progress text-captionSans"><span><InspectableText>{`${answered} / ${PALETTE_CANDIDATES.length}`}</InspectableText></span><span><InspectableText>{`${liked.length} kept`}</InspectableText></span></div>
@@ -272,15 +314,21 @@ export function PaletteToy() {
             {answered > 0 && <button type="button" className="palette-lab-reset" onClick={() => { setVotes({}); setReviewIndex(null); setCopied(false); }}><InspectableText>Restart quiz</InspectableText></button>}
           </div>
           <div id="glitch-panel" role="tabpanel" aria-labelledby="glitch-tab" hidden={tab !== "glitch"}>
+            <div className="palette-lab-effects" role="radiogroup" aria-label="Palette strip effect">
+              {PLAYFUL_EFFECTS.map(option => <button key={option.key} type="button" role="radio" aria-checked={effect === option.key}
+                onClick={() => { setCopied(false); setEffect(option.key); }}><InspectableText>{option.label}</InspectableText></button>)}
+            </div>
+            {effect === "glitch" && <>
             <div className="palette-lab-controls">{GLITCH_CONTROLS.map(control => <label key={control.key}>
               <span><span><InspectableText>{control.label}</InspectableText></span><output className="text-captionSans"><InspectableText>{`${control.unit === "%" ? Math.round(settings[control.key] * 100) : settings[control.key]} ${control.unit}`}</InspectableText></output></span>
               <input aria-label={control.label} type="range" min={control.min} max={control.max} step={control.step} value={settings[control.key]}
                 onChange={event => { setCopied(false); setSettings(current => ({ ...current, [control.key]: Number(event.target.value) })); }} />
             </label>)}</div>
             <button type="button" className="palette-lab-reset" onClick={() => { setSettings({ ...DEFAULT_GLITCH }); setCopied(false); }}><InspectableText>Reset effect</InspectableText></button>
+            </>}
           </div>
           <div className="palette-lab-current" aria-label="Current palette">{palette.map(color => <span key={color.hex} style={{ backgroundColor: color.hex }} title={`${color.name} ${color.hex}`} />)}</div>
-          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion} onClick={startGlitch}><InspectableText>{reducedMotion ? "Reduced motion on" : "Preview glitch"}</InspectableText></button><button type="button" onClick={copySettings}><InspectableText>{copied ? "Copied" : "Copy settings"}</InspectableText></button></div>
+          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion} onClick={runEffect}><InspectableText>{reducedMotion ? "Reduced motion on" : effectLabel}</InspectableText></button><button type="button" onClick={copySettings}><InspectableText>{copied ? "Copied" : "Copy settings"}</InspectableText></button></div>
         </>}
       </aside>}
     </>, document.body)}
