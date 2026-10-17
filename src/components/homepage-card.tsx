@@ -6,6 +6,7 @@ import type { PointerEvent } from "react";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { mediaUrl } from "@/lib/media-delivery";
+import { InspectableText } from "@/components/design-inspector";
 
 export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
@@ -26,8 +27,8 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
     <span className={`homepage-project-badge${preview.company === "Shop" ? " is-shop" : ""}`} style={{ backgroundColor: preview.companyColor }}>
       <Image src={preview.companyLogo} alt="" width={24} height={24} />
     </span>
-    <span className="homepage-project-title">{preview.label}<span className="homepage-project-period text-captionSmall">{preview.period}</span></span>
-    <span className="homepage-project-company">{preview.company}</span>
+    <span className="homepage-project-title"><InspectableText>{preview.label}</InspectableText><span className="homepage-project-period text-captionSmall"><InspectableText>{preview.period}</InspectableText></span></span>
+    <span className="homepage-project-company"><InspectableText>{preview.company}</InspectableText></span>
   </>;
   const detailsId = `${preview.id}-details`;
   return (

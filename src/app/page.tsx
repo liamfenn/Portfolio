@@ -2,6 +2,7 @@ import { PortfolioFooter } from "@/components/portfolio-footer";
 import { HomepageIdentity, HomepageSpotify } from "@/components/homepage-identity";
 import { HomepageBio } from "@/components/homepage-bio";
 import { ProjectWork } from "@/components/project-work";
+import { DesignInspector, InspectableText } from "@/components/design-inspector";
 
 const CONTACT_LINKS = [
   { label: "Twitter", href: "https://x.com/xyzfennell" },
@@ -13,9 +14,9 @@ const CONTACT_LINKS = [
 function ContactLinks() {
   return (
     <div className="portfolio-contact homepage-contact text-bodySmall">
-      <a className="portfolio-link-strong" href="mailto:info@fennell.cv">info@fennell.cv</a>
+      <a className="portfolio-link-strong" href="mailto:info@fennell.cv"><InspectableText>info@fennell.cv</InspectableText></a>
       <div className="portfolio-socials">
-        {CONTACT_LINKS.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>)}
+        {CONTACT_LINKS.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer"><InspectableText>{link.label}</InspectableText></a>)}
       </div>
     </div>
   );
@@ -23,7 +24,7 @@ function ContactLinks() {
 
 export default function Home() {
   return (
-    <main className="portfolio-v2 portfolio-v3">
+    <DesignInspector><main className="portfolio-v2 portfolio-v3">
       <header className="portfolio-intro">
         <div className="portfolio-bio-group">
           <HomepageIdentity />
@@ -35,6 +36,6 @@ export default function Home() {
       <ContactLinks />
       <HomepageSpotify />
       <PortfolioFooter />
-    </main>
+    </main></DesignInspector>
   );
 }

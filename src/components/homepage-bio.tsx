@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { InspectableText } from "@/components/design-inspector";
 
 /** Add final expansion copy here; the collapsed biography stays verbatim. */
 const BIO_EXPANSIONS: Partial<Record<"designer" | "Shop", string>> = {};
@@ -22,21 +23,21 @@ export function InlineBioExpansion({ word, children }: { word: string; children?
     return () => window.clearTimeout(timer);
   }, [expanded, reducedMotion, wordCount, visibleWords]);
 
-  if (!children) return <>{word}</>;
+  if (!children) return <InspectableText>{word}</InspectableText>;
   const visibleCount = reducedMotion ? (expanded ? wordCount : 0) : visibleWords;
   return <>
     <button type="button" className="bio-expand-word" aria-expanded={expanded} aria-controls={id}
-      onClick={() => setExpanded(value => !value)}>{word}</button>
+      onClick={() => setExpanded(value => !value)}><InspectableText>{word}</InspectableText></button>
     <span id={id}>
       {words.slice(0, visibleCount).map((word, index) => <motion.span className="bio-expanded-word" key={`${index}-${word}`}
         initial={{ opacity: 0, filter: "blur(3px)" }} animate={{ opacity: 1, filter: "blur(0px)" }}
-        transition={{ duration: reducedMotion ? 0 : 0.16 }}> {word}</motion.span>)}
+        transition={{ duration: reducedMotion ? 0 : 0.16 }}> <InspectableText>{word}</InspectableText></motion.span>)}
     </span>
   </>;
 }
 
 export function HomepageBio() {
   return <div className="portfolio-bio text-body"><p>
-    <strong>Liam Fennell</strong> is a <InlineBioExpansion word="designer">{BIO_EXPANSIONS.designer}</InlineBioExpansion> based in Atlanta. Currently at <a href="https://shop.app" target="_blank" rel="noreferrer">Shop</a>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
+    <strong><InspectableText>Liam Fennell</InspectableText></strong><InspectableText>{" is a "}</InspectableText><InlineBioExpansion word="designer">{BIO_EXPANSIONS.designer}</InlineBioExpansion><InspectableText>{" based in Atlanta. Currently at "}</InspectableText><a href="https://shop.app" target="_blank" rel="noreferrer"><InspectableText>Shop</InspectableText></a><InspectableText>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.</InspectableText>
   </p></div>;
 }

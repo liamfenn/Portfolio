@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
+import { InspectableText } from "@/components/design-inspector";
 
 export function HomepageIdentity() {
   return <a className="homepage-identity homepage-slide-badge" href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
@@ -61,20 +62,20 @@ export function HomepageSpotify() {
     </span>
     <span className="homepage-track-info">
       <span className={`homepage-listening text-captionSmall${data?.isPlaying ? " is-playing" : ""}`}>
-        {data?.isPlaying ? <>Listening now<span className="identity-status-dots" aria-hidden="true">
+        <InspectableText text={data?.isPlaying ? "Listening now..." : "Last listened to"}>{data?.isPlaying ? <>Listening now<span className="identity-status-dots" aria-hidden="true">
           <span className="identity-status-dot">.</span>
           <span className="identity-status-dot">.</span>
           <span className="identity-status-dot">.</span>
-        </span></> : "Last listened to"}
+        </span></> : "Last listened to"}</InspectableText>
       </span>
       <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
         className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
         style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
-        <span ref={trackContent} className="homepage-track-marquee"><span>{data?.title ?? "Loading track…"}</span>{data && <> <span className="homepage-artist">{data.artist}</span></>}</span>
+        <span ref={trackContent} className="homepage-track-marquee"><span><InspectableText>{data?.title ?? "Loading track…"}</InspectableText></span>{data && <> <span className="homepage-artist"><InspectableText>{data.artist}</InspectableText></span></>}</span>
         <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
     </span>
-    <span className="homepage-track-time text-captionSmall">{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</span>
+    <span className="homepage-track-time text-captionSmall"><InspectableText>{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
   </a>;
 }

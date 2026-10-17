@@ -8,16 +8,14 @@ import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } fro
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { InspectableText } from "@/components/design-inspector";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
   { value: "recent", label: "Recent" },
   { value: "random", label: "Random" },
 ] as const;
-
-const WORK_LABEL_GLYPHS = Array.from("GridListSortFeaturedRecentRandom23456x–").map((glyph) =>
-  glyph.charCodeAt(0),
-) as [number, number, ...number[]];
 
 /**
  * Deterministic shuffle so a given seed always produces the same order. Reshuffling
@@ -69,18 +67,9 @@ function WorkGlyphControl({
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
   const { ref } = useScramble({
+    ...FILTER_SCRAMBLE,
     text,
     playOnMount: false,
-    speed: 0.68,
-    tick: 1,
-    step: 1,
-    scramble: 2,
-    seed: 1,
-    chance: 1,
-    range: WORK_LABEL_GLYPHS,
-    overdrive: false,
-    overflow: true,
-    ignore: [" "],
     onAnimationFrame: (result) => {
       if (result !== text) {
         setIsScrambling(true);
@@ -107,9 +96,9 @@ function WorkGlyphControl({
           transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
         />
       )}
-      <span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
+      <InspectableText text={text}><span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
         {text}
-      </span>
+      </span></InspectableText>
     </span>
   );
 }
@@ -477,7 +466,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopSort(option.value)}
                   >
-                    {option.label}
+                    <InspectableText>{option.label}</InspectableText>
                   </motion.button>
                 ))}
               </AnimatePresence>
@@ -538,7 +527,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopDensity(density)}
                   >
-                    {density} x {density}
+                    <InspectableText>{`${density} x ${density}`}</InspectableText>
                   </motion.button>
                 ))}
               </AnimatePresence>

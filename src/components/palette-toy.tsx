@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DEFAULT_GLITCH, GLITCH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
 import type { PaletteVotes } from "@/lib/palette-toy";
+import { InspectableText } from "@/components/design-inspector";
 
 const STORAGE_KEY = "portfolio-palette-lab-v1";
 
@@ -206,37 +207,37 @@ export function PaletteToy() {
       <canvas ref={burnCanvasRef} className="palette-glitch-canvas palette-burn-canvas" aria-hidden="true" />
       <canvas ref={canvasRef} className="palette-glitch-canvas" aria-hidden="true" hidden />
       {labEnabled && <aside className={`palette-lab text-captionSmall${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glitch controls">
-        <div className="palette-lab-heading"><span className="text-caption">Palette lab</span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}>{panelOpen ? "Minimize" : "Open"}</button></div>
+        <div className="palette-lab-heading"><span className="text-caption"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>
         {panelOpen && <>
           <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or glitch">
-            <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}>Colors</button>
-            <button type="button" id="glitch-tab" role="tab" aria-selected={tab === "glitch"} aria-controls="glitch-panel" onClick={() => setTab("glitch")}>Glitch</button>
+            <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}><InspectableText>Colors</InspectableText></button>
+            <button type="button" id="glitch-tab" role="tab" aria-selected={tab === "glitch"} aria-controls="glitch-panel" onClick={() => setTab("glitch")}><InspectableText>Glitch</InspectableText></button>
           </div>
           <div id="palette-panel" role="tabpanel" aria-labelledby="palette-tab" hidden={tab !== "palette"}>
-            <div className="palette-quiz-progress text-badge"><span>{answered} / {PALETTE_CANDIDATES.length}</span><span>{liked.length} kept</span></div>
+            <div className="palette-quiz-progress text-badge"><span><InspectableText>{`${answered} / ${PALETTE_CANDIDATES.length}`}</InspectableText></span><span><InspectableText>{`${liked.length} kept`}</InspectableText></span></div>
             {candidate ? <>
               <div className="palette-quiz-swatch" style={{ backgroundColor: candidate.hex }} aria-label={`${candidate.name}, ${candidate.hex}`} />
-              <div className="palette-quiz-name"><span>{candidate.name}</span><span className="text-badge">{candidate.hex}</span></div>
-              <div className="palette-quiz-actions"><button type="button" onClick={() => vote(false)}>No</button><button type="button" onClick={() => vote(true)}>Yes</button></div>
-            </> : <p className="palette-quiz-complete">Round complete. Select a color below to revisit it.</p>}
+              <div className="palette-quiz-name"><span><InspectableText>{candidate.name}</InspectableText></span><span className="text-badge"><InspectableText>{candidate.hex}</InspectableText></span></div>
+              <div className="palette-quiz-actions"><button type="button" onClick={() => vote(false)}><InspectableText>No</InspectableText></button><button type="button" onClick={() => vote(true)}><InspectableText>Yes</InspectableText></button></div>
+            </> : <p className="palette-quiz-complete"><InspectableText>Round complete. Select a color below to revisit it.</InspectableText></p>}
             <div className="palette-quiz-history" aria-label="Color votes">
               {PALETTE_CANDIDATES.filter(color => votes[color.hex] !== undefined).map(color => <button key={color.hex} type="button" style={{ backgroundColor: color.hex }}
                 aria-label={`${color.name}: ${votes[color.hex] ? "Yes" : "No"}. Revisit color.`} onClick={() => setReviewIndex(PALETTE_CANDIDATES.indexOf(color))}>
-                <span>{votes[color.hex] ? "+" : "−"}</span>
+                <span><InspectableText>{votes[color.hex] ? "+" : "−"}</InspectableText></span>
               </button>)}
             </div>
-            {answered > 0 && <button type="button" className="palette-lab-reset" onClick={() => { setVotes({}); setReviewIndex(null); setCopied(false); }}>Restart quiz</button>}
+            {answered > 0 && <button type="button" className="palette-lab-reset" onClick={() => { setVotes({}); setReviewIndex(null); setCopied(false); }}><InspectableText>Restart quiz</InspectableText></button>}
           </div>
           <div id="glitch-panel" role="tabpanel" aria-labelledby="glitch-tab" hidden={tab !== "glitch"}>
             <div className="palette-lab-controls">{GLITCH_CONTROLS.map(control => <label key={control.key}>
-              <span><span>{control.label}</span><output className="text-badge">{control.unit === "%" ? Math.round(settings[control.key] * 100) : settings[control.key]} {control.unit}</output></span>
+              <span><span><InspectableText>{control.label}</InspectableText></span><output className="text-badge"><InspectableText>{`${control.unit === "%" ? Math.round(settings[control.key] * 100) : settings[control.key]} ${control.unit}`}</InspectableText></output></span>
               <input aria-label={control.label} type="range" min={control.min} max={control.max} step={control.step} value={settings[control.key]}
                 onChange={event => { setCopied(false); setSettings(current => ({ ...current, [control.key]: Number(event.target.value) })); }} />
             </label>)}</div>
-            <button type="button" className="palette-lab-reset" onClick={() => { setSettings({ ...DEFAULT_GLITCH }); setCopied(false); }}>Reset effect</button>
+            <button type="button" className="palette-lab-reset" onClick={() => { setSettings({ ...DEFAULT_GLITCH }); setCopied(false); }}><InspectableText>Reset effect</InspectableText></button>
           </div>
           <div className="palette-lab-current" aria-label="Current palette">{palette.map(color => <span key={color.hex} style={{ backgroundColor: color.hex }} title={`${color.name} ${color.hex}`} />)}</div>
-          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion} onClick={startGlitch}>{reducedMotion ? "Reduced motion on" : "Preview glitch"}</button><button type="button" onClick={copySettings}>{copied ? "Copied" : "Copy settings"}</button></div>
+          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion} onClick={startGlitch}><InspectableText>{reducedMotion ? "Reduced motion on" : "Preview glitch"}</InspectableText></button><button type="button" onClick={copySettings}><InspectableText>{copied ? "Copied" : "Copy settings"}</InspectableText></button></div>
         </>}
       </aside>}
     </>, document.body)}

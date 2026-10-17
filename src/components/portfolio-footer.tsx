@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useWeather } from "@/hooks/use-weather";
 import { PaletteToy } from "@/components/palette-toy";
+import { InspectableText } from "@/components/design-inspector";
 
 function getNewYorkTime() {
   return new Date().toLocaleTimeString("en-US", {
@@ -32,21 +33,21 @@ export function PortfolioFooter() {
   return (
     <footer className="portfolio-footer text-bodySans">
       <div className="portfolio-footer-row">
-        <span className="footer-highlight">© 2026</span>
-        <span>Office of Liam Fennell</span>
+        <span className="footer-highlight"><InspectableText>© 2026</InspectableText></span>
+        <span><InspectableText>Office of Liam Fennell</InspectableText></span>
       </div>
       <div className="portfolio-footer-row">
-        <span className="footer-highlight">Atlanta, GA</span>
+        <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
         <span className="footer-weather text-body">
-          <span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
+          <InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
             {time ?? "12:00 PM"}
           </span>
-          , {condition} at {temperature}°F
+          , {condition} at {temperature}°F</InspectableText>
         </span>
       </div>
       <div className="portfolio-footer-row portfolio-footer-bottom">
         <span className="footer-type-credit text-body">
-          Set in Oracle &amp; <span className="footer-otto">Otto</span>
+          <InspectableText>Set in Oracle &amp; <span className="footer-otto">Otto</span></InspectableText>
         </span>
         <PaletteToy />
       </div>
