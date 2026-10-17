@@ -21,7 +21,7 @@ const stripEase = cubicBezier(0.16, 1, 0.3, 1);
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
   const [glyphs, setGlyphs] = useState<GlyphSettings>({ ...DEFAULT_GLYPHS });
-  // The letters stay dropped until the strip is tapped again; a refresh resets them.
+  // The letters stay gathered until the strip is tapped again; a refresh resets them.
   const dropRef = useRef<GlyphDrop | null>(null);
   const runRef = useRef<AbortController | null>(null);
   const isRestoringRef = useRef(false);
@@ -119,7 +119,7 @@ export function PaletteToy() {
     return () => window.cancelAnimationFrame(frame);
   }, [paletteKey, reducedMotion]);
 
-  // Tap to drop the letters, tap again to float them home.
+  // Tap to gather the letters, tap again to float them home.
   const toggleDrop = useCallback(() => {
     if (reducedMotion || isRestoringRef.current) return;
     const drop = dropRef.current;
@@ -137,9 +137,6 @@ export function PaletteToy() {
     }
     const page = triggerRef.current?.closest("main");
     if (!page) return;
-    // iOS only grants motion (for tilt) from a tap, so ask now; the drop listens once it's allowed.
-    const Orientation = window.DeviceOrientationEvent as (typeof DeviceOrientationEvent & { requestPermission?: () => Promise<string> }) | undefined;
-    if (window.matchMedia("(pointer: coarse)").matches) void Orientation?.requestPermission?.().catch(() => undefined);
     const controller = new AbortController();
     runRef.current = controller;
     setIsDropped(true);
@@ -165,7 +162,7 @@ export function PaletteToy() {
     dropRef.current = null;
   }, []);
 
-  const dropLabel = isDropped ? "Put the letters back" : "Drop the letters";
+  const dropLabel = isDropped ? "Put the letters back" : "Gather the letters";
 
   const vote = (keep: boolean) => {
     if (!candidate) return;
@@ -192,7 +189,7 @@ export function PaletteToy() {
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>
         {panelOpen && <>
-          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the glyph drop">
+          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the glyph shape">
             <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}><InspectableText>Colors</InspectableText></button>
             <button type="button" id="glyphs-tab" role="tab" aria-selected={tab === "glyphs"} aria-controls="glyphs-panel" onClick={() => setTab("glyphs")}><InspectableText>Glyphs</InspectableText></button>
           </div>

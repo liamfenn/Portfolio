@@ -68,16 +68,23 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
-UI colors. Tap the footer strip to drop a share of the page's letters; tap again
-to float them home. Matter.js is loaded on the first tap. Letters can catch on
-project cards, follow the desktop cursor, react to scrolling, and use phone tilt
-when motion permission is granted. Without permission, normal downward gravity
-still works. Reduced motion disables the drop. Width changes and refresh clear it.
+UI colors. Tap the footer strip to gather a random share of the page's letters into a centered,
+viewport-anchored shape. Globe (the starting shape on every activation), diamond, ring, flower, and heart silhouettes morph
+every 25 seconds, with subtle ambient movement. Drag through the shape to scatter
+letters; springs return them shortly afterward. Repeated fast drags collapse it.
+The random sample includes filters and music metadata; menus
+and debugging controls are excluded. Original React text remains mounted; selected characters are hidden with text
+highlights while the remaining characters stay in place.
 
-Open `?palette-lab` and choose **Glyphs** to tune the share dropped, ledge catches,
-gravity, bounce, friction, cursor/tilt pull, and scroll reaction. Settings and color
-votes are saved locally; the dropped letters are temporary. The earlier glitch
-and snake experiments have been removed.
+Collapsed glyphs all land above the music player, including footer letters. The
+album cover and sliding Spotify badge are live collision surfaces. Dragging tips
+and nudges the pile on desktop and touch screens; scroll adds a subtle nudge.
+There is no device orientation permission. Tap again to return the letters.
+Reduced motion disables the toy; width changes and refresh clear it.
+
+Open `?palette-lab` and choose **Glyphs** to tune the percentage gathered (40% by default), collapse gravity, bounce,
+friction, drag response, and scroll reaction. Settings and color votes are saved
+locally; the glyph arrangement is temporary. Matter.js loads on the first tap.
 
 ## Spotify authorization
 
