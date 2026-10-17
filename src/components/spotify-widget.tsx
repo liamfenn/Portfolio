@@ -94,7 +94,7 @@ export function SpotifyWidget() {
 
         {/* Track info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="type-secondary text-muted-foreground">
+          <span className="type-secondary text-muted">
             {isActive ? "Listening to..." : "Last listened to"}
           </span>
           <MarqueeText title={data.title} artist={data.artist} hovered={hovered} isActive={isActive} />
@@ -113,10 +113,10 @@ export function SpotifyWidget() {
         >
           {isActive && (
             <SmoothCorners radius={999}>
-              <span className="w-[4px] h-[4px] bg-spotify-green animate-pulse-deep" />
+              <span className="w-[4px] h-[4px] bg-green-fill animate-pulse-deep" />
             </SmoothCorners>
           )}
-          <span className={`type-mono-sm ${isActive ? "text-spotify-green" : "text-muted-foreground"}`}>
+          <span className={`type-mono-sm ${isActive ? "text-green" : "text-muted"}`}>
             {isActive ? "Now" : timeAgo}
           </span>
         </div>
@@ -128,7 +128,7 @@ export function SpotifyWidget() {
             transform: hovered ? "scale(1)" : "scale(0.8)",
           }}
         >
-          <span className={`type-mono-sm ${isActive ? "text-spotify-green" : "text-muted-foreground"}`}>
+          <span className={`type-mono-sm ${isActive ? "text-green" : "text-muted"}`}>
             View
           </span>
         </div>
@@ -184,7 +184,7 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
           }}
         >
           <SpotifyIcon
-            className={`w-[14px] h-[14px] shrink-0 transition-all duration-200 ${isActive ? "text-spotify-green" : ""}`}
+            className={`w-[14px] h-[14px] shrink-0 transition-all duration-200 ${isActive ? "text-green" : ""}`}
             style={{
               color: isActive ? undefined : "#555",
               opacity: hovered ? 1 : 0,
@@ -219,16 +219,16 @@ function MarqueeText({ title, artist, hovered, isActive }: { title: string; arti
 function SpotifySkeleton() {
   return (
     <SmoothCorners radius={999}>
-      <div className="flex items-center gap-2.5 w-full px-2.5 py-2 bg-card animate-pulse">
+      <div className="flex items-center gap-2.5 w-full px-2.5 py-2 bg-secondary-fill animate-pulse">
         <SmoothCorners radius={8} desktopRadius={10}>
-          <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] bg-muted-foreground/20" />
+          <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] bg-[var(--text-muted)]/20" />
         </SmoothCorners>
         <div className="flex flex-col gap-1 flex-1">
           <SmoothCorners radius={4}>
-            <div className="h-3 w-20 bg-muted-foreground/20" />
+            <div className="h-3 w-20 bg-[var(--text-muted)]/20" />
           </SmoothCorners>
           <SmoothCorners radius={4}>
-            <div className="h-4 w-32 bg-muted-foreground/20" />
+            <div className="h-4 w-32 bg-[var(--text-muted)]/20" />
           </SmoothCorners>
         </div>
       </div>

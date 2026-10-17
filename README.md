@@ -9,8 +9,12 @@ Weather data from OpenWeatherMap. Now playing from the Spotify API. Designed and
 Edit `src/app/tokens.css` to change the homepage's shared colors and typography.
 Use these variables in component styles instead of adding raw color or type values.
 
-- Colors: `--color-background`, `--color-foreground`, `--color-muted`,
-  `--color-muted-foreground`, `--color-surface`, and named brand colors.
+- Text colors: `--text-primary` (#000000), `--text-secondary` (#555555),
+  `--text-muted` (#999999), and `--text-green` (#1ED760).
+- Fills: `--bg-fill` (#FFFFFF), `--bg-secondary-fill` (#F6F8F9),
+  `--bg-green-fill` (#1ED760), and `--bg-purple-fill` (#5343EB).
+- Borders, shadows, and translucent overlays derive from those roles with opacity.
+  White text on filled controls uses `--bg-fill`; there is no extra inverse token.
 - Fonts: `--font-oracle` and `--font-otto` bind to the loaded font files.
 - Primitive type values: 15px body text and 14px captions on desktop;
   14px body text and 13px captions on mobile; regular weight and family tracking.
@@ -33,20 +37,21 @@ project dates, and the player's listening status and time use captionSans.
 
 The built-in inspector works on the homepage and the palette lab:
 
-- **T** cycles content → text style → font size / line height in pixels → content.
+- **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
 - **C** cycles content → color token → hex → content.
 - **Escape** restores content. Switching from T to C (or vice versa) starts
   at that family's token view. Shortcuts ignore editable fields and modifier keys.
 
 Use `InspectableText` for new visible text, inside its text-style class. Its
 original React content stays mounted, and transitions share the filters' glyph
-effect. Pair text color declarations with `--inspect-color-token: color-name`
+effect. Pair text color declarations with `--inspect-color-token: text-primary`
 so the inspector reports the semantic token; unmatched colors show `unassigned`.
 The inspector reads rendered font metrics and color values at the current width.
 Labels retain the original text styling without added backgrounds or swatches.
 The intro is inspected as one paragraph, using its shared bodySerif style and base color.
 
-Project badge colors reference these same tokens in `src/lib/project-previews.ts`.
+Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
+`--bg-purple-fill`. Other project assets remain available for later use.
 The user-selected glitch colors and settings remain in `src/lib/palette-toy.ts`;
 they are independent of the UI colors and retain saved palette preferences.
 

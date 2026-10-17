@@ -4,34 +4,6 @@
   --font-sans: var(--font-suisse-intl), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
-  /* Shared colors; existing names also generate Tailwind utilities. */
-  --color-background: #ffffff;
-  --color-foreground: #000000;
-  --color-muted: #555555;
-  --color-muted-foreground: #999999;
-  --color-card: #f5f5f5;
-  --color-card-dark: #2e2e2e;
-  --color-spotify-green: #1ed760;
-  --color-border: rgba(0, 0, 0, 0.04);
-  --color-border-light: rgba(255, 255, 255, 0.16);
-
-  /* Surfaces and brand accents */
-  --color-surface: #f6f8f9;
-  --color-avatar-placeholder: #f0f0f0;
-  --color-surface-subtle: #eeeeee;
-  --color-tooltip: rgb(255 255 255 / .9);
-  --color-shop: #5343eb;
-  --color-plasticity: #494578;
-  --color-azura: #65fc9f;
-  --color-control-focus: rgb(0 0 0 / .35);
-
-  /* The private palette lab's supporting UI */
-  --color-lab-foreground: #111111;
-  --color-lab-muted: #777777;
-  --color-lab-border: #e6e6e6;
-  --color-lab-shadow: rgb(0 0 0 / .08);
-  --color-lab-overlay: rgb(255 255 255 / .8);
-
   /* Type scale: font size, weight, leading, and tracking are independent. */
   --text-caption: 14px;
   --text-body: 15px;
@@ -48,6 +20,27 @@
   --spacing-section: 72px;
   --content-padding: 16px;
 }
+
+/* Semantic color roles live outside Tailwind's font-size token namespace. */
+:root {
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  --text-green: #1ed760;
+  --bg-fill: #ffffff;
+  --bg-secondary-fill: #f6f8f9;
+  --bg-green-fill: #1ed760;
+  --bg-purple-fill: #5343eb;
+}
+
+@utility text-primary { color: var(--text-primary); --inspect-color-token: text-primary; }
+@utility text-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
+@utility text-muted { color: var(--text-muted); --inspect-color-token: text-muted; }
+@utility text-green { color: var(--text-green); --inspect-color-token: text-green; }
+@utility bg-fill { background-color: var(--bg-fill); }
+@utility bg-secondary-fill { background-color: var(--bg-secondary-fill); }
+@utility bg-green-fill { background-color: var(--bg-green-fill); }
+@utility bg-purple-fill { background-color: var(--bg-purple-fill); }
 
 /* next/font variables live on body, so resolve the font aliases here too. */
 body {

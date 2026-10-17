@@ -7,8 +7,8 @@ export function nextInspectionMode(mode: InspectionMode, key: "t" | "c" | "Escap
 }
 
 export function formatTextMetrics(size: string, leading: string) {
-  const pixels = (value: string) => `${Number.parseFloat(value).toFixed(2).replace(/\.?0+$/, "")}px`;
-  return `${pixels(size)} / ${leading === "normal" ? "normal" : pixels(leading)}`;
+  const number = (value: string) => Number.parseFloat(value).toFixed(2).replace(/\.?0+$/, "");
+  return `${number(size)} / ${leading === "normal" ? "normal" : number(leading)}`;
 }
 
 /** Computed text colors are RGB in Safari and Chromium; support sRGB too. */

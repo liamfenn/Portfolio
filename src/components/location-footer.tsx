@@ -23,11 +23,11 @@ export function LocationFooter() {
 
   return (
     <div className="flex items-center justify-between px-3 md:px-4 type-mono-responsive">
-      <span className="text-muted">
+      <span className="text-secondary">
         <span className="md:hidden">Atlanta, GA</span>
         <span className="hidden md:inline">Atlanta, Georgia</span>
       </span>
-      <span className="text-muted-foreground">
+      <span className="text-muted">
         {time}
         {!isLoading && data && `, ${Math.round(data.temperature)}°F ${data.condition}`}
       </span>

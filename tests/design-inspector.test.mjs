@@ -20,10 +20,11 @@ test("changing inspector families starts at tokens; Escape always restores conte
   }
 });
 
-test("pixel metrics keep fractional leading without trailing zeros", () => {
-  assert.equal(formatTextMetrics("15px", "20.25px"), "15px / 20.25px");
-  assert.equal(formatTextMetrics("14px", "18.9px"), "14px / 18.9px");
-  assert.equal(formatTextMetrics("12px", "16.2px"), "12px / 16.2px");
+test("text metrics omit units and trailing zeros while retaining fractional values", () => {
+  assert.equal(formatTextMetrics("15px", "20px"), "15 / 20");
+  assert.equal(formatTextMetrics("14px", "18px"), "14 / 18");
+  assert.equal(formatTextMetrics("13px", "18px"), "13 / 18");
+  assert.equal(formatTextMetrics("15px", "20.25px"), "15 / 20.25");
 });
 
 test("computed text colors normalize to hex, including alpha and Safari RGB forms", () => {
