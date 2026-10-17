@@ -107,7 +107,7 @@ export function HomepageSpotify() {
       <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
         className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
         style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
-        <span ref={trackContent} className="homepage-track-marquee"><span>{data ? <TrackText text={data.title} scramble={trackChange.scrambleTitle && !reducedMotion} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <> <span className="homepage-artist"><TrackText text={data.artist} scramble={trackChange.scrambleArtist && !reducedMotion} /></span></>}</span>
+        <span ref={trackContent} className="homepage-track-marquee"><span className="homepage-title">{data ? <TrackText text={data.title} scramble={trackChange.scrambleTitle && !reducedMotion} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <><wbr /><span className="homepage-artist"><TrackText text={data.artist} scramble={trackChange.scrambleArtist && !reducedMotion} /></span></>}</span>
         <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>

@@ -2167,6 +2167,8 @@ body.is-media-focused .case-study-controls {
 .homepage-listening.is-playing { --inspect-color-token: text-green; color: var(--text-green); }
 .homepage-track { overflow-wrap: anywhere; }
 .homepage-track-fade { display: none; }
+/* An exact 4px gap instead of a space; <wbr> keeps the line-break opportunity between title and artist. */
+.homepage-title { margin-inline-end: 4px; }
 .homepage-artist { --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .homepage-track-time { flex: 0 0 auto; display: inline-grid; white-space: nowrap; }
 /* A hidden copy in the widest digit reserves the clock's width; the real time sits left in it, so it never shifts. */
