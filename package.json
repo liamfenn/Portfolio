@@ -12,7 +12,6 @@
     "media:upload": "node scripts/upload-media.mjs"
   },
   "dependencies": {
-    "@lisse/react": "^0.7.0",
     "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.8.0",
     "geist": "^1.7.0",
