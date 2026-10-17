@@ -78,7 +78,13 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
       highlight?.add(range); layer.append(element);
     }
   }
-  if (highlight) CSS.highlights.set("glyph-toy-selected", highlight);
+  // Install this browser-supported rule at runtime: Next 16's CSS parser rejects ::highlight().
+  const highlightStyle = document.createElement("style");
+  if (highlight) {
+    highlightStyle.textContent = "::highlight(glyph-toy-selected) { color: transparent; text-shadow: none; }";
+    document.head.append(highlightStyle);
+    CSS.highlights.set("glyph-toy-selected", highlight);
+  }
   Composite.add(engine.world, glyphs.map(glyph => glyph.body));
   document.body.append(layer);
 
@@ -259,6 +265,7 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
     if (removed) return;
     removed = finished = true; stop(); flights.forEach(flight => flight.cancel());
     if (highlight) CSS.highlights.delete("glyph-toy-selected");
+    highlightStyle.remove();
     layer.remove(); window.removeEventListener("resize", onResize);
     options.signal.removeEventListener("abort", cleanup); options.onFinish();
   };

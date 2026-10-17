@@ -735,7 +735,6 @@
 /* Copies gather in a viewport shape; original React text keeps updating invisibly. */
 .glyph-drop-layer { position: fixed; inset: 0; z-index: 1500; overflow: clip; pointer-events: none; }
 .glyph-drop-glyph { position: absolute; left: 0; top: 0; display: block; white-space: pre; transform-origin: center; will-change: transform; }
-::highlight(glyph-toy-selected) { color: transparent; text-shadow: none; }
 .glyph-drop-patch { position: absolute; display: block; }
 .glyph-shape-touch { position: absolute; touch-action: none; cursor: grab; }
 .glyph-drop-layer[data-phase="shape"] .glyph-shape-touch { pointer-events: auto; }
