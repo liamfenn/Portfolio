@@ -30,14 +30,14 @@ export function PortfolioFooter() {
   const temperature = data ? Math.round(data.temperature) : 71;
 
   return (
-    <footer className="portfolio-footer">
+    <footer className="portfolio-footer text-bodySans">
       <div className="portfolio-footer-row">
         <span className="footer-highlight">© 2026</span>
         <span>Office of Liam Fennell</span>
       </div>
       <div className="portfolio-footer-row">
         <span className="footer-highlight">Atlanta, GA</span>
-        <span className="footer-weather">
+        <span className="footer-weather text-body">
           <span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
             {time ?? "12:00 PM"}
           </span>
@@ -45,7 +45,7 @@ export function PortfolioFooter() {
         </span>
       </div>
       <div className="portfolio-footer-row portfolio-footer-bottom">
-        <span className="footer-type-credit">
+        <span className="footer-type-credit text-body">
           Set in Oracle &amp; <span className="footer-otto">Otto</span>
         </span>
         <PaletteToy />

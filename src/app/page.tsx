@@ -12,7 +12,7 @@ const CONTACT_LINKS = [
 
 function ContactLinks() {
   return (
-    <div className="portfolio-contact homepage-contact">
+    <div className="portfolio-contact homepage-contact text-bodySmall">
       <a className="portfolio-link-strong" href="mailto:info@fennell.cv">info@fennell.cv</a>
       <div className="portfolio-socials">
         {CONTACT_LINKS.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>)}

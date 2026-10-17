@@ -11,13 +11,25 @@ Use these variables in component styles instead of adding raw color or type valu
 
 - Colors: `--color-background`, `--color-foreground`, `--color-muted`,
   `--color-muted-foreground`, `--color-surface`, and named brand colors.
-- Fonts: `--font-oracle` for UI and `--font-otto` for prose.
-- Type scale: `--text-small` (12px), `--text-caption` (13px),
-  `--text-label` (14px), and `--text-body` (15px).
-- Responsive roles: `--text-ui` and `--text-prose` use 15px on desktop and
-  14px on mobile; `--text-ui-meta` uses 14px and 13px respectively.
-- Shared type settings: `--font-weight-regular`, `--leading-body`,
-  `--tracking-ui`, and `--tracking-prose`.
+- Fonts: `--font-oracle` and `--font-otto` bind to the loaded font files.
+- Primitive type values: the 12–15px scale, regular weight, 1.35 line height,
+  and tracking remain in the token file.
+
+Apply one class from `src/app/text-styles.css` to get the whole text style.
+Colors remain independent so the same style can use primary or secondary text.
+
+| Style class | Font | Desktop | Mobile |
+| --- | --- | --- | --- |
+| `text-body` | Otto | 15px | 14px |
+| `text-bodySmall` | Otto | 14px | 14px |
+| `text-bodySans` | Oracle | 15px | 14px |
+| `text-caption` | Oracle | 14px | 14px |
+| `text-captionSmall` | Oracle | 13px | 13px |
+| `text-badge` | Oracle | 12px | 12px |
+
+All six styles use weight 400 and line height 1.35. Otto styles track at -2%;
+Oracle styles track at -1%. Change a named style's `--type-*` bundle to update
+its family, size, weight, and leading together.
 
 Project badge colors reference these same tokens in `src/lib/project-previews.ts`.
 The user-selected glitch colors and settings remain in `src/lib/palette-toy.ts`;

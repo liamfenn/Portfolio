@@ -52,18 +52,3 @@ body {
   --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
   --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
 }
-
-:root {
-  /* Responsive roles shared by the toolbar, footer, biography, and player. */
-  --text-ui: var(--text-body);
-  --text-ui-meta: var(--text-label);
-  --text-prose: var(--text-body);
-}
-
-@media (max-width: 767px) {
-  :root {
-    --text-ui: var(--text-label);
-    --text-ui-meta: var(--text-caption);
-    --text-prose: var(--text-label);
-  }
-}

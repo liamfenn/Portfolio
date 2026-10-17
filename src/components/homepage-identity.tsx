@@ -33,13 +33,13 @@ export function HomepageSpotify() {
   }, []);
   const progress = data?.progressMs === undefined ? null : Math.min(data.durationMs ?? Infinity,
     data.progressMs + (data.isPlaying && data.fetchedAt && now ? Math.max(0, now - new Date(data.fetchedAt).getTime()) : 0));
-  return <a className="homepage-spotify" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
+  return <a className="homepage-spotify text-bodySans" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className="homepage-album-badge homepage-slide-badge">
       <span className="homepage-brand homepage-spotify-brand"><Image src="/images/icons/spotify-black.svg" alt="" width={16} height={16} /></span>
       <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
     </span>
     <span className="homepage-track-info">
-      <span className={`homepage-listening${data?.isPlaying ? " is-playing" : ""}`}>
+      <span className={`homepage-listening text-captionSmall${data?.isPlaying ? " is-playing" : ""}`}>
         {data?.isPlaying ? <>Listening now<span className="identity-status-dots" aria-hidden="true">
           <span className="identity-status-dot">.</span>
           <span className="identity-status-dot">.</span>
@@ -48,6 +48,6 @@ export function HomepageSpotify() {
       </span>
       <span className="homepage-track"><span>{data?.title ?? "Loading track…"}</span>{data && <> <span className="homepage-artist">{data.artist}</span></>}</span>
     </span>
-    <span className="homepage-track-time">{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</span>
+    <span className="homepage-track-time text-captionSmall">{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</span>
   </a>;
 }

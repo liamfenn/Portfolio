@@ -1,0 +1,29 @@
+/* Each named style bundles family, size, weight, leading, and tracking. */
+body {
+  --type-body-size: var(--text-body);
+  --type-body: var(--font-weight-regular) var(--type-body-size) / var(--leading-body) var(--font-otto);
+  --type-bodySmall: var(--font-weight-regular) var(--text-label) / var(--leading-body) var(--font-otto);
+  --type-bodySans: var(--font-weight-regular) var(--type-body-size) / var(--leading-body) var(--font-oracle);
+  --type-caption: var(--font-weight-regular) var(--text-label) / var(--leading-body) var(--font-oracle);
+  --type-captionSmall: var(--font-weight-regular) var(--text-caption) / var(--leading-body) var(--font-oracle);
+  --type-badge: var(--font-weight-regular) var(--text-small) / var(--leading-body) var(--font-oracle);
+}
+
+.text-body { font: var(--type-body); }
+.text-bodySmall { font: var(--type-bodySmall); }
+.text-bodySans { font: var(--type-bodySans); }
+.text-caption { font: var(--type-caption); }
+.text-captionSmall { font: var(--type-captionSmall); }
+.text-badge { font: var(--type-badge); }
+
+.text-body,
+.text-bodySmall { letter-spacing: var(--tracking-prose); }
+
+.text-bodySans,
+.text-caption,
+.text-captionSmall,
+.text-badge { letter-spacing: var(--tracking-ui); }
+
+@media (max-width: 767px) {
+  body { --type-body-size: var(--text-label); }
+}

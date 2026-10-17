@@ -205,18 +205,18 @@ export function PaletteToy() {
     {ready && createPortal(<>
       <canvas ref={burnCanvasRef} className="palette-glitch-canvas palette-burn-canvas" aria-hidden="true" />
       <canvas ref={canvasRef} className="palette-glitch-canvas" aria-hidden="true" hidden />
-      {labEnabled && <aside className={`palette-lab${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glitch controls">
-        <div className="palette-lab-heading"><span>Palette lab</span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}>{panelOpen ? "Minimize" : "Open"}</button></div>
+      {labEnabled && <aside className={`palette-lab text-captionSmall${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glitch controls">
+        <div className="palette-lab-heading"><span className="text-caption">Palette lab</span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}>{panelOpen ? "Minimize" : "Open"}</button></div>
         {panelOpen && <>
           <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or glitch">
             <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}>Colors</button>
             <button type="button" id="glitch-tab" role="tab" aria-selected={tab === "glitch"} aria-controls="glitch-panel" onClick={() => setTab("glitch")}>Glitch</button>
           </div>
           <div id="palette-panel" role="tabpanel" aria-labelledby="palette-tab" hidden={tab !== "palette"}>
-            <div className="palette-quiz-progress"><span>{answered} / {PALETTE_CANDIDATES.length}</span><span>{liked.length} kept</span></div>
+            <div className="palette-quiz-progress text-badge"><span>{answered} / {PALETTE_CANDIDATES.length}</span><span>{liked.length} kept</span></div>
             {candidate ? <>
               <div className="palette-quiz-swatch" style={{ backgroundColor: candidate.hex }} aria-label={`${candidate.name}, ${candidate.hex}`} />
-              <div className="palette-quiz-name"><span>{candidate.name}</span><span>{candidate.hex}</span></div>
+              <div className="palette-quiz-name"><span>{candidate.name}</span><span className="text-badge">{candidate.hex}</span></div>
               <div className="palette-quiz-actions"><button type="button" onClick={() => vote(false)}>No</button><button type="button" onClick={() => vote(true)}>Yes</button></div>
             </> : <p className="palette-quiz-complete">Round complete. Select a color below to revisit it.</p>}
             <div className="palette-quiz-history" aria-label="Color votes">
@@ -229,7 +229,7 @@ export function PaletteToy() {
           </div>
           <div id="glitch-panel" role="tabpanel" aria-labelledby="glitch-tab" hidden={tab !== "glitch"}>
             <div className="palette-lab-controls">{GLITCH_CONTROLS.map(control => <label key={control.key}>
-              <span><span>{control.label}</span><output>{control.unit === "%" ? Math.round(settings[control.key] * 100) : settings[control.key]} {control.unit}</output></span>
+              <span><span>{control.label}</span><output className="text-badge">{control.unit === "%" ? Math.round(settings[control.key] * 100) : settings[control.key]} {control.unit}</output></span>
               <input aria-label={control.label} type="range" min={control.min} max={control.max} step={control.step} value={settings[control.key]}
                 onChange={event => { setCopied(false); setSettings(current => ({ ...current, [control.key]: Number(event.target.value) })); }} />
             </label>)}</div>

@@ -437,7 +437,7 @@ export function ProjectWork() {
 
   return (
     <section className="portfolio-work" aria-label="Work" onPointerMoveCapture={handleWorkPointerMove}>
-      <div className="work-toolbar" aria-label="Project display controls">
+      <div className="work-toolbar text-bodySans" aria-label="Project display controls">
         <div
           ref={sortControlRef}
           className="work-density-control work-sort-menu-control"
