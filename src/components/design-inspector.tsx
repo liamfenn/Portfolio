@@ -152,7 +152,9 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
   </span>;
 }
 
-type SpacingArea = { box: Box; value: string; kind: SpacingKind };
+/** The page frame is the outermost padding layer, so it gets its own color. */
+type SpacingAreaKind = SpacingKind | "frame";
+type SpacingArea = { box: Box; value: string; kind: SpacingAreaKind };
 const SKIPPED_ELEMENTS = ".spacing-overlay, .design-inspector, script, style, noscript, template";
 
 function inFlowChildren(element: Element): HTMLElement[] {
@@ -174,7 +176,7 @@ function isVisible(element: HTMLElement, rect: DOMRect) {
 /** Collects the mode's padding, margins, and flex/grid gaps along one axis in viewport coordinates, in paint order. */
 function measureSpacing(mode: InspectionMode): SpacingArea[] {
   const kinds = spacingKinds(mode);
-  const found: Record<SpacingKind, SpacingArea[]> = { margin: [], padding: [], gap: [] };
+  const found: Record<SpacingAreaKind, SpacingArea[]> = { frame: [], margin: [], padding: [], gap: [] };
   const vertical = mode.endsWith("-y");
   for (const element of Array.from(document.body.querySelectorAll<HTMLElement>("*"))) {
     if (element.closest(SKIPPED_ELEMENTS)) continue;
@@ -188,10 +190,11 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
     };
 
     if (kinds.includes("padding")) {
+      const kind = element.hasAttribute("data-page-frame") ? "frame" : "padding";
       const [start, end] = vertical ? [px("padding-top"), px("padding-bottom")] : [px("padding-left"), px("padding-right")];
-      if (start > 0) found.padding.push({ kind: "padding", value: formatPixels(start), box: vertical
+      if (start > 0) found[kind].push({ kind, value: formatPixels(start), box: vertical
         ? { ...inner, bottom: inner.top + start } : { ...inner, right: inner.left + start } });
-      if (end > 0) found.padding.push({ kind: "padding", value: formatPixels(end), box: vertical
+      if (end > 0) found[kind].push({ kind, value: formatPixels(end), box: vertical
         ? { ...inner, top: inner.bottom - end } : { ...inner, left: inner.right - end } });
     }
 
@@ -216,7 +219,16 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
       found.gap.push({ kind: "gap", box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
     }
   }
-  return kinds.flatMap(kind => found[kind]);
+  const areas = [...found.frame, ...kinds.flatMap(kind => found[kind])];
+  if (!vertical) return areas;
+  // Vertical spacing reads as horizontal bands across the whole page; draw each band once.
+  const seen = new Set<string>();
+  return areas.flatMap(area => {
+    const key = `${area.kind}:${Math.round(area.box.top)}:${Math.round(area.box.bottom)}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{ ...area, box: { ...area.box, left: 0, right: document.documentElement.clientWidth } }];
+  });
 }
 
 /** Grid-paper overlay with each spacing value centered in its area; rebuilt as the page scrolls, resizes, or animates. */

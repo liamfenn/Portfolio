@@ -24,7 +24,7 @@ function ContactLinks() {
 
 export default function Home() {
   return (
-    <DesignInspector><main className="portfolio-v2 portfolio-v3">
+    <DesignInspector><main className="portfolio-v2 portfolio-v3" data-page-frame>
       <header className="portfolio-intro">
         <div className="portfolio-bio-group">
           <HomepageIdentity />

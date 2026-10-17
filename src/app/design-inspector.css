@@ -69,7 +69,8 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 .spacing-overlay {
   --spacing-padding: #f2385a;
   --spacing-margin: #e08a00;
-  --spacing-gap: #5343eb;
+  --spacing-gap: #2f6bff;
+  --spacing-frame: #a14bf2;
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -78,6 +79,7 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 .spacing-area.is-padding { --spacing-color: var(--spacing-padding); }
 .spacing-area.is-margin { --spacing-color: var(--spacing-margin); }
 .spacing-area.is-gap { --spacing-color: var(--spacing-gap); }
+.spacing-area.is-frame { --spacing-color: var(--spacing-frame); }
 .spacing-area {
   position: absolute;
   background-color: color-mix(in srgb, var(--spacing-color) 10%, transparent);
