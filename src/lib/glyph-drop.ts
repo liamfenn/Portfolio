@@ -4,7 +4,7 @@ import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
 // Menus, hidden accessibility copies, and debugging UI keep their own text.
-const SKIP = ".homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.palette-toy-trigger,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
+const SKIP = ".homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.glyph-toy-trigger,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 interface Glyph {
   element: HTMLSpanElement;
@@ -149,7 +149,7 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
     ? glyphs.some(g => Math.hypot(g.body.position.x - p.x, g.body.position.y - p.y) < 70)
     : Math.hypot(p.x - center().x, p.y - center().y) < radius() + 55;
   const onDown = (event: PointerEvent) => {
-    if (finished || event.button !== 0 || (event.target as Element).closest(".palette-toy-trigger,.palette-lab,.design-inspector")) return;
+    if (finished || event.button !== 0 || (event.target as Element).closest(".glyph-toy-trigger,.palette-lab,.design-inspector")) return;
     const p = { x: event.clientX, y: event.clientY };
     if (!isHit(p)) return;
     dragId = event.pointerId; pointer = p; pointerAt = performance.now();

@@ -68,7 +68,7 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
-UI colors. Tap the footer strip to gather a random share of the page's letters into a centered,
+UI colors. Tap **Play** opposite the profile photo in the header to gather a random share of the page's letters into a centered,
 viewport-anchored shape. Globe (the starting shape on every activation), diamond, ring, flower, and heart silhouettes morph
 every 25 seconds, with subtle ambient movement. Drag through the shape to scatter
 letters; springs return them shortly afterward. Repeated fast drags collapse it.
@@ -79,7 +79,7 @@ highlights while the remaining characters stay in place.
 Collapsed glyphs all land above the music player, including footer letters. The
 album cover and sliding Spotify badge are live collision surfaces. Dragging tips
 and nudges the pile on desktop and touch screens; scroll adds a subtle nudge.
-There is no device orientation permission. Tap again to return the letters.
+There is no device orientation permission. Tap **Reset** to return the letters. The footer palette strip is decorative.
 Reduced motion disables the toy; width changes and refresh clear it.
 
 Open `?palette-lab` and choose **Glyphs** to tune the percentage gathered (40% by default), collapse gravity, bounce,

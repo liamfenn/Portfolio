@@ -21,13 +21,14 @@ const stripEase = cubicBezier(0.16, 1, 0.3, 1);
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
   const [glyphs, setGlyphs] = useState<GlyphSettings>({ ...DEFAULT_GLYPHS });
-  // The letters stay gathered until the strip is tapped again; a refresh resets them.
+  // The letters stay gathered until the header button is tapped again; a refresh resets them.
   const dropRef = useRef<GlyphDrop | null>(null);
   const runRef = useRef<AbortController | null>(null);
   const isRestoringRef = useRef(false);
   const glyphsRef = useRef(glyphs);
   const [isDropped, setIsDropped] = useState(false);
   const [ready, setReady] = useState(false);
+  const [triggerHost, setTriggerHost] = useState<HTMLElement | null>(null);
   const [labEnabled, setLabEnabled] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<"palette" | "glyphs">("palette");
@@ -62,6 +63,7 @@ export function PaletteToy() {
       setGlyphs(saved.glyphs);
       setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
       updateMotion();
+      setTriggerHost(document.getElementById("glyph-toy-slot"));
       setReady(true);
     });
     motionQuery.addEventListener("change", updateMotion);
@@ -179,12 +181,16 @@ export function PaletteToy() {
   };
 
   return <>
-    <button ref={triggerRef} type="button" className="footer-palette palette-toy-trigger" aria-label={dropLabel}
-      aria-pressed={isDropped} onClick={toggleDrop}>
+    <span className="footer-palette" aria-hidden="true">
       <span ref={trackRef} className="palette-toy-track">
         {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
-    </button>
+    </span>
+    {triggerHost && createPortal(<button ref={triggerRef} type="button"
+      className="glyph-toy-trigger text-captionSans" aria-label={dropLabel}
+      aria-pressed={isDropped} disabled={reducedMotion} onClick={toggleDrop}>
+      <InspectableText>{isDropped ? "Reset" : "Play"}</InspectableText>
+    </button>, triggerHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>

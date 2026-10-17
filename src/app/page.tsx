@@ -26,8 +26,11 @@ export default function Home() {
   return (
     <DesignInspector><main className="portfolio-v2 portfolio-v3" data-page-frame>
       <header className="portfolio-intro">
-        <div className="portfolio-bio-group">
+        <div className="homepage-header-row">
           <HomepageIdentity />
+          <div id="glyph-toy-slot" />
+        </div>
+        <div className="portfolio-bio-group">
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
           <HomepageBio />
         </div>

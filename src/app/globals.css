@@ -568,8 +568,9 @@
   width: auto;
   margin: 0 0 96px;
   padding: var(--content-padding) var(--content-padding) 0;
-  gap: 0;
+  gap: 16px;
 }
+.homepage-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 .portfolio-v3 .work-toolbar { padding: 0 var(--content-padding); }
 .portfolio-v3 .work-control { padding: 0; }
 .portfolio-v3 .work-label-group { gap: 8px; }
@@ -667,7 +668,7 @@
 .bio-expanded-word { display: inline; }
 @media (max-width: 767px) {
   .portfolio-v3 { padding: 0; }
-  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; }
+  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; gap: 12px; }
   .portfolio-v3 .work-toolbar { padding: 0 12px; }
   .portfolio-v3 .work-label-group { gap: 4px; }
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
@@ -706,19 +707,10 @@
 
 .homepage-project-badge.is-shop img { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; max-width: none; transform: translate(-50%, -50%) scale(.571429); filter: brightness(0) invert(1); }
 
-/* Footer color toy and its private tuning view (?palette-lab). */
-.palette-toy-trigger {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.palette-toy-trigger::before {
-  content: "";
-  position: absolute;
-  inset: -19px 0;
-}
+/* Header toy trigger and decorative footer palette; tuning stays in ?palette-lab. */
+.glyph-toy-trigger { --inspect-color-token: text-secondary; color: var(--text-secondary); padding: 3px 0; border: 0; background: transparent; cursor: pointer; transition: opacity var(--hover-duration) var(--hover-ease); }
+.glyph-toy-trigger:disabled { cursor: default; opacity: var(--hover-dim); }
+@media (hover: hover) { .glyph-toy-trigger:not(:disabled):hover { opacity: var(--hover-dim); } }
 .palette-toy-track {
   display: flex;
   width: 100%;
