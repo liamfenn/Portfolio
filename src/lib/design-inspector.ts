@@ -107,16 +107,16 @@ export function colorToHex(value: string): string {
 export type InspectorFlag = { enabled: boolean; remember?: "on" | "off" };
 
 /**
- * The inspector is a debugging tool, never shipped to production. `?inspect` turns it on for this browser
- * (remembered), `?inspect=off` turns it off again. Local development has it on unless turned off.
+ * The inspector is a debugging tool: on in local dev and previews, never in production.
+ * `?inspect=off` turns it off for this browser (remembered) and `?inspect` turns it back on.
  */
-export function resolveInspectorFlag({ vercelEnv, nodeEnv, param, stored }: {
-  vercelEnv?: string; nodeEnv?: string; param: string | null; stored: string | null;
+export function resolveInspectorFlag({ vercelEnv, param, stored }: {
+  vercelEnv?: string; param: string | null; stored: string | null;
 }): InspectorFlag {
   if (vercelEnv === "production") return { enabled: false };
   if (param !== null) {
     const enabled = !["off", "0", "false"].includes(param.toLowerCase());
     return { enabled, remember: enabled ? "on" : "off" };
   }
-  return { enabled: stored === "on" || (nodeEnv === "development" && stored !== "off") };
+  return { enabled: stored !== "off" };
 }

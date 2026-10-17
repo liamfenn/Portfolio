@@ -33,7 +33,6 @@ function readInspectorEnabled() {
   try { stored = window.localStorage.getItem(INSPECTOR_STORAGE_KEY); } catch {}
   const flag = resolveInspectorFlag({
     vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV,
-    nodeEnv: process.env.NODE_ENV,
     param: new URLSearchParams(window.location.search).get("inspect"),
     stored,
   });

@@ -35,10 +35,10 @@ Change a named style's `--type-*` bundle to update its family, size, weight,
 and leading together. Email and social links use bodySerif. Project details,
 project dates, and the player's listening status and time use captionSans.
 
-The built-in inspector is a debugging tool and never ships to production. It is
-on by default in local development. On previews, open the page with `?inspect`
-to turn it on for that browser (it's remembered), and `?inspect=off` to turn it
-off again. When off, `InspectableText` renders plain text.
+The built-in inspector is a debugging tool: on in local development and on
+previews, never in production. Open a page with `?inspect=off` to turn it off in
+that browser (it's remembered) and `?inspect` to turn it back on. When off,
+`InspectableText` renders plain text.
 
 On a phone, tap the avatar to show or hide the panel (it skips the Shop link
 while the inspector is on), then tap a mode.

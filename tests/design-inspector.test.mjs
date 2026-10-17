@@ -75,13 +75,12 @@ test("spacing modes draw their own kind, and S draws all three with gaps on top"
   assert.deepEqual(spacingKinds("type-token"), []);
 });
 
-test("the inspector is debug-only: off in production, flagged on previews, on in local dev", () => {
-  const flag = overrides => resolveInspectorFlag({ vercelEnv: "preview", nodeEnv: "production", param: null, stored: null, ...overrides });
-  assert.deepEqual(flag({}), { enabled: false });
-  assert.deepEqual(flag({ param: "" }), { enabled: true, remember: "on" });
-  assert.deepEqual(flag({ stored: "on" }), { enabled: true });
-  assert.deepEqual(flag({ param: "off", stored: "on" }), { enabled: false, remember: "off" });
+test("the inspector is on outside production unless turned off in this browser", () => {
+  const flag = overrides => resolveInspectorFlag({ vercelEnv: "preview", param: null, stored: null, ...overrides });
+  assert.deepEqual(flag({}), { enabled: true });
+  assert.deepEqual(flag({ vercelEnv: undefined }), { enabled: true });
+  assert.deepEqual(flag({ param: "off" }), { enabled: false, remember: "off" });
+  assert.deepEqual(flag({ stored: "off" }), { enabled: false });
+  assert.deepEqual(flag({ param: "", stored: "off" }), { enabled: true, remember: "on" });
   assert.deepEqual(flag({ vercelEnv: "production", param: "", stored: "on" }), { enabled: false });
-  assert.deepEqual(flag({ vercelEnv: undefined, nodeEnv: "development" }), { enabled: true });
-  assert.deepEqual(flag({ vercelEnv: undefined, nodeEnv: "development", stored: "off" }), { enabled: false });
 });
