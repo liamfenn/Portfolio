@@ -2098,9 +2098,9 @@ body.is-media-focused .case-study-controls {
 .homepage-shop-brand { background: var(--color-shop); }
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--color-avatar-placeholder); }
 .homepage-shop-brand img { width: 24px; height: 24px; transform: scale(.666667); filter: brightness(0) invert(1); }
-.homepage-identity:focus-visible .homepage-brand, .homepage-spotify:focus-visible .homepage-brand { transform: translateX(28px); }
+.homepage-identity:focus-visible .homepage-brand { transform: translateX(28px); }
 @media (hover: hover) and (min-width: 768px) {
-  .homepage-identity:hover .homepage-brand, .homepage-spotify:hover .homepage-brand { transform: translateX(28px); }
+  .homepage-identity:hover .homepage-brand { transform: translateX(28px); }
 }
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
 .homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--color-surface); color: inherit; cursor: pointer; overflow: hidden; }
@@ -2137,19 +2137,19 @@ body.is-media-focused .case-study-controls {
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 24px 12px; }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { color: var(--color-muted); }
-.homepage-spotify { --badge-cutout-left: 16px; --badge-cutout-right: 48px; --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 8px 0; padding: 24px 16px 20px; min-height: 83px; }
+.homepage-spotify { --spotify-reveal: 0px; --badge-cutout-left: 16px; --badge-cutout-right: calc(48px + var(--spotify-reveal)); --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 8px 0; padding: 24px 16px 20px; min-height: 83px; }
 .homepage-spotify::before { transition: clip-path 300ms cubic-bezier(.16,1,.3,1), opacity 300ms ease; }
 @media (min-width: 768px) {
-  .homepage-spotify:focus-visible { --badge-cutout-right: 76px; }
+  .homepage-spotify:focus-visible { --spotify-reveal: 28px; }
 }
 @media (hover: hover) and (min-width: 768px) {
-  .homepage-spotify:hover { --badge-cutout-right: 76px; }
+  .homepage-spotify:hover { --spotify-reveal: 28px; }
   .homepage-spotify:hover::before { opacity: .6; }
 }
-.homepage-album-badge { position: absolute; top: -14px; left: 18px; }
+.homepage-album-badge { position: absolute; top: -14px; left: 18px; width: calc(28px + var(--spotify-reveal)); isolation: isolate; overflow: hidden; transition: width 300ms cubic-bezier(.16,1,.3,1); }
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: var(--color-surface-subtle); overflow: hidden; }
 .homepage-album img { object-fit: cover; }
-.homepage-spotify-brand { background: var(--color-spotify-green); }
+.homepage-spotify-brand { z-index: 0; background: var(--color-spotify-green); transform: translateX(var(--spotify-reveal)); }
 .homepage-spotify-brand img { width: 16px; height: 16px; }
 .homepage-track-info { display: flex; flex-direction: column; min-width: 0; }
 .homepage-listening, .homepage-track-time { color: var(--color-muted-foreground); }

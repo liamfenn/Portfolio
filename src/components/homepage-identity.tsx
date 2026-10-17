@@ -35,7 +35,7 @@ export function HomepageSpotify() {
     data.progressMs + (data.isPlaying && data.fetchedAt && now ? Math.max(0, now - new Date(data.fetchedAt).getTime()) : 0));
   return <a className="homepage-spotify text-bodySans" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className="homepage-album-badge homepage-slide-badge">
-      <span className="homepage-brand homepage-spotify-brand"><Image src="/images/icons/spotify-black.svg" alt="" width={16} height={16} /></span>
+      <span className="homepage-brand homepage-spotify-brand"><Image src="/images/icons/spotify-white.svg" alt="" width={16} height={16} /></span>
       <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
     </span>
     <span className="homepage-track-info">
