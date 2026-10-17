@@ -728,7 +728,7 @@
 .glyph-drop-layer { position: fixed; inset: 0; z-index: 1500; overflow: clip; pointer-events: none; }
 .glyph-drop-glyph { z-index: 1; position: absolute; left: 0; top: 0; display: block; white-space: pre; transform-origin: center; will-change: transform; }
 .glyph-drop-patch { position: absolute; display: block; }
-.is-glyph-play :is(.portfolio-bio,.homepage-contact,.work-toolbar,.homepage-track-info,.homepage-track-time,.portfolio-footer-row) { user-select: none; -webkit-user-select: none; touch-action: none; }
+.is-glyph-play :is(.portfolio-bio,.homepage-contact,.work-toolbar,.homepage-track-info,.homepage-track-time,.portfolio-footer-row) { touch-action: none; }
 .glyph-pile-touch { position: absolute; touch-action: none; }
 @media (pointer: coarse) { .glyph-pile-touch { pointer-events: auto; } }
 

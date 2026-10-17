@@ -74,6 +74,10 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
   sourceObserver.observe(root, { childList: true, subtree: true });
   document.body.append(layer);
   root.classList.add("is-glyph-play");
+  // Safari suppresses custom highlights on user-select:none text. Prevent native drag-selection
+  // through its event instead, keeping the selected-character mask available on desktop and iOS.
+  const preventSelection = (event: Event) => event.preventDefault();
+  root.addEventListener("selectstart", preventSelection);
 
   // Convex ink outlines produce tumbling, rolling letters rather than identical thin rectangles.
   const canvas = document.createElement("canvas"); canvas.width = canvas.height = 96;
@@ -271,6 +275,7 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
   let flights: Animation[] = [];
   const stop = () => {
     cancelAnimationFrame(frame); sourceObserver.disconnect();
+    root.removeEventListener("selectstart", preventSelection);
     window.removeEventListener("pointerdown", onDown, true); window.removeEventListener("pointermove", onMove, true);
     window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onLeave);
     document.documentElement.removeEventListener("pointerleave", onLeave); surface.remove(); Engine.clear(engine);
