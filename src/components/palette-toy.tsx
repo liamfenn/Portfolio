@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { DEFAULT_GLITCH, GLITCH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
 import type { PaletteVotes } from "@/lib/palette-toy";
 import { InspectableText } from "@/components/design-inspector";
@@ -199,7 +199,11 @@ export function PaletteToy() {
       onPointerEnter={event => { if (event.pointerType === "mouse") startGlitch(); }}
       onClick={startGlitch}>
       <span className="palette-toy-track" style={{ animationPlayState: reducedMotion ? "paused" : "running" }}
-        onAnimationIteration={event => { if (event.target === event.currentTarget.firstElementChild) setStartIndex(index => (index + 1) % palette.length); }}>
+        onAnimationIteration={event => {
+          if (event.target !== event.currentTarget.firstElementChild) return;
+          // The slide has already snapped back for this frame; shift the colors before it paints, or the old ones flash.
+          flushSync(() => setStartIndex(index => (index + 1) % palette.length));
+        }}>
         {Array.from({ length: 6 }, (_, index) => <i key={index} style={{ backgroundColor: palette[(startIndex + index) % palette.length].hex }} />)}
       </span>
     </button>
