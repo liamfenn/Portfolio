@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useSpotify } from "@/hooks/use-spotify";
 
 export function HomepageIdentity() {
@@ -26,6 +27,26 @@ function formatAgo(timestamp: string | null | undefined, now: number) {
 export function HomepageSpotify() {
   const { data, cachedAt } = useSpotify();
   const [now, setNow] = useState(0);
+  const trackLine = useRef<HTMLSpanElement>(null);
+  const trackContent = useRef<HTMLSpanElement>(null);
+  const [trackOverflow, setTrackOverflow] = useState(0);
+  useEffect(() => {
+    const line = trackLine.current;
+    const content = trackContent.current;
+    if (!line || !content) return;
+    let cancelled = false;
+    const measure = () => {
+      if (cancelled) return;
+      const width = Math.max(content.scrollWidth, content.getBoundingClientRect().width);
+      setTrackOverflow(Math.max(0, Math.ceil(width - line.clientWidth)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    observer.observe(content);
+    document.fonts.ready.then(measure);
+    measure();
+    return () => { cancelled = true; observer.disconnect(); };
+  }, [data?.title, data?.artist]);
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setNow(Date.now()));
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -46,7 +67,13 @@ export function HomepageSpotify() {
           <span className="identity-status-dot">.</span>
         </span></> : "Last listened to"}
       </span>
-      <span className="homepage-track"><span>{data?.title ?? "Loading track…"}</span>{data && <> <span className="homepage-artist">{data.artist}</span></>}</span>
+      <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
+        className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
+        style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
+        <span ref={trackContent} className="homepage-track-marquee"><span>{data?.title ?? "Loading track…"}</span>{data && <> <span className="homepage-artist">{data.artist}</span></>}</span>
+        <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
+        <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
+      </span>
     </span>
     <span className="homepage-track-time text-captionSmall">{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</span>
   </a>;
