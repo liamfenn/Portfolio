@@ -176,7 +176,8 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
   const surface = document.createElement("div"); surface.className = "glyph-pile-touch"; layer.append(surface);
   const excluded = (event: PointerEvent) => (event.target as Element).closest(".glyph-toy-trigger,.palette-lab,.design-inspector,[role='menu']");
   const onDown = (event: PointerEvent) => {
-    if (finished || event.button !== 0 || excluded(event)) return;
+    // Mouse movement alone drives the toy; pointer capture is only for touch/pen gestures.
+    if (finished || event.pointerType === "mouse" || event.button !== 0 || excluded(event)) return;
     const p = { x: event.clientX, y: event.clientY };
     const hit = glyphs.some(g => Math.hypot(g.body.position.x - p.x, g.body.position.y - p.y) < 35);
     if (hit) { dragId = event.pointerId; surface.setPointerCapture(event.pointerId); event.preventDefault(); }
@@ -210,7 +211,8 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
       chosen.forEach(c => release(c, delta));
       if (chosen.length) lastRelease = time;
     }
-    if (event.buttons || event.pointerId === dragId) for (const glyph of glyphs) {
+    // Every accepted pointer move uses the same brush impulse, regardless of mouse buttons.
+    for (const glyph of glyphs) {
       const near = segmentDistance(glyph.body.position, previous, next);
       if (near > 55) continue;
       const push = (1 - near / 55) * settings.pull;

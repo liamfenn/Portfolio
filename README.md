@@ -71,7 +71,8 @@ The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The header **Play** button enables loose type: up to six random visible
 letters start falling, then hovering or swiping through text flicks a few more
 free. Most text stays intact. Released glyphs tumble under gravity, gently follow
-a nearby cursor, and can be flung by dragging. Their collision bodies use convex
+a nearby cursor, and are flung by nearby pointer movement. Desktop hover and button-held movement
+use the same response; mobile uses a swipe. Their collision bodies use convex
 outlines sampled from the rendered letter ink, allowing varied angles and piles.
 
 Letters land above the music player; album art and the sliding Spotify badge
@@ -82,7 +83,7 @@ Reduced motion disables the toy; width changes and refresh clear it. Scrolling
 adds a subtle nudge. The footer palette strip is decorative.
 
 Open `?palette-lab` and choose **Glyphs** to tune hover release chance, gravity,
-bounce, friction, cursor/drag response, and scroll reaction. Preferences stay
+bounce, friction, pointer response, and scroll reaction. Preferences stay
 local; released letters are temporary. Matter.js loads on the first tap.
 
 ## Spotify authorization

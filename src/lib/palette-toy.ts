@@ -43,7 +43,7 @@ export const GLYPH_CONTROLS = [
   { key: "gravity", label: "Gravity", min: 0.2, max: 3, step: 0.1, unit: "×" },
   { key: "bounce", label: "Bounce", min: 0, max: 0.9, step: 0.05, unit: "%" },
   { key: "friction", label: "Friction", min: 0, max: 1, step: 0.05, unit: "%" },
-  { key: "pull", label: "Cursor / drag response", min: 0, max: 3, step: 0.1, unit: "×" },
+  { key: "pull", label: "Pointer response", min: 0, max: 3, step: 0.1, unit: "×" },
   { key: "scroll", label: "Scroll reaction", min: 0, max: 1, step: 0.1, unit: "×" },
 ] as const;
 
