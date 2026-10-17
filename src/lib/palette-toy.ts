@@ -26,44 +26,36 @@ export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color =>
   color.name !== "Steel blue" && color.name !== "Silver",
 );
 
-export interface GlitchSettings {
-  duration: number;
-  size: number;
-  density: number;
-  burnIn: number;
-  stutter: number;
-  opacity: number;
-  displacement: number;
+/** Tuning for the footer strip's glyph drop, adjustable live in the palette lab. */
+export interface GlyphSettings {
+  share: number;
+  catchChance: number;
+  gravity: number;
+  bounce: number;
+  friction: number;
+  pull: number;
+  scroll: number;
 }
 
-export const DEFAULT_GLITCH: GlitchSettings = {
-  duration: 200,
-  size: 6,
-  density: 0.04,
-  burnIn: 0.12,
-  stutter: 8,
-  opacity: 1,
-  displacement: 0,
+export const DEFAULT_GLYPHS: GlyphSettings = {
+  share: 0.4,
+  catchChance: 0.35,
+  gravity: 1,
+  bounce: 0.15,
+  friction: 0.2,
+  pull: 1,
+  scroll: 1,
 };
 
-export const GLITCH_CONTROLS = [
-  { key: "duration", label: "Length", min: 200, max: 2400, step: 100, unit: "ms" },
-  { key: "size", label: "Block size", min: 4, max: 40, step: 2, unit: "px" },
-  { key: "density", label: "Coverage", min: 0.02, max: 0.6, step: 0.02, unit: "%" },
-  { key: "burnIn", label: "Burn-in", min: 0, max: 1, step: 0.02, unit: "%" },
-  { key: "stutter", label: "Stutter", min: 2, max: 16, step: 1, unit: "fps" },
-  { key: "opacity", label: "Opacity", min: 0.1, max: 1, step: 0.05, unit: "%" },
-  { key: "displacement", label: "Page jitter", min: 0, max: 12, step: 1, unit: "px" },
+export const GLYPH_CONTROLS = [
+  { key: "share", label: "Letters dropped", min: 0.05, max: 1, step: 0.05, unit: "%" },
+  { key: "catchChance", label: "Caught on ledges", min: 0, max: 1, step: 0.05, unit: "%" },
+  { key: "gravity", label: "Gravity", min: 0.2, max: 3, step: 0.1, unit: "×" },
+  { key: "bounce", label: "Bounce", min: 0, max: 0.9, step: 0.05, unit: "%" },
+  { key: "friction", label: "Friction", min: 0, max: 1, step: 0.05, unit: "%" },
+  { key: "pull", label: "Cursor / tilt pull", min: 0, max: 3, step: 0.1, unit: "×" },
+  { key: "scroll", label: "Scroll reaction", min: 0, max: 3, step: 0.1, unit: "×" },
 ] as const;
-
-/** What tapping the footer palette strip does. */
-export const PLAYFUL_EFFECTS = [
-  { key: "drop", label: "Glyph drop" },
-  { key: "snake", label: "Snake" },
-  { key: "glitch", label: "Glitch" },
-] as const;
-export type PlayfulEffect = typeof PLAYFUL_EFFECTS[number]["key"];
-export const DEFAULT_EFFECT: PlayfulEffect = "drop";
 
 export type PaletteVotes = Record<string, boolean>;
 export function colorsFromVotes(votes: PaletteVotes) {
@@ -74,22 +66,20 @@ export function colorsFromVotes(votes: PaletteVotes) {
   return available.length ? available : [{ name: "Neutral", hex: "#D7DAE1" }];
 }
 
-export function parsePalettePreferences(raw: string | null): { settings: GlitchSettings; votes: PaletteVotes; effect: PlayfulEffect } {
-  const defaults = { settings: { ...DEFAULT_GLITCH }, votes: {} as PaletteVotes, effect: DEFAULT_EFFECT };
+export function parsePalettePreferences(raw: string | null): { glyphs: GlyphSettings; votes: PaletteVotes } {
+  const defaults = { glyphs: { ...DEFAULT_GLYPHS }, votes: {} as PaletteVotes };
   if (!raw) return defaults;
   try {
     const saved = JSON.parse(raw);
-    for (const control of GLITCH_CONTROLS) {
-      const value = saved.settings?.[control.key];
+    for (const control of GLYPH_CONTROLS) {
+      const value = saved.glyphs?.[control.key];
       if (typeof value === "number" && Number.isFinite(value)) {
-        defaults.settings[control.key] = Math.max(control.min, Math.min(control.max, value));
+        defaults.glyphs[control.key] = Math.max(control.min, Math.min(control.max, value));
       }
     }
     for (const color of PALETTE_CANDIDATES) {
       if (typeof saved.votes?.[color.hex] === "boolean") defaults.votes[color.hex] = saved.votes[color.hex];
     }
-    const effect = PLAYFUL_EFFECTS.find(option => option.key === saved.effect);
-    if (effect) defaults.effect = effect.key;
   } catch { /* Ignore old or invalid preferences. */ }
   return defaults;
 }

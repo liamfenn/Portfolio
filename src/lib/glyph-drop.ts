@@ -1,34 +1,34 @@
-import { settlePile } from "@/lib/glyph-pile";
+import type MatterJS from "matter-js";
+import { COLLIDE, cursorPull, glyphCollision, gravityFromTilt, scrollKick } from "@/lib/glyph-physics";
+import type { GlyphSettings } from "@/lib/palette-toy";
 
 /** Text that changes on its own (clocks, the scrolling song title) or floats over the page never drops. */
 const SKIP = [
   ".homepage-spotify", ".footer-weather", ".homepage-project-tooltip", ".design-inspector", ".spacing-overlay",
   ".palette-lab", ".palette-toy-trigger", ".inspectable-label", ".sr-only", "[aria-hidden='true']",
 ].join(", ");
-const SHARE = 0.4;
-const MAX_GLYPHS = 360;
-const GRAVITY = 2600; // px/s²
+/** Some glyphs catch on top of these (the project cards). */
+const LEDGES = ".project-grid > li";
+/** Everything above the music player lands on it. */
+const FLOORS = ".homepage-spotify";
 const FRAME = 8;
+const STEP_MS = 1000 / 60;
+const WALL = 200;
 
 interface Glyph {
   element: HTMLSpanElement;
+  body: MatterJS.Body;
   originX: number;
   originY: number;
-  width: number;
-  height: number;
-  targetX: number;
-  targetY: number;
-  angle: number;
-  delay: number;
-  x: number;
-  y: number;
-  velocity: number;
-  landed: boolean;
+  releaseAt: number;
+  released: boolean;
 }
 
 export interface GlyphDrop {
-  /** False once the letters are back (or a resize cleared them). */
+  /** False once the letters are back (or a width change cleared them). */
   isActive(): boolean;
+  /** Apply new settings to the running simulation. */
+  update(settings: GlyphSettings): void;
   /** Float every glyph back to where it came from, then clean up. */
   restore(): Promise<void>;
   /** Remove everything immediately. */
@@ -64,113 +64,203 @@ function collectCharacters(root: Element) {
   return characters;
 }
 
-/** Drops a random share of the page's letters into a pile at the bottom of the page. */
-export function dropGlyphs(root: Element): GlyphDrop {
+/**
+ * Drops a random share of the page's letters (anywhere on the page, not just in view) with real physics:
+ * some catch on the project cards, the rest land on the music player or, below it, the bottom of the page.
+ * On a phone, tilting sets gravity; with a mouse, letters slide toward the cursor. Scrolling nudges them.
+ * They stay put until restore(); the page's own text is never touched (copies sit over background patches).
+ */
+export async function dropGlyphs(root: Element, initial: GlyphSettings, options: { signal: AbortSignal; onFinish: () => void }): Promise<GlyphDrop> {
+  const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
+  options.signal.throwIfAborted();
+  let settings = initial;
   const scrollX = window.scrollX;
   const scrollY = window.scrollY;
   const pageWidth = document.documentElement.scrollWidth;
   const pageHeight = document.documentElement.scrollHeight;
+  const toPage = (rect: DOMRect) => ({ left: rect.left + scrollX, top: rect.top + scrollY, width: rect.width, height: rect.height });
+
+  const engine = Engine.create({ enableSleeping: false });
+  engine.gravity.y = settings.gravity;
+  const solid = (box: { left: number; top: number; width: number; height: number }, category: number) =>
+    Bodies.rectangle(box.left + box.width / 2, box.top + box.height / 2, box.width, box.height, {
+      isStatic: true,
+      friction: 0.6,
+      collisionFilter: { category, mask: category === COLLIDE.ledge ? COLLIDE.catching : COLLIDE.catching | COLLIDE.falling },
+    });
+  const world = COLLIDE.world;
+  Composite.add(engine.world, [
+    // Page walls, floor, and ceiling sit on the 8px frame.
+    solid({ left: FRAME - WALL, top: -pageHeight, width: WALL, height: pageHeight * 3 }, world),
+    solid({ left: pageWidth - FRAME, top: -pageHeight, width: WALL, height: pageHeight * 3 }, world),
+    solid({ left: -pageWidth, top: pageHeight - FRAME, width: pageWidth * 3, height: WALL }, world),
+    solid({ left: -pageWidth, top: -WALL, width: pageWidth * 3, height: WALL }, world),
+    ...Array.from(document.querySelectorAll(FLOORS), element => solid(toPage(element.getBoundingClientRect()), world)),
+    ...Array.from(document.querySelectorAll(LEDGES), element => solid(toPage(element.getBoundingClientRect()), COLLIDE.ledge)),
+  ]);
+
   const layer = document.createElement("div");
   layer.className = "glyph-drop-layer";
   layer.setAttribute("aria-hidden", "true");
   layer.style.width = `${pageWidth}px`;
   layer.style.height = `${pageHeight}px`;
 
-  const characters = collectCharacters(root).filter(() => Math.random() < SHARE).slice(0, MAX_GLYPHS);
   const range = document.createRange();
+  const startedAt = performance.now();
   const glyphs: Glyph[] = [];
-  for (const { node, offset, parent } of characters) {
+  for (const { node, offset, parent } of collectCharacters(root)) {
+    if (Math.random() >= settings.share) continue;
     range.setStart(node, offset);
     range.setEnd(node, offset + 1);
     const rect = range.getClientRects()[0];
     if (!rect || rect.width < 1) continue;
+    const box = toPage(rect);
     const style = getComputedStyle(parent);
-    const originX = rect.left + scrollX;
-    const originY = rect.top + scrollY;
 
-    // A patch in the background color hides the original letter, so the page's own DOM is never touched.
+    // A patch in the background color hides the original letter.
     const patch = document.createElement("span");
     patch.className = "glyph-drop-patch";
-    patch.style.cssText = `left:${originX}px;top:${originY}px;width:${rect.width}px;height:${rect.height}px;background:${backgroundBehind(parent)}`;
-    layer.append(patch);
-
+    patch.style.cssText = `left:${box.left}px;top:${box.top}px;width:${box.width}px;height:${box.height}px;background:${backgroundBehind(parent)}`;
     const element = document.createElement("span");
     element.className = "glyph-drop-glyph";
     element.textContent = node.textContent![offset];
-    element.style.cssText = `left:${originX}px;top:${originY}px;width:${rect.width}px;height:${rect.height}px;font:${style.font};letter-spacing:0;color:${style.color}`;
-    layer.append(element);
-    glyphs.push({
-      element, originX, originY, width: rect.width, height: rect.height,
-      targetX: 0, targetY: 0, angle: (Math.random() * 2 - 1) * 28, delay: Math.random() * 700,
-      x: 0, y: 0, velocity: 0, landed: false,
-    });
-  }
+    element.style.cssText = `left:${box.left}px;top:${box.top}px;width:${box.width}px;height:${box.height}px;font:${style.font};letter-spacing:0;color:${style.color}`;
+    layer.append(patch, element);
 
-  // Letters land in roughly the order they reach the floor, which is roughly lowest first.
-  const order = [...glyphs].sort((a, b) => (b.originY + b.delay) - (a.originY + a.delay));
-  const floorLeft = FRAME;
-  const spots = settlePile(order.map(glyph => ({ x: glyph.originX - floorLeft, width: glyph.width * 0.8, height: glyph.height * 0.75 })), pageWidth - FRAME * 2);
-  order.forEach((glyph, index) => {
-    glyph.targetX = floorLeft + spots[index].x;
-    glyph.targetY = pageHeight - FRAME - glyph.height - spots[index].y;
-  });
+    const originX = box.left + box.width / 2;
+    const originY = box.top + box.height / 2;
+    // The line box is taller than the letter, so the body is trimmed to roughly the glyph's ink.
+    const body = Bodies.rectangle(originX, originY, Math.max(3, box.width * 0.85), Math.max(4, box.height * 0.6), {
+      restitution: settings.bounce,
+      friction: settings.friction,
+      frictionStatic: settings.friction + 0.2,
+      frictionAir: 0.012,
+      slop: 0.02,
+      collisionFilter: glyphCollision(Math.random() < settings.catchChance),
+    });
+    Body.setStatic(body, true);
+    glyphs.push({ element, body, originX, originY, releaseAt: startedAt + Math.random() * 700, released: false });
+  }
+  Composite.add(engine.world, glyphs.map(glyph => glyph.body));
   document.body.append(layer);
+
+  // Drivers: tilt on touch screens, the cursor with a mouse, and scroll everywhere.
+  const usesTilt = window.matchMedia("(pointer: coarse)").matches;
+  let tilt: { x: number; y: number } | null = null;
+  let cursorX: number | null = null;
+  let lastScrollY = window.scrollY;
+  const applyGravity = () => {
+    engine.gravity.x = tilt ? tilt.x * settings.pull * settings.gravity : 0;
+    engine.gravity.y = tilt ? tilt.y * settings.gravity : settings.gravity;
+  };
+  const onOrientation = (event: DeviceOrientationEvent) => {
+    tilt = gravityFromTilt(event.beta, event.gamma);
+    applyGravity();
+  };
+  const onPointerMove = (event: PointerEvent) => { if (event.pointerType === "mouse") cursorX = event.clientX; };
+  const onPointerLeave = () => { cursorX = null; };
+  const onScroll = () => {
+    const kick = scrollKick(window.scrollY - lastScrollY, settings.scroll);
+    lastScrollY = window.scrollY;
+    for (const glyph of glyphs) {
+      if (glyph.released) Body.setVelocity(glyph.body, { x: glyph.body.velocity.x, y: glyph.body.velocity.y + kick });
+    }
+  };
+  if (usesTilt) window.addEventListener("deviceorientation", onOrientation);
+  else {
+    window.addEventListener("pointermove", onPointerMove);
+    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
 
   let frame = 0;
   let previous = performance.now();
-  const started = previous;
-  const fall = (time: number) => {
-    const seconds = Math.min(0.05, (time - previous) / 1000);
+  let pending = 0;
+  const run = (time: number) => {
+    pending = Math.min(pending + (time - previous), STEP_MS * 4);
     previous = time;
-    let moving = false;
     for (const glyph of glyphs) {
-      if (glyph.landed) continue;
-      moving = true;
-      if (time - started < glyph.delay) continue;
-      const drop = glyph.targetY - glyph.originY;
-      glyph.velocity += GRAVITY * seconds;
-      glyph.y = Math.min(drop, glyph.y + glyph.velocity * seconds);
-      const progress = drop > 0 ? glyph.y / drop : 1;
-      glyph.x = (glyph.targetX - glyph.originX) * Math.min(1, progress * 1.4);
-      if (glyph.y >= drop) {
-        // One small bounce, then rest.
-        if (Math.abs(glyph.velocity) > 300) glyph.velocity *= -0.18;
-        else { glyph.landed = true; glyph.x = glyph.targetX - glyph.originX; }
-      }
-      glyph.element.style.transform = `translate(${glyph.x}px, ${glyph.y}px) rotate(${glyph.angle * Math.min(1, progress)}deg)`;
+      if (!glyph.released && time >= glyph.releaseAt) { Body.setStatic(glyph.body, false); glyph.released = true; }
     }
-    if (moving) frame = requestAnimationFrame(fall);
+    while (pending >= STEP_MS) {
+      if (cursorX !== null && settings.pull > 0) {
+        const pageCursor = cursorX + window.scrollX;
+        for (const glyph of glyphs) {
+          if (!glyph.released) continue;
+          const force = cursorPull(pageCursor - glyph.body.position.x, settings.pull) * glyph.body.mass * engine.gravity.scale;
+          Body.applyForce(glyph.body, glyph.body.position, { x: force, y: 0 });
+        }
+      }
+      Engine.update(engine, STEP_MS);
+      pending -= STEP_MS;
+    }
+    for (const glyph of glyphs) {
+      const { position, angle } = glyph.body;
+      glyph.element.style.transform = `translate(${position.x - glyph.originX}px, ${position.y - glyph.originY}px) rotate(${angle}rad)`;
+    }
+    frame = requestAnimationFrame(run);
   };
-  frame = requestAnimationFrame(fall);
+  frame = requestAnimationFrame(run);
 
   let finished = false;
-  const cancel = () => {
-    if (finished) return;
+  let removed = false;
+  let flights: Animation[] = [];
+  let width = window.innerWidth;
+  const stopSimulation = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener("deviceorientation", onOrientation);
+    window.removeEventListener("pointermove", onPointerMove);
+    document.documentElement.removeEventListener("pointerleave", onPointerLeave);
+    window.removeEventListener("scroll", onScroll);
+    Engine.clear(engine);
+  };
+  const cleanup = () => {
+    if (removed) return;
+    removed = true;
     finished = true;
-    cancelAnimationFrame(frame);
-    window.removeEventListener("resize", cancel);
+    stopSimulation();
+    flights.forEach(flight => flight.cancel());
+    window.removeEventListener("resize", onResize);
+    options.signal.removeEventListener("abort", cleanup);
     layer.remove();
+    options.onFinish();
   };
-  // A new layout would leave the patches in the wrong places.
-  window.addEventListener("resize", cancel);
+  const cancel = cleanup;
+  // A new width reflows the text under the patches; height changes (a phone's address bar) don't.
+  function onResize() { if (window.innerWidth !== width) cancel(); else width = window.innerWidth; }
+  window.addEventListener("resize", onResize);
+  options.signal.addEventListener("abort", cleanup, { once: true });
 
-  const restore = async () => {
-    if (finished) return;
-    cancelAnimationFrame(frame);
-    window.removeEventListener("resize", cancel);
-    const flights = glyphs.map(glyph => {
-      const from = glyph.element.style.transform || "translate(0px, 0px)";
-      const lift = 40 + Math.random() * 80;
-      // Float up out of the pile, then snap home with a slight overshoot.
-      return glyph.element.animate([
-        { transform: from, easing: "cubic-bezier(.3, 0, .2, 1)" },
-        { transform: `translate(${glyph.x * 0.6}px, ${glyph.y - lift}px) rotate(${glyph.angle * 0.4}deg)`, offset: 0.45, easing: "cubic-bezier(.2, 1.4, .4, 1)" },
-        { transform: "translate(0px, 0px) rotate(0deg)" },
-      ], { duration: 900 + Math.random() * 300, delay: Math.random() * 350, fill: "forwards" }).finished;
-    });
-    await Promise.allSettled(flights);
-    cancel();
+  return {
+    isActive: () => !finished,
+    update(next) {
+      settings = next;
+      applyGravity();
+      for (const glyph of glyphs) {
+        glyph.body.restitution = next.bounce;
+        glyph.body.friction = next.friction;
+        glyph.body.frictionStatic = next.friction + 0.2;
+      }
+    },
+    async restore() {
+      if (finished) return;
+      finished = true;
+      stopSimulation();
+      flights = glyphs.map(glyph => {
+        const from = glyph.element.style.transform || "translate(0px, 0px)";
+        const dx = glyph.body.position.x - glyph.originX;
+        const dy = glyph.body.position.y - glyph.originY;
+        const lift = 40 + Math.random() * 80;
+        // Float up out of the pile, then snap home with a slight overshoot.
+        return glyph.element.animate([
+          { transform: from, easing: "cubic-bezier(.3, 0, .2, 1)" },
+          { transform: `translate(${dx * 0.6}px, ${dy - lift}px) rotate(${glyph.body.angle * 0.4}rad)`, offset: 0.45, easing: "cubic-bezier(.2, 1.4, .4, 1)" },
+          { transform: "translate(0px, 0px) rotate(0rad)" },
+        ], { duration: 900 + Math.random() * 300, delay: Math.random() * 350, fill: "forwards" });
+      });
+      await Promise.allSettled(flights.map(flight => flight.finished));
+      cleanup();
+    },
+    cancel,
   };
-
-  return { restore, cancel, isActive: () => !finished };
 }

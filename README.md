@@ -67,8 +67,17 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
-The user-selected glitch colors and settings remain in `src/lib/palette-toy.ts`;
-they are independent of the UI colors and retain saved palette preferences.
+The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
+UI colors. Tap the footer strip to drop a share of the page's letters; tap again
+to float them home. Matter.js is loaded on the first tap. Letters can catch on
+project cards, follow the desktop cursor, react to scrolling, and use phone tilt
+when motion permission is granted. Without permission, normal downward gravity
+still works. Reduced motion disables the drop. Width changes and refresh clear it.
+
+Open `?palette-lab` and choose **Glyphs** to tune the share dropped, ledge catches,
+gravity, bounce, friction, cursor/tilt pull, and scroll reaction. Settings and color
+votes are saved locally; the dropped letters are temporary. The earlier glitch
+and snake experiments have been removed.
 
 ## Spotify authorization
 

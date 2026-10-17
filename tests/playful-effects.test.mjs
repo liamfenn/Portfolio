@@ -1,52 +1,54 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { settlePile } from "../src/lib/glyph-pile.ts";
-import { nextDirection, stepCell } from "../src/lib/pixel-snake.ts";
+import { COLLIDE, cursorPull, glyphCollision, gravityFromTilt, scrollKick } from "../src/lib/glyph-physics.ts";
+import { DEFAULT_GLYPHS, GLYPH_CONTROLS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
-const seeded = seed => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} ≈ ${expected}`);
 
-test("glyphs pile without overlapping or floating, inside the floor", () => {
-  const random = seeded(7);
-  const glyphs = Array.from({ length: 300 }, () => ({ x: random() * 400, width: 6 + random() * 6, height: 18 }));
-  const spots = settlePile(glyphs, 400, 4, seeded(3));
-  const boxes = spots.map((spot, index) => ({ left: spot.x, right: spot.x + glyphs[index].width, bottom: spot.y, top: spot.y + glyphs[index].height }));
-  for (const [index, box] of boxes.entries()) {
-    assert.ok(box.left >= 0 && box.right <= 400 + 4, `glyph ${index} stays on the floor`);
-    // Resting on the floor or on top of an earlier glyph it overlaps horizontally.
-    const support = box.bottom === 0 || boxes.slice(0, index).some(other => other.top === box.bottom && other.left < box.right && other.right > box.left);
-    assert.ok(support, `glyph ${index} is supported`);
-    for (const other of boxes.slice(0, index)) {
-      const overlaps = other.left < box.right - 4 && other.right > box.left + 4 && other.bottom < box.top && other.top > box.bottom;
-      assert.ok(!overlaps, `glyph ${index} doesn't overlap an earlier glyph`);
-    }
-  }
+test("catching glyphs land on ledges; falling glyphs pass through them to the floors", () => {
+  const catching = glyphCollision(true);
+  const falling = glyphCollision(false);
+  assert.ok(catching.mask & COLLIDE.ledge);
+  assert.ok(!(falling.mask & COLLIDE.ledge));
+  assert.ok(catching.mask & COLLIDE.world && falling.mask & COLLIDE.world);
+  // Each group stacks on itself, so the two piles don't interleave.
+  assert.ok(catching.mask & catching.category && falling.mask & falling.category);
+  assert.ok(!(catching.mask & falling.category));
 });
 
-test("a pile spreads into a mound rather than a single tower", () => {
-  const glyphs = Array.from({ length: 120 }, () => ({ x: 200, width: 8, height: 18 }));
-  const spots = settlePile(glyphs, 400, 4, seeded(11));
-  const tallest = Math.max(...spots.map(spot => spot.y)) + 18;
-  assert.ok(tallest < 120 * 18 / 4, `mound is ${tallest}px tall, not a ${120 * 18}px tower`);
-  const xs = spots.map(spot => spot.x);
-  assert.ok(Math.max(...xs) - Math.min(...xs) > 80, "glyphs slid out to the sides");
+test("tilt maps to gravity: upright points down, flat floats, sideways slides", () => {
+  const upright = gravityFromTilt(90, 0);
+  close(upright.x, 0); close(upright.y, 1);
+  const flat = gravityFromTilt(0, 0);
+  close(flat.y, 0);
+  close(gravityFromTilt(90, 90).x, 1);
+  close(gravityFromTilt(90, -30).x, -0.5);
+  // Out-of-range readings are capped, and missing ones default to upright.
+  close(gravityFromTilt(170, 0).y, 1);
+  close(gravityFromTilt(null, null).y, 1);
+  close(gravityFromTilt(90, 0, 2).y, 2);
 });
 
-test("the snake wraps around the edges", () => {
-  assert.deepEqual(stepCell({ x: 0, y: 3 }, "left", 10, 8), { x: 9, y: 3 });
-  assert.deepEqual(stepCell({ x: 4, y: 7 }, "down", 10, 8), { x: 4, y: 0 });
+test("the cursor pulls glyphs toward it and lets them settle underneath", () => {
+  assert.ok(cursorPull(500) > 0 && cursorPull(-500) < 0);
+  close(cursorPull(0), 0);
+  assert.ok(Math.abs(cursorPull(20)) < Math.abs(cursorPull(200)));
+  close(cursorPull(10_000), 0.9);
+  close(cursorPull(10_000, 2), 1.8);
 });
 
-test("the snake never reverses, follows steering, and avoids its body when it can", () => {
-  const base = { head: { x: 5, y: 5 }, columns: 20, rows: 20, body: [{ x: 4, y: 5 }] };
-  for (let seed = 1; seed < 200; seed++) {
-    const direction = nextDirection({ ...base, direction: "right", random: seeded(seed) });
-    assert.notEqual(direction, "left");
-  }
-  assert.equal(nextDirection({ ...base, direction: "right", steer: "up" }), "up");
-  assert.equal(nextDirection({ ...base, direction: "right", steer: "left", random: () => 0.9 }), "right");
-  // Body directly ahead and above: the only free move is down.
-  const boxed = { head: { x: 5, y: 5 }, columns: 20, rows: 20, body: [{ x: 4, y: 5 }, { x: 6, y: 5 }, { x: 5, y: 4 }] };
-  for (let seed = 1; seed < 50; seed++) {
-    assert.equal(nextDirection({ ...boxed, direction: "right", random: seeded(seed) }), "down");
-  }
+test("scrolling nudges subtly, lifting on scroll up and capped for flicks", () => {
+  assert.ok(scrollKick(-50) < 0);
+  assert.ok(scrollKick(50) > 0);
+  close(scrollKick(-10_000), -6);
+  close(scrollKick(0), 0);
+});
+
+test("saved glyph settings are clamped to their controls; unknown or old values fall back", () => {
+  const saved = parsePalettePreferences(JSON.stringify({ glyphs: { share: 5, gravity: 1.5, bogus: 3 }, settings: { duration: 900 } }));
+  const share = GLYPH_CONTROLS.find(control => control.key === "share");
+  assert.equal(saved.glyphs.share, share.max);
+  assert.equal(saved.glyphs.gravity, 1.5);
+  assert.equal(saved.glyphs.bounce, DEFAULT_GLYPHS.bounce);
+  assert.deepEqual(parsePalettePreferences(null).glyphs, DEFAULT_GLYPHS);
 });
