@@ -15,7 +15,7 @@ function ContactLinks() {
   return (
     <div className="portfolio-contact homepage-contact text-bodySmall">
       <a className="portfolio-link-strong" href="mailto:info@fennell.cv"><InspectableText>info@fennell.cv</InspectableText></a>
-      <div className="portfolio-socials">
+      <div className="portfolio-socials text-body">
         {CONTACT_LINKS.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer"><InspectableText>{link.label}</InspectableText></a>)}
       </div>
     </div>
