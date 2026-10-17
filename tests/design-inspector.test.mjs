@@ -5,7 +5,8 @@ import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMod
 test("T, C, P, and G each cycle through their two modes and restore content", () => {
   for (const [key, expected] of [
     ["t", ["type-token", "type-metrics", "content"]], ["c", ["color-token", "color-hex", "content"]],
-    ["p", ["padding-y", "padding-x", "content"]], ["g", ["gap-y", "gap-x", "content"]],
+    ["p", ["padding-y", "padding-x", "content"]], ["m", ["margin-y", "margin-x", "content"]],
+    ["g", ["gap-y", "gap-x", "content"]],
   ]) {
     let mode = "content";
     for (const next of expected) {
@@ -20,7 +21,8 @@ test("changing inspector families starts at tokens; Escape always restores conte
   assert.equal(nextInspectionMode("type-metrics", "c"), "color-token");
   assert.equal(nextInspectionMode("padding-x", "g"), "gap-y");
   assert.equal(nextInspectionMode("gap-y", "p"), "padding-y");
-  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex", "padding-y", "padding-x", "gap-y", "gap-x"]) {
+  assert.equal(nextInspectionMode("padding-y", "m"), "margin-y");
+  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex", "padding-y", "padding-x", "margin-y", "margin-x", "gap-y", "gap-x"]) {
     assert.equal(nextInspectionMode(mode, "Escape"), "content");
   }
 });
@@ -44,8 +46,8 @@ test("computed text colors normalize to hex, including alpha and Safari RGB form
 
 test("only text and color modes replace text with labels", () => {
   assert.deepEqual(
-    ["content", "type-token", "color-hex", "padding-y", "gap-x"].map(isLabelMode),
-    [false, true, true, false, false],
+    ["content", "type-token", "color-hex", "padding-y", "margin-x", "gap-x"].map(isLabelMode),
+    [false, true, true, false, false, false],
   );
 });
 

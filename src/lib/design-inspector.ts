@@ -1,12 +1,13 @@
 export type InspectionMode =
   | "content" | "type-token" | "type-metrics" | "color-token" | "color-hex"
-  | "padding-y" | "padding-x" | "gap-y" | "gap-x";
-export type InspectionKey = "t" | "c" | "p" | "g" | "Escape";
+  | "padding-y" | "padding-x" | "margin-y" | "margin-x" | "gap-y" | "gap-x";
+export type InspectionKey = "t" | "c" | "p" | "m" | "g" | "Escape";
 
 const MODE_CYCLES: Record<Exclude<InspectionKey, "Escape">, InspectionMode[]> = {
   t: ["type-token", "type-metrics"],
   c: ["color-token", "color-hex"],
   p: ["padding-y", "padding-x"],
+  m: ["margin-y", "margin-x"],
   g: ["gap-y", "gap-x"],
 };
 

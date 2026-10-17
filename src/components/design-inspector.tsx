@@ -14,9 +14,10 @@ const MODE_LABELS: Record<InspectionMode, string> = {
   content: "Content", "type-token": "Text styles", "type-metrics": "Size / line height",
   "color-token": "Color tokens", "color-hex": "Color values",
   "padding-y": "Vertical padding", "padding-x": "Horizontal padding",
+  "margin-y": "Vertical margins", "margin-x": "Horizontal margins",
   "gap-y": "Vertical gaps", "gap-x": "Horizontal gaps",
 };
-const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "g", "Escape"]);
+const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "m", "g", "Escape"]);
 
 export function DesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
@@ -49,13 +50,14 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 
   return <InspectionContext.Provider value={inspection}>
     {children}
-    {(inspection.mode.startsWith("padding-") || inspection.mode.startsWith("gap-")) && <SpacingOverlay mode={inspection.mode} />}
+    {inspection.mode !== "content" && !isLabelMode(inspection.mode) && <SpacingOverlay mode={inspection.mode} />}
     {inspection.mode !== "content" && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
         <button type="button" aria-label="Cycle color inspection" aria-pressed={inspection.mode.startsWith("color-")} onClick={() => cycle("c")}><kbd>C</kbd> Color</button>
         <button type="button" aria-label="Cycle padding inspection" aria-pressed={inspection.mode.startsWith("padding-")} onClick={() => cycle("p")}><kbd>P</kbd> Padding</button>
+        <button type="button" aria-label="Cycle margin inspection" aria-pressed={inspection.mode.startsWith("margin-")} onClick={() => cycle("m")}><kbd>M</kbd> Margin</button>
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Close design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
@@ -158,7 +160,7 @@ function isVisible(element: HTMLElement, rect: DOMRect) {
   return element.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true;
 }
 
-/** Collects every element's padding, or every flex/grid container's gaps, along one axis in viewport coordinates. */
+/** Collects every element's padding or margins, or every flex/grid container's gaps, along one axis in viewport coordinates. */
 function measureSpacing(mode: InspectionMode): SpacingArea[] {
   const areas: SpacingArea[] = [];
   const vertical = mode.endsWith("-y");
@@ -179,6 +181,18 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
         ? { ...inner, bottom: inner.top + start } : { ...inner, right: inner.left + start } });
       if (end > 0) areas.push({ value: formatPixels(end), box: vertical
         ? { ...inner, top: inner.bottom - end } : { ...inner, left: inner.right - end } });
+      continue;
+    }
+
+    if (mode.startsWith("margin-")) {
+      // Negative margins pull elements into each other and have no area to draw.
+      const [start, end] = vertical ? [px("margin-top"), px("margin-bottom")] : [px("margin-left"), px("margin-right")];
+      if (start > 0) areas.push({ value: formatPixels(start), box: vertical
+        ? { left: rect.left, right: rect.right, top: rect.top - start, bottom: rect.top }
+        : { left: rect.left - start, right: rect.left, top: rect.top, bottom: rect.bottom } });
+      if (end > 0) areas.push({ value: formatPixels(end), box: vertical
+        ? { left: rect.left, right: rect.right, top: rect.bottom, bottom: rect.bottom + end }
+        : { left: rect.right, right: rect.right + end, top: rect.top, bottom: rect.bottom } });
       continue;
     }
 
@@ -218,7 +232,7 @@ function SpacingOverlay({ mode }: { mode: InspectionMode }) {
     };
   }, [mode]);
 
-  const kind = mode.startsWith("padding-") ? "is-padding" : "is-gap";
+  const kind = `is-${mode.slice(0, mode.indexOf("-"))}`;
   return <div className={`spacing-overlay ${kind}`} aria-hidden="true">
     {areas.map(({ box, value }, index) => <div key={index} className="spacing-area" style={{
       left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top,

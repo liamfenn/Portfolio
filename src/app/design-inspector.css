@@ -68,6 +68,7 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 /* Spacing overlay: grid paper over each padding or gap area, value centered. */
 .spacing-overlay {
   --spacing-padding: #f2385a;
+  --spacing-margin: #e08a00;
   --spacing-gap: #5343eb;
   position: fixed;
   inset: 0;
@@ -75,6 +76,7 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
   pointer-events: none;
 }
 .spacing-overlay.is-padding { --spacing-color: var(--spacing-padding); }
+.spacing-overlay.is-margin { --spacing-color: var(--spacing-margin); }
 .spacing-overlay.is-gap { --spacing-color: var(--spacing-gap); }
 .spacing-area {
   position: absolute;
@@ -101,4 +103,5 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 @media (max-width: 767px) {
   .design-inspector { right: 12px; bottom: 12px; flex-wrap: wrap; gap: 6px 8px; padding: 8px; }
   .design-inspector-mode { flex-basis: 100%; min-width: 0; padding-inline: 6px; }
+  .design-inspector-controls { flex-wrap: wrap; gap: 2px; }
 }
