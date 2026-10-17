@@ -3,10 +3,7 @@ import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
-import { CaseStudyControls } from "@/components/case-study-controls";
-import { PersistentIdentityHeader } from "@/components/identity-spotify";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
-import { PortfolioRouteTransition } from "@/components/portfolio-route-transition";
 import "./globals.css";
 
 const suisseIntl = localFont({
@@ -78,10 +75,7 @@ export default function RootLayout({
         className={`${suisseIntl.variable} ${oracle.variable} ${otto.variable} ${GeistMono.variable} font-sans antialiased`}
       >
         <ProjectDisplayProvider>
-          <PersistentIdentityHeader />
-          <PortfolioRouteTransition overlay={<CaseStudyControls />}>
-            {children}
-          </PortfolioRouteTransition>
+          {children}
         </ProjectDisplayProvider>
         <Analytics />
         <AgentationProvider />

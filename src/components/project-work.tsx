@@ -1,15 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { HomepageCard } from "@/components/homepage-card";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useScramble } from "use-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
-import { ProjectPreviewVideo } from "@/components/project-preview-video";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
-import { getCaseStudyOrder } from "@/lib/case-studies";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
@@ -119,6 +117,7 @@ function WorkGlyphControl({
 export function ProjectWork() {
   const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
     useProjectDisplayState();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
@@ -419,8 +418,8 @@ export function ProjectWork() {
 
     return entries
       .sort((left, right) => {
-        const leftOrder = getCaseStudyOrder(left.preview.caseStudySlug);
-        const rightOrder = getCaseStudyOrder(right.preview.caseStudySlug);
+        const leftOrder = left.preview;
+        const rightOrder = right.preview;
 
         if (sortMode === "featured") {
           return leftOrder.featuredOrder - rightOrder.featuredOrder || left.index - right.index;
@@ -429,7 +428,7 @@ export function ProjectWork() {
         // Recent: newest year first, then newest quarter within it.
         return (
           rightOrder.year - leftOrder.year ||
-          rightOrder.quarter - leftOrder.quarter ||
+          (rightOrder.quarter ?? 0) - (leftOrder.quarter ?? 0) ||
           left.index - right.index
         );
       })
@@ -574,20 +573,9 @@ export function ProjectWork() {
 
       <ul className="project-grid" style={gridStyle} aria-label="Selected work">
         {sortedPreviews.map((preview) => (
-          <li
-            key={preview.id}
-            className="project-preview"
-            data-case-study-slug={preview.caseStudySlug}
-          >
-            <Link
-              className="project-preview-link"
-              href={`/work/${preview.caseStudySlug}`}
-              aria-label={`View the ${preview.label} case study`}
-            >
-              {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
-              <span className="sr-only">{preview.label} case study preview.</span>
-            </Link>
-          </li>
+          <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
+            expanded={expandedId === preview.id}
+            onToggle={() => setExpandedId(current => current === preview.id ? null : preview.id)} />
         ))}
       </ul>
     </section>

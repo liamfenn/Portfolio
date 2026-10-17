@@ -1,4 +1,6 @@
 import { PortfolioFooter } from "@/components/portfolio-footer";
+import { HomepageIdentity, HomepageSpotify } from "@/components/homepage-identity";
+import { HomepageBio } from "@/components/homepage-bio";
 import { ProjectWork } from "@/components/project-work";
 
 const CONTACT_LINKS = [
@@ -8,21 +10,12 @@ const CONTACT_LINKS = [
   { label: "Github", href: "https://github.com/lliamfennell" },
 ];
 
-function ContactLinks({ mobile = false }: { mobile?: boolean }) {
+function ContactLinks() {
   return (
-    <div className={mobile ? "portfolio-contact portfolio-contact-mobile" : "portfolio-contact"}>
-      <a className="portfolio-link-strong" href="mailto:info@fennell.cv">
-        info@fennell.cv
-      </a>
+    <div className="portfolio-contact homepage-contact">
+      <a className="portfolio-link-strong" href="mailto:info@fennell.cv">info@fennell.cv</a>
       <div className="portfolio-socials">
-        {CONTACT_LINKS.map((link, index) => (
-          <span key={link.label}>
-            <a href={link.href} target="_blank" rel="noreferrer">
-              {link.label}
-            </a>
-            {!mobile && index < CONTACT_LINKS.length - 1 ? ", " : null}
-          </span>
-        ))}
+        {CONTACT_LINKS.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>)}
       </div>
     </div>
   );
@@ -30,40 +23,17 @@ function ContactLinks({ mobile = false }: { mobile?: boolean }) {
 
 export default function Home() {
   return (
-    <main className="portfolio-v2">
+    <main className="portfolio-v2 portfolio-v3">
       <header className="portfolio-intro">
         <div className="portfolio-bio-group">
-          <div className="persistent-identity-spacer" aria-hidden="true" />
+          <HomepageIdentity />
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
-          <div className="portfolio-bio">
-            <p>
-              <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at{" "}
-            <a className="portfolio-link-strong" href="https://shop.app" target="_blank" rel="noreferrer">
-              Shop
-            </a>
-            . Previously at OpenPurpose where he designed interfaces for{" "}
-            <a className="portfolio-link-strong" href="https://bird.com" target="_blank" rel="noreferrer">
-              Bird
-            </a>
-            ,{" "}
-            <a className="portfolio-link-strong" href="https://plasticity.xyz" target="_blank" rel="noreferrer">
-              Plasticity
-            </a>{" "}
-              and more.
-            </p>
-            <p>
-              His practice explores how products can recede around intent without flattening their character.
-              Design becomes a reflective conversation with the thing being made, moving between conception and
-              execution. Ideas are resolved through play, making room for expression where it earns attention.
-            </p>
-          </div>
+          <HomepageBio />
         </div>
-        <ContactLinks />
       </header>
-
       <ProjectWork />
-
-      <ContactLinks mobile />
+      <ContactLinks />
+      <HomepageSpotify />
       <PortfolioFooter />
     </main>
   );

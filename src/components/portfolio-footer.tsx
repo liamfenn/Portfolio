@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWeather } from "@/hooks/use-weather";
+import { PaletteToy } from "@/components/palette-toy";
 
 function getNewYorkTime() {
   return new Date().toLocaleTimeString("en-US", {
@@ -47,13 +48,7 @@ export function PortfolioFooter() {
         <span className="footer-type-credit">
           Set in Oracle &amp; <span className="footer-otto">Otto</span>
         </span>
-        <span className="footer-palette" aria-label="Lavender, pink, blue, green, and gray color palette">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
+        <PaletteToy />
       </div>
     </footer>
   );

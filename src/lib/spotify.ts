@@ -34,6 +34,7 @@ interface SpotifyTokenError {
 
 interface SpotifyTrack {
   name: string;
+  duration_ms?: number;
   artists: { name: string }[];
   album: {
     name: string;
@@ -46,6 +47,7 @@ interface SpotifyTrack {
 
 interface SpotifyNowPlaying {
   is_playing: boolean;
+  progress_ms?: number;
   item: SpotifyTrack;
 }
 
@@ -57,6 +59,9 @@ export interface NowPlayingResponse {
   albumImageUrl: string;
   songUrl: string;
   playedAt?: string;
+  progressMs?: number;
+  durationMs?: number;
+  fetchedAt?: string;
 }
 
 async function getAccessToken(): Promise<SpotifyToken> {
@@ -158,6 +163,9 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
 
     return {
       isPlaying: true,
+      progressMs: data.progress_ms,
+      durationMs: data.item.duration_ms,
+      fetchedAt: new Date().toISOString(),
       title: data.item.name,
       artist: data.item.artists.map((a) => a.name).join(", "),
       album: data.item.album.name,
