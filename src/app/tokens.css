@@ -20,6 +20,18 @@
   --content-padding: 16px;
 }
 
+/* Interaction: hover feedback, slide motion, and one focus ring. */
+:root {
+  --hover-dim: .4;
+  --hover-fill: .6;
+  --hover-duration: 150ms;
+  --hover-ease: ease;
+  --motion-duration: 300ms;
+  --motion-ease: cubic-bezier(.16, 1, .3, 1);
+  --focus-ring: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
+  --focus-offset: 2px;
+}
+
 /* Semantic color roles live outside Tailwind's font-size token namespace. */
 :root {
   --text-primary: #000000;

@@ -41,16 +41,6 @@
   a {
     color: inherit;
     text-decoration: none;
-    transition: opacity 0.15s ease;
-  }
-
-  @media (hover: hover) {
-    a:hover {
-      opacity: 0.4;
-    }
-    a.spotify-widget:hover {
-      opacity: 1;
-    }
   }
 
   a:visited {
@@ -341,11 +331,6 @@
   cursor: pointer;
 }
 
-.work-control:focus-visible {
-  outline: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
-  outline-offset: 2px;
-}
-
 .work-grid-control {
   width: 80px;
   gap: 0;
@@ -435,18 +420,13 @@
   white-space: nowrap;
   cursor: pointer;
   transform-origin: center;
-  transition: color 120ms ease;
+  transition: color var(--hover-duration) var(--hover-ease);
 }
 
 .work-density-option:hover,
 .work-density-option:focus-visible {
   --inspect-color-token: text-primary;
   color: var(--text-primary);
-}
-
-.work-density-option:focus-visible {
-  outline: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
-  outline-offset: 1px;
 }
 
 .work-density-option.is-opening {
@@ -551,12 +531,6 @@
 
 .project-preview-video.is-frame-ready {
   opacity: 1;
-}
-
-@media (hover: hover) {
-  .project-preview-link:hover {
-    opacity: 1;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -821,14 +795,6 @@
     var(--pip-drag-y);
 }
 
-/* Hovering a tucked tile eases it out to show it can be pulled back. */
-@media (hover: hover) and (pointer: fine) {
-  .case-study-pip.is-tucked:not(.is-dragging):hover {
-    translate: calc(var(--pip-drag-x) + var(--pip-inset) + 100% - var(--pip-visible) - 10px)
-      var(--pip-drag-y);
-  }
-}
-
 /* Darkens as the tile is pulled toward the tuck edge, and stays on once tucked. */
 .case-study-pip-scrim {
   position: absolute;
@@ -925,11 +891,6 @@
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   .case-study-media-trigger.is-focusable {
     cursor: ne-resize;
-  }
-
-  .case-study-media-trigger.is-focusable:focus-visible {
-    outline: 1px solid rgba(0, 0, 0, 0.35);
-    outline-offset: 2px;
   }
 }
 
@@ -1160,11 +1121,6 @@ body.is-media-focused .case-study-controls {
   object-fit: cover;
 }
 
-.project-identity:focus-visible {
-  outline: 1px solid rgba(0, 0, 0, 0.35);
-  outline-offset: 2px;
-}
-
 .project-identity-details {
   display: flex;
   width: 0;
@@ -1212,14 +1168,6 @@ body.is-media-focused .case-study-controls {
 }
 
 @media (hover: hover) {
-  .project-identity:hover {
-    opacity: 1;
-  }
-
-  .project-identity-details:hover .project-identity-index-label {
-    opacity: 0.4;
-  }
-
   .project-identity.is-hovered .project-identity-details,
   .persistent-identity.is-project.is-hovered .project-identity-details {
     width: 120px;
@@ -1297,13 +1245,6 @@ body.is-media-focused .case-study-controls {
   width: 36px;
 }
 
-@media (hover: hover) {
-  .case-study-control:hover {
-    background: #000;
-    color: #fff;
-    opacity: 1;
-  }
-}
 
 .persistent-identity-header {
   --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
@@ -1381,11 +1322,6 @@ body.is-media-focused .case-study-controls {
 
 .identity-artwork-toggle {
   display: none;
-}
-
-.identity-artwork-action:focus-visible {
-  outline: 1px solid rgba(0, 0, 0, 0.35);
-  outline-offset: 2px;
 }
 
 .identity-card-motion {
@@ -1485,17 +1421,6 @@ body.is-media-focused .case-study-controls {
   text-decoration: none;
 }
 
-@media (hover: hover) {
-  .persistent-project-details-link:hover {
-    opacity: 1;
-  }
-}
-
-.persistent-project-details-link:focus-visible {
-  border-radius: 2px;
-  outline: 1px solid rgba(0, 0, 0, 0.35);
-  outline-offset: 2px;
-}
 
 .identity-track {
   display: flex;
@@ -1676,14 +1601,6 @@ body.is-media-focused .case-study-controls {
 }
 
 @media (hover: hover) {
-  .identity-track:hover {
-    opacity: 1;
-  }
-
-  .identity-track-content:hover .identity-song-line {
-    opacity: 0.4;
-  }
-
   .identity-spotify.is-hovered .identity-track {
     width: min(var(--identity-track-hug-width), var(--identity-track-width));
     pointer-events: auto;
@@ -2104,8 +2021,19 @@ body.is-media-focused .case-study-controls {
 .portfolio-v3 .portfolio-bio a { text-decoration: underline; text-underline-offset: 2px; }
 .homepage-slide-badge { position: relative; display: block; width: 56px; height: 28px; }
 .homepage-identity { flex: 0 0 28px; }
-.portfolio-v3 a.homepage-identity:hover, .portfolio-v3 a.homepage-spotify:hover { opacity: 1; }
-.homepage-brand { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 28px; height: 28px; transition: transform 300ms cubic-bezier(.16,1,.3,1); }
+/*
+ * Hover system, three patterns:
+ * - text links and text buttons dim to --hover-dim;
+ * - menu choices darken from text-secondary to text-primary (.work-density-option);
+ * - surfaces (.hover-surface: the music player, avatar) keep full opacity and fade their own fill.
+ * Every link and button shares one focus ring.
+ */
+:where(a:not(.hover-surface), .bio-expand-word) { transition: opacity var(--hover-duration) var(--hover-ease); }
+@media (hover: hover) {
+  :where(a:not(.hover-surface), .bio-expand-word):hover { opacity: var(--hover-dim); }
+}
+:where(a, button):focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.homepage-brand { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 28px; height: 28px; transition: transform var(--motion-duration) var(--motion-ease); }
 .homepage-shop-brand { background: var(--bg-purple-fill); }
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--bg-secondary-fill); }
 .homepage-shop-brand img { width: 24px; height: 24px; transform: scale(.666667); filter: brightness(0) invert(1); }
@@ -2149,19 +2077,19 @@ body.is-media-focused .case-study-controls {
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .homepage-spotify { --spotify-reveal: 0px; --badge-cutout-left: 16px; --badge-cutout-right: calc(48px + var(--spotify-reveal)); --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 0 0; padding: 24px var(--content-padding) var(--content-padding); }
-.homepage-spotify::before { transition: clip-path 300ms cubic-bezier(.16,1,.3,1), opacity 300ms ease; }
+.homepage-spotify::before { transition: clip-path var(--motion-duration) var(--motion-ease), opacity var(--hover-duration) var(--hover-ease); }
 @media (min-width: 768px) {
   .homepage-spotify:focus-visible { --spotify-reveal: 28px; }
 }
 @media (hover: hover) and (min-width: 768px) {
   .homepage-spotify:hover { --spotify-reveal: 28px; }
-  .homepage-spotify:hover::before { opacity: .6; }
+  .homepage-spotify:hover::before { opacity: var(--hover-fill); }
 }
-.homepage-album-badge { position: absolute; top: -14px; left: 18px; width: calc(28px + var(--spotify-reveal)); isolation: isolate; overflow: hidden; transition: width 300ms cubic-bezier(.16,1,.3,1); }
+.homepage-album-badge { position: absolute; top: -14px; left: 18px; width: calc(28px + var(--spotify-reveal)); isolation: isolate; overflow: hidden; transition: width var(--motion-duration) var(--motion-ease); }
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: var(--bg-secondary-fill); overflow: hidden; }
 .homepage-album img { object-fit: cover; }
 /* Green while playing; quiet secondary fill with a muted logo once it's "Last listened to". */
-.homepage-spotify-brand { z-index: 0; background: var(--bg-secondary-fill); transform: translateX(var(--spotify-reveal)); transition: transform 300ms cubic-bezier(.16,1,.3,1), background-color 200ms ease; }
+.homepage-spotify-brand { z-index: 0; background: var(--bg-secondary-fill); transform: translateX(var(--spotify-reveal)); transition: transform var(--motion-duration) var(--motion-ease), background-color var(--hover-duration) var(--hover-ease); }
 .homepage-album-badge.is-playing .homepage-spotify-brand { background: var(--bg-green-fill); }
 /* The logo is a mask so its color comes from tokens. */
 .homepage-spotify-logo { width: 16px; height: 16px; background-color: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
@@ -2233,10 +2161,6 @@ body.is-media-focused .case-study-controls {
   content: "";
   position: absolute;
   inset: -19px 0;
-}
-.palette-toy-trigger:focus-visible {
-  outline: 1px solid var(--text-secondary);
-  outline-offset: 5px;
 }
 .palette-toy-track {
   display: flex;

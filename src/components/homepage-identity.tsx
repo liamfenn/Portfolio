@@ -10,7 +10,7 @@ import { InspectableText } from "@/components/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export function HomepageIdentity() {
-  return <a className="homepage-identity homepage-slide-badge" data-inspector-toggle href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
+  return <a className="homepage-identity homepage-slide-badge hover-surface" data-inspector-toggle href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
     <span className="homepage-brand homepage-shop-brand"><Image src="/images/icons/shop-swirl.svg" alt="" width={24} height={24} /></span>
     <span className="homepage-avatar"><Image src="/images/profile-v2.png" alt="Liam Fennell" width={1536} height={1920} sizes="116px" priority /></span>
   </a>;
@@ -91,7 +91,7 @@ export function HomepageSpotify() {
   const progress = data?.progressMs === undefined ? null : Math.min(data.durationMs ?? Infinity,
     data.progressMs + (data.isPlaying && data.fetchedAt && now ? Math.max(0, now - new Date(data.fetchedAt).getTime()) : 0));
   const trackTime = data?.isPlaying ? progress !== null ? formatDuration(progress) : "Now" : formatAgo(data?.playedAt ?? cachedAt, now);
-  return <a className="homepage-spotify text-bodySans" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
+  return <a className="homepage-spotify text-bodySans hover-surface" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className={`homepage-album-badge homepage-slide-badge${data?.isPlaying ? " is-playing" : ""}`}>
       <span className="homepage-brand homepage-spotify-brand"><span className="homepage-spotify-logo" /></span>
       <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
