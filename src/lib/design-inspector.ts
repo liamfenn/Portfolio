@@ -1,14 +1,73 @@
-export type InspectionMode = "content" | "type-token" | "type-metrics" | "color-token" | "color-hex";
+export type InspectionMode =
+  | "content" | "type-token" | "type-metrics" | "color-token" | "color-hex"
+  | "padding-y" | "padding-x" | "gap-y" | "gap-x";
+export type InspectionKey = "t" | "c" | "p" | "g" | "Escape";
 
-export function nextInspectionMode(mode: InspectionMode, key: "t" | "c" | "Escape"): InspectionMode {
+const MODE_CYCLES: Record<Exclude<InspectionKey, "Escape">, InspectionMode[]> = {
+  t: ["type-token", "type-metrics"],
+  c: ["color-token", "color-hex"],
+  p: ["padding-y", "padding-x"],
+  g: ["gap-y", "gap-x"],
+};
+
+/** Each key steps through its own modes and back to content; another key starts its first mode. */
+export function nextInspectionMode(mode: InspectionMode, key: InspectionKey): InspectionMode {
   if (key === "Escape") return "content";
-  if (key === "t") return mode === "type-token" ? "type-metrics" : mode === "type-metrics" ? "content" : "type-token";
-  return mode === "color-token" ? "color-hex" : mode === "color-hex" ? "content" : "color-token";
+  const cycle = MODE_CYCLES[key];
+  const index = cycle.indexOf(mode);
+  return index === -1 ? cycle[0] : cycle[index + 1] ?? "content";
+}
+
+/** Text and color modes swap text for labels; spacing modes draw an overlay instead. */
+export function isLabelMode(mode: InspectionMode) {
+  return mode.startsWith("type-") || mode.startsWith("color-");
+}
+
+export function formatPixels(value: string | number) {
+  return (typeof value === "number" ? value : Number.parseFloat(value)).toFixed(2).replace(/\.?0+$/, "");
 }
 
 export function formatTextMetrics(size: string, leading: string) {
-  const number = (value: string) => Number.parseFloat(value).toFixed(2).replace(/\.?0+$/, "");
-  return `${number(size)} / ${leading === "normal" ? "normal" : number(leading)}`;
+  return `${formatPixels(size)} / ${leading === "normal" ? "normal" : formatPixels(leading)}`;
+}
+
+export type Box = { left: number; top: number; right: number; bottom: number };
+
+/**
+ * Measures the visible space between laid-out children. Children are grouped into rows by
+ * vertical overlap, so this works for flex rows, flex columns, wrapping flex, and grids.
+ * Vertical gaps span the container's content width; horizontal gaps span their row.
+ */
+export function gapBoxes(content: Box, items: Box[], axis: "vertical" | "horizontal"): Box[] {
+  const rows: { top: number; bottom: number; items: Box[] }[] = [];
+  for (const item of [...items].sort((a, b) => a.top - b.top)) {
+    const row = rows.at(-1);
+    if (row && item.top < row.bottom - 0.5) {
+      row.items.push(item);
+      row.bottom = Math.max(row.bottom, item.bottom);
+    } else {
+      rows.push({ top: item.top, bottom: item.bottom, items: [item] });
+    }
+  }
+
+  const gaps: Box[] = [];
+  if (axis === "vertical") {
+    for (let index = 1; index < rows.length; index++) {
+      const top = rows[index - 1].bottom;
+      const bottom = rows[index].top;
+      if (bottom - top > 0.5) gaps.push({ left: content.left, right: content.right, top, bottom });
+    }
+    return gaps;
+  }
+
+  for (const row of rows) {
+    let right = -Infinity;
+    for (const item of [...row.items].sort((a, b) => a.left - b.left)) {
+      if (item.left - right > 0.5 && right !== -Infinity) gaps.push({ left: right, right: item.left, top: row.top, bottom: row.bottom });
+      right = Math.max(right, item.right);
+    }
+  }
+  return gaps;
 }
 
 /** Computed text colors are RGB in Safari and Chromium; support sRGB too. */

@@ -52,20 +52,53 @@
 .design-inspector button:focus-visible { outline: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent); outline-offset: 2px; }
 .design-inspector kbd { font: inherit; }
 
-html:not([data-inspector-mode="content"])[data-inspector-mode] .work-density-control,
-html:not([data-inspector-mode="content"])[data-inspector-mode] .work-grid-control,
-html:not([data-inspector-mode="content"])[data-inspector-mode] .work-sort-control { width: auto; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .work-density-menu { width: max-content; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .work-density-option { width: 100%; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .homepage-track-marquee { animation: none; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .homepage-track-fade { display: none; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .homepage-track { overflow: visible; white-space: normal; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .homepage-track-marquee { width: auto; white-space: normal; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .homepage-track-time { flex-shrink: 1; white-space: normal; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .palette-quiz-history button { width: auto; min-width: 28px; padding: 6px; }
-html:not([data-inspector-mode="content"])[data-inspector-mode] .palette-quiz-history button > span { width: auto; height: auto; padding: 2px; }
+html[data-inspector-labels] .work-density-control,
+html[data-inspector-labels] .work-grid-control,
+html[data-inspector-labels] .work-sort-control { width: auto; }
+html[data-inspector-labels] .work-density-menu { width: max-content; }
+html[data-inspector-labels] .work-density-option { width: 100%; }
+html[data-inspector-labels] .homepage-track-marquee { animation: none; }
+html[data-inspector-labels] .homepage-track-fade { display: none; }
+html[data-inspector-labels] .homepage-track { overflow: visible; white-space: normal; }
+html[data-inspector-labels] .homepage-track-marquee { width: auto; white-space: normal; }
+html[data-inspector-labels] .homepage-track-time { flex-shrink: 1; white-space: normal; }
+html[data-inspector-labels] .palette-quiz-history button { width: auto; min-width: 28px; padding: 6px; }
+html[data-inspector-labels] .palette-quiz-history button > span { width: auto; height: auto; padding: 2px; }
+
+/* Spacing overlay: grid paper over each padding or gap area, value centered. */
+.spacing-overlay {
+  --spacing-padding: #f2385a;
+  --spacing-gap: #5343eb;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+.spacing-overlay.is-padding { --spacing-color: var(--spacing-padding); }
+.spacing-overlay.is-gap { --spacing-color: var(--spacing-gap); }
+.spacing-area {
+  position: absolute;
+  background-color: color-mix(in srgb, var(--spacing-color) 10%, transparent);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--spacing-color) 28%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--spacing-color) 28%, transparent) 1px, transparent 1px);
+  background-size: 4px 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--spacing-color) 45%, transparent);
+}
+.spacing-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--spacing-color);
+  color: var(--bg-fill);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 @media (max-width: 767px) {
-  .design-inspector { right: 12px; bottom: 12px; gap: 8px; padding: 8px; }
-  .design-inspector-mode { min-width: 0; }
+  .design-inspector { right: 12px; bottom: 12px; flex-wrap: wrap; gap: 6px 8px; padding: 8px; }
+  .design-inspector-mode { flex-basis: 100%; min-width: 0; padding-inline: 6px; }
 }

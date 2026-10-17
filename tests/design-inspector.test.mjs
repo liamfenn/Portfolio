@@ -1,9 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { colorToHex, formatTextMetrics, nextInspectionMode } from "../src/lib/design-inspector.ts";
+import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode } from "../src/lib/design-inspector.ts";
 
-test("T and C each cycle through their two modes and restore content", () => {
-  for (const [key, expected] of [["t", ["type-token", "type-metrics", "content"]], ["c", ["color-token", "color-hex", "content"]]]) {
+test("T, C, P, and G each cycle through their two modes and restore content", () => {
+  for (const [key, expected] of [
+    ["t", ["type-token", "type-metrics", "content"]], ["c", ["color-token", "color-hex", "content"]],
+    ["p", ["padding-y", "padding-x", "content"]], ["g", ["gap-y", "gap-x", "content"]],
+  ]) {
     let mode = "content";
     for (const next of expected) {
       mode = nextInspectionMode(mode, key);
@@ -15,7 +18,9 @@ test("T and C each cycle through their two modes and restore content", () => {
 test("changing inspector families starts at tokens; Escape always restores content", () => {
   assert.equal(nextInspectionMode("color-hex", "t"), "type-token");
   assert.equal(nextInspectionMode("type-metrics", "c"), "color-token");
-  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex"]) {
+  assert.equal(nextInspectionMode("padding-x", "g"), "gap-y");
+  assert.equal(nextInspectionMode("gap-y", "p"), "padding-y");
+  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex", "padding-y", "padding-x", "gap-y", "gap-x"]) {
     assert.equal(nextInspectionMode(mode, "Escape"), "content");
   }
 });
@@ -35,4 +40,27 @@ test("computed text colors normalize to hex, including alpha and Safari RGB form
     ["color(srgb 0 0 0)", "#000000"], ["#999", "#999999"], ["#fff8", "#FFFFFF88"],
     ["#000000ff", "#000000"], ["#ffffff", "#FFFFFF"], ["transparent", "#00000000"],
   ]) assert.equal(colorToHex(input), expected);
+});
+
+test("only text and color modes replace text with labels", () => {
+  assert.deepEqual(
+    ["content", "type-token", "color-hex", "padding-y", "gap-x"].map(isLabelMode),
+    [false, true, true, false, false],
+  );
+});
+
+const box = (left, top, right, bottom) => ({ left, top, right, bottom });
+
+test("vertical gaps sit between stacked rows and span the content width", () => {
+  const content = box(0, 0, 100, 100);
+  const items = [box(0, 0, 40, 20), box(0, 28, 100, 48), box(0, 60, 60, 80)];
+  assert.deepEqual(gapBoxes(content, items, "vertical"), [box(0, 20, 100, 28), box(0, 48, 100, 60)]);
+  assert.deepEqual(gapBoxes(content, items, "horizontal"), []);
+});
+
+test("horizontal gaps sit between items in each row, including wrapped rows", () => {
+  const content = box(0, 0, 100, 100);
+  const items = [box(0, 0, 30, 20), box(46, 0, 70, 10), box(0, 30, 20, 50), box(28, 30, 50, 50)];
+  assert.deepEqual(gapBoxes(content, items, "horizontal"), [box(30, 0, 46, 20), box(20, 30, 28, 50)]);
+  assert.deepEqual(gapBoxes(content, items, "vertical"), [box(0, 20, 100, 30)]);
 });

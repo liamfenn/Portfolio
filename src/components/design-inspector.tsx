@@ -4,8 +4,8 @@ import { Children, createContext, isValidElement, useCallback, useContext, useEf
 import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
-import { colorToHex, formatTextMetrics, nextInspectionMode } from "@/lib/design-inspector";
-import type { InspectionMode } from "@/lib/design-inspector";
+import { colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode } from "@/lib/design-inspector";
+import type { Box, InspectionKey, InspectionMode } from "@/lib/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 type Inspection = { mode: InspectionMode; previousMode: InspectionMode; revision: number };
@@ -13,11 +13,14 @@ const InspectionContext = createContext<Inspection>({ mode: "content", previousM
 const MODE_LABELS: Record<InspectionMode, string> = {
   content: "Content", "type-token": "Text styles", "type-metrics": "Size / line height",
   "color-token": "Color tokens", "color-hex": "Color values",
+  "padding-y": "Vertical padding", "padding-x": "Horizontal padding",
+  "gap-y": "Vertical gaps", "gap-x": "Horizontal gaps",
 };
+const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "g", "Escape"]);
 
 export function DesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
-  const cycle = useCallback((key: "t" | "c" | "Escape") => {
+  const cycle = useCallback((key: InspectionKey) => {
     setInspection(current => {
       const mode = nextInspectionMode(current.mode, key);
       return mode === current.mode ? current : { mode, previousMode: current.mode, revision: current.revision + 1 };
@@ -29,26 +32,31 @@ export function DesignInspector({ children }: { children: ReactNode }) {
       if (event.defaultPrevented || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')) return;
       const key = event.key === "Escape" ? "Escape" : event.key.toLowerCase();
-      if (key !== "t" && key !== "c" && key !== "Escape") return;
+      if (!INSPECTION_KEYS.has(key)) return;
       if (key !== "Escape") event.preventDefault();
-      cycle(key);
+      cycle(key as InspectionKey);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [cycle]);
 
   useEffect(() => {
-    document.documentElement.dataset.inspectorMode = inspection.mode;
-    return () => { delete document.documentElement.dataset.inspectorMode; };
+    const root = document.documentElement;
+    root.dataset.inspectorMode = inspection.mode;
+    if (isLabelMode(inspection.mode)) root.dataset.inspectorLabels = "";
+    return () => { delete root.dataset.inspectorMode; delete root.dataset.inspectorLabels; };
   }, [inspection.mode]);
 
   return <InspectionContext.Provider value={inspection}>
     {children}
+    {(inspection.mode.startsWith("padding-") || inspection.mode.startsWith("gap-")) && <SpacingOverlay mode={inspection.mode} />}
     {inspection.mode !== "content" && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
         <button type="button" aria-label="Cycle color inspection" aria-pressed={inspection.mode.startsWith("color-")} onClick={() => cycle("c")}><kbd>C</kbd> Color</button>
+        <button type="button" aria-label="Cycle padding inspection" aria-pressed={inspection.mode.startsWith("padding-")} onClick={() => cycle("p")}><kbd>P</kbd> Padding</button>
+        <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Close design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
     </aside>}
@@ -108,13 +116,13 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
     observer.observe(node);
     window.addEventListener("resize", measure);
     document.fonts.ready.then(measure);
-    const timer = inspection.mode === "content" ? undefined : window.setInterval(measure, 250);
+    const timer = !isLabelMode(inspection.mode) ? undefined : window.setInterval(measure, 250);
     measure();
     return () => { cancelled = true; observer.disconnect(); window.removeEventListener("resize", measure); window.clearInterval(timer); };
   }, [inspection.mode, originalText, children, text]);
 
-  const active = inspection.mode !== "content";
-  const returning = !active && !reducedMotion && inspection.previousMode !== "content" && finishedRevision < inspection.revision;
+  const active = isLabelMode(inspection.mode);
+  const returning = !active && !reducedMotion && isLabelMode(inspection.previousMode) && finishedRevision < inspection.revision;
   const showLabel = active || returning;
   const value = inspection.mode === "type-token" ? details.token
     : inspection.mode === "type-metrics" ? details.metrics
@@ -130,3 +138,96 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
     </span>}
   </span>;
 }
+
+type SpacingArea = { box: Box; value: string };
+const SKIPPED_ELEMENTS = ".spacing-overlay, .design-inspector, script, style, noscript, template";
+
+function inFlowChildren(element: Element): HTMLElement[] {
+  return Array.from(element.children).flatMap(child => {
+    if (!(child instanceof HTMLElement)) return [];
+    const style = getComputedStyle(child);
+    if (style.display === "contents") return inFlowChildren(child);
+    if (style.display === "none" || style.position === "absolute" || style.position === "fixed") return [];
+    return [child];
+  });
+}
+
+function isVisible(element: HTMLElement, rect: DOMRect) {
+  if (rect.width < 1 || rect.height < 1) return false;
+  if (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) return false;
+  return element.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true;
+}
+
+/** Collects every element's padding, or every flex/grid container's gaps, along one axis in viewport coordinates. */
+function measureSpacing(mode: InspectionMode): SpacingArea[] {
+  const areas: SpacingArea[] = [];
+  const vertical = mode.endsWith("-y");
+  for (const element of Array.from(document.body.querySelectorAll<HTMLElement>("*"))) {
+    if (element.closest(SKIPPED_ELEMENTS)) continue;
+    const rect = element.getBoundingClientRect();
+    if (!isVisible(element, rect)) continue;
+    const style = getComputedStyle(element);
+    const px = (property: string) => Number.parseFloat(style.getPropertyValue(property)) || 0;
+    const inner = {
+      left: rect.left + px("border-left-width"), right: rect.right - px("border-right-width"),
+      top: rect.top + px("border-top-width"), bottom: rect.bottom - px("border-bottom-width"),
+    };
+
+    if (mode.startsWith("padding-")) {
+      const [start, end] = vertical ? [px("padding-top"), px("padding-bottom")] : [px("padding-left"), px("padding-right")];
+      if (start > 0) areas.push({ value: formatPixels(start), box: vertical
+        ? { ...inner, bottom: inner.top + start } : { ...inner, right: inner.left + start } });
+      if (end > 0) areas.push({ value: formatPixels(end), box: vertical
+        ? { ...inner, top: inner.bottom - end } : { ...inner, left: inner.right - end } });
+      continue;
+    }
+
+    if (!/flex|grid/.test(style.display) || px(vertical ? "row-gap" : "column-gap") <= 0) continue;
+    const content = {
+      left: inner.left + px("padding-left"), right: inner.right - px("padding-right"),
+      top: inner.top + px("padding-top"), bottom: inner.bottom - px("padding-bottom"),
+    };
+    const items = inFlowChildren(element).map(child => child.getBoundingClientRect()).filter(box => box.width > 0 && box.height > 0);
+    for (const box of gapBoxes(content, items, vertical ? "vertical" : "horizontal")) {
+      areas.push({ box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
+    }
+  }
+  return areas;
+}
+
+/** Grid-paper overlay with each spacing value centered in its area; rebuilt as the page scrolls, resizes, or animates. */
+function SpacingOverlay({ mode }: { mode: InspectionMode }) {
+  const [areas, setAreas] = useState<SpacingArea[]>([]);
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => { frame = 0; setAreas(measureSpacing(mode)); });
+    };
+    schedule();
+    const timer = window.setInterval(schedule, 300);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(timer);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [mode]);
+
+  const kind = mode.startsWith("padding-") ? "is-padding" : "is-gap";
+  return <div className={`spacing-overlay ${kind}`} aria-hidden="true">
+    {areas.map(({ box, value }, index) => <div key={index} className="spacing-area" style={{
+      left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top,
+    }}>
+      <span className="spacing-value text-captionSans">
+        {reducedMotion ? value : <ScrambledLabel key={`${mode}-${value}`} text={value} onEnd={noop} />}
+      </span>
+    </div>)}
+  </div>;
+}
+
+function noop() {}
