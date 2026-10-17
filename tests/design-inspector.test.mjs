@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, spacingKinds } from "../src/lib/design-inspector.ts";
+import { colorToHex, createShakeDetector, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, resolveInspectorFlag, spacingKinds } from "../src/lib/design-inspector.ts";
 
 test("T, O, P, M, G, and S each cycle through their two modes and restore content", () => {
   for (const [key, expected] of [
@@ -73,4 +73,34 @@ test("spacing modes draw their own kind, and S draws all three with gaps on top"
   assert.deepEqual(spacingKinds("gap-x"), ["gap"]);
   assert.deepEqual(spacingKinds("spacing-y"), ["margin", "padding", "gap"]);
   assert.deepEqual(spacingKinds("type-token"), []);
+});
+
+test("the inspector is debug-only: off in production, flagged on previews, on in local dev", () => {
+  const flag = overrides => resolveInspectorFlag({ vercelEnv: "preview", nodeEnv: "production", param: null, stored: null, ...overrides });
+  assert.deepEqual(flag({}), { enabled: false });
+  assert.deepEqual(flag({ param: "" }), { enabled: true, remember: "on" });
+  assert.deepEqual(flag({ stored: "on" }), { enabled: true });
+  assert.deepEqual(flag({ param: "off", stored: "on" }), { enabled: false, remember: "off" });
+  assert.deepEqual(flag({ vercelEnv: "production", param: "", stored: "on" }), { enabled: false });
+  assert.deepEqual(flag({ vercelEnv: undefined, nodeEnv: "development" }), { enabled: true });
+  assert.deepEqual(flag({ vercelEnv: undefined, nodeEnv: "development", stored: "off" }), { enabled: false });
+});
+
+test("a shake needs repeated sharp jolts, counts each jolt once, then cools down", () => {
+  const detect = createShakeDetector();
+  const still = [0, 9.8, 0];
+  const jolt = [20, 9.8, 0];
+  let t = 0;
+  const feed = sample => detect(sample[0], sample[1], sample[2], (t += 16));
+  // Holding still or tilting slowly never triggers.
+  for (let i = 0; i < 30; i++) assert.equal(feed([i * 0.2, 9.8, 0]), false);
+  // One jolt (several fast samples) counts once.
+  feed(still); assert.equal(feed(jolt), false); assert.equal(feed(still), false);
+  t += 150;
+  feed(still); assert.equal(feed(jolt), true);
+  // Cooldown ignores the rest of the same shake.
+  t += 150; feed(still); assert.equal(feed(jolt), false);
+  // After the cooldown, a back-and-forth shake (out, then back) triggers again.
+  t += 1500; feed(still); feed(still); feed(jolt); t += 150;
+  assert.equal(feed(still), true);
 });

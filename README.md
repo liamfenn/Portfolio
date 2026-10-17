@@ -35,14 +35,22 @@ Change a named style's `--type-*` bundle to update its family, size, weight,
 and leading together. Email and social links use bodySerif. Project details,
 project dates, and the player's listening status and time use captionSans.
 
-The built-in inspector works on the homepage and the palette lab:
+The built-in inspector is a debugging tool and never ships to production. It is
+on by default in local development. On previews, open the page with `?inspect`
+to turn it on for that browser (it's remembered), and `?inspect=off` to turn it
+off again. When off, `InspectableText` renders plain text.
+
+On a phone, shake to show or hide the panel, then tap a mode. iOS asks for
+motion access once: tap **Enable shake to inspect** when it appears.
+
+It works on the homepage and the palette lab:
 
 - **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
 - **O** cycles content → color token → hex → content. (C is taken by the Vercel
   toolbar's comment shortcut on previews.)
 - **P**, **M**, and **G** draw padding, margins, and gaps; **S** draws all three.
   Each cycles vertical → horizontal → off. The 8px page frame is its own purple layer.
-- **H** hides or shows the floating panel without leaving the current mode.
+- **H** (or a shake on phones) hides or shows the floating panel, even with no mode active.
 - **Escape** restores content. Switching families starts at that family's first
   view. Shortcuts ignore editable fields and modifier keys.
 

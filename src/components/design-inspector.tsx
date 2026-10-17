@@ -1,15 +1,18 @@
 "use client";
 
-import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
-import { colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, spacingKinds } from "@/lib/design-inspector";
+import {
+  colorToHex, createShakeDetector, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode,
+  resolveInspectorFlag, spacingKinds,
+} from "@/lib/design-inspector";
 import type { Box, InspectionKey, InspectionMode, SpacingKind } from "@/lib/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
-type Inspection = { mode: InspectionMode; previousMode: InspectionMode; revision: number };
-const InspectionContext = createContext<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
+type Inspection = { enabled: boolean; mode: InspectionMode; previousMode: InspectionMode; revision: number };
+const InspectionContext = createContext<Inspection>({ enabled: false, mode: "content", previousMode: "content", revision: 0 });
 const MODE_LABELS: Record<InspectionMode, string> = {
   content: "Content", "type-token": "Text styles", "type-metrics": "Size / line height",
   "color-token": "Color tokens", "color-hex": "Color values",
@@ -20,17 +23,53 @@ const MODE_LABELS: Record<InspectionMode, string> = {
 };
 const INSPECTION_KEYS = new Set<string>(["t", "o", "p", "m", "g", "s", "Escape"]);
 
+const INSPECTOR_STORAGE_KEY = "portfolio-design-inspector";
+let inspectorEnabled: boolean | undefined;
+
+/** Read once per page load: the URL flag wins and is remembered for later visits in this browser. */
+function readInspectorEnabled() {
+  if (inspectorEnabled !== undefined) return inspectorEnabled;
+  let stored: string | null = null;
+  try { stored = window.localStorage.getItem(INSPECTOR_STORAGE_KEY); } catch {}
+  const flag = resolveInspectorFlag({
+    vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV,
+    nodeEnv: process.env.NODE_ENV,
+    param: new URLSearchParams(window.location.search).get("inspect"),
+    stored,
+  });
+  if (flag.remember) {
+    try { window.localStorage.setItem(INSPECTOR_STORAGE_KEY, flag.remember); } catch {}
+  }
+  inspectorEnabled = flag.enabled;
+  return inspectorEnabled;
+}
+const subscribeToNothing = () => () => {};
+
+type MotionAccess = "unavailable" | "needs-permission" | "on";
+type DeviceMotionWithPermission = typeof DeviceMotionEvent & { requestPermission?: () => Promise<"granted" | "denied"> };
+
 export function DesignInspector({ children }: { children: ReactNode }) {
-  const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
-  // H hides the floating panel so it doesn't cover what is being inspected; it stays hidden across modes.
-  const [isPanelHidden, setIsPanelHidden] = useState(false);
-  const togglePanel = useCallback(() => setIsPanelHidden(hidden => !hidden), []);
+  // Server render and hydration always start disabled, so production markup never includes the inspector.
+  const enabled = useSyncExternalStore(subscribeToNothing, readInspectorEnabled, () => false);
+  return enabled ? <EnabledDesignInspector>{children}</EnabledDesignInspector> : <>{children}</>;
+}
+
+function EnabledDesignInspector({ children }: { children: ReactNode }) {
+  const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
+  // "auto" shows the panel while a mode is active; H or a shake pins it shown or hidden across modes.
+  const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
+  const [motionAccess, setMotionAccess] = useState<MotionAccess>("unavailable");
+  const isPanelVisible = panel === "shown" || (panel === "auto" && inspection.mode !== "content");
+  const togglePanel = useCallback(() => setPanel(isPanelVisible ? "hidden" : "shown"), [isPanelVisible]);
+  const togglePanelRef = useRef(togglePanel);
   const cycle = useCallback((key: InspectionKey) => {
     setInspection(current => {
       const mode = nextInspectionMode(current.mode, key);
-      return mode === current.mode ? current : { mode, previousMode: current.mode, revision: current.revision + 1 };
+      return mode === current.mode ? current : { ...current, mode, previousMode: current.mode, revision: current.revision + 1 };
     });
   }, []);
+
+  useEffect(() => { togglePanelRef.current = togglePanel; }, [togglePanel]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -39,7 +78,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
       const key = event.key === "Escape" ? "Escape" : event.key.toLowerCase();
       if (key === "h") {
         event.preventDefault();
-        togglePanel();
+        togglePanelRef.current();
         return;
       }
       if (!INSPECTION_KEYS.has(key)) return;
@@ -49,7 +88,34 @@ export function DesignInspector({ children }: { children: ReactNode }) {
     // Capture runs before document listeners such as Agentation's, which marks P (pause) handled in local dev.
     window.addEventListener("keydown", onKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
-  }, [cycle, togglePanel]);
+  }, [cycle]);
+
+  // On phones, shaking toggles the panel. iOS only sends motion after a tap grants permission.
+  useEffect(() => {
+    if (typeof DeviceMotionEvent === "undefined" || !window.matchMedia("(pointer: coarse)").matches) return;
+    const detectShake = createShakeDetector();
+    let hasMotion = false;
+    const onMotion = (event: DeviceMotionEvent) => {
+      const acceleration = event.accelerationIncludingGravity;
+      if (acceleration?.x == null) return;
+      if (!hasMotion) { hasMotion = true; setMotionAccess("on"); }
+      if (detectShake(acceleration.x, acceleration.y ?? 0, acceleration.z ?? 0, event.timeStamp)) togglePanelRef.current();
+    };
+    window.addEventListener("devicemotion", onMotion);
+    // Permission may already be granted for this origin; only offer the button if no motion arrives.
+    const needsPermission = typeof (DeviceMotionEvent as DeviceMotionWithPermission).requestPermission === "function";
+    const timer = needsPermission ? window.setTimeout(() => { if (!hasMotion) setMotionAccess("needs-permission"); }, 1000) : undefined;
+    return () => { window.removeEventListener("devicemotion", onMotion); window.clearTimeout(timer); };
+  }, []);
+
+  const requestMotion = async () => {
+    try {
+      const result = await (DeviceMotionEvent as DeviceMotionWithPermission).requestPermission?.();
+      setMotionAccess(result === "granted" ? "on" : "unavailable");
+    } catch {
+      setMotionAccess("unavailable");
+    }
+  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -61,7 +127,10 @@ export function DesignInspector({ children }: { children: ReactNode }) {
   return <InspectionContext.Provider value={inspection}>
     {children}
     {inspection.mode !== "content" && !isLabelMode(inspection.mode) && <SpacingOverlay mode={inspection.mode} />}
-    {inspection.mode !== "content" && !isPanelHidden && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
+    {motionAccess === "needs-permission" && <button type="button" className="design-inspector-motion text-captionSans" onClick={requestMotion}>
+      Enable shake to inspect
+    </button>}
+    {isPanelVisible && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
@@ -71,7 +140,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
-        <button type="button" aria-label="Close design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
+        <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
     </aside>}
   </InspectionContext.Provider>;
@@ -97,8 +166,13 @@ function ScrambledLabel({ text, onEnd }: { text: string; onEnd: () => void }) {
 type TextDetails = { token: string; metrics: string; colorToken: string; hex: string };
 const INITIAL_DETAILS: TextDetails = { token: "unassigned", metrics: "", colorToken: "unassigned", hex: "#000000" };
 
-/** Original React children stay mounted so clocks, filters, and media keep working. */
+/** Plain text unless the debug inspector is on, so production pays for nothing. */
 export function InspectableText({ children, text }: { children: ReactNode; text?: string }) {
+  return useContext(InspectionContext).enabled ? <MeasuredText text={text}>{children}</MeasuredText> : <>{children}</>;
+}
+
+/** Original React children stay mounted so clocks, filters, and media keep working. */
+function MeasuredText({ children, text }: { children: ReactNode; text?: string }) {
   const inspection = useContext(InspectionContext);
   const element = useRef<HTMLSpanElement>(null);
   const [details, setDetails] = useState(INITIAL_DETAILS);
