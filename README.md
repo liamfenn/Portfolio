@@ -68,23 +68,22 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
-UI colors. Tap **Play** opposite the profile photo in the header to gather a random share of the page's letters into a centered,
-viewport-anchored shape. Globe (the starting shape on every activation), diamond, ring, flower, and heart silhouettes morph
-every 25 seconds, with subtle ambient movement. Drag through the shape to scatter
-letters; springs return them shortly afterward. Repeated fast drags collapse it.
-The random sample includes filters and music metadata; menus
-and debugging controls are excluded. Original React text remains mounted; selected characters are hidden with text
-highlights while the remaining characters stay in place.
+UI colors. The header **Play** button enables loose type: up to six random visible
+letters start falling, then hovering or swiping through text flicks a few more
+free. Most text stays intact. Released glyphs tumble under gravity, gently follow
+a nearby cursor, and can be flung by dragging. Their collision bodies use convex
+outlines sampled from the rendered letter ink, allowing varied angles and piles.
 
-Collapsed glyphs all land above the music player, including footer letters. The
-album cover and sliding Spotify badge are live collision surfaces. Dragging tips
-and nudges the pile on desktop and touch screens; scroll adds a subtle nudge.
-There is no device orientation permission. Tap **Reset** to return the letters. The footer palette strip is decorative.
-Reduced motion disables the toy; width changes and refresh clear it.
+Letters land above the music player; album art and the sliding Spotify badge
+remain live collision surfaces. Footer letters arc up over the player first.
+Original text stays mounted and current; only released characters are hidden.
+Menus and debugging controls are excluded. **Reset** returns the loose letters.
+Reduced motion disables the toy; width changes and refresh clear it. Scrolling
+adds a subtle nudge. The footer palette strip is decorative.
 
-Open `?palette-lab` and choose **Glyphs** to tune the percentage gathered (40% by default), collapse gravity, bounce,
-friction, drag response, and scroll reaction. Settings and color votes are saved
-locally; the glyph arrangement is temporary. Matter.js loads on the first tap.
+Open `?palette-lab` and choose **Glyphs** to tune hover release chance, gravity,
+bounce, friction, cursor/drag response, and scroll reaction. Preferences stay
+local; released letters are temporary. Matter.js loads on the first tap.
 
 ## Spotify authorization
 

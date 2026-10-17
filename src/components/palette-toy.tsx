@@ -164,7 +164,7 @@ export function PaletteToy() {
     dropRef.current = null;
   }, []);
 
-  const dropLabel = isDropped ? "Put the letters back" : "Gather the letters";
+  const dropLabel = isDropped ? "Put the letters back" : "Play with the letters";
 
   const vote = (keep: boolean) => {
     if (!candidate) return;
@@ -195,7 +195,7 @@ export function PaletteToy() {
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>
         {panelOpen && <>
-          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the glyph shape">
+          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the loose type">
             <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}><InspectableText>Colors</InspectableText></button>
             <button type="button" id="glyphs-tab" role="tab" aria-selected={tab === "glyphs"} aria-controls="glyphs-panel" onClick={() => setTab("glyphs")}><InspectableText>Glyphs</InspectableText></button>
           </div>

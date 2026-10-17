@@ -1,25 +1,8 @@
-/** Pure geometry and gesture rules for the footer glyph toy. */
-export const SHAPE_PERIOD_MS = 25_000;
-export const SHAPES = ["globe", "diamond", "ring", "flower", "heart"] as const;
-export type GlyphShape = typeof SHAPES[number];
+/** Pure gesture rules for the loose-type toy. */
 export type Point = { x: number; y: number };
 
-/** Evenly filled silhouettes; stable indices let each letter morph to its next place. */
-export function shapePoint(index: number, count: number, shape: GlyphShape): Point {
-  const angle = index * Math.PI * (3 - Math.sqrt(5));
-  const fill = Math.sqrt((index + 0.5) / Math.max(1, count));
-  let radius = fill;
-  if (shape === "ring") radius = 0.72 + fill * 0.28;
-  if (shape === "diamond") radius /= Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle));
-  if (shape === "flower") radius *= 0.77 + 0.23 * Math.cos(5 * angle);
-  if (shape === "heart") {
-    return { x: fill * Math.pow(Math.sin(angle), 3), y: -fill * (13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle)) / 17 };
-  }
-  return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
-}
-
-export function shapeAt(elapsed: number) {
-  return SHAPES[Math.floor(Math.max(0, elapsed) / SHAPE_PERIOD_MS) % SHAPES.length];
+export function initialReleaseCount(visibleLetters: number) {
+  return Math.min(6, Math.ceil(Math.max(0, visibleLetters) * 0.025));
 }
 
 export function segmentDistance(point: Point, from: Point, to: Point) {
@@ -28,11 +11,19 @@ export function segmentDistance(point: Point, from: Point, to: Point) {
   return Math.hypot(point.x - from.x - dx * t, point.y - from.y - dy * t);
 }
 
-/** Slow passes heal between gestures; repeated fast passes through the shape break it. */
-export function agitationAfter(energy: number, elapsedMs: number, distance: number, speed: number) {
-  return Math.max(0, energy - elapsedMs * 0.16) + (speed > 0.45 ? Math.min(distance, 120) : 0);
+/** Enough initial movement to tumble; fast gestures add a stronger, capped fling. */
+export function flingVelocity(delta: Point, random = Math.random): Point {
+  return { x: Math.max(-12, Math.min(12, delta.x * 0.2)) + (random() - 0.5) * 4,
+    y: Math.max(-10, Math.min(5, delta.y * 0.14)) - 3 - random() * 3 };
 }
-export const COLLAPSE_ENERGY = 850;
+
+/** A nearby cursor gently tugs loose letters; gravity remains stronger than the vertical pull. */
+export function cursorAttraction(delta: Point, strength = 1): Point {
+  const distance = Math.hypot(delta.x, delta.y);
+  if (distance < 8 || distance > 340) return { x: 0, y: 0 };
+  const weight = (1 - distance / 340) * Math.min(1, distance / 70) * Math.min(3, strength);
+  return { x: delta.x / distance * weight * 0.00022, y: delta.y / distance * weight * 0.00016 };
+}
 
 /** Scroll is a small nudge, never a launch. */
 export function scrollKick(deltaY: number, strength = 1) {

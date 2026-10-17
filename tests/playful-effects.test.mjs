@@ -1,43 +1,39 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { agitationAfter, COLLAPSE_ENERGY, segmentDistance, shapeAt, shapePoint, SHAPES, scrollKick } from "../src/lib/glyph-physics.ts";
+import { cursorAttraction, flingVelocity, initialReleaseCount, segmentDistance, scrollKick } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
-test("shapes change every 25 seconds and loop through distinct silhouettes", () => {
-  assert.equal(shapeAt(24_999), "globe");
-  assert.equal(shapeAt(25_000), "diamond");
-  assert.equal(shapeAt(125_000), "globe");
-  const sets = SHAPES.map(shape => Array.from({ length: 200 }, (_, i) => shapePoint(i, 200, shape)));
-  for (const points of sets) for (const p of points) {
-    assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y));
-    assert.ok(Math.abs(p.x) <= 1.01 && Math.abs(p.y) <= 1.01);
-  }
-  assert.notDeepEqual(sets[0], sets[1]);
-  assert.ok(sets[2].every(p => Math.hypot(p.x, p.y) >= 0.72));
+test("activation releases only a few letters even on a long page", () => {
+  assert.equal(initialReleaseCount(0), 0);
+  assert.equal(initialReleaseCount(80), 2);
+  assert.equal(initialReleaseCount(5000), 6);
 });
-test("drag collision catches fast sweeps between events, including stationary pointers", () => {
+test("drag collision catches fast sweeps between events and stationary pointers", () => {
   assert.equal(segmentDistance({x:50,y:0},{x:0,y:0},{x:100,y:0}), 0);
   assert.equal(segmentDistance({x:50,y:30},{x:0,y:0},{x:100,y:0}), 30);
   assert.equal(segmentDistance({x:3,y:4},{x:0,y:0},{x:0,y:0}), 5);
 });
-test("gentle drags recover; repeated fast drags collapse and old agitation decays", () => {
-  assert.equal(agitationAfter(0, 16, 100, 0.2), 0);
-  let energy = 0;
-  for (let i=0;i<10;i++) energy = agitationAfter(energy, 30, 120, 2);
-  assert.ok(energy >= COLLAPSE_ENERGY);
-  assert.equal(agitationAfter(energy, 10_000, 0, 0), 0);
+test("the initial fling follows the gesture with upward lift and capped speed", () => {
+  const fling = flingVelocity({x:20,y:0}, () => 0.5);
+  assert.ok(fling.x > 0 && fling.y < 0);
+  const fast = flingVelocity({x:10000,y:-10000}, () => 0.5);
+  assert.ok(fast.x <= 14 && fast.y >= -16);
+  assert.ok(flingVelocity({x:0,y:0}, () => 0.5).y < 0);
 });
-test("scroll response is subtle and capped even during fast flicks", () => {
-  assert.equal(scrollKick(100), 0.8);
+test("cursor attraction is local, gentle, and weaker vertically than default gravity", () => {
+  assert.deepEqual(cursorAttraction({x:400,y:0}), {x:0,y:0});
+  assert.deepEqual(cursorAttraction({x:0,y:0}), {x:0,y:0});
+  assert.ok(cursorAttraction({x:100,y:0}).x > 0);
+  assert.ok(cursorAttraction({x:-100,y:0}).x < 0);
+  assert.ok(Math.abs(cursorAttraction({x:0,y:-100},3).y) < 0.00065);
+});
+test("scroll response stays subtle and capped", () => {
   assert.equal(scrollKick(100, 0.3), 0.24);
   assert.equal(scrollKick(-10_000), -1.2);
-  assert.equal(scrollKick(0), 0);
 });
-test("saved glyph settings clamp, retain votes and ignore retired orientation settings", () => {
-  const saved = parsePalettePreferences(JSON.stringify({ glyphs: { gravity: 8, bounce: -1, share: 0.4, catchChance: 1 }, votes: { "#B9A7E8": true } }));
-  assert.equal(saved.glyphs.gravity, 3);
-  assert.equal(saved.glyphs.bounce, 0);
-  assert.equal(saved.glyphs.share, 0.4);
-  assert.equal(saved.votes["#B9A7E8"], true);
+test("saved glyph controls retain votes and clamp values", () => {
+  const saved = parsePalettePreferences(JSON.stringify({ glyphs: { gravity: 8, bounce: -1, share: 0.4 }, votes: { "#B9A7E8": true } }));
+  assert.equal(saved.glyphs.gravity, 3); assert.equal(saved.glyphs.bounce, 0);
+  assert.equal(saved.glyphs.share, 0.4); assert.equal(saved.votes["#B9A7E8"], true);
   assert.deepEqual(parsePalettePreferences(null).glyphs, DEFAULT_GLYPHS);
 });

@@ -26,7 +26,7 @@ export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color =>
   color.name !== "Steel blue" && color.name !== "Silver",
 );
 
-/** Live tuning for the floating glyph shape and its collapsed pile. */
+/** Live tuning for the loose-type interaction. */
 export interface GlyphSettings {
   share: number;
   gravity: number;
@@ -36,14 +36,14 @@ export interface GlyphSettings {
   scroll: number;
 }
 export const DEFAULT_GLYPHS: GlyphSettings = {
-  share: 0.4, gravity: 1, bounce: 0.15, friction: 0.2, pull: 1, scroll: 0.3,
+  share: 0.4, gravity: 1, bounce: 0.25, friction: 0.55, pull: 1, scroll: 0.3,
 };
 export const GLYPH_CONTROLS = [
-  { key: "share", label: "Letters gathered", min: 0.05, max: 1, step: 0.05, unit: "%" },
-  { key: "gravity", label: "Collapse gravity", min: 0.2, max: 3, step: 0.1, unit: "×" },
+  { key: "share", label: "Hover release chance", min: 0.05, max: 1, step: 0.05, unit: "%" },
+  { key: "gravity", label: "Gravity", min: 0.2, max: 3, step: 0.1, unit: "×" },
   { key: "bounce", label: "Bounce", min: 0, max: 0.9, step: 0.05, unit: "%" },
   { key: "friction", label: "Friction", min: 0, max: 1, step: 0.05, unit: "%" },
-  { key: "pull", label: "Drag response", min: 0, max: 3, step: 0.1, unit: "×" },
+  { key: "pull", label: "Cursor / drag response", min: 0, max: 3, step: 0.1, unit: "×" },
   { key: "scroll", label: "Scroll reaction", min: 0, max: 1, step: 0.1, unit: "×" },
 ] as const;
 
