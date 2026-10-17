@@ -2133,6 +2133,11 @@ body.is-media-focused .case-study-controls {
 }
 
 /* Homepage v3: reuse the v2 grid, media pipeline, controls, and type. */
+.portfolio-v3 a[href],
+.portfolio-v3 button:not(:disabled),
+.palette-lab button:not(:disabled) {
+  cursor: pointer;
+}
 .portfolio-v3 .portfolio-intro {
   width: 493.333px;
   max-width: 100%;
@@ -2153,7 +2158,7 @@ body.is-media-focused .case-study-controls {
   .homepage-identity:hover .homepage-brand, .homepage-spotify:hover .homepage-brand { transform: translateX(28px); }
 }
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
-.homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: #f6f8f9; color: inherit; cursor: default; overflow: hidden; }
+.homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: #f6f8f9; color: inherit; cursor: pointer; overflow: hidden; }
 .homepage-card-trigger:focus-visible { outline: 2px solid #5343eb; outline-offset: -2px; }
 .homepage-project-details { font-family: var(--font-oracle); font-size: 14px; font-weight: 400; line-height: 1.35; letter-spacing: -.14px; }
 .homepage-project-title { display: flex; justify-content: space-between; align-items: baseline; gap: 32px; }
@@ -2188,7 +2193,6 @@ body.is-media-focused .case-study-controls {
   .homepage-avatar { width: 24px; height: 24px; }
   .homepage-brand { display: none; }
   .homepage-card.is-expanded { grid-column: 1 / -1; }
-  .homepage-card-trigger { cursor: pointer; }
   .homepage-project-inline { position: relative; padding: 20px 12px 12px; margin-top: 0; background: #f6f8f9; }
   .homepage-project-inline .homepage-project-badge { left: 12px; }
   .portfolio-v3 .homepage-contact { margin: 0; padding: 24px 12px 32px; }
