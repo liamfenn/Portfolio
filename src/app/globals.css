@@ -2160,8 +2160,12 @@ body.is-media-focused .case-study-controls {
 .homepage-album-badge { position: absolute; top: -14px; left: 18px; width: calc(28px + var(--spotify-reveal)); isolation: isolate; overflow: hidden; transition: width 300ms cubic-bezier(.16,1,.3,1); }
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: var(--bg-secondary-fill); overflow: hidden; }
 .homepage-album img { object-fit: cover; }
-.homepage-spotify-brand { z-index: 0; background: var(--bg-green-fill); transform: translateX(var(--spotify-reveal)); }
-.homepage-spotify-brand img { width: 16px; height: 16px; }
+/* Green while playing; quiet secondary fill with a muted logo once it's "Last listened to". */
+.homepage-spotify-brand { z-index: 0; background: var(--bg-secondary-fill); transform: translateX(var(--spotify-reveal)); transition: transform 300ms cubic-bezier(.16,1,.3,1), background-color 200ms ease; }
+.homepage-album-badge.is-playing .homepage-spotify-brand { background: var(--bg-green-fill); }
+/* The logo is a mask so its color comes from tokens. */
+.homepage-spotify-logo { width: 16px; height: 16px; background-color: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
+.homepage-album-badge.is-playing .homepage-spotify-logo { background-color: var(--bg-fill); }
 .homepage-track-info { display: flex; flex-direction: column; min-width: 0; }
 .homepage-listening, .homepage-track-time { --inspect-color-token: text-muted; color: var(--text-muted); }
 .homepage-listening.is-playing { --inspect-color-token: text-green; color: var(--text-green); }
