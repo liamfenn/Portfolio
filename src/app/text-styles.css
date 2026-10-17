@@ -1,29 +1,31 @@
-/* Each named style bundles family, size, weight, leading, and tracking. */
+/* Four text styles. Color remains independent of typography. */
 body {
   --type-body-size: var(--text-body);
-  --type-body: var(--font-weight-regular) var(--type-body-size) / var(--leading-body) var(--font-otto);
-  --type-bodySmall: var(--font-weight-regular) var(--text-label) / var(--leading-body) var(--font-otto);
-  --type-bodySans: var(--font-weight-regular) var(--type-body-size) / var(--leading-body) var(--font-oracle);
-  --type-caption: var(--font-weight-regular) var(--text-label) / var(--leading-body) var(--font-oracle);
-  --type-captionSmall: var(--font-weight-regular) var(--text-caption) / var(--leading-body) var(--font-oracle);
-  --type-badge: var(--font-weight-regular) var(--text-small) / var(--leading-body) var(--font-oracle);
+  --type-caption-size: var(--text-caption);
+  --type-body-leading: var(--leading-body);
+  --type-caption-leading: var(--leading-caption);
+  --type-bodySerif: var(--font-weight-regular) var(--type-body-size) / var(--type-body-leading) var(--font-otto);
+  --type-bodySans: var(--font-weight-regular) var(--type-body-size) / var(--type-body-leading) var(--font-oracle);
+  --type-captionSerif: var(--font-weight-regular) var(--type-caption-size) / var(--type-caption-leading) var(--font-otto);
+  --type-captionSans: var(--font-weight-regular) var(--type-caption-size) / var(--type-caption-leading) var(--font-oracle);
 }
 
-.text-body { font: var(--type-body); }
-.text-bodySmall { font: var(--type-bodySmall); }
+.text-bodySerif { font: var(--type-bodySerif); }
 .text-bodySans { font: var(--type-bodySans); }
-.text-caption { font: var(--type-caption); }
-.text-captionSmall { font: var(--type-captionSmall); }
-.text-badge { font: var(--type-badge); }
+.text-captionSerif { font: var(--type-captionSerif); }
+.text-captionSans { font: var(--type-captionSans); }
 
-.text-body,
-.text-bodySmall { letter-spacing: var(--tracking-prose); }
+.text-bodySerif,
+.text-captionSerif { letter-spacing: var(--tracking-prose); }
 
 .text-bodySans,
-.text-caption,
-.text-captionSmall,
-.text-badge { letter-spacing: var(--tracking-ui); }
+.text-captionSans { letter-spacing: var(--tracking-ui); }
 
 @media (max-width: 767px) {
-  body { --type-body-size: var(--text-label); }
+  body {
+    --type-body-size: var(--text-body-mobile);
+    --type-caption-size: var(--text-caption-mobile);
+    --type-body-leading: var(--leading-mobile);
+    --type-caption-leading: var(--leading-mobile);
+  }
 }

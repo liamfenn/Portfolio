@@ -27,7 +27,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
     <span className={`homepage-project-badge${preview.company === "Shop" ? " is-shop" : ""}`} style={{ backgroundColor: preview.companyColor }}>
       <Image src={preview.companyLogo} alt="" width={24} height={24} />
     </span>
-    <span className="homepage-project-title"><InspectableText>{preview.label}</InspectableText><span className="homepage-project-period text-captionSmall"><InspectableText>{preview.period}</InspectableText></span></span>
+    <span className="homepage-project-title"><InspectableText>{preview.label}</InspectableText><span className="homepage-project-period text-captionSans"><InspectableText>{preview.period}</InspectableText></span></span>
     <span className="homepage-project-company"><InspectableText>{preview.company}</InspectableText></span>
   </>;
   const detailsId = `${preview.id}-details`;
@@ -47,9 +47,9 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
       </button>
-      {isMobile ? expanded && <div id={detailsId} className="homepage-project-details homepage-project-inline text-caption">{details}</div> :
+      {isMobile ? expanded && <div id={detailsId} className="homepage-project-details homepage-project-inline text-captionSans">{details}</div> :
         <div ref={tooltip} id={detailsId} role="tooltip"
-          className={`homepage-project-details homepage-project-tooltip text-caption${hovered || focused ? " is-visible" : ""}${focused && !hovered ? " is-keyboard" : ""}`}>
+          className={`homepage-project-details homepage-project-tooltip text-captionSans${hovered || focused ? " is-visible" : ""}${focused && !hovered ? " is-keyboard" : ""}`}>
           {details}
         </div>}
     </li>

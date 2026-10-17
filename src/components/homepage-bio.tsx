@@ -37,7 +37,7 @@ export function InlineBioExpansion({ word, children }: { word: string; children?
 }
 
 export function HomepageBio() {
-  return <div className="portfolio-bio text-body"><p><InspectableText>
+  return <div className="portfolio-bio text-bodySerif"><p><InspectableText>
     <strong>Liam Fennell</strong> is a <InlineBioExpansion word="designer">{BIO_EXPANSIONS.designer}</InlineBioExpansion> based in Atlanta. Currently at <a href="https://shop.app" target="_blank" rel="noreferrer">Shop</a>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
   </InspectableText></p></div>;
 }

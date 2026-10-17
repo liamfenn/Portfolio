@@ -2291,7 +2291,7 @@ body.is-media-focused .case-study-controls {
 .palette-quiz-history { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
 .palette-quiz-history:empty { display: none; }
 .palette-quiz-history button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 3px; }
-.palette-quiz-history button > span { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 2px; background: var(--color-lab-overlay); --inspect-color-token: color-lab-foreground; color: var(--color-lab-foreground); line-height: 1; }
+.palette-quiz-history button > span { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 2px; background: var(--color-lab-overlay); --inspect-color-token: color-lab-foreground; color: var(--color-lab-foreground); }
 .palette-quiz-complete { margin: 20px 0; --inspect-color-token: color-lab-muted; color: var(--color-lab-muted); }
 .palette-lab-controls { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
 .palette-lab-controls label > span { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }

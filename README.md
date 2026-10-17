@@ -12,24 +12,24 @@ Use these variables in component styles instead of adding raw color or type valu
 - Colors: `--color-background`, `--color-foreground`, `--color-muted`,
   `--color-muted-foreground`, `--color-surface`, and named brand colors.
 - Fonts: `--font-oracle` and `--font-otto` bind to the loaded font files.
-- Primitive type values: the 12–15px scale, regular weight, 1.35 line height,
-  and tracking remain in the token file.
+- Primitive type values: 15px body text and 14px captions on desktop;
+  14px body text and 13px captions on mobile; regular weight and family tracking.
 
 Apply one class from `src/app/text-styles.css` to get the whole text style.
 Colors remain independent so the same style can use primary or secondary text.
 
-| Style class | Font | Desktop | Mobile |
+| Style class | Font | Desktop size / leading | Mobile size / leading |
 | --- | --- | --- | --- |
-| `text-body` | Otto | 15px | 14px |
-| `text-bodySmall` | Otto | 14px | 14px |
-| `text-bodySans` | Oracle | 15px | 14px |
-| `text-caption` | Oracle | 14px | 14px |
-| `text-captionSmall` | Oracle | 13px | 13px |
-| `text-badge` | Oracle | 12px | 12px |
+| `text-bodySerif` | Otto | 15px / 20px | 14px / 18px |
+| `text-bodySans` | Oracle | 15px / 20px | 14px / 18px |
+| `text-captionSerif` | Otto | 14px / 19px | 13px / 18px |
+| `text-captionSans` | Oracle | 14px / 19px | 13px / 18px |
 
-All six styles use weight 400 and line height 1.35. Otto styles track at -2%;
-Oracle styles track at -1%. Change a named style's `--type-*` bundle to update
-its family, size, weight, and leading together.
+These are the four named styles, including the palette lab and inspector UI.
+All use weight 400. Serif styles track at -2%; sans styles track at -1%.
+Change a named style's `--type-*` bundle to update its family, size, weight,
+and leading together. Email and social links use bodySerif. Project details,
+project dates, and the player's listening status and time use captionSans.
 
 The built-in inspector works on the homepage and the palette lab:
 
@@ -44,7 +44,7 @@ effect. Pair text color declarations with `--inspect-color-token: color-name`
 so the inspector reports the semantic token; unmatched colors show `unassigned`.
 The inspector reads rendered font metrics and color values at the current width.
 Labels retain the original text styling without added backgrounds or swatches.
-The intro is inspected as one paragraph, using its shared body style and base color.
+The intro is inspected as one paragraph, using its shared bodySerif style and base color.
 
 Project badge colors reference these same tokens in `src/lib/project-previews.ts`.
 The user-selected glitch colors and settings remain in `src/lib/palette-toy.ts`;

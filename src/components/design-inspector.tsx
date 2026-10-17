@@ -44,7 +44,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 
   return <InspectionContext.Provider value={inspection}>
     {children}
-    {inspection.mode !== "content" && <aside className="design-inspector text-captionSmall" aria-label="Design inspector">
+    {inspection.mode !== "content" && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>

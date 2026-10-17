@@ -38,7 +38,7 @@ export function PortfolioFooter() {
       </div>
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
-        <span className="footer-weather text-body">
+        <span className="footer-weather text-bodySerif">
           <InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
             {time ?? "12:00 PM"}
           </span>
@@ -46,7 +46,7 @@ export function PortfolioFooter() {
         </span>
       </div>
       <div className="portfolio-footer-row portfolio-footer-bottom">
-        <span className="footer-type-credit text-body">
+        <span className="footer-type-credit text-bodySerif">
           <InspectableText>Set in Oracle &amp; <span className="footer-otto">Otto</span></InspectableText>
         </span>
         <PaletteToy />

@@ -61,7 +61,7 @@ export function HomepageSpotify() {
       <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
     </span>
     <span className="homepage-track-info">
-      <span className={`homepage-listening text-captionSmall${data?.isPlaying ? " is-playing" : ""}`}>
+      <span className={`homepage-listening text-captionSans${data?.isPlaying ? " is-playing" : ""}`}>
         <InspectableText text={data?.isPlaying ? "Listening now..." : "Last listened to"}>{data?.isPlaying ? <>Listening now<span className="identity-status-dots" aria-hidden="true">
           <span className="identity-status-dot">.</span>
           <span className="identity-status-dot">.</span>
@@ -76,6 +76,6 @@ export function HomepageSpotify() {
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
     </span>
-    <span className="homepage-track-time text-captionSmall"><InspectableText>{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
+    <span className="homepage-track-time text-captionSans"><InspectableText>{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
   </a>;
 }

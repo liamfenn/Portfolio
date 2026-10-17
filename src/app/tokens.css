@@ -33,12 +33,14 @@
   --color-lab-overlay: rgb(255 255 255 / .8);
 
   /* Type scale: font size, weight, leading, and tracking are independent. */
-  --text-small: 12px;
-  --text-caption: 13px;
-  --text-label: 14px;
+  --text-caption: 14px;
   --text-body: 15px;
+  --text-body-mobile: 14px;
+  --text-caption-mobile: 13px;
   --font-weight-regular: 400;
-  --leading-body: 1.35;
+  --leading-body: 20px;
+  --leading-caption: 19px;
+  --leading-mobile: 18px;
   --tracking-ui: -.01em;
   --tracking-prose: -.02em;
 
