@@ -141,7 +141,9 @@ export function PaletteToy() {
       return;
     }
     let frame = 0;
-    const startedAt = performance.now();
+    // Synced once at load: start the clock so each slide begins on a whole second of the device clock,
+    // the same beat the music player's time ticks on. From here it runs on its own.
+    const startedAt = performance.now() - (Date.now() % STRIP_PERIOD_MS) - STRIP_HOLD * STRIP_PERIOD_MS;
     const render = (time: number) => {
       const elapsed = Math.max(0, time - startedAt);
       const step = Math.floor(elapsed / STRIP_PERIOD_MS);

@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
 import { useSpotify } from "@/hooks/use-spotify";
+import { trackPositionAt } from "@/lib/track-clock";
 import { InspectableText } from "@/components/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
@@ -83,13 +84,18 @@ export function HomepageSpotify() {
     measure();
     return () => { cancelled = true; observer.disconnect(); };
   }, [data?.title, data?.artist]);
+  // Redraw on the device clock's whole seconds; the footer palette strip slides on the same beat.
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setNow(Date.now()));
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => { window.cancelAnimationFrame(frame); window.clearInterval(timer); };
+    let timer = 0;
+    const tick = () => {
+      setNow(Date.now());
+      timer = window.setTimeout(tick, 1000 - (Date.now() % 1000));
+    };
+    timer = window.setTimeout(tick, 1000 - (Date.now() % 1000));
+    return () => { window.cancelAnimationFrame(frame); window.clearTimeout(timer); };
   }, []);
-  const progress = data?.progressMs === undefined ? null : Math.min(data.durationMs ?? Infinity,
-    data.progressMs + (data.isPlaying && data.fetchedAt && now ? Math.max(0, now - new Date(data.fetchedAt).getTime()) : 0));
+  const progress = data ? trackPositionAt(data, now) : null;
   const trackTime = data?.isPlaying ? progress !== null ? formatDuration(progress) : "Now" : formatAgo(data?.playedAt ?? cachedAt, now);
   return <a className="homepage-spotify text-bodySans hover-surface" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className={`homepage-album-badge homepage-slide-badge${data?.isPlaying ? " is-playing" : ""}`}>
