@@ -1,12 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal, flushSync } from "react-dom";
+import { createPortal } from "react-dom";
+import { cubicBezier } from "motion";
 import { DEFAULT_GLITCH, GLITCH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
 import type { PaletteVotes } from "@/lib/palette-toy";
 import { InspectableText } from "@/components/design-inspector";
 
 const STORAGE_KEY = "portfolio-palette-lab-v1";
+// The strip holds each color, then slides one swatch left. Position and colors come from the same clock,
+// so a new color and the snap back always land in the same frame.
+const STRIP_SWATCHES = 6;
+const STRIP_STEP_PX = 20;
+const STRIP_PERIOD_MS = 1000;
+const STRIP_HOLD = 0.65;
+const stripEase = cubicBezier(0.16, 1, 0.3, 1);
 
 interface BurnedBlock {
   x: number;
@@ -24,10 +32,10 @@ export function PaletteToy() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<"palette" | "glitch">("palette");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
-  const [startIndex, setStartIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const trackRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const burnCanvasRef = useRef<HTMLCanvasElement>(null);
   // Marks live only in this page instance. Refreshing starts with an empty map.
@@ -114,6 +122,40 @@ export function PaletteToy() {
     if (reducedMotion) stopRef.current?.();
   }, [reducedMotion]);
 
+  const paletteKey = palette.map(color => color.hex).join(" ");
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const colors = paletteKey.split(" ");
+    const swatches = Array.from(track.children) as HTMLElement[];
+    let shownStep = -1;
+    const paintStep = (step: number) => {
+      if (step === shownStep) return;
+      shownStep = step;
+      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[(step + index) % colors.length]; });
+    };
+    const slideTo = (x: string) => swatches.forEach(swatch => { swatch.style.transform = x; });
+    if (reducedMotion) {
+      slideTo("");
+      paintStep(0);
+      return;
+    }
+    let frame = 0;
+    const startedAt = performance.now();
+    const render = (time: number) => {
+      const elapsed = Math.max(0, time - startedAt);
+      const step = Math.floor(elapsed / STRIP_PERIOD_MS);
+      const phase = (elapsed % STRIP_PERIOD_MS) / STRIP_PERIOD_MS;
+      const slide = phase < STRIP_HOLD ? 0 : stripEase((phase - STRIP_HOLD) / (1 - STRIP_HOLD));
+      paintStep(step);
+      // The track clips, so the swatches move inside it.
+      slideTo(`translateX(${-slide * STRIP_STEP_PX}px)`);
+      frame = window.requestAnimationFrame(render);
+    };
+    frame = window.requestAnimationFrame(render);
+    return () => window.cancelAnimationFrame(frame);
+  }, [paletteKey, reducedMotion]);
+
   const startGlitch = useCallback(() => {
     if (reducedMotion) return;
     const canvas = canvasRef.current;
@@ -198,13 +240,8 @@ export function PaletteToy() {
     <button ref={triggerRef} type="button" className="footer-palette palette-toy-trigger" aria-label="Play color glitch"
       onPointerEnter={event => { if (event.pointerType === "mouse") startGlitch(); }}
       onClick={startGlitch}>
-      <span className="palette-toy-track" style={{ animationPlayState: reducedMotion ? "paused" : "running" }}
-        onAnimationIteration={event => {
-          if (event.target !== event.currentTarget.firstElementChild) return;
-          // The slide has already snapped back for this frame; shift the colors before it paints, or the old ones flash.
-          flushSync(() => setStartIndex(index => (index + 1) % palette.length));
-        }}>
-        {Array.from({ length: 6 }, (_, index) => <i key={index} style={{ backgroundColor: palette[(startIndex + index) % palette.length].hex }} />)}
+      <span ref={trackRef} className="palette-toy-track">
+        {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
     </button>
     {ready && createPortal(<>
