@@ -1,7 +1,7 @@
 "use client";
 
 import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
 import { colorToHex, formatTextMetrics, nextInspectionMode } from "@/lib/design-inspector";
@@ -80,9 +80,10 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
   const inspection = useContext(InspectionContext);
   const element = useRef<HTMLSpanElement>(null);
   const [details, setDetails] = useState(INITIAL_DETAILS);
+  const [renderedText, setRenderedText] = useState<string | null>(null);
   const [finishedRevision, setFinishedRevision] = useState(0);
   const reducedMotion = useReducedMotion();
-  const originalText = text ?? textContent(children);
+  const originalText = text ?? renderedText ?? textContent(children);
 
   useEffect(() => {
     const node = element.current;
@@ -90,6 +91,7 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
     let cancelled = false;
     const measure = () => {
       if (cancelled) return;
+      if (text === undefined) setRenderedText(node.querySelector(".inspectable-original")?.textContent ?? textContent(children));
       const style = getComputedStyle(node);
       let token = "unassigned";
       for (let ancestor: Element | null = node; ancestor; ancestor = ancestor.parentElement) {
@@ -109,12 +111,11 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
     const timer = inspection.mode === "content" ? undefined : window.setInterval(measure, 250);
     measure();
     return () => { cancelled = true; observer.disconnect(); window.removeEventListener("resize", measure); window.clearInterval(timer); };
-  }, [inspection.mode, originalText]);
+  }, [inspection.mode, originalText, children, text]);
 
   const active = inspection.mode !== "content";
   const returning = !active && !reducedMotion && inspection.previousMode !== "content" && finishedRevision < inspection.revision;
   const showLabel = active || returning;
-  const colorMode = inspection.mode.startsWith("color-");
   const value = inspection.mode === "type-token" ? details.token
     : inspection.mode === "type-metrics" ? details.metrics
     : inspection.mode === "color-token" ? details.colorToken
@@ -125,7 +126,6 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
   return <span ref={element} className="inspectable-text" data-inspect-style={details.token} data-inspect-color={details.colorToken} data-inspect-metrics={details.metrics} data-inspect-hex={details.hex}>
     <span className={showLabel ? "inspectable-original is-concealed" : "inspectable-original"}>{children}</span>
     {showLabel && <span className="inspectable-label" aria-hidden="true">
-      {colorMode && <i className="inspectable-swatch" style={{ "--inspect-swatch": details.hex } as CSSProperties} />}
       {reducedMotion ? label : <ScrambledLabel key={inspection.revision} text={label} onEnd={onEnd} />}
     </span>}
   </span>;

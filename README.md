@@ -34,7 +34,7 @@ its family, size, weight, and leading together.
 The built-in inspector works on the homepage and the palette lab:
 
 - **T** cycles content → text style → font size / line height in pixels → content.
-- **C** cycles content → color token with swatch → hex with swatch → content.
+- **C** cycles content → color token → hex → content.
 - **Escape** restores content. Switching from T to C (or vice versa) starts
   at that family's token view. Shortcuts ignore editable fields and modifier keys.
 
@@ -43,6 +43,8 @@ original React content stays mounted, and transitions share the filters' glyph
 effect. Pair text color declarations with `--inspect-color-token: color-name`
 so the inspector reports the semantic token; unmatched colors show `unassigned`.
 The inspector reads rendered font metrics and color values at the current width.
+Labels retain the original text styling without added backgrounds or swatches.
+The intro is inspected as one paragraph, using its shared body style and base color.
 
 Project badge colors reference these same tokens in `src/lib/project-previews.ts`.
 The user-selected glitch colors and settings remain in `src/lib/palette-toy.ts`;
