@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode } from "../src/lib/design-inspector.ts";
+import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, spacingKinds } from "../src/lib/design-inspector.ts";
 
 test("T, C, P, and G each cycle through their two modes and restore content", () => {
   for (const [key, expected] of [
     ["t", ["type-token", "type-metrics", "content"]], ["c", ["color-token", "color-hex", "content"]],
     ["p", ["padding-y", "padding-x", "content"]], ["m", ["margin-y", "margin-x", "content"]],
-    ["g", ["gap-y", "gap-x", "content"]],
+    ["g", ["gap-y", "gap-x", "content"]], ["s", ["spacing-y", "spacing-x", "content"]],
   ]) {
     let mode = "content";
     for (const next of expected) {
@@ -22,7 +22,7 @@ test("changing inspector families starts at tokens; Escape always restores conte
   assert.equal(nextInspectionMode("padding-x", "g"), "gap-y");
   assert.equal(nextInspectionMode("gap-y", "p"), "padding-y");
   assert.equal(nextInspectionMode("padding-y", "m"), "margin-y");
-  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex", "padding-y", "padding-x", "margin-y", "margin-x", "gap-y", "gap-x"]) {
+  for (const mode of ["content", "type-token", "type-metrics", "color-token", "color-hex", "padding-y", "padding-x", "margin-y", "margin-x", "gap-y", "gap-x", "spacing-y", "spacing-x"]) {
     assert.equal(nextInspectionMode(mode, "Escape"), "content");
   }
 });
@@ -65,4 +65,12 @@ test("horizontal gaps sit between items in each row, including wrapped rows", ()
   const items = [box(0, 0, 30, 20), box(46, 0, 70, 10), box(0, 30, 20, 50), box(28, 30, 50, 50)];
   assert.deepEqual(gapBoxes(content, items, "horizontal"), [box(30, 0, 46, 20), box(20, 30, 28, 50)]);
   assert.deepEqual(gapBoxes(content, items, "vertical"), [box(0, 20, 100, 30)]);
+});
+
+test("spacing modes draw their own kind, and S draws all three with gaps on top", () => {
+  assert.deepEqual(spacingKinds("padding-x"), ["padding"]);
+  assert.deepEqual(spacingKinds("margin-y"), ["margin"]);
+  assert.deepEqual(spacingKinds("gap-x"), ["gap"]);
+  assert.deepEqual(spacingKinds("spacing-y"), ["margin", "padding", "gap"]);
+  assert.deepEqual(spacingKinds("type-token"), []);
 });

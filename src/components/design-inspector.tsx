@@ -4,8 +4,8 @@ import { Children, createContext, isValidElement, useCallback, useContext, useEf
 import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
 import { useScramble } from "use-scramble";
-import { colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode } from "@/lib/design-inspector";
-import type { Box, InspectionKey, InspectionMode } from "@/lib/design-inspector";
+import { colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, spacingKinds } from "@/lib/design-inspector";
+import type { Box, InspectionKey, InspectionMode, SpacingKind } from "@/lib/design-inspector";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 type Inspection = { mode: InspectionMode; previousMode: InspectionMode; revision: number };
@@ -16,8 +16,9 @@ const MODE_LABELS: Record<InspectionMode, string> = {
   "padding-y": "Vertical padding", "padding-x": "Horizontal padding",
   "margin-y": "Vertical margins", "margin-x": "Horizontal margins",
   "gap-y": "Vertical gaps", "gap-x": "Horizontal gaps",
+  "spacing-y": "All vertical spacing", "spacing-x": "All horizontal spacing",
 };
-const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "m", "g", "Escape"]);
+const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "m", "g", "s", "Escape"]);
 
 export function DesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
@@ -59,6 +60,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle padding inspection" aria-pressed={inspection.mode.startsWith("padding-")} onClick={() => cycle("p")}><kbd>P</kbd> Padding</button>
         <button type="button" aria-label="Cycle margin inspection" aria-pressed={inspection.mode.startsWith("margin-")} onClick={() => cycle("m")}><kbd>M</kbd> Margin</button>
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
+        <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Close design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
       </div>
     </aside>}
@@ -141,7 +143,7 @@ export function InspectableText({ children, text }: { children: ReactNode; text?
   </span>;
 }
 
-type SpacingArea = { box: Box; value: string };
+type SpacingArea = { box: Box; value: string; kind: SpacingKind };
 const SKIPPED_ELEMENTS = ".spacing-overlay, .design-inspector, script, style, noscript, template";
 
 function inFlowChildren(element: Element): HTMLElement[] {
@@ -160,9 +162,10 @@ function isVisible(element: HTMLElement, rect: DOMRect) {
   return element.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true;
 }
 
-/** Collects every element's padding or margins, or every flex/grid container's gaps, along one axis in viewport coordinates. */
+/** Collects the mode's padding, margins, and flex/grid gaps along one axis in viewport coordinates, in paint order. */
 function measureSpacing(mode: InspectionMode): SpacingArea[] {
-  const areas: SpacingArea[] = [];
+  const kinds = spacingKinds(mode);
+  const found: Record<SpacingKind, SpacingArea[]> = { margin: [], padding: [], gap: [] };
   const vertical = mode.endsWith("-y");
   for (const element of Array.from(document.body.querySelectorAll<HTMLElement>("*"))) {
     if (element.closest(SKIPPED_ELEMENTS)) continue;
@@ -175,38 +178,36 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
       top: rect.top + px("border-top-width"), bottom: rect.bottom - px("border-bottom-width"),
     };
 
-    if (mode.startsWith("padding-")) {
+    if (kinds.includes("padding")) {
       const [start, end] = vertical ? [px("padding-top"), px("padding-bottom")] : [px("padding-left"), px("padding-right")];
-      if (start > 0) areas.push({ value: formatPixels(start), box: vertical
+      if (start > 0) found.padding.push({ kind: "padding", value: formatPixels(start), box: vertical
         ? { ...inner, bottom: inner.top + start } : { ...inner, right: inner.left + start } });
-      if (end > 0) areas.push({ value: formatPixels(end), box: vertical
+      if (end > 0) found.padding.push({ kind: "padding", value: formatPixels(end), box: vertical
         ? { ...inner, top: inner.bottom - end } : { ...inner, left: inner.right - end } });
-      continue;
     }
 
-    if (mode.startsWith("margin-")) {
+    if (kinds.includes("margin")) {
       // Negative margins pull elements into each other and have no area to draw.
       const [start, end] = vertical ? [px("margin-top"), px("margin-bottom")] : [px("margin-left"), px("margin-right")];
-      if (start > 0) areas.push({ value: formatPixels(start), box: vertical
+      if (start > 0) found.margin.push({ kind: "margin", value: formatPixels(start), box: vertical
         ? { left: rect.left, right: rect.right, top: rect.top - start, bottom: rect.top }
         : { left: rect.left - start, right: rect.left, top: rect.top, bottom: rect.bottom } });
-      if (end > 0) areas.push({ value: formatPixels(end), box: vertical
+      if (end > 0) found.margin.push({ kind: "margin", value: formatPixels(end), box: vertical
         ? { left: rect.left, right: rect.right, top: rect.bottom, bottom: rect.bottom + end }
         : { left: rect.right, right: rect.right + end, top: rect.top, bottom: rect.bottom } });
-      continue;
     }
 
-    if (!/flex|grid/.test(style.display) || px(vertical ? "row-gap" : "column-gap") <= 0) continue;
+    if (!kinds.includes("gap") || !/flex|grid/.test(style.display) || px(vertical ? "row-gap" : "column-gap") <= 0) continue;
     const content = {
       left: inner.left + px("padding-left"), right: inner.right - px("padding-right"),
       top: inner.top + px("padding-top"), bottom: inner.bottom - px("padding-bottom"),
     };
     const items = inFlowChildren(element).map(child => child.getBoundingClientRect()).filter(box => box.width > 0 && box.height > 0);
     for (const box of gapBoxes(content, items, vertical ? "vertical" : "horizontal")) {
-      areas.push({ box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
+      found.gap.push({ kind: "gap", box, value: formatPixels(vertical ? box.bottom - box.top : box.right - box.left) });
     }
   }
-  return areas;
+  return kinds.flatMap(kind => found[kind]);
 }
 
 /** Grid-paper overlay with each spacing value centered in its area; rebuilt as the page scrolls, resizes, or animates. */
@@ -232,9 +233,8 @@ function SpacingOverlay({ mode }: { mode: InspectionMode }) {
     };
   }, [mode]);
 
-  const kind = `is-${mode.slice(0, mode.indexOf("-"))}`;
-  return <div className={`spacing-overlay ${kind}`} aria-hidden="true">
-    {areas.map(({ box, value }, index) => <div key={index} className="spacing-area" style={{
+  return <div className="spacing-overlay" aria-hidden="true">
+    {areas.map(({ box, value, kind }, index) => <div key={index} className={`spacing-area is-${kind}`} style={{
       left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top,
     }}>
       <span className="spacing-value text-captionSans">

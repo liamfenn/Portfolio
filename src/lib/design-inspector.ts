@@ -1,7 +1,8 @@
 export type InspectionMode =
   | "content" | "type-token" | "type-metrics" | "color-token" | "color-hex"
-  | "padding-y" | "padding-x" | "margin-y" | "margin-x" | "gap-y" | "gap-x";
-export type InspectionKey = "t" | "c" | "p" | "m" | "g" | "Escape";
+  | "padding-y" | "padding-x" | "margin-y" | "margin-x" | "gap-y" | "gap-x" | "spacing-y" | "spacing-x";
+export type InspectionKey = "t" | "c" | "p" | "m" | "g" | "s" | "Escape";
+export type SpacingKind = "margin" | "padding" | "gap";
 
 const MODE_CYCLES: Record<Exclude<InspectionKey, "Escape">, InspectionMode[]> = {
   t: ["type-token", "type-metrics"],
@@ -9,6 +10,7 @@ const MODE_CYCLES: Record<Exclude<InspectionKey, "Escape">, InspectionMode[]> = 
   p: ["padding-y", "padding-x"],
   m: ["margin-y", "margin-x"],
   g: ["gap-y", "gap-x"],
+  s: ["spacing-y", "spacing-x"],
 };
 
 /** Each key steps through its own modes and back to content; another key starts its first mode. */
@@ -22,6 +24,13 @@ export function nextInspectionMode(mode: InspectionMode, key: InspectionKey): In
 /** Text and color modes swap text for labels; spacing modes draw an overlay instead. */
 export function isLabelMode(mode: InspectionMode) {
   return mode.startsWith("type-") || mode.startsWith("color-");
+}
+
+/** Spacing kinds a mode draws, in paint order: margins under padding under gaps. */
+export function spacingKinds(mode: InspectionMode): SpacingKind[] {
+  if (mode.startsWith("spacing-")) return ["margin", "padding", "gap"];
+  const kind = mode.slice(0, mode.indexOf("-"));
+  return kind === "margin" || kind === "padding" || kind === "gap" ? [kind] : [];
 }
 
 export function formatPixels(value: string | number) {
