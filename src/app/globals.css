@@ -583,7 +583,7 @@
  * Hover system, three patterns:
  * - text links and text buttons dim to --hover-dim;
  * - menu choices darken from text-secondary to text-primary (.work-density-option);
- * - surfaces (.hover-surface: the music player, avatar) keep full opacity and fade their own fill.
+ * - surfaces (.hover-surface: the music player, avatar) keep full opacity; their badges slide out instead.
  * Every link and button shares one focus ring.
  */
 :where(a:not(.hover-surface), .bio-expand-word) { transition: opacity var(--hover-duration) var(--hover-ease); }
@@ -635,13 +635,12 @@
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .homepage-spotify { --spotify-reveal: 0px; --badge-cutout-left: 16px; --badge-cutout-right: calc(48px + var(--spotify-reveal)); --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 0 0; padding: 24px var(--content-padding) var(--content-padding); }
-.homepage-spotify::before { transition: clip-path var(--motion-duration) var(--motion-ease), opacity var(--hover-duration) var(--hover-ease); }
+.homepage-spotify::before { transition: clip-path var(--motion-duration) var(--motion-ease); }
 @media (min-width: 768px) {
   .homepage-spotify:focus-visible { --spotify-reveal: 28px; }
 }
 @media (hover: hover) and (min-width: 768px) {
   .homepage-spotify:hover { --spotify-reveal: 28px; }
-  .homepage-spotify:hover::before { opacity: var(--hover-fill); }
 }
 .homepage-album-badge { position: absolute; top: -14px; left: 18px; width: calc(28px + var(--spotify-reveal)); isolation: isolate; overflow: hidden; transition: width var(--motion-duration) var(--motion-ease); }
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: var(--bg-secondary-fill); overflow: hidden; }

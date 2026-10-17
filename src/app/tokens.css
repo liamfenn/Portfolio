@@ -23,7 +23,6 @@
 /* Interaction: hover feedback, slide motion, and one focus ring. */
 :root {
   --hover-dim: .4;
-  --hover-fill: .6;
   --hover-duration: 150ms;
   --hover-ease: ease;
   --motion-duration: 300ms;
