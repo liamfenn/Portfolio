@@ -16,8 +16,8 @@
   --tracking-ui: -.01em;
   --tracking-prose: -.02em;
 
-  /* Spacing */
-  --spacing-section: 72px;
+  /* Spacing: an 8px frame around the page, 16px inside each section. */
+  --page-frame: 8px;
   --content-padding: 16px;
 }
 

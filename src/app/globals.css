@@ -330,10 +330,6 @@
   width: 80px;
 }
 
-.work-sort-menu-control {
-  margin-right: auto;
-}
-
 .work-control {
   gap: 7px;
   padding: 0 2px 0 4px;
@@ -2091,12 +2087,19 @@ body.is-media-focused .case-study-controls {
 .palette-lab button:not(:disabled) {
   cursor: pointer;
 }
+/* Desktop: the page frame insets every section by 8px; text sections add 16px inside it. */
+.portfolio-v3 { padding: var(--page-frame); }
 .portfolio-v3 .portfolio-intro {
-  width: 493.333px;
-  max-width: 100%;
+  width: auto;
   margin: 0 0 96px;
-  padding: 24px 24px 0;
+  padding: var(--content-padding) var(--content-padding) 0;
+  gap: 0;
 }
+.portfolio-v3 .work-toolbar { padding: 0 var(--content-padding); }
+.portfolio-v3 .work-control { padding: 0; }
+.portfolio-v3 .work-label-group { gap: 8px; }
+.portfolio-v3 .project-grid { padding: 0; }
+.portfolio-v3 .portfolio-footer { padding: 0 var(--content-padding) var(--content-padding); }
 .portfolio-v3 .portfolio-bio-group { width: 445.333px; max-width: 100%; }
 .portfolio-v3 .portfolio-bio a { text-decoration: underline; text-underline-offset: 2px; }
 .homepage-slide-badge { position: relative; display: block; width: 56px; height: 28px; }
@@ -2139,13 +2142,13 @@ body.is-media-focused .case-study-controls {
 .homepage-project-company { display: block; --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .homepage-project-badge { position: absolute; left: var(--badge-cutout-left); top: -12px; border: 2px solid transparent; background-clip: padding-box; width: 24px; height: 24px; overflow: hidden; }
 .homepage-project-badge img { display: block; width: 20px; height: 20px; object-fit: contain; }
-.homepage-project-tooltip { --badge-panel-background: color-mix(in srgb, var(--bg-fill) 90%, transparent); --badge-panel-blur: blur(6px); position: fixed; z-index: 20; left: 24px; top: 24px; min-width: 230px; padding: 16px 12px 8px; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
+.homepage-project-tooltip { --badge-panel-background: color-mix(in srgb, var(--bg-fill) 90%, transparent); --badge-panel-blur: blur(6px); position: fixed; z-index: 20; left: 24px; top: 24px; min-width: 230px; padding: 16px 12px 12px; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
 .homepage-project-tooltip.is-visible { visibility: visible; opacity: 1; }
 .homepage-project-tooltip.is-keyboard { position: absolute; top: auto !important; left: 12px !important; bottom: 12px; }
-.portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 24px 12px; }
+.portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding); }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { --inspect-color-token: text-secondary; color: var(--text-secondary); }
-.homepage-spotify { --spotify-reveal: 0px; --badge-cutout-left: 16px; --badge-cutout-right: calc(48px + var(--spotify-reveal)); --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 8px 0; padding: 24px 16px 20px; min-height: 83px; }
+.homepage-spotify { --spotify-reveal: 0px; --badge-cutout-left: 16px; --badge-cutout-right: calc(48px + var(--spotify-reveal)); --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 0 0; padding: 24px var(--content-padding) var(--content-padding); }
 .homepage-spotify::before { transition: clip-path 300ms cubic-bezier(.16,1,.3,1), opacity 300ms ease; }
 @media (min-width: 768px) {
   .homepage-spotify:focus-visible { --spotify-reveal: 28px; }
@@ -2169,7 +2172,10 @@ body.is-media-focused .case-study-controls {
 .bio-expand-word { display: inline; border: 0; padding: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .bio-expanded-word { display: inline; }
 @media (max-width: 767px) {
+  .portfolio-v3 { padding: 0; }
   .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 68px; padding: 8px 12px 0; }
+  .portfolio-v3 .work-toolbar { padding: 0 12px; }
+  .portfolio-v3 .work-label-group { gap: 4px; }
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
   .homepage-identity { width: 24px; height: 24px; flex-basis: 24px; }
   .homepage-avatar { width: 24px; height: 24px; }
@@ -2187,7 +2193,7 @@ body.is-media-focused .case-study-controls {
   .homepage-track.is-overflowing .homepage-track-fade { position: absolute; top: 0; bottom: 0; display: block; width: 24px; pointer-events: none; }
   .homepage-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); animation: identity-song-left-fade 10s ease-in-out infinite; }
   .homepage-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); animation: homepage-track-right-fade 10s ease-in-out infinite; }
-  .portfolio-v3 .portfolio-footer { margin-top: 32px; }
+  .portfolio-v3 .portfolio-footer { margin-top: 32px; padding: 0 12px 24px; }
 }
 @keyframes homepage-track-right-fade {
   0%, 40%, 60%, 100% { opacity: 1; }

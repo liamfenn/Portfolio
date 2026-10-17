@@ -429,7 +429,7 @@ export function ProjectWork() {
       <div className="work-toolbar text-bodySans" aria-label="Project display controls">
         <div
           ref={sortControlRef}
-          className="work-density-control work-sort-menu-control"
+          className="work-density-control"
           onPointerEnter={handleSortControlPointerEnter}
           onPointerLeave={handleSortControlPointerLeave}
           onFocus={openSortMenu}
