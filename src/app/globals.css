@@ -2203,8 +2203,7 @@ body.is-media-focused .case-study-controls {
 }
 .homepage-avatar img { position: absolute; width: 411.8%; height: 514.75%; max-width: none; left: -154.13%; top: -32.44%; }
 
-.homepage-project-badge.is-shop { display: grid; place-items: center; }
-.homepage-project-badge.is-shop img { width: 24px; height: 24px; max-width: none; transform: scale(.571429); filter: brightness(0) invert(1); }
+.homepage-project-badge.is-shop img { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; max-width: none; transform: translate(-50%, -50%) scale(.571429); filter: brightness(0) invert(1); }
 
 .homepage-album, .homepage-spotify-brand { box-shadow: 0 0 0 2px #fff; }
 
