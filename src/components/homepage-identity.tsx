@@ -3,8 +3,11 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { useReducedMotion } from "motion/react";
+import { useScramble } from "use-scramble";
 import { useSpotify } from "@/hooks/use-spotify";
 import { InspectableText } from "@/components/design-inspector";
+import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export function HomepageIdentity() {
   return <a className="homepage-identity homepage-slide-badge" href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
@@ -25,8 +28,28 @@ function formatAgo(timestamp: string | null | undefined, now: number) {
   return minutes < 60 ? `${minutes}m ago` : minutes < 1440 ? `${Math.floor(minutes / 60)}h ago` : `${Math.floor(minutes / 1440)}d ago`;
 }
 
+/** Glyph-scrambles in on mount; the track line remounts per song, so this plays on song changes. */
+function ScrambledTrackText({ text }: { text: string }) {
+  const { ref } = useScramble({
+    ...FILTER_SCRAMBLE, text, playOnMount: true,
+    // Keep long titles as quick as the short filter labels.
+    step: Math.max(1, Math.ceil(text.length / 24)),
+  });
+  return <span ref={ref}>{text}</span>;
+}
+
+function TrackText({ text, scramble }: { text: string; scramble: boolean }) {
+  return <InspectableText text={text}>{scramble ? <ScrambledTrackText text={text} /> : text}</InspectableText>;
+}
+
 export function HomepageSpotify() {
   const { data, cachedAt } = useSpotify();
+  const reducedMotion = useReducedMotion();
+  const trackKey = data ? `${data.title}-${data.artist}` : null;
+  // Only scramble when one song replaces another, not when the first song appears.
+  const [trackChange, setTrackChange] = useState({ key: trackKey, scramble: false });
+  if (trackChange.key !== trackKey) setTrackChange({ key: trackKey, scramble: trackChange.key !== null });
+  const scrambleTrack = trackChange.scramble && !reducedMotion;
   const [now, setNow] = useState(0);
   const trackLine = useRef<HTMLSpanElement>(null);
   const trackContent = useRef<HTMLSpanElement>(null);
@@ -71,7 +94,7 @@ export function HomepageSpotify() {
       <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
         className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
         style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
-        <span ref={trackContent} className="homepage-track-marquee"><span><InspectableText>{data?.title ?? "Loading track…"}</InspectableText></span>{data && <> <span className="homepage-artist"><InspectableText>{data.artist}</InspectableText></span></>}</span>
+        <span ref={trackContent} className="homepage-track-marquee"><span>{data ? <TrackText text={data.title} scramble={scrambleTrack} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <> <span className="homepage-artist"><TrackText text={data.artist} scramble={scrambleTrack} /></span></>}</span>
         <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
