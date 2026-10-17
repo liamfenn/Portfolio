@@ -665,7 +665,7 @@
 .bio-expanded-word { display: inline; }
 @media (max-width: 767px) {
   .portfolio-v3 { padding: 0; }
-  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 68px; padding: 8px 12px 0; }
+  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; }
   .portfolio-v3 .work-toolbar { padding: 0 12px; }
   .portfolio-v3 .work-label-group { gap: 4px; }
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
