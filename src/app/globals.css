@@ -2168,8 +2168,10 @@ body.is-media-focused .case-study-controls {
 .homepage-track { overflow-wrap: anywhere; }
 .homepage-track-fade { display: none; }
 .homepage-artist { --inspect-color-token: text-secondary; color: var(--text-secondary); }
-/* Tabular figures keep the right-aligned clock from shifting as digits change. */
-.homepage-track-time { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.homepage-track-time { flex: 0 0 auto; display: inline-grid; white-space: nowrap; }
+/* A hidden copy in the widest digit reserves the clock's width; the real time sits left in it, so it never shifts. */
+.homepage-track-time > * { grid-area: 1 / 1; justify-self: start; }
+.homepage-track-time-reserve { visibility: hidden; }
 .bio-expand-word { display: inline; border: 0; padding: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .bio-expanded-word { display: inline; }
 @media (max-width: 767px) {

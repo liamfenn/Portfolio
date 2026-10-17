@@ -20,6 +20,10 @@ function formatDuration(milliseconds: number) {
   const seconds = Math.max(0, Math.floor(milliseconds / 1000));
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
+/** 4 is the widest digit in ABC Oracle, so this copy is never narrower than the real time. */
+function widestDigits(text: string) {
+  return text.replace(/\d/g, "4");
+}
 function formatAgo(timestamp: string | null | undefined, now: number) {
   if (!timestamp) return "Recently";
   if (!now) return "Recently";
@@ -86,6 +90,7 @@ export function HomepageSpotify() {
   }, []);
   const progress = data?.progressMs === undefined ? null : Math.min(data.durationMs ?? Infinity,
     data.progressMs + (data.isPlaying && data.fetchedAt && now ? Math.max(0, now - new Date(data.fetchedAt).getTime()) : 0));
+  const trackTime = data?.isPlaying ? progress !== null ? formatDuration(progress) : "Now" : formatAgo(data?.playedAt ?? cachedAt, now);
   return <a className="homepage-spotify text-bodySans" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className="homepage-album-badge homepage-slide-badge">
       <span className="homepage-brand homepage-spotify-brand"><Image src="/images/icons/spotify-white.svg" alt="" width={16} height={16} /></span>
@@ -107,6 +112,9 @@ export function HomepageSpotify() {
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
     </span>
-    <span className="homepage-track-time text-captionSans"><InspectableText>{data?.isPlaying ? progress !== null ? formatDuration(progress) : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
+    <span className="homepage-track-time text-captionSans">
+      <span className="homepage-track-time-reserve" aria-hidden="true">{widestDigits(trackTime)}</span>
+      <span><InspectableText>{trackTime}</InspectableText></span>
+    </span>
   </a>;
 }
