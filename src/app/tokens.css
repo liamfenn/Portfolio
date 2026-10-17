@@ -2,7 +2,6 @@
 @theme {
   /* Typography - uses CSS variable from next/font */
   --font-sans: var(--font-suisse-intl), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
   /* Type scale: font size, weight, leading, and tracking are independent. */
   --text-caption: 14px;
