@@ -606,7 +606,7 @@
 .homepage-project-details { --badge-cutout-left: 14px; --badge-cutout-right: 38px; --badge-cutout-depth: 12px; }
 /* Cut only the panel surface so the artwork and the clear gap stay independent. */
 .homepage-project-details,
-.homepage-spotify { isolation: isolate; }
+.homepage-spotify { isolation: isolate; cursor: pointer; }
 .homepage-project-details::before,
 .homepage-spotify::before {
   content: "";
