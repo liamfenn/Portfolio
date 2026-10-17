@@ -45,11 +45,19 @@ function TrackText({ text, scramble }: { text: string; scramble: boolean }) {
 export function HomepageSpotify() {
   const { data, cachedAt } = useSpotify();
   const reducedMotion = useReducedMotion();
-  const trackKey = data ? `${data.title}-${data.artist}` : null;
-  // Only scramble when one song replaces another, not when the first song appears.
-  const [trackChange, setTrackChange] = useState({ key: trackKey, scramble: false });
-  if (trackChange.key !== trackKey) setTrackChange({ key: trackKey, scramble: trackChange.key !== null });
-  const scrambleTrack = trackChange.scramble && !reducedMotion;
+  const title = data?.title ?? null;
+  const artist = data?.artist ?? null;
+  // Scramble only the parts that changed when one song replaces another, not when the first song appears.
+  const [trackChange, setTrackChange] = useState({ title, artist, scrambleTitle: false, scrambleArtist: false });
+  if (trackChange.title !== title || trackChange.artist !== artist) {
+    const hadTrack = trackChange.title !== null;
+    setTrackChange({
+      title,
+      artist,
+      scrambleTitle: hadTrack && trackChange.title !== title,
+      scrambleArtist: hadTrack && trackChange.artist !== artist,
+    });
+  }
   const [now, setNow] = useState(0);
   const trackLine = useRef<HTMLSpanElement>(null);
   const trackContent = useRef<HTMLSpanElement>(null);
@@ -94,11 +102,11 @@ export function HomepageSpotify() {
       <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
         className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
         style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
-        <span ref={trackContent} className="homepage-track-marquee"><span>{data ? <TrackText text={data.title} scramble={scrambleTrack} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <> <span className="homepage-artist"><TrackText text={data.artist} scramble={scrambleTrack} /></span></>}</span>
+        <span ref={trackContent} className="homepage-track-marquee"><span>{data ? <TrackText text={data.title} scramble={trackChange.scrambleTitle && !reducedMotion} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <> <span className="homepage-artist"><TrackText text={data.artist} scramble={trackChange.scrambleArtist && !reducedMotion} /></span></>}</span>
         <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
     </span>
-    <span className="homepage-track-time text-captionSans"><InspectableText>{data?.isPlaying ? progress !== null && data.durationMs ? `${formatDuration(progress)} / ${formatDuration(data.durationMs)}` : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
+    <span className="homepage-track-time text-captionSans"><InspectableText>{data?.isPlaying ? progress !== null ? formatDuration(progress) : "Now" : formatAgo(data?.playedAt ?? cachedAt, now)}</InspectableText></span>
   </a>;
 }
