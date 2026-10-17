@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { colorToHex, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode, spacingKinds } from "../src/lib/design-inspector.ts";
 
-test("T, C, P, and G each cycle through their two modes and restore content", () => {
+test("T, O, P, M, G, and S each cycle through their two modes and restore content", () => {
   for (const [key, expected] of [
-    ["t", ["type-token", "type-metrics", "content"]], ["c", ["color-token", "color-hex", "content"]],
+    ["t", ["type-token", "type-metrics", "content"]], ["o", ["color-token", "color-hex", "content"]],
     ["p", ["padding-y", "padding-x", "content"]], ["m", ["margin-y", "margin-x", "content"]],
     ["g", ["gap-y", "gap-x", "content"]], ["s", ["spacing-y", "spacing-x", "content"]],
   ]) {
@@ -18,7 +18,7 @@ test("T, C, P, and G each cycle through their two modes and restore content", ()
 
 test("changing inspector families starts at tokens; Escape always restores content", () => {
   assert.equal(nextInspectionMode("color-hex", "t"), "type-token");
-  assert.equal(nextInspectionMode("type-metrics", "c"), "color-token");
+  assert.equal(nextInspectionMode("type-metrics", "o"), "color-token");
   assert.equal(nextInspectionMode("padding-x", "g"), "gap-y");
   assert.equal(nextInspectionMode("gap-y", "p"), "padding-y");
   assert.equal(nextInspectionMode("padding-y", "m"), "margin-y");

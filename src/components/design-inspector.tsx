@@ -18,7 +18,7 @@ const MODE_LABELS: Record<InspectionMode, string> = {
   "gap-y": "Vertical gaps", "gap-x": "Horizontal gaps",
   "spacing-y": "All vertical spacing", "spacing-x": "All horizontal spacing",
 };
-const INSPECTION_KEYS = new Set<string>(["t", "c", "p", "m", "g", "s", "Escape"]);
+const INSPECTION_KEYS = new Set<string>(["t", "o", "p", "m", "g", "s", "Escape"]);
 
 export function DesignInspector({ children }: { children: ReactNode }) {
   const [inspection, setInspection] = useState<Inspection>({ mode: "content", previousMode: "content", revision: 0 });
@@ -64,7 +64,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
-        <button type="button" aria-label="Cycle color inspection" aria-pressed={inspection.mode.startsWith("color-")} onClick={() => cycle("c")}><kbd>C</kbd> Color</button>
+        <button type="button" aria-label="Cycle color inspection" aria-pressed={inspection.mode.startsWith("color-")} onClick={() => cycle("o")}><kbd>O</kbd> Color</button>
         <button type="button" aria-label="Cycle padding inspection" aria-pressed={inspection.mode.startsWith("padding-")} onClick={() => cycle("p")}><kbd>P</kbd> Padding</button>
         <button type="button" aria-label="Cycle margin inspection" aria-pressed={inspection.mode.startsWith("margin-")} onClick={() => cycle("m")}><kbd>M</kbd> Margin</button>
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>

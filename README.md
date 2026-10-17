@@ -38,9 +38,13 @@ project dates, and the player's listening status and time use captionSans.
 The built-in inspector works on the homepage and the palette lab:
 
 - **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
-- **C** cycles content → color token → hex → content.
-- **Escape** restores content. Switching from T to C (or vice versa) starts
-  at that family's token view. Shortcuts ignore editable fields and modifier keys.
+- **O** cycles content → color token → hex → content. (C is taken by the Vercel
+  toolbar's comment shortcut on previews.)
+- **P**, **M**, and **G** draw padding, margins, and gaps; **S** draws all three.
+  Each cycles vertical → horizontal → off. The 8px page frame is its own purple layer.
+- **H** hides or shows the floating panel without leaving the current mode.
+- **Escape** restores content. Switching families starts at that family's first
+  view. Shortcuts ignore editable fields and modifier keys.
 
 Use `InspectableText` for new visible text, inside its text-style class. Its
 original React content stays mounted, and transitions share the filters' glyph

@@ -1,12 +1,13 @@
 export type InspectionMode =
   | "content" | "type-token" | "type-metrics" | "color-token" | "color-hex"
   | "padding-y" | "padding-x" | "margin-y" | "margin-x" | "gap-y" | "gap-x" | "spacing-y" | "spacing-x";
-export type InspectionKey = "t" | "c" | "p" | "m" | "g" | "s" | "Escape";
+// C is Vercel's toolbar comment shortcut, so color uses O.
+export type InspectionKey = "t" | "o" | "p" | "m" | "g" | "s" | "Escape";
 export type SpacingKind = "margin" | "padding" | "gap";
 
 const MODE_CYCLES: Record<Exclude<InspectionKey, "Escape">, InspectionMode[]> = {
   t: ["type-token", "type-metrics"],
-  c: ["color-token", "color-hex"],
+  o: ["color-token", "color-hex"],
   p: ["padding-y", "padding-x"],
   m: ["margin-y", "margin-x"],
   g: ["gap-y", "gap-x"],
