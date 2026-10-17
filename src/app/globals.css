@@ -2160,19 +2160,46 @@ body.is-media-focused .case-study-controls {
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
 .homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: #f6f8f9; color: inherit; cursor: pointer; overflow: hidden; }
 .homepage-card-trigger:focus-visible { outline: 2px solid #5343eb; outline-offset: -2px; }
-.homepage-project-details { font-family: var(--font-oracle); font-size: 14px; font-weight: 400; line-height: 1.35; letter-spacing: -.14px; }
+.homepage-project-details { --badge-cutout-left: 14px; --badge-cutout-right: 38px; --badge-cutout-depth: 12px; font-family: var(--font-oracle); font-size: 14px; font-weight: 400; line-height: 1.35; letter-spacing: -.14px; }
+/* Cut only the panel surface so the artwork and the clear gap stay independent. */
+.homepage-project-details,
+.homepage-spotify { isolation: isolate; }
+.homepage-project-details::before,
+.homepage-spotify::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--badge-panel-background, #f6f8f9);
+  backdrop-filter: var(--badge-panel-blur, none);
+  clip-path: polygon(
+    0 0,
+    var(--badge-cutout-left) 0,
+    var(--badge-cutout-left) var(--badge-cutout-depth),
+    var(--badge-cutout-right) var(--badge-cutout-depth),
+    var(--badge-cutout-right) 0,
+    100% 0, 100% 100%, 0 100%
+  );
+}
 .homepage-project-title { display: flex; justify-content: space-between; align-items: baseline; gap: 32px; }
 .homepage-project-period { font-size: 13px; letter-spacing: -.13px; color: #999; white-space: nowrap; }
 .homepage-project-company { display: block; color: #555; }
-.homepage-project-badge { position: absolute; left: 14px; top: -12px; border: 2px solid #f6f8f9; width: 24px; height: 24px; overflow: hidden; }
+.homepage-project-badge { position: absolute; left: var(--badge-cutout-left); top: -12px; border: 2px solid transparent; background-clip: padding-box; width: 24px; height: 24px; overflow: hidden; }
 .homepage-project-badge img { display: block; width: 20px; height: 20px; object-fit: contain; }
-.homepage-project-tooltip { position: fixed; z-index: 20; left: 24px; top: 24px; min-width: 230px; padding: 16px 12px 8px; background: rgb(255 255 255 / .9); backdrop-filter: blur(6px); pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
+.homepage-project-tooltip { --badge-panel-background: rgb(255 255 255 / .9); --badge-panel-blur: blur(6px); position: fixed; z-index: 20; left: 24px; top: 24px; min-width: 230px; padding: 16px 12px 8px; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
 .homepage-project-tooltip.is-visible { visibility: visible; opacity: 1; }
 .homepage-project-tooltip.is-keyboard { position: absolute; top: auto !important; left: 12px !important; bottom: 12px; }
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 24px 12px; font-size: 14px; letter-spacing: -.28px; }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { color: #555; }
-.homepage-spotify { display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 8px 0; padding: 24px 16px 20px; min-height: 83px; background: #f6f8f9; font-family: var(--font-oracle); font-size: 15px; font-weight: 400; line-height: 1.35; letter-spacing: -.15px; }
+.homepage-spotify { --badge-cutout-left: 16px; --badge-cutout-right: 48px; --badge-cutout-depth: 16px; display: flex; position: relative; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 48px 8px 0; padding: 24px 16px 20px; min-height: 83px; font-family: var(--font-oracle); font-size: 15px; font-weight: 400; line-height: 1.35; letter-spacing: -.15px; }
+.homepage-spotify::before { transition: clip-path 300ms cubic-bezier(.16,1,.3,1); }
+@media (min-width: 768px) {
+  .homepage-spotify:focus-visible { --badge-cutout-right: 76px; }
+}
+@media (hover: hover) and (min-width: 768px) {
+  .homepage-spotify:hover { --badge-cutout-right: 76px; }
+}
 .homepage-album-badge { position: absolute; top: -14px; left: 18px; }
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: #eee; overflow: hidden; }
 .homepage-album img { object-fit: cover; }
@@ -2193,10 +2220,9 @@ body.is-media-focused .case-study-controls {
   .homepage-avatar { width: 24px; height: 24px; }
   .homepage-brand { display: none; }
   .homepage-card.is-expanded { grid-column: 1 / -1; }
-  .homepage-project-inline { position: relative; padding: 20px 12px 12px; margin-top: 0; background: #f6f8f9; }
-  .homepage-project-inline .homepage-project-badge { left: 12px; }
+  .homepage-project-inline { --badge-cutout-left: 12px; --badge-cutout-right: 36px; position: relative; padding: 20px 12px 12px; margin-top: 0; }
   .portfolio-v3 .homepage-contact { margin: 0; padding: 24px 12px 32px; }
-  .homepage-spotify { margin: 8px 0 0; padding: 20px 12px 16px; min-height: 73px; gap: 12px; font-size: 14px; letter-spacing: -.14px; }
+  .homepage-spotify { --badge-cutout-left: 12px; --badge-cutout-right: 40px; margin: 8px 0 0; padding: 20px 12px 16px; min-height: 73px; gap: 12px; font-size: 14px; letter-spacing: -.14px; }
   .homepage-listening, .homepage-track-time { font-size: 13px; letter-spacing: -.13px; }
   .homepage-album-badge { top: -10px; left: 14px; width: 24px; height: 24px; }
   .homepage-album { width: 24px; height: 24px; }
@@ -2208,8 +2234,6 @@ body.is-media-focused .case-study-controls {
 .homepage-avatar img { position: absolute; width: 411.8%; height: 514.75%; max-width: none; left: -154.13%; top: -32.44%; }
 
 .homepage-project-badge.is-shop img { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; max-width: none; transform: translate(-50%, -50%) scale(.571429); filter: brightness(0) invert(1); }
-
-.homepage-album, .homepage-spotify-brand { box-shadow: 0 0 0 2px #fff; }
 
 /* Footer color toy and its private tuning view (?palette-lab). */
 .palette-toy-trigger {
