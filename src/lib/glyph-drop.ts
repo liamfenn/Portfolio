@@ -1,5 +1,5 @@
 import type MatterJS from "matter-js";
-import { cursorAttraction, flingVelocity, segmentDistance, scrollKick, initialReleaseCount } from "@/lib/glyph-physics";
+import { brushImpulse, cursorAttraction, flingVelocity, segmentDistance, scrollKick, initialReleaseCount } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
@@ -211,14 +211,16 @@ export async function dropGlyphs(root: Element, initial: GlyphSettings, options:
       chosen.forEach(c => release(c, delta));
       if (chosen.length) lastRelease = time;
     }
-    // Every accepted pointer move uses the same brush impulse, regardless of mouse buttons.
+    // Hover is the brush: lift settled letters clear of static friction before pushing sideways.
+    // Touch movement uses the identical impulse; mouse buttons do not change its strength.
     for (const glyph of glyphs) {
-      const near = segmentDistance(glyph.body.position, previous, next);
-      if (near > 55) continue;
-      const push = (1 - near / 55) * settings.pull;
-      Body.setVelocity(glyph.body, { x: glyph.body.velocity.x + Math.max(-10, Math.min(10, delta.x * 0.2)) * push,
-        y: glyph.body.velocity.y + Math.max(-10, Math.min(8, delta.y * 0.2)) * push });
-      Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + delta.x * 0.002 * push);
+      const impulse = brushImpulse(glyph.body.position, previous, next, settings.pull);
+      if (!impulse.x && !impulse.y) continue;
+      Body.setVelocity(glyph.body, {
+        x: Math.max(-18, Math.min(18, glyph.body.velocity.x + impulse.x)),
+        y: Math.max(-12, Math.min(10, glyph.body.velocity.y + impulse.y)),
+      });
+      Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + impulse.spin);
     }
     pointer = next; pointerAt = time;
   };

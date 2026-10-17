@@ -17,6 +17,21 @@ export function flingVelocity(delta: Point, random = Math.random): Point {
     y: Math.max(-10, Math.min(5, delta.y * 0.14)) - 3 - random() * 3 };
 }
 
+/** A moving brush lifts settled glyphs clear of floor friction, even during a slow hover pass. */
+export function brushImpulse(position: Point, from: Point, to: Point, strength = 1) {
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const travel = Math.hypot(dx, dy);
+  const distance = segmentDistance(position, from, to);
+  if (travel < 0.15 || distance >= 44 || strength <= 0) return { x: 0, y: 0, spin: 0 };
+  const weight = Math.pow(1 - distance / 44, 0.65) * Math.min(3, strength);
+  const side = Math.abs(dx) > 0.3 ? Math.sign(dx) : Math.sign(position.x - to.x) || 1;
+  return {
+    x: side * Math.min(10, 2.5 + travel * 0.14) * weight,
+    y: (Math.max(-7, Math.min(3, dy * 0.14)) - 2.4) * weight,
+    spin: side * 0.035 * weight,
+  };
+}
+
 /** A nearby cursor gently tugs loose letters; gravity remains stronger than the vertical pull. */
 export function cursorAttraction(delta: Point, strength = 1): Point {
   const distance = Math.hypot(delta.x, delta.y);
