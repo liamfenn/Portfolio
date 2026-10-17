@@ -1,0 +1,69 @@
+/* Shared portfolio tokens. Keep raw UI colors and type values here. */
+@theme {
+  /* Typography - uses CSS variable from next/font */
+  --font-sans: var(--font-suisse-intl), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Shared colors; existing names also generate Tailwind utilities. */
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-muted: #555555;
+  --color-muted-foreground: #999999;
+  --color-card: #f5f5f5;
+  --color-card-dark: #2e2e2e;
+  --color-spotify-green: #1ed760;
+  --color-border: rgba(0, 0, 0, 0.04);
+  --color-border-light: rgba(255, 255, 255, 0.16);
+
+  /* Surfaces and brand accents */
+  --color-surface: #f6f8f9;
+  --color-avatar-placeholder: #f0f0f0;
+  --color-surface-subtle: #eeeeee;
+  --color-tooltip: rgb(255 255 255 / .9);
+  --color-shop: #5343eb;
+  --color-plasticity: #494578;
+  --color-azura: #65fc9f;
+  --color-control-focus: rgb(0 0 0 / .35);
+
+  /* The private palette lab's supporting UI */
+  --color-lab-foreground: #111111;
+  --color-lab-muted: #777777;
+  --color-lab-border: #e6e6e6;
+  --color-lab-shadow: rgb(0 0 0 / .08);
+  --color-lab-overlay: rgb(255 255 255 / .8);
+
+  /* Type scale: font size, weight, leading, and tracking are independent. */
+  --text-small: 12px;
+  --text-caption: 13px;
+  --text-label: 14px;
+  --text-body: 15px;
+  --font-weight-regular: 400;
+  --leading-body: 1.35;
+  --tracking-ui: -.01em;
+  --tracking-prose: -.02em;
+
+  /* Spacing */
+  --spacing-section: 72px;
+  --content-padding: 16px;
+}
+
+/* next/font variables live on body, so resolve the font aliases here too. */
+body {
+  --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
+  --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
+}
+
+:root {
+  /* Responsive roles shared by the toolbar, footer, biography, and player. */
+  --text-ui: var(--text-body);
+  --text-ui-meta: var(--text-label);
+  --text-prose: var(--text-body);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-ui: var(--text-label);
+    --text-ui-meta: var(--text-caption);
+    --text-prose: var(--text-label);
+  }
+}

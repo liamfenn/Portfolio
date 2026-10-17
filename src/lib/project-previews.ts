@@ -16,10 +16,10 @@ export interface ProjectPreview {
 
 // Each entry is a homepage tile. Media stays optional until final assets arrive.
 const companies = {
-  shop: { company: "Shop", companyLogo: "/images/icons/shop-swirl.svg", companyColor: "#5343eb", period: "Q2 2026", year: 2026, quarter: 2, featuredOrder: 1 },
-  bird: { company: "Bird", companyLogo: "/images/logos/Bird.png", companyColor: "#000", period: "2025", year: 2025, featuredOrder: 2 },
-  plasticity: { company: "Plasticity", companyLogo: "/images/logos/Plasticity.png", companyColor: "#494578", period: "2025", year: 2025, featuredOrder: 3 },
-  azura: { company: "Azura", companyLogo: "/images/logos/Azura.png", companyColor: "#65fc9f", period: "2024", year: 2024, featuredOrder: 4 },
+  shop: { company: "Shop", companyLogo: "/images/icons/shop-swirl.svg", companyColor: "var(--color-shop)", period: "Q2 2026", year: 2026, quarter: 2, featuredOrder: 1 },
+  bird: { company: "Bird", companyLogo: "/images/logos/Bird.png", companyColor: "var(--color-foreground)", period: "2025", year: 2025, featuredOrder: 2 },
+  plasticity: { company: "Plasticity", companyLogo: "/images/logos/Plasticity.png", companyColor: "var(--color-plasticity)", period: "2025", year: 2025, featuredOrder: 3 },
+  azura: { company: "Azura", companyLogo: "/images/logos/Azura.png", companyColor: "var(--color-azura)", period: "2024", year: 2024, featuredOrder: 4 },
 };
 
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
