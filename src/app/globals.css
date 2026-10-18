@@ -708,7 +708,7 @@
 
 /* Footer globe: the entry to the letter swarm. Esc takes its place while the swarm is out; tuning stays in ?palette-lab. */
 .glyph-globe-row { display: flex; justify-content: center; margin-top: 48px; }
-.glyph-globe { position: relative; width: 28px; height: 28px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.glyph-globe { position: relative; width: 32px; height: 32px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .glyph-globe::before { content: ""; position: absolute; inset: -8px; }
 .glyph-globe:disabled { cursor: default; }
 .glyph-globe:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }

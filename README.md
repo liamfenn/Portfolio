@@ -71,7 +71,7 @@ The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The footer palette strip is decorative.
 
 A globe of orbiting characters sits in the middle of the footer on desktop (40px)
-and centered below it on mobile (28px). Tapping it bursts the globe and frees about
+and centered below it on mobile (32px). Tapping it bursts the globe and frees about
 70% of every letter on the page, including letters scrolled out of view, which
 enter from the screen edge. Letters pop out of their text at their own moments
 over about a second and a half, float loose for a while, then are sucked in at
