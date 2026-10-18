@@ -3,11 +3,11 @@ import { SPACING, captureStrength, entryPoint, pocketForce, pushImpulse, release
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
-const SKIP = ".glyph-globe,.glyph-cross,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
+const SKIP = ".glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
-/** The X's characters leave for the globe this far into the exit, while the swarm is still letting go. */
-export const CROSS_RETURN_DELAY_MS = 420;
+/** The exit dot swells back into the globe this far into the exit, while the swarm is still letting go. */
+export const EXIT_RETURN_DELAY_MS = 420;
 /** Intro: letters pop out of the text across this window, nearest to the globe tending to go first. */
 const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
@@ -165,7 +165,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const queue = chosen.map(source => ({ source, at: releaseDelay(distance(source), farthest, RELEASE_SPREAD_MS * 0.4) + Math.random() * RELEASE_SPREAD_MS * 0.6 })).sort((a, b) => a.at - b.at);
   let queued = 0;
 
-  // The viewport edges are the walls. The X sits above the swarm rather than in it, so letters never pin beneath it.
+  // The viewport edges are the walls. The exit dot sits above the swarm rather than in it, so letters never pin beneath it.
   let walls: MatterJS.Body[] = [];
   const placeWalls = () => {
     Composite.remove(engine.world, walls);
@@ -225,8 +225,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     spawn(char, rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
   };
 
-  // The globe's own characters burst outward from its centre. The nine that form the X are animated by the component.
-  for (const char of globe.querySelectorAll<HTMLElement>(".glyph-globe-char:not([data-cross])")) {
+  // The globe's own characters burst outward from its centre.
+  for (const char of globe.querySelectorAll<HTMLElement>(".glyph-globe-char")) {
     const rect = char.getBoundingClientRect();
     if (!rect.width || !char.textContent) continue;
     const style = getComputedStyle(char), scale = rect.height / (char.offsetHeight || rect.height);
@@ -245,7 +245,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + impulse.x * 0.004);
     }
   };
-  const excluded = (event: PointerEvent) => (event.target as Element | null)?.closest?.(".glyph-cross,.palette-lab,.design-inspector,[role='menu']");
+  const excluded = (event: PointerEvent) => (event.target as Element | null)?.closest?.(".glyph-exit,.palette-lab,.design-inspector,[role='menu']");
   // Desktop: the cursor anchors the zone and its movement pushes. Touch: a dragging finger is both.
   const onDown = (event: PointerEvent) => {
     if (event.pointerType === "mouse" || excluded(event)) return;
@@ -395,7 +395,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const target = pointer ?? viewportCenter();
     const goal = { x: target.x + Math.sin(time * 0.00071) * 24, y: target.y + Math.cos(time * 0.00053) * 18 };
     const zone = radius(), gap = spacing(), members = floating();
-    // Letters drift out of the X's way so it always reads, wherever the swarm is.
+    // Letters drift out of the exit dot's way so it always reads, wherever the swarm is.
     const clearBox = options.keepClear()?.getBoundingClientRect();
     const clear = clearBox?.width ? { center: centerOf(clearBox), radius: Math.max(clearBox.width, clearBox.height) / 2 + 18 } : null;
     while (pending >= STEP) {

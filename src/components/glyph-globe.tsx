@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, RefObject } from "react";
-import { CROSS_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
+import type { RefObject } from "react";
+import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
 
 // A fixed scatter of characters, so server and client render the same globe.
 const GLOBE_CHARS = "a&RE7?g*Q2ks@m0yt%cWb#f5j".split("");
-// Nine of them stay behind when the globe bursts and become the close control: an X with one character at its
-// centre and two along each arm. Positions are fractions of the control's size, arms on the diagonals.
-const CROSS_INDEX = [12, 3, 0, 9, 6, 15, 18, 21, 24];
-const CROSS_POINTS = [[0, 0], [-0.21, -0.21], [-0.43, -0.43], [0.21, -0.21], [0.43, -0.43], [-0.21, 0.21], [-0.43, 0.43], [0.21, 0.21], [0.43, 0.43]];
+// When the globe bursts it collapses into a small black dot, like the toolbar's dot: the exit.
+const DOT_SIZE = 12;
 // Sized against the 28px globe; a larger globe scales its orbit and characters to match.
 const BASE_SIZE = 28;
 const RADIUS = 10;
@@ -38,14 +36,13 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
   });
 }
 
-/** Moves each element from one box to another, scaling between their heights. */
-function flip(element: HTMLElement, from: DOMRect, to: DOMRect, reverse: boolean, delay: number) {
-  const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
-  const away = { transform: `translate(${dx}px,${dy}px) scale(${from.height / (to.height || 1)})`, opacity: reverse ? 0 : 0.6 };
-  const home = { transform: "none", opacity: 1 };
-  element.animate(reverse ? [home, away] : [away, home], reverse
+/** The dot shrinks out of the globe's full size on entry, and swells back into it on exit. */
+function morphDot(dot: HTMLElement, globeSize: number, reverse: boolean, delay: number) {
+  const globe = { transform: `scale(${globeSize / DOT_SIZE})`, opacity: 0 };
+  const dot12 = { transform: "none", opacity: 1 };
+  dot.animate(reverse ? [dot12, globe] : [globe, dot12], reverse
     ? { duration: RETURN_MS, delay, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" }
-    : { duration: 650, delay, easing: "cubic-bezier(.34,1.45,.64,1)", fill: "backwards" });
+    : { duration: 700, delay, easing: "cubic-bezier(.34,1.3,.64,1)", fill: "backwards" });
 }
 
 export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }: {
@@ -56,20 +53,20 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
   onToggle: () => void;
 }) {
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const crossRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const crossRef = useRef<HTMLButtonElement>(null);
+  const exitRef = useRef<HTMLButtonElement>(null);
+  const dotRef = useRef<HTMLSpanElement>(null);
   const hoverRef = useRef(false);
-  // Whether the globe was pressed from the keyboard (a click with no pointer detail), so focus can follow to the X.
+  // Whether the globe was pressed from the keyboard (a click with no pointer detail), so focus can follow to the exit.
   const keyboardRef = useRef(false);
-  // Kept across bursts, so the globe re-forms exactly where the X's characters return to.
+  // Kept across bursts, so the globe re-forms at the angle it burst from.
   const angleRef = useRef(0.6);
   const previousMode = useRef(mode);
-  // During the exit the globe re-forms as the X's characters arrive, rather than after every letter has landed.
+  // During the exit the globe re-forms as the dot swells back into it, rather than after every letter has landed.
   const [reforming, setReforming] = useState(false);
   const spent = mode === "active" || (mode === "collapsing" && !reforming);
   useEffect(() => {
     if (mode !== "collapsing") return;
-    const timer = window.setTimeout(() => setReforming(true), CROSS_RETURN_DELAY_MS + RETURN_MS * 0.6);
+    const timer = window.setTimeout(() => setReforming(true), EXIT_RETURN_DELAY_MS + RETURN_MS * 0.6);
     return () => { window.clearTimeout(timer); setReforming(false); };
   }, [globeRef, mode]);
 
@@ -95,20 +92,18 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [globeRef, reducedMotion, spent]);
 
-  // The X's characters snap out of the globe on entry, centre first and arms outward, and fly back into it on exit.
+  // The dot shrinks out of the bursting globe on entry and swells back into it on exit.
   useLayoutEffect(() => {
     const previous = previousMode.current;
     previousMode.current = mode;
-    const pairs = CROSS_INDEX.map((index, order) => ({ globe: charRefs.current[index], cross: crossRefs.current[order], ring: Math.ceil(order / 4) }));
+    const dot = dotRef.current, globeSize = globeRef.current?.offsetWidth ?? DOT_SIZE;
     if (mode === "active" && previous === "loading") {
       // The globe is now disabled; a keyboard user's focus moves to the control that replaced it. After a mouse
       // click it stays put, since browsers can show programmatic focus as keyboard focus.
-      if (keyboardRef.current) crossRef.current?.focus({ preventScroll: true });
-      pairs.forEach(({ globe, cross, ring }, order) => { if (globe && cross) flip(cross, globe.getBoundingClientRect(), cross.getBoundingClientRect(), false, 80 + ring * 70 + order * 12); });
+      if (keyboardRef.current) exitRef.current?.focus({ preventScroll: true });
+      if (dot) morphDot(dot, globeSize, false, 60);
     }
-    if (mode === "collapsing") {
-      pairs.forEach(({ globe, cross, ring }, order) => { if (globe && cross) flip(cross, globe.getBoundingClientRect(), cross.getBoundingClientRect(), true, CROSS_RETURN_DELAY_MS + (2 - ring) * 50 + order * 10); });
-    }
+    if (mode === "collapsing" && dot) morphDot(dot, globeSize, true, EXIT_RETURN_DELAY_MS);
   }, [globeRef, mode]);
 
   const warm = () => { hoverRef.current = true; preloadSwarm(); };
@@ -119,16 +114,13 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
       onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={preloadSwarm} onTouchStart={preloadSwarm}>
       <span className="glyph-globe-sphere" aria-hidden="true">
         {GLOBE_CHARS.map((char, index) => <span key={index} ref={element => { charRefs.current[index] = element; }}
-          className="glyph-globe-char" data-cross={CROSS_INDEX.includes(index) ? "" : undefined}>{char}</span>)}
+          className="glyph-globe-char">{char}</span>)}
       </span>
     </button>
-    {/* The X takes the globe's place, so it sits where the swarm came from rather than over the page. */}
-    {(mode === "active" || mode === "collapsing") && <button ref={crossRef} type="button" className="glyph-cross text-captionSans" aria-label="Put the letters back"
+    {/* The dot takes the globe's place, so it sits where the swarm came from rather than over the page. */}
+    {(mode === "active" || mode === "collapsing") && <button ref={exitRef} type="button" className="glyph-exit" aria-label="Put the letters back"
       aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}>
-      <span className="glyph-cross-arms" aria-hidden="true">
-        {CROSS_INDEX.map((index, order) => <span key={index} ref={element => { crossRefs.current[order] = element; }} className="glyph-cross-char"
-          style={{ "--cross-x": CROSS_POINTS[order][0], "--cross-y": CROSS_POINTS[order][1] } as CSSProperties}>{GLOBE_CHARS[index]}</span>)}
-      </span>
+      <span ref={dotRef} className="glyph-exit-dot" aria-hidden="true" />
     </button>}
   </>;
 }
