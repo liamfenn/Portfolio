@@ -420,11 +420,12 @@
 }
 
 .portfolio-footer {
+  --footer-row-gap: 2px;
   display: flex;
   width: 100%;
   margin-top: 48px;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--footer-row-gap);
 }
 
 .portfolio-footer-row {
@@ -735,7 +736,8 @@
   .glyph-globe-row { position: absolute; inset: 0 var(--content-padding) var(--content-padding); margin: 0; align-items: center; pointer-events: none; }
   .glyph-globe { pointer-events: auto; }
 }
-@media (max-width: 767px) { .glyph-globe-row { margin-top: 32px; } }
+/* 32px above the globe on mobile, counting the footer's own row gap. */
+@media (max-width: 767px) { .glyph-globe-row { margin-top: calc(32px - var(--footer-row-gap)); } }
 .palette-toy-track {
   display: flex;
   width: 100%;
