@@ -88,8 +88,9 @@ and they float back. On touch, dragging pushes and steers the swarm (the page
 doesn't scroll while it's out); lifting the finger lets it drift to the centre.
 
 **Esc** (button or key) mirrors the entry: each letter loosens and floats free for
-a moment, then glides home on a spring at its own speed and snaps into its text
-once it is a few pixels away. The globe re-forms as Esc's letters return to it. Reduced motion
+a moment, then glides home on a spring at its own speed. It arrives just off its
+slot, still a little tilted and turning, then settles the last few pixels on its own
+short ease and reappears in its text. The globe re-forms as Esc's letters return to it. Reduced motion
 disables the toy.
 
 Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,

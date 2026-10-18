@@ -12,12 +12,17 @@ export const ESC_RETURN_DELAY_MS = 420;
 const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
 const LET_GO_MS = 900;
-const LANDING_TIMEOUT_MS = 4200;
-/** Close enough to home that a returning letter snaps into its text instead of easing the last few pixels. */
-const SNAP_PX = 6;
+const LANDING_TIMEOUT_MS = 5000;
+/** Globe letters fade into the globe; this close, they are gone. */
+const GLOBE_LANDING_PX = 6;
 
 interface Source { node: Text; offset: number; parent: HTMLElement; range: Range; rect: DOMRect; home: Point }
-interface Flight { x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number }
+interface Flight {
+  x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number;
+  /** A page letter homes on a spot just off its slot, still a little tilted, then settles the rest of the way. */
+  offset: Point; tilt: number; upright: number;
+  settle?: { at: number; duration: number; x: number; y: number; angle: number };
+}
 interface Glyph {
   element: HTMLSpanElement;
   body: MatterJS.Body;
@@ -256,15 +261,18 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     glyph.landed = true; glyph.element.remove(); glyph.patch?.remove();
     if (glyph.source && highlight) highlight.delete(glyph.source.range);
   };
-  // Exit: once a letter lets go, it rides a critically damped spring home at its own speed. The spring starts from
-  // the letter's current velocity, so the hand-off from floating to returning has no jolt. A few pixels out it snaps
-  // into its text, upright, rather than creeping through the spring's long tail.
+  // Exit, mirroring the entry: once a letter lets go, it rides a critically damped spring at its own speed toward a
+  // spot just off its slot, still tilted and turning, so nothing lines up early. The spring starts from the letter's
+  // current velocity, so letting go has no jolt. Near that spot it settles the last few pixels on its own short ease,
+  // turning upright as it slides in, and reappears in its text.
   const fly = (time: number, dt: number) => {
     const elapsed = time - collapseStartedAt, globeCenter = centerOf(globe.getBoundingClientRect());
     for (const glyph of glyphs) {
       if (glyph.flight || glyph.landed || elapsed < glyph.departAt) continue;
       const { position, velocity, angle, angularVelocity } = glyph.body;
-      glyph.flight = { x: position.x, y: position.y, vx: velocity.x * 60, vy: velocity.y * 60, angle, spin: angularVelocity * 60, omega: 4.5 + Math.random() * 4 };
+      glyph.flight = { x: position.x, y: position.y, vx: velocity.x * 60, vy: velocity.y * 60, angle, spin: angularVelocity * 60,
+        omega: 3.5 + Math.random() * 5, offset: { x: (Math.random() - 0.5) * 10, y: -(2 + Math.random() * 8) },
+        tilt: (Math.random() - 0.5) * 0.6, upright: Math.round(angle / (Math.PI * 2)) * Math.PI * 2 };
       Composite.remove(engine.world, glyph.body);
     }
     let remaining = 0;
@@ -273,14 +281,26 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (glyph.landed) continue;
       remaining++;
       if (!flight) continue;
-      const target = glyph.source ? { x: glyph.source.home.x - window.scrollX + glyph.width / 2, y: glyph.source.home.y - window.scrollY + glyph.height / 2 } : globeCenter;
-      const x = springStep(flight.x, flight.vx, target.x, flight.omega, dt), y = springStep(flight.y, flight.vy, target.y, flight.omega, dt);
-      const turn = springStep(flight.angle, flight.spin, Math.round(flight.angle / (Math.PI * 2)) * Math.PI * 2, flight.omega * 1.3, dt);
-      Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
-      const away = Math.hypot(target.x - flight.x, target.y - flight.y);
-      if (elapsed > LANDING_TIMEOUT_MS || away < SNAP_PX) { land(glyph); remaining--; continue; }
+      if (elapsed > LANDING_TIMEOUT_MS) { land(glyph); remaining--; continue; }
+      const home = glyph.source ? { x: glyph.source.home.x - window.scrollX + glyph.width / 2, y: glyph.source.home.y - window.scrollY + glyph.height / 2 } : globeCenter;
+      if (flight.settle) {
+        const t = Math.min(1, (time - flight.settle.at) / flight.settle.duration), ease = 1 - Math.pow(1 - t, 3);
+        flight.x = flight.settle.x + (home.x - flight.settle.x) * ease;
+        flight.y = flight.settle.y + (home.y - flight.settle.y) * ease;
+        flight.angle = flight.settle.angle + (flight.upright - flight.settle.angle) * ease;
+        if (t >= 1) { land(glyph); remaining--; continue; }
+      } else {
+        const aim = glyph.source ? { x: home.x + flight.offset.x, y: home.y + flight.offset.y } : home;
+        const x = springStep(flight.x, flight.vx, aim.x, flight.omega, dt), y = springStep(flight.y, flight.vy, aim.y, flight.omega, dt);
+        // The turn lags the travel, so letters are still rotating as they arrive.
+        const turn = springStep(flight.angle, flight.spin, flight.upright + (glyph.source ? flight.tilt : 0), flight.omega * 0.7, dt);
+        Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
+        const away = Math.hypot(aim.x - flight.x, aim.y - flight.y);
+        if (!glyph.source && away < GLOBE_LANDING_PX) { land(glyph); remaining--; continue; }
+        if (glyph.source && away < 2.5) flight.settle = { at: time, duration: 250 + Math.random() * 400, x: flight.x, y: flight.y, angle: flight.angle };
+      }
       // Globe letters shrink and fade as they sink back into it.
-      const fade = glyph.source ? 1 : Math.min(1, away / 60);
+      const fade = glyph.source ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
       glyph.element.style.opacity = String(fade);
     }
