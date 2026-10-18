@@ -13,10 +13,23 @@ const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
 const LET_GO_MS = 900;
 const LANDING_TIMEOUT_MS = 5000;
+/** Text must hold a new character this long (a new song, a clock tick) before a floating letter becomes it; scrambles pass by. */
+const MORPH_AFTER_MS = 400;
+const ANCHOR_LEVELS = 3;
 /** Globe letters fade into the globe; this close, they are gone. */
 const GLOBE_LANDING_PX = 6;
 
-interface Source { node: Text; offset: number; parent: HTMLElement; range: Range; rect: DOMRect; home: Point }
+/** A character position inside an element's text, which survives the element's text nodes being replaced. */
+interface Anchor { element: Element; index: number }
+interface Source {
+  node: Text; offset: number; parent: HTMLElement; range: Range; rect: DOMRect;
+  /** The letter's parent and two ancestors, nearest first; the first still on the page decides where the letter lives. */
+  anchors: Anchor[];
+  /** True when the letter's place no longer exists, such as a shorter song title. */
+  orphan: boolean;
+  /** A new character waiting to settle before the floating letter takes it on. */
+  pending?: { char: string; at: number };
+}
 interface Flight {
   x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number;
   /** A page letter homes on a spot just off its slot, still a little tilted, then settles the rest of the way. */
@@ -66,6 +79,22 @@ function boxOf(parent: HTMLElement) {
 function shown(box: HTMLElement | null) {
   return !box || box.checkVisibility({ visibilityProperty: true, opacityProperty: true });
 }
+/** The text nodes inside an element that the swarm can take from, in reading order. */
+function textNodesIn(element: Element) {
+  const nodes: Text[] = [], walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) if (!node.parentElement?.closest(SKIP)) nodes.push(node);
+  return nodes;
+}
+function indexIn(element: Element, node: Text, offset: number) {
+  let index = 0;
+  for (const text of textNodesIn(element)) { if (text === node) return index + offset; index += text.length; }
+  return -1;
+}
+function locate(element: Element, index: number) {
+  let start = 0;
+  for (const node of textNodesIn(element)) { if (index < start + node.length) return { node, offset: index - start }; start += node.length; }
+  return null;
+}
 const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
 const fontOf = (style: CSSStyleDeclaration, size = style.fontSize) => `${style.fontStyle} ${style.fontWeight} ${size} ${style.fontFamily}`;
 
@@ -101,7 +130,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (!node.data[offset].trim()) continue;
       const range = document.createRange(); range.setStart(node, offset); range.setEnd(node, offset + 1);
       const rect = range.getClientRects()[0];
-      if (rect && rect.width >= 1 && rect.height >= 1) sources.push({ node, offset, parent, range, rect, home: { x: rect.left + window.scrollX, y: rect.top + window.scrollY } });
+      if (rect && rect.width >= 1 && rect.height >= 1) sources.push({ node, offset, parent, range, rect, anchors: [], orphan: false });
     }
   }
   const origin = centerOf(globe.getBoundingClientRect());
@@ -112,6 +141,26 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
   const distance = (source: Source) => Math.hypot(centerOf(source.rect).x - origin.x, centerOf(source.rect).y - origin.y);
   const chosen = sources.slice(0, count);
+  for (const source of chosen) {
+    for (let element: Element | null = source.parent, level = 0; element && level < ANCHOR_LEVELS && root.contains(element); element = element.parentElement, level++) {
+      source.anchors.push({ element, index: indexIn(element, source.node, source.offset) });
+    }
+  }
+  // Re-attaches a letter's mask after its text is re-rendered (hover scrambles, a new song, the clock). Returns the
+  // character now at its place, or null when that place is gone.
+  const resolve = (source: Source) => {
+    for (const { element, index } of source.anchors) {
+      if (!element.isConnected || index < 0) continue;
+      const spot = locate(element, index);
+      if (!spot) break;
+      source.node = spot.node; source.offset = spot.offset; source.orphan = false;
+      source.range.setStart(spot.node, spot.offset); source.range.setEnd(spot.node, spot.offset + 1);
+      return spot.node.data[spot.offset];
+    }
+    source.orphan = true;
+    source.range.setStart(document.body, 0); source.range.collapse(true);
+    return null;
+  };
   const farthest = chosen.reduce((max, source) => Math.max(max, distance(source)), 0);
   const queue = chosen.map(source => ({ source, at: releaseDelay(distance(source), farthest, RELEASE_SPREAD_MS * 0.4) + Math.random() * RELEASE_SPREAD_MS * 0.6 })).sort((a, b) => a.at - b.at);
   let queued = 0;
@@ -165,16 +214,15 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
   };
   const release = (source: Source) => {
-    const { node, offset, parent, range } = source;
-    if (!node.isConnected || node.length <= offset) return;
-    range.setStart(node, offset); range.setEnd(node, offset + 1);
-    const rect = range.getClientRects()[0];
+    const char = resolve(source);
+    if (char === null || !char.trim()) return;
+    const rect = source.range.getClientRects()[0];
     if (!rect || rect.width < 1) return;
-    source.rect = rect; source.home = { x: rect.left + window.scrollX, y: rect.top + window.scrollY };
+    source.rect = rect;
     // Letters scrolled out of view stream in from the nearest edge.
     const at = entryPoint(centerOf(rect), window.innerWidth, window.innerHeight);
-    const style = getComputedStyle(parent);
-    spawn(node.data[offset], rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
+    const style = getComputedStyle(source.node.parentElement ?? source.parent);
+    spawn(char, rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
   };
 
   // The globe's own characters burst outward from its centre. Esc's three letters are animated by the component.
@@ -265,6 +313,17 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   // spot just off its slot, still tilted and turning, so nothing lines up early. The spring starts from the letter's
   // current velocity, so letting go has no jolt. Near that spot it settles the last few pixels on its own short ease,
   // turning upright as it slides in, and reappears in its text.
+  // Where a returning letter goes: its place in the text as it reads now, measured live so a re-rendered or scrolled
+  // line is still met exactly. Globe letters, and letters whose place no longer exists, sink into the globe or the end
+  // of their line and fade instead of settling.
+  const homeOf = (glyph: Glyph, globeCenter: Point): { point: Point; settles: boolean } => {
+    const source = glyph.source;
+    // A place that is now a space (a different song) has no letter to settle into.
+    const rect = source && !source.orphan && source.range.toString().trim() ? source.range.getClientRects()[0] : undefined;
+    if (rect) return { point: centerOf(rect), settles: true };
+    const line = source?.anchors.find(anchor => anchor.element.isConnected)?.element.getBoundingClientRect();
+    return { point: line ? { x: line.right, y: line.top + line.height / 2 } : globeCenter, settles: false };
+  };
   const fly = (time: number, dt: number) => {
     const elapsed = time - collapseStartedAt, globeCenter = centerOf(globe.getBoundingClientRect());
     for (const glyph of glyphs) {
@@ -282,7 +341,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       remaining++;
       if (!flight) continue;
       if (elapsed > LANDING_TIMEOUT_MS) { land(glyph); remaining--; continue; }
-      const home = glyph.source ? { x: glyph.source.home.x - window.scrollX + glyph.width / 2, y: glyph.source.home.y - window.scrollY + glyph.height / 2 } : globeCenter;
+      const { point: home, settles } = homeOf(glyph, globeCenter);
       if (flight.settle) {
         const t = Math.min(1, (time - flight.settle.at) / flight.settle.duration), ease = 1 - Math.pow(1 - t, 3);
         flight.x = flight.settle.x + (home.x - flight.settle.x) * ease;
@@ -290,22 +349,40 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
         flight.angle = flight.settle.angle + (flight.upright - flight.settle.angle) * ease;
         if (t >= 1) { land(glyph); remaining--; continue; }
       } else {
-        const aim = glyph.source ? { x: home.x + flight.offset.x, y: home.y + flight.offset.y } : home;
+        const aim = settles ? { x: home.x + flight.offset.x, y: home.y + flight.offset.y } : home;
         const x = springStep(flight.x, flight.vx, aim.x, flight.omega, dt), y = springStep(flight.y, flight.vy, aim.y, flight.omega, dt);
         // The turn lags the travel, so letters are still rotating as they arrive.
-        const turn = springStep(flight.angle, flight.spin, flight.upright + (glyph.source ? flight.tilt : 0), flight.omega * 0.7, dt);
+        const turn = springStep(flight.angle, flight.spin, flight.upright + (settles ? flight.tilt : 0), flight.omega * 0.7, dt);
         Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
         const away = Math.hypot(aim.x - flight.x, aim.y - flight.y);
-        if (!glyph.source && away < GLOBE_LANDING_PX) { land(glyph); remaining--; continue; }
-        if (glyph.source && away < 2.5) flight.settle = { at: time, duration: 250 + Math.random() * 400, x: flight.x, y: flight.y, angle: flight.angle };
+        if (!settles && away < GLOBE_LANDING_PX) { land(glyph); remaining--; continue; }
+        if (settles && away < 2.5) flight.settle = { at: time, duration: 250 + Math.random() * 400, x: flight.x, y: flight.y, angle: flight.angle };
       }
-      // Globe letters shrink and fade as they sink back into it.
-      const fade = glyph.source ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
+      // Letters with no place to settle shrink and fade as they sink in.
+      const fade = settles || flight.settle ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
       glyph.element.style.opacity = String(fade);
     }
     if (!remaining) finishLanding();
   };
+
+  // Any re-render of the page's text (a label rewriting itself on hover, a new song, the clock) re-attaches the masks.
+  // The observer runs right after the change and before the browser paints, so the original letter never flashes back.
+  let morphing = false;
+  const reattach = (time: number) => {
+    morphing = false; patchesStale = true;
+    for (const glyph of glyphs) {
+      const source = glyph.source;
+      if (!source || glyph.landed || glyph.flight?.settle) continue;
+      const char = resolve(source);
+      if (char === null || !char.trim() || char === glyph.element.textContent) { source.pending = undefined; continue; }
+      // Settled text renames the floating letter; a scramble passing through does not.
+      if (source.pending?.char !== char) source.pending = { char, at: time };
+      if (time - source.pending.at >= MORPH_AFTER_MS) { glyph.element.textContent = char; source.pending = undefined; } else morphing = true;
+    }
+  };
+  const textObserver = new MutationObserver(() => reattach(performance.now()));
+  textObserver.observe(root, { subtree: true, childList: true, characterData: true });
 
   const startedAt = performance.now();
   let frame = 0, previousTime = startedAt, pending = 0;
@@ -341,6 +418,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       separate(members, gap);
       Engine.update(engine, STEP); pending -= STEP;
     }
+    if (morphing) reattach(time);
     if (!loose) fly(time, dt);
     for (const glyph of glyphs) {
       if (glyph.landed) continue;
@@ -366,7 +444,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   const cleanup = () => {
     if (removed) return;
-    removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine);
+    removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect();
     window.removeEventListener("scroll", onScroll);
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();

@@ -76,7 +76,12 @@ and centered below it on mobile (28px). Tapping it bursts the globe and frees ab
 enter from the screen edge. Letters pop out of their text at their own moments
 over about a second and a half, float loose for a while, then are sucked in at
 their own pace and strength before relaxing into the swarm. Their original spots
-go blank while the text stays mounted and current. Three of the globe's
+go blank while the text stays mounted and current. Each blank is tied to its
+character position rather than a text node, so it survives re-renders: menu labels
+that rewrite themselves on hover stay masked, and when the song or clock changes,
+a floating letter quietly becomes the new character at its place (after the text
+has held still for a moment, so scrambles pass by). If a new title is shorter,
+letters without a place fade into the end of the line on exit. Three of the globe's
 characters snap into an **Esc** button at the bottom of the screen.
 
 The swarm has no downward gravity. It floats in a loose zone that trails the
