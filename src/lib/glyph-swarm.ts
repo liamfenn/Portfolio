@@ -13,6 +13,8 @@ const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
 const LET_GO_MS = 900;
 const LANDING_TIMEOUT_MS = 4200;
+/** Close enough to home that a returning letter snaps into its text instead of easing the last few pixels. */
+const SNAP_PX = 6;
 
 interface Source { node: Text; offset: number; parent: HTMLElement; range: Range; rect: DOMRect; home: Point }
 interface Flight { x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number }
@@ -255,7 +257,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (glyph.source && highlight) highlight.delete(glyph.source.range);
   };
   // Exit: once a letter lets go, it rides a critically damped spring home at its own speed. The spring starts from
-  // the letter's current velocity, so the hand-off from floating to returning has no jolt; it reappears in its text as it lands.
+  // the letter's current velocity, so the hand-off from floating to returning has no jolt. A few pixels out it snaps
+  // into its text, upright, rather than creeping through the spring's long tail.
   const fly = (time: number, dt: number) => {
     const elapsed = time - collapseStartedAt, globeCenter = centerOf(globe.getBoundingClientRect());
     for (const glyph of glyphs) {
@@ -275,7 +278,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       const turn = springStep(flight.angle, flight.spin, Math.round(flight.angle / (Math.PI * 2)) * Math.PI * 2, flight.omega * 1.3, dt);
       Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
       const away = Math.hypot(target.x - flight.x, target.y - flight.y);
-      if (elapsed > LANDING_TIMEOUT_MS || (away < 0.5 && Math.hypot(flight.vx, flight.vy) < 20)) { land(glyph); remaining--; continue; }
+      if (elapsed > LANDING_TIMEOUT_MS || away < SNAP_PX) { land(glyph); remaining--; continue; }
       // Globe letters shrink and fade as they sink back into it.
       const fade = glyph.source ? 1 : Math.min(1, away / 60);
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
