@@ -6,8 +6,12 @@ import type { GlyphSettings } from "@/lib/palette-toy";
 const SKIP = ".glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
-/** The exit ring's glyphs leave for the globe this far into the exit, while the swarm is still letting go. */
-export const EXIT_RETURN_DELAY_MS = 420;
+/**
+ * The exit is the entry in reverse. Entry: the globe bursts and forms the ring, then page letters pop out.
+ * Exit: page letters go home first, then the globe's own letters converge back into it while the ring folds in.
+ * The ring starts folding back this far into the exit.
+ */
+export const EXIT_RETURN_DELAY_MS = 1300;
 /** Intro: letters pop out of the text across this window, nearest to the globe tending to go first. */
 const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
@@ -45,6 +49,8 @@ interface Glyph {
   width: number;
   height: number;
   wander: number;
+  /** For a globe letter, its place in the globe: it flies out of it on entry and back into it on exit. */
+  globeChar?: HTMLElement;
   /** Intro timing: each letter floats loose for a while, then its pull fades in over its own ramp. */
   bornAt: number;
   floatMs: number;
@@ -231,7 +237,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (!rect.width || !char.textContent) continue;
     const style = getComputedStyle(char), scale = rect.height / (char.offsetHeight || rect.height);
     const at = centerOf(rect), dx = at.x - origin.x, dy = at.y - origin.y, length = Math.hypot(dx, dy) || 1, speed = 4 + Math.random() * 4;
-    spawn(char.textContent, rect, at, fontOf(style, `${parseFloat(style.fontSize) * scale}px`), style.color, { x: dx / length * speed, y: dy / length * speed - 2 }, 200 + Math.random() * 800);
+    const glyph = spawn(char.textContent, rect, at, fontOf(style, `${parseFloat(style.fontSize) * scale}px`), style.color, { x: dx / length * speed, y: dy / length * speed - 2 }, 200 + Math.random() * 800);
+    // Its place in the globe stays empty until it comes back.
+    glyph.globeChar = char; char.dataset.away = "";
   }
 
   let phase: "loose" | "collapse" | "done" = "loose", removed = false;
@@ -308,6 +316,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const land = (glyph: Glyph) => {
     glyph.landed = true; glyph.element.remove(); glyph.patch?.remove();
     if (glyph.source && highlight) highlight.delete(glyph.source.range);
+    if (glyph.globeChar) delete glyph.globeChar.dataset.away;
   };
   // Exit, mirroring the entry: once a letter lets go, it rides a critically damped spring at its own speed toward a
   // spot just off its slot, still tilted and turning, so nothing lines up early. The spring starts from the letter's
@@ -317,6 +326,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   // line is still met exactly. Globe letters, and letters whose place no longer exists, sink into the globe or the end
   // of their line and fade instead of settling.
   const homeOf = (glyph: Glyph, globeCenter: Point): { point: Point; settles: boolean } => {
+    if (glyph.globeChar) return { point: centerOf(glyph.globeChar.getBoundingClientRect()), settles: true };
     const source = glyph.source;
     // A place that is now a space (a different song) has no letter to settle into.
     const rect = source && !source.orphan && source.range.toString().trim() ? source.range.getClientRects()[0] : undefined;
@@ -349,19 +359,21 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
         flight.angle = flight.settle.angle + (flight.upright - flight.settle.angle) * ease;
         if (t >= 1) { land(glyph); remaining--; continue; }
       } else {
-        const aim = settles ? { x: home.x + flight.offset.x, y: home.y + flight.offset.y } : home;
+        const aim = settles && !glyph.globeChar ? { x: home.x + flight.offset.x, y: home.y + flight.offset.y } : home;
         const x = springStep(flight.x, flight.vx, aim.x, flight.omega, dt), y = springStep(flight.y, flight.vy, aim.y, flight.omega, dt);
         // The turn lags the travel, so letters are still rotating as they arrive.
-        const turn = springStep(flight.angle, flight.spin, flight.upright + (settles ? flight.tilt : 0), flight.omega * 0.7, dt);
+        const turn = springStep(flight.angle, flight.spin, flight.upright + (settles && !glyph.globeChar ? flight.tilt : 0), flight.omega * 0.7, dt);
         Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
         const away = Math.hypot(aim.x - flight.x, aim.y - flight.y);
         if (!settles && away < GLOBE_LANDING_PX) { land(glyph); remaining--; continue; }
         if (settles && away < 2.5) flight.settle = { at: time, duration: 250 + Math.random() * 400, x: flight.x, y: flight.y, angle: flight.angle };
       }
-      // Letters with no place to settle shrink and fade as they sink in.
+      // Letters with no place to settle shrink and fade as they sink in. A globe letter settles into its spot's
+      // depth-shaded opacity, so the spot takes over without a step.
       const fade = settles || flight.settle ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
+      const shade = glyph.globeChar && flight.settle ? 1 + (Number(glyph.globeChar.style.opacity || 1) - 1) * Math.min(1, (time - flight.settle.at) / flight.settle.duration) : fade;
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
-      glyph.element.style.opacity = String(fade);
+      glyph.element.style.opacity = String(shade);
     }
     if (!remaining) finishLanding();
   };
@@ -455,6 +467,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     window.removeEventListener("scroll", onScroll);
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();
+    globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });
     document.removeEventListener("selectstart", preventSelection);
     document.documentElement.classList.remove("is-glyph-swarm");
     options.signal.removeEventListener("abort", cleanup); finishLanding(); options.onFinish();
@@ -473,7 +486,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       document.documentElement.classList.remove("is-glyph-swarm");
       // Each letter loosens with a small nudge, floats free for its own moment, then turns for home.
       for (const glyph of glyphs) {
-        glyph.departAt = Math.random() * LET_GO_MS;
+        // Globe letters left first on entry, so they come home last, alongside the ring folding back.
+        glyph.departAt = glyph.globeChar ? LET_GO_MS * 0.8 + Math.random() * LET_GO_MS * 0.5 : Math.random() * LET_GO_MS;
         const angle = Math.random() * Math.PI * 2, nudge = 0.5 + Math.random() * 1.5;
         Body.setVelocity(glyph.body, { x: glyph.body.velocity.x + Math.cos(angle) * nudge, y: glyph.body.velocity.y + Math.sin(angle) * nudge });
       }

@@ -97,7 +97,7 @@ doesn't scroll while it's out); lifting the finger lets it drift to the centre.
 The ring (or the Esc key) mirrors the entry: each letter loosens and floats free for
 a moment, then glides home on a spring at its own speed. It arrives just off its
 slot, still a little tilted and turning, then settles the last few pixels on its own
-short ease and reappears in its text. The ring's glyphs glide back into the globe as it re-forms. Reduced motion
+short ease and reappears in its text. Like the entry in reverse, the globe's own letters come home last, flying back into their exact spots as the ring folds back into the globe. Reduced motion
 disables the toy.
 
 Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,

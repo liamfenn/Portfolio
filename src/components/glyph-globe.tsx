@@ -18,6 +18,10 @@ const RING = RING_INDEX.map((_, order) => {
   return { x: Math.cos(angle) * RING_RADIUS, y: Math.sin(angle) * RING_RADIUS, turn: angle + Math.PI / 2 };
 });
 const RING_MS = 650;
+const RING_STAGGER_MS = 22;
+// One slow clockwise turn of the ring at rest; hover or keyboard focus winds it up.
+const RING_TURN_MS = 14000;
+const RING_HOT_SPEED = 3.5;
 // Sized against the 28px globe; a larger globe scales its orbit and characters to match.
 const BASE_SIZE = 28;
 const RADIUS = 10;
@@ -43,7 +47,7 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
   });
 }
 
-/** The ring's current turn, read from its running spin, in radians. */
+/** The ring's current turn, in radians. */
 function ringAngle(ring: HTMLElement) {
   const matrix = new DOMMatrix(getComputedStyle(ring).transform);
   return Math.atan2(matrix.b, matrix.a);
@@ -55,6 +59,7 @@ function ringAngle(ring: HTMLElement) {
  * upright (in the globe) to lying along the circle (on the ring).
  */
 function glide(slot: HTMLElement, glyph: HTMLElement, globeChar: HTMLElement, ringTurn: number, glyphTurn: number, reverse: boolean, delay: number) {
+  // The exit plays the entry's own animation backwards: same keyframes, curve, and duration.
   const from = globeChar.getBoundingClientRect(), to = slot.getBoundingClientRect();
   const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
   const cos = Math.cos(-ringTurn), sin = Math.sin(-ringTurn);
@@ -62,11 +67,10 @@ function glide(slot: HTMLElement, glyph: HTMLElement, globeChar: HTMLElement, ri
   const inGlobe = { transform: `translate(${local.x}px,${local.y}px) scale(${from.height / (to.height || 1)})`, opacity: Number(globeChar.style.opacity || 1) };
   const onRing = { transform: "none", opacity: 1 };
   const upright = { transform: `rotate(${-(glyphTurn + ringTurn)}rad)` }, along = { transform: "none" };
-  const timing: KeyframeAnimationOptions = reverse
-    ? { duration: RING_MS, delay, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" }
-    : { duration: RING_MS, delay, easing: "cubic-bezier(.34,1.3,.64,1)", fill: "backwards" };
-  slot.animate(reverse ? [onRing, inGlobe] : [inGlobe, onRing], timing);
-  glyph.animate(reverse ? [along, upright] : [upright, along], timing);
+  const timing: KeyframeAnimationOptions = { duration: RING_MS, delay, easing: "cubic-bezier(.34,1.3,.64,1)",
+    direction: reverse ? "reverse" : "normal", fill: reverse ? "forwards" : "backwards" };
+  slot.animate([inGlobe, onRing], timing);
+  glyph.animate([upright, along], timing);
 }
 
 export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }: {
@@ -82,17 +86,20 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
   const slotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const glyphRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const hoverRef = useRef(false);
+  // Hover or keyboard focus on the ring winds its spin up; the speed eases, so the ring never jumps.
+  const ringHotRef = useRef(false);
   // Whether the globe was pressed from the keyboard (a click with no pointer detail), so focus can follow to the exit.
   const keyboardRef = useRef(false);
   // Kept across bursts, so the globe re-forms at the angle it burst from, where the ring glyphs return to.
   const angleRef = useRef(0.6);
   const previousMode = useRef(mode);
-  // During the exit the globe re-forms once the ring glyphs are back in place, rather than after every letter has landed.
+  // During the exit the globe re-forms once the ring glyphs are back in place. Its burst letters are still landing,
+  // and each spot reappears as its letter arrives (see data-away).
   const [reforming, setReforming] = useState(false);
   const spent = mode === "active" || (mode === "collapsing" && !reforming);
   useEffect(() => {
     if (mode !== "collapsing") return;
-    const timer = window.setTimeout(() => setReforming(true), EXIT_RETURN_DELAY_MS + RING_MS + 120);
+    const timer = window.setTimeout(() => setReforming(true), EXIT_RETURN_DELAY_MS + RING_STAGGER_MS * (RING_INDEX.length - 1) + RING_MS);
     return () => { window.clearTimeout(timer); setReforming(false); };
   }, [globeRef, mode]);
 
@@ -118,6 +125,24 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [globeRef, reducedMotion, spent]);
 
+  // The ring turns slowly clockwise while the swarm is out, faster under the cursor. It holds still on exit so its
+  // glyphs glide home from where they are.
+  useEffect(() => {
+    const ring = ringRef.current;
+    if (!ring || mode !== "active" || reducedMotion) return;
+    let frame = 0, previous = 0, speed = 1, angle = ringAngle(ring);
+    const spin = (time: number) => {
+      const dt = Math.min(64, previous ? time - previous : 0); previous = time;
+      // Eases toward the target speed over about 200ms, whatever the frame rate.
+      speed += ((ringHotRef.current ? RING_HOT_SPEED : 1) - speed) * (1 - Math.exp(-dt / 200));
+      angle += dt / RING_TURN_MS * Math.PI * 2 * speed;
+      ring.style.transform = `rotate(${angle}rad)`;
+      frame = requestAnimationFrame(spin);
+    };
+    frame = requestAnimationFrame(spin);
+    return () => cancelAnimationFrame(frame);
+  }, [mode, reducedMotion]);
+
   // The ring glyphs glide out of the bursting globe into the ring, and back on exit. The globe is frozen while
   // spent, so each glyph returns to exactly where it left.
   useLayoutEffect(() => {
@@ -133,10 +158,10 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
       // The globe is now disabled; a keyboard user's focus moves to the control that replaced it. After a mouse
       // click it stays put, since browsers can show programmatic focus as keyboard focus.
       if (keyboardRef.current) exitRef.current?.focus({ preventScroll: true });
-      each(false, order => 60 + order * 22);
+      each(false, order => 60 + order * RING_STAGGER_MS);
     }
-    // The spin pauses (see .is-leaving) so the glyphs glide home from where they are.
-    if (mode === "collapsing") each(true, order => EXIT_RETURN_DELAY_MS + order * 14);
+    // The last glyph to arrive on entry is the first to leave.
+    if (mode === "collapsing") each(true, order => EXIT_RETURN_DELAY_MS + (RING_INDEX.length - 1 - order) * RING_STAGGER_MS);
   }, [globeRef, mode]);
 
   const warm = () => { hoverRef.current = true; preloadSwarm(); };
@@ -152,8 +177,10 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     </button>
     {/* The ring takes the globe's place, so it sits where the swarm came from rather than over the page. */}
     {(mode === "active" || mode === "collapsing") && <button ref={exitRef} type="button"
-      className={`glyph-exit text-captionSans${mode === "collapsing" ? " is-leaving" : ""}${reforming ? " is-reformed" : ""}`}
-      aria-label="Put the letters back" aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}>
+      className={`glyph-exit text-captionSans${reforming ? " is-reformed" : ""}`}
+      aria-label="Put the letters back" aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}
+      onPointerEnter={() => { ringHotRef.current = true; }} onPointerLeave={() => { ringHotRef.current = false; }}
+      onFocus={event => { ringHotRef.current = event.currentTarget.matches(":focus-visible"); }} onBlur={() => { ringHotRef.current = false; }}>
       <span ref={ringRef} className="glyph-exit-ring" aria-hidden="true">
         {RING_INDEX.map((index, order) => <span key={index} ref={element => { slotRefs.current[order] = element; }} className="glyph-exit-slot"
           style={{ "--ring-x": RING[order].x, "--ring-y": RING[order].y } as CSSProperties}>

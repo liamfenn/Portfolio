@@ -714,19 +714,16 @@
 .glyph-globe:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .glyph-globe-sphere { position: absolute; inset: 0; transition: opacity var(--motion-duration) var(--motion-ease); }
 .glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
+/* A burst letter's spot stays empty until the letter flies back into it. */
+.glyph-globe-char[data-away] { visibility: hidden; }
 .glyph-globe-char { position: absolute; left: 50%; top: 50%; line-height: 1; white-space: pre; will-change: transform, opacity; }
 .glyph-globe-row { position: relative; }
 /* The exit: a ring of the globe's glyphs around an empty centre, like a stroke, turning slowly clockwise above
-   the swarm. Like the site's text buttons it dims on hover and on keyboard focus. */
-.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .62; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
+   the swarm. Hover and keyboard focus wind its spin up (glyph-globe.tsx) rather than dimming it. */
+.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .62; --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .glyph-exit::before { content: ""; position: absolute; inset: -4px; }
 .glyph-exit:disabled { cursor: default; }
-.glyph-exit:focus-visible { opacity: var(--hover-dim); }
-@media (hover: hover) { .glyph-exit:not(:disabled):hover { opacity: var(--hover-dim); } }
-@keyframes glyph-ring-spin { to { transform: rotate(360deg); } }
-.glyph-exit-ring { position: absolute; inset: 0; animation: glyph-ring-spin 14s linear infinite; }
-/* On exit the spin holds still so the glyphs glide home from where they are. */
-.glyph-exit.is-leaving .glyph-exit-ring { animation-play-state: paused; }
+.glyph-exit-ring { position: absolute; inset: 0; }
 .glyph-exit-slot { position: absolute; left: calc(50% + var(--ring-x) * 100%); top: calc(50% + var(--ring-y) * 100%); translate: -50% -50%; }
 .glyph-exit-glyph { display: block; font-size: calc(var(--text-caption) * var(--ring-scale)); line-height: 1; white-space: pre; rotate: var(--ring-turn); }
 /* Once the globe has re-formed around the returned glyphs, the ring steps aside after the globe's fade-in. */
