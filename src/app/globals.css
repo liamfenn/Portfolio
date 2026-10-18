@@ -568,9 +568,8 @@
   width: auto;
   margin: 0 0 96px;
   padding: var(--content-padding) var(--content-padding) 0;
-  gap: 16px;
+  gap: 0;
 }
-.homepage-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 .portfolio-v3 .work-toolbar { padding: 0 var(--content-padding); }
 .portfolio-v3 .work-control { padding: 0; }
 .portfolio-v3 .work-label-group { gap: 8px; }
@@ -668,7 +667,7 @@
 .bio-expanded-word { display: inline; }
 @media (max-width: 767px) {
   .portfolio-v3 { padding: 0; }
-  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; gap: 12px; }
+  .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; }
   .portfolio-v3 .work-toolbar { padding: 0 12px; }
   .portfolio-v3 .work-label-group { gap: 4px; }
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
@@ -707,10 +706,20 @@
 
 .homepage-project-badge.is-shop img { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; max-width: none; transform: translate(-50%, -50%) scale(.571429); filter: brightness(0) invert(1); }
 
-/* Header toy trigger and decorative footer palette; tuning stays in ?palette-lab. */
-.glyph-toy-trigger { --inspect-color-token: text-secondary; color: var(--text-secondary); padding: 3px 0; border: 0; background: transparent; cursor: pointer; transition: opacity var(--hover-duration) var(--hover-ease); }
-.glyph-toy-trigger:disabled { cursor: default; opacity: var(--hover-dim); }
-@media (hover: hover) { .glyph-toy-trigger:not(:disabled):hover { opacity: var(--hover-dim); } }
+/* Footer globe: the entry to the letter swarm. Esc takes its place while the swarm is out; tuning stays in ?palette-lab. */
+.glyph-globe-row { display: flex; justify-content: center; margin-top: 48px; }
+.glyph-globe { position: relative; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.glyph-globe::before { content: ""; position: absolute; inset: -8px; }
+.glyph-globe:disabled { cursor: default; }
+.glyph-globe:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.glyph-globe-sphere { position: absolute; inset: 0; transition: opacity var(--motion-duration) var(--motion-ease); }
+.glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
+.glyph-globe-char { position: absolute; left: 50%; top: 50%; line-height: 1; white-space: pre; will-change: transform, opacity; }
+.glyph-esc { position: fixed; z-index: 1600; left: 50%; bottom: var(--content-padding); display: flex; padding: 8px 12px; border: 0; background: transparent; transform: translateX(-50%); cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
+.glyph-esc span { display: inline-block; }
+.glyph-esc:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+@media (hover: hover) { .glyph-esc:not(:disabled):hover { opacity: var(--hover-dim); } }
+@media (max-width: 767px) { .glyph-globe-row { margin-top: 32px; } }
 .palette-toy-track {
   display: flex;
   width: 100%;
@@ -724,13 +733,12 @@
   height: 6px;
   flex: 0 0 20px;
 }
-/* Released letters tumble above the player; the original text keeps updating underneath. */
-.glyph-drop-layer { position: fixed; inset: 0; z-index: 1500; overflow: clip; pointer-events: none; }
-.glyph-drop-glyph { z-index: 1; position: absolute; left: 0; top: 0; display: block; white-space: pre; transform-origin: center; will-change: transform; }
-.glyph-drop-patch { position: absolute; display: block; }
-.is-glyph-play :is(.portfolio-bio,.homepage-contact,.work-toolbar,.homepage-track-info,.homepage-track-time,.portfolio-footer-row) { touch-action: none; }
-.glyph-pile-touch { position: absolute; touch-action: none; }
-@media (pointer: coarse) { .glyph-pile-touch { pointer-events: auto; } }
+/* Swarm letters float over the viewport; the original text keeps updating underneath with its characters masked. */
+.glyph-swarm-layer { position: fixed; inset: 0; z-index: 1500; overflow: clip; pointer-events: none; }
+.glyph-swarm-glyph { z-index: 1; position: absolute; left: 0; top: 0; display: block; white-space: pre; transform-origin: center; will-change: transform; }
+.glyph-swarm-patch { position: absolute; display: block; }
+/* A drag steers the swarm on touch screens instead of scrolling the page. */
+html.is-glyph-swarm, html.is-glyph-swarm body { touch-action: none; overscroll-behavior: none; }
 
 .palette-lab {
   position: fixed;

@@ -53,6 +53,7 @@ export function PortfolioFooter() {
         </span>
         <PaletteToy />
       </div>
+      <div id="glyph-globe-slot" className="glyph-globe-row" />
     </footer>
   );
 }

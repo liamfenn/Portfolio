@@ -5,9 +5,11 @@ import { createPortal } from "react-dom";
 import { cubicBezier } from "motion";
 import { DEFAULT_GLYPHS, GLYPH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
-import { dropGlyphs } from "@/lib/glyph-drop";
-import type { GlyphDrop } from "@/lib/glyph-drop";
+import { startSwarm } from "@/lib/glyph-swarm";
+import type { GlyphSwarm } from "@/lib/glyph-swarm";
 import { InspectableText } from "@/components/design-inspector";
+import { GlyphGlobe } from "@/components/glyph-globe";
+import type { GlyphMode } from "@/components/glyph-globe";
 
 const STORAGE_KEY = "portfolio-palette-lab-v1";
 // The strip holds each color, then slides one swatch left. Position and colors come from the same clock,
@@ -21,21 +23,22 @@ const stripEase = cubicBezier(0.16, 1, 0.3, 1);
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
   const [glyphs, setGlyphs] = useState<GlyphSettings>({ ...DEFAULT_GLYPHS });
-  // The letters stay gathered until the header button is tapped again; a refresh resets them.
-  const dropRef = useRef<GlyphDrop | null>(null);
+  // The swarm lasts until Esc; a refresh resets it.
+  const swarmRef = useRef<GlyphSwarm | null>(null);
   const runRef = useRef<AbortController | null>(null);
-  const isRestoringRef = useRef(false);
   const glyphsRef = useRef(glyphs);
-  const [isDropped, setIsDropped] = useState(false);
+  const [mode, setMode] = useState<GlyphMode>("idle");
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const [ready, setReady] = useState(false);
-  const [triggerHost, setTriggerHost] = useState<HTMLElement | null>(null);
+  const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
   const [labEnabled, setLabEnabled] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<"palette" | "glyphs">("palette");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const globeRef = useRef<HTMLButtonElement>(null);
   const trackRef = useRef<HTMLSpanElement>(null);
   const palette = colorsFromVotes(votes);
   const unansweredIndex = PALETTE_CANDIDATES.findIndex(color => votes[color.hex] === undefined);
@@ -51,8 +54,8 @@ export function PaletteToy() {
       if (motionQuery.matches) {
         runRef.current?.abort();
         runRef.current = null;
-        dropRef.current = null;
-        setIsDropped(false);
+        swarmRef.current = null;
+        setMode("idle");
       }
     };
     const frame = window.requestAnimationFrame(() => {
@@ -63,7 +66,7 @@ export function PaletteToy() {
       setGlyphs(saved.glyphs);
       setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
       updateMotion();
-      setTriggerHost(document.getElementById("glyph-toy-slot"));
+      setGlobeHost(document.getElementById("glyph-globe-slot"));
       setReady(true);
     });
     motionQuery.addEventListener("change", updateMotion);
@@ -81,7 +84,7 @@ export function PaletteToy() {
   // Slider changes apply to letters that are already down.
   useEffect(() => {
     glyphsRef.current = glyphs;
-    dropRef.current?.update(glyphs);
+    swarmRef.current?.update(glyphs);
   }, [glyphs]);
 
   const paletteKey = palette.map(color => color.hex).join(" ");
@@ -121,50 +124,60 @@ export function PaletteToy() {
     return () => window.cancelAnimationFrame(frame);
   }, [paletteKey, reducedMotion]);
 
-  // Tap to gather the letters, tap again to float them home.
-  const toggleDrop = useCallback(() => {
-    if (reducedMotion || isRestoringRef.current) return;
-    const drop = dropRef.current;
-    if (drop?.isActive()) {
-      isRestoringRef.current = true;
-      void drop.restore().finally(() => { isRestoringRef.current = false; });
+  // The globe bursts into the swarm; Esc balls it up and sends every letter home.
+  const toggle = useCallback(() => {
+    if (reducedMotion) return;
+    const current = modeRef.current;
+    if (current === "collapsing") return;
+    if (current === "active") {
+      if (!swarmRef.current) return;
+      setMode("collapsing");
+      void swarmRef.current.collapse();
       return;
     }
     // A second tap while the physics module loads cancels that pending run.
-    if (runRef.current) {
-      runRef.current.abort();
+    if (current === "loading") {
+      runRef.current?.abort();
       runRef.current = null;
-      setIsDropped(false);
+      setMode("idle");
       return;
     }
-    const page = triggerRef.current?.closest("main");
-    if (!page) return;
+    const globe = globeRef.current, page = globe?.closest("main");
+    if (!globe || !page) return;
     const controller = new AbortController();
     runRef.current = controller;
-    setIsDropped(true);
+    setMode("loading");
     const finish = () => {
       if (runRef.current !== controller) return;
       runRef.current = null;
-      dropRef.current = null;
-      if (!controller.signal.aborted) setIsDropped(false);
+      swarmRef.current = null;
+      setMode("idle");
     };
-    dropGlyphs(page, glyphsRef.current, { signal: controller.signal, onFinish: finish })
+    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, exit: () => document.querySelector(".glyph-esc") })
       .then(next => {
         if (controller.signal.aborted) next.cancel();
-        else { dropRef.current = next; next.update(glyphsRef.current); }
+        else { swarmRef.current = next; setMode("active"); }
       })
       .catch(finish);
   }, [reducedMotion]);
 
-  // Leaving the page cancels both a loading module and an active/returning drop.
+  // Esc on the keyboard collapses the swarm too, unless something else already handled the key.
+  useEffect(() => {
+    if (mode !== "active") return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented) toggle(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mode, toggle]);
+
+  // Leaving the page cancels both a loading module and an active or returning swarm.
   useEffect(() => () => {
     const controller = runRef.current;
     runRef.current = null;
     controller?.abort();
-    dropRef.current = null;
+    swarmRef.current = null;
   }, []);
 
-  const dropLabel = isDropped ? "Put the letters back" : "Play with the letters";
+  const swarmLabel = mode === "idle" ? "Play with the letters" : mode === "loading" ? "Loading" : "Put the letters back";
 
   const vote = (keep: boolean) => {
     if (!candidate) return;
@@ -186,16 +199,12 @@ export function PaletteToy() {
         {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
     </span>
-    {triggerHost && createPortal(<button ref={triggerRef} type="button"
-      className="glyph-toy-trigger text-captionSans" aria-label={dropLabel}
-      aria-pressed={isDropped} disabled={reducedMotion} onClick={toggleDrop}>
-      <InspectableText>{isDropped ? "Reset" : "Play"}</InspectableText>
-    </button>, triggerHost)}
+    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>
         {panelOpen && <>
-          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the loose type">
+          <div className="palette-lab-tabs" role="tablist" aria-label="Tune the palette or the letter swarm">
             <button type="button" id="palette-tab" role="tab" aria-selected={tab === "palette"} aria-controls="palette-panel" onClick={() => setTab("palette")}><InspectableText>Colors</InspectableText></button>
             <button type="button" id="glyphs-tab" role="tab" aria-selected={tab === "glyphs"} aria-controls="glyphs-panel" onClick={() => setTab("glyphs")}><InspectableText>Glyphs</InspectableText></button>
           </div>
@@ -223,7 +232,7 @@ export function PaletteToy() {
             <button type="button" className="palette-lab-reset" onClick={() => { setGlyphs({ ...DEFAULT_GLYPHS }); setCopied(false); }}><InspectableText>Reset glyphs</InspectableText></button>
           </div>
           <div className="palette-lab-current" aria-label="Current palette">{palette.map(color => <span key={color.hex} style={{ backgroundColor: color.hex }} title={`${color.name} ${color.hex}`} />)}</div>
-          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion} onClick={toggleDrop}><InspectableText>{reducedMotion ? "Reduced motion on" : dropLabel}</InspectableText></button><button type="button" onClick={copySettings}><InspectableText>{copied ? "Copied" : "Copy settings"}</InspectableText></button></div>
+          <div className="palette-lab-bottom"><button type="button" disabled={reducedMotion || mode === "collapsing"} onClick={toggle}><InspectableText>{reducedMotion ? "Reduced motion on" : swarmLabel}</InspectableText></button><button type="button" onClick={copySettings}><InspectableText>{copied ? "Copied" : "Copy settings"}</InspectableText></button></div>
         </>}
       </aside>}
     </>, document.body)}

@@ -1,46 +1,58 @@
-/** Pure gesture rules for the loose-type toy. */
+/** Pure motion rules for the letter swarm. Forces are per unit mass; the engine multiplies by each body's mass. */
 export type Point = { x: number; y: number };
 
-export function initialReleaseCount(visibleLetters: number) {
-  return Math.min(6, Math.ceil(Math.max(0, visibleLetters) * 0.025));
+const PULL = 0.00028;
+const PUSH_RADIUS = 64;
+const WANDER = 0.00005;
+
+/** How many on-screen letters join the swarm. A cap keeps text-heavy screens smooth. */
+export function swarmCount(visibleLetters: number, share: number, cap = 520) {
+  return Math.min(cap, Math.round(Math.max(0, visibleLetters) * Math.max(0, Math.min(1, share))));
+}
+
+/** Letters nearest the globe leave first, so the pull ripples outward across the page. */
+export function releaseDelay(distance: number, farthest: number, spread = 520) {
+  return spread * Math.min(1, Math.max(0, distance) / Math.max(1, farthest));
+}
+
+export function closestOnSegment(point: Point, from: Point, to: Point): Point {
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const t = Math.max(0, Math.min(1, ((point.x - from.x) * dx + (point.y - from.y) * dy) / (dx * dx + dy * dy || 1)));
+  return { x: from.x + dx * t, y: from.y + dy * t };
 }
 
 export function segmentDistance(point: Point, from: Point, to: Point) {
-  const dx = to.x - from.x, dy = to.y - from.y;
-  const t = Math.max(0, Math.min(1, ((point.x - from.x) * dx + (point.y - from.y) * dy) / (dx * dx + dy * dy || 1)));
-  return Math.hypot(point.x - from.x - dx * t, point.y - from.y - dy * t);
+  const near = closestOnSegment(point, from, to);
+  return Math.hypot(point.x - near.x, point.y - near.y);
 }
 
-/** Enough initial movement to tumble; fast gestures add a stronger, capped fling. */
-export function flingVelocity(delta: Point, random = Math.random): Point {
-  return { x: Math.max(-12, Math.min(12, delta.x * 0.2)) + (random() - 0.5) * 4,
-    y: Math.max(-10, Math.min(5, delta.y * 0.14)) - 3 - random() * 3 };
+/** The anchor is the swarm's gravity. Close in, the pull softens so letters settle around it instead of onto one point. */
+export function anchorPull(delta: Point, strength = 1): Point {
+  const distance = Math.hypot(delta.x, delta.y);
+  if (distance < 1 || strength <= 0) return { x: 0, y: 0 };
+  const weight = PULL * Math.min(3, strength) * Math.max(0.2, Math.min(1, distance / 160));
+  return { x: delta.x / distance * weight, y: delta.y / distance * weight };
 }
 
-/** A moving brush lifts settled glyphs clear of floor friction, even during a slow hover pass. */
-export function brushImpulse(position: Point, from: Point, to: Point, strength = 1) {
-  const dx = to.x - from.x, dy = to.y - from.y;
-  const travel = Math.hypot(dx, dy);
-  const distance = segmentDistance(position, from, to);
-  if (travel < 0.15 || distance >= 44 || strength <= 0) return { x: 0, y: 0, spin: 0 };
-  const weight = Math.pow(1 - distance / 44, 0.65) * Math.min(3, strength);
-  const side = Math.abs(dx) > 0.3 ? Math.sign(dx) : Math.sign(position.x - to.x) || 1;
+/** A moving pointer shoves letters out of its path; faster gestures shove harder. Returns a velocity change. */
+export function pushImpulse(position: Point, from: Point, to: Point, strength = 1): Point {
+  const mx = to.x - from.x, my = to.y - from.y, travel = Math.hypot(mx, my);
+  if (travel < 0.5 || strength <= 0) return { x: 0, y: 0 };
+  const near = closestOnSegment(position, from, to);
+  const ox = position.x - near.x, oy = position.y - near.y, distance = Math.hypot(ox, oy);
+  if (distance >= PUSH_RADIUS) return { x: 0, y: 0 };
+  // A letter exactly on the path is pushed to one side of it.
+  const away = distance > 0.5 ? { x: ox / distance, y: oy / distance } : { x: -my / travel, y: mx / travel };
+  const weight = Math.pow(1 - distance / PUSH_RADIUS, 0.7) * Math.min(3, strength);
+  const speed = Math.min(9, 1.5 + travel * 0.22);
   return {
-    x: side * Math.min(10, 2.5 + travel * 0.14) * weight,
-    y: (Math.max(-7, Math.min(3, dy * 0.14)) - 2.4) * weight,
-    spin: side * 0.035 * weight,
+    x: (away.x + mx / travel * 0.35) * speed * weight,
+    y: (away.y + my / travel * 0.35) * speed * weight,
   };
 }
 
-/** A nearby cursor gently tugs loose letters; gravity remains stronger than the vertical pull. */
-export function cursorAttraction(delta: Point, strength = 1): Point {
-  const distance = Math.hypot(delta.x, delta.y);
-  if (distance < 8 || distance > 340) return { x: 0, y: 0 };
-  const weight = (1 - distance / 340) * Math.min(1, distance / 70) * Math.min(3, strength);
-  return { x: delta.x / distance * weight * 0.00022, y: delta.y / distance * weight * 0.00016 };
-}
-
-/** Scroll is a small nudge, never a launch. */
-export function scrollKick(deltaY: number, strength = 1) {
-  return Math.max(-1.2, Math.min(1.2, deltaY * 0.008 * strength));
+/** A slow, wandering force that keeps a resting swarm churning. */
+export function wanderForce(angle: number, strength = 1): Point {
+  const weight = WANDER * Math.max(0, Math.min(3, strength));
+  return { x: Math.cos(angle) * weight, y: Math.sin(angle) * weight };
 }

@@ -68,25 +68,22 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
-UI colors. The header **Play** button enables loose type: up to six random visible
-letters start falling, then hovering or swiping through text flicks a few more
-free. Most text stays intact. Released glyphs tumble under gravity, gently follow
-a nearby cursor, and are flung by nearby pointer movement. Desktop hover and button-held movement
-use the same response; mobile uses a swipe. Passing through resting letters
-gives them a small upward kick and sideways push so floor friction does not
-absorb the brush movement. A stationary cursor keeps the gentler attraction. Their collision bodies use convex
-outlines sampled from the rendered letter ink, allowing varied angles and piles.
+UI colors. The footer palette strip is decorative.
 
-Letters land above the music player; album art and the sliding Spotify badge
-remain live collision surfaces. Footer letters arc up over the player first.
-Original text stays mounted and current; only released characters are hidden.
-Menus and debugging controls are excluded. **Reset** returns the loose letters.
-Reduced motion disables the toy; width changes and refresh clear it. Scrolling
-adds a subtle nudge. The footer palette strip is decorative.
+A small globe of orbiting characters sits centered below the footer. Tapping it
+bursts the globe and pulls about 70% of the letters on screen into a floating
+swarm; their original spots go blank while the text stays mounted and current.
+Three of the globe's characters snap into an **Esc** button at the bottom of the
+screen. The swarm has no downward gravity: the cursor is its anchor, so letters
+drift toward it, collide, tumble, and bounce off the viewport edges. Moving the
+cursor through them pushes them away and they float back. On touch, dragging
+pushes and steers the swarm (the page doesn't scroll while it's out); lifting the
+finger lets it drift to the screen centre. **Esc** (button or key) balls the swarm
+up, flies every letter home, and re-forms the globe. Reduced motion disables it.
 
-Open `?palette-lab` and choose **Glyphs** to tune hover release chance, gravity,
-bounce, friction, pointer response, and scroll reaction. Preferences stay
-local; released letters are temporary. Matter.js loads on the first tap.
+Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,
+anchor pull, pointer push, bounce, and ambient drift. Preferences stay local.
+Matter.js preloads when the globe is hovered, focused, or touched.
 
 ## Spotify authorization
 

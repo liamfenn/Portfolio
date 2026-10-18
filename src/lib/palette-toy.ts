@@ -26,25 +26,23 @@ export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color =>
   color.name !== "Steel blue" && color.name !== "Silver",
 );
 
-/** Live tuning for the loose-type interaction. */
+/** Live tuning for the letter swarm. */
 export interface GlyphSettings {
-  share: number;
-  gravity: number;
-  bounce: number;
-  friction: number;
+  amount: number;
   pull: number;
-  scroll: number;
+  push: number;
+  bounce: number;
+  drift: number;
 }
 export const DEFAULT_GLYPHS: GlyphSettings = {
-  share: 0.4, gravity: 1, bounce: 0.25, friction: 0.55, pull: 1, scroll: 0.3,
+  amount: 0.7, pull: 1, push: 1, bounce: 0.5, drift: 1,
 };
 export const GLYPH_CONTROLS = [
-  { key: "share", label: "Hover release chance", min: 0.05, max: 1, step: 0.05, unit: "%" },
-  { key: "gravity", label: "Gravity", min: 0.2, max: 3, step: 0.1, unit: "×" },
-  { key: "bounce", label: "Bounce", min: 0, max: 0.9, step: 0.05, unit: "%" },
-  { key: "friction", label: "Friction", min: 0, max: 1, step: 0.05, unit: "%" },
-  { key: "pull", label: "Pointer response", min: 0, max: 3, step: 0.1, unit: "×" },
-  { key: "scroll", label: "Scroll reaction", min: 0, max: 1, step: 0.1, unit: "×" },
+  { key: "amount", label: "Letters pulled in", min: 0.1, max: 1, step: 0.05, unit: "%" },
+  { key: "pull", label: "Anchor pull", min: 0.2, max: 3, step: 0.1, unit: "×" },
+  { key: "push", label: "Pointer push", min: 0, max: 3, step: 0.1, unit: "×" },
+  { key: "bounce", label: "Bounce", min: 0, max: 0.95, step: 0.05, unit: "%" },
+  { key: "drift", label: "Ambient drift", min: 0, max: 3, step: 0.1, unit: "×" },
 ] as const;
 
 export type PaletteVotes = Record<string, boolean>;
