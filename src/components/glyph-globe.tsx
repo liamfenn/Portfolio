@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
-import { ESC_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
+import type { CSSProperties, RefObject } from "react";
+import { CROSS_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
 
-// A fixed scatter of characters, so server and client render the same globe. E, s and c hide among them:
-// they are the three that stay behind and become the exit.
+// A fixed scatter of characters, so server and client render the same globe.
 const GLOBE_CHARS = "a&RE7?g*Q2ks@m0yt%cWb#f5j".split("");
-const ESC_INDEX = [GLOBE_CHARS.indexOf("E"), GLOBE_CHARS.indexOf("s"), GLOBE_CHARS.indexOf("c")];
+// Nine of them stay behind when the globe bursts and become the close control: an X with one character at its
+// centre and two along each arm. Positions are fractions of the control's size, arms on the diagonals.
+const CROSS_INDEX = [12, 3, 0, 9, 6, 15, 18, 21, 24];
+const CROSS_POINTS = [[0, 0], [-0.17, -0.17], [-0.36, -0.36], [0.17, -0.17], [0.36, -0.36], [-0.17, 0.17], [-0.36, 0.36], [0.17, 0.17], [0.36, 0.36]];
 // Sized against the 28px globe; a larger globe scales its orbit and characters to match.
 const BASE_SIZE = 28;
 const RADIUS = 10;
@@ -54,18 +56,18 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
   onToggle: () => void;
 }) {
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const escRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const escRef = useRef<HTMLButtonElement>(null);
+  const crossRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const crossRef = useRef<HTMLButtonElement>(null);
   const hoverRef = useRef(false);
-  // Kept across bursts, so the globe re-forms exactly where Esc's letters return to.
+  // Kept across bursts, so the globe re-forms exactly where the X's characters return to.
   const angleRef = useRef(0.6);
   const previousMode = useRef(mode);
-  // During the exit the globe re-forms as Esc's letters arrive, rather than after every letter has landed.
+  // During the exit the globe re-forms as the X's characters arrive, rather than after every letter has landed.
   const [reforming, setReforming] = useState(false);
   const spent = mode === "active" || (mode === "collapsing" && !reforming);
   useEffect(() => {
     if (mode !== "collapsing") return;
-    const timer = window.setTimeout(() => setReforming(true), ESC_RETURN_DELAY_MS + RETURN_MS * 0.6);
+    const timer = window.setTimeout(() => setReforming(true), CROSS_RETURN_DELAY_MS + RETURN_MS * 0.6);
     return () => { window.clearTimeout(timer); setReforming(false); };
   }, [globeRef, mode]);
 
@@ -91,18 +93,18 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [globeRef, reducedMotion, spent]);
 
-  // Esc's letters snap out of the globe on entry, and fly back to it once the swarm has balled up.
+  // The X's characters snap out of the globe on entry, centre first and arms outward, and fly back into it on exit.
   useLayoutEffect(() => {
     const previous = previousMode.current;
     previousMode.current = mode;
-    const pairs = ESC_INDEX.map((index, order) => ({ globe: charRefs.current[index], esc: escRefs.current[order] }));
+    const pairs = CROSS_INDEX.map((index, order) => ({ globe: charRefs.current[index], cross: crossRefs.current[order], ring: Math.ceil(order / 4) }));
     if (mode === "active" && previous === "loading") {
       // The globe is now disabled; a keyboard user's focus moves to the control that replaced it.
-      if (document.activeElement === globeRef.current || document.activeElement === document.body) escRef.current?.focus({ preventScroll: true });
-      pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), false, 80 + order * 60); });
+      if (document.activeElement === globeRef.current || document.activeElement === document.body) crossRef.current?.focus({ preventScroll: true });
+      pairs.forEach(({ globe, cross, ring }, order) => { if (globe && cross) flip(cross, globe.getBoundingClientRect(), cross.getBoundingClientRect(), false, 80 + ring * 70 + order * 12); });
     }
     if (mode === "collapsing") {
-      pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), true, ESC_RETURN_DELAY_MS + order * 40); });
+      pairs.forEach(({ globe, cross, ring }, order) => { if (globe && cross) flip(cross, globe.getBoundingClientRect(), cross.getBoundingClientRect(), true, CROSS_RETURN_DELAY_MS + (2 - ring) * 50 + order * 10); });
     }
   }, [globeRef, mode]);
 
@@ -114,13 +116,16 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
       onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={preloadSwarm} onTouchStart={preloadSwarm}>
       <span className="glyph-globe-sphere" aria-hidden="true">
         {GLOBE_CHARS.map((char, index) => <span key={index} ref={element => { charRefs.current[index] = element; }}
-          className="glyph-globe-char" data-esc={ESC_INDEX.includes(index) ? "" : undefined}>{char}</span>)}
+          className="glyph-globe-char" data-cross={CROSS_INDEX.includes(index) ? "" : undefined}>{char}</span>)}
       </span>
     </button>
-    {/* Esc takes the globe's place, so it sits where the swarm came from rather than over the page. */}
-    {(mode === "active" || mode === "collapsing") && <button ref={escRef} type="button" className="glyph-esc text-captionSans" aria-label="Put the letters back"
+    {/* The X takes the globe's place, so it sits where the swarm came from rather than over the page. */}
+    {(mode === "active" || mode === "collapsing") && <button ref={crossRef} type="button" className="glyph-cross text-captionSans" aria-label="Put the letters back"
       aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}>
-      {["E", "s", "c"].map((char, order) => <span key={char} ref={element => { escRefs.current[order] = element; }} aria-hidden="true">{char}</span>)}
+      <span className="glyph-cross-arms" aria-hidden="true">
+        {CROSS_INDEX.map((index, order) => <span key={index} ref={element => { crossRefs.current[order] = element; }} className="glyph-cross-char"
+          style={{ "--cross-x": CROSS_POINTS[order][0], "--cross-y": CROSS_POINTS[order][1] } as CSSProperties}>{GLOBE_CHARS[index]}</span>)}
+      </span>
     </button>}
   </>;
 }

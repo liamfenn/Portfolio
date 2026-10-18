@@ -716,16 +716,24 @@
 .glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
 .glyph-globe-char { position: absolute; left: 50%; top: 50%; line-height: 1; white-space: pre; will-change: transform, opacity; }
 .glyph-globe-row { position: relative; }
-/* Esc sits exactly where the globe was, above the swarm. */
-.glyph-esc { position: absolute; z-index: 1600; left: 50%; top: 50%; display: flex; padding: 8px 12px; border: 0; background: transparent; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
-.glyph-esc span { display: inline-block; }
-.glyph-esc:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-@media (hover: hover) { .glyph-esc:not(:disabled):hover { opacity: var(--hover-dim); } }
+/* The close control: nine globe characters in an X, in the globe's place and above the swarm.
+   Hover turns the X a quarter-turn while each character counter-turns to stay upright. */
+.glyph-cross { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; --cross-scale: .5; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.glyph-cross::before { content: ""; position: absolute; inset: -8px; }
+.glyph-cross:disabled { cursor: default; }
+.glyph-cross:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.glyph-cross-arms { position: absolute; inset: 0; transition: rotate calc(var(--motion-duration) * 2) var(--motion-ease); }
+.glyph-cross-char { position: absolute; left: calc(50% + var(--cross-x) * 100%); top: calc(50% + var(--cross-y) * 100%); font-size: calc(var(--text-caption) * var(--cross-scale)); line-height: 1; white-space: pre; translate: -50% -50%; transition: rotate calc(var(--motion-duration) * 2) var(--motion-ease); }
+@media (hover: hover) {
+  .glyph-cross:hover .glyph-cross-arms { rotate: 90deg; }
+  .glyph-cross:hover .glyph-cross-char { rotate: -90deg; }
+}
 /* Desktop: the globe sits at 40px in the middle of the footer's content box. */
 @media (min-width: 768px) {
   .portfolio-footer { position: relative; }
   .glyph-globe-row { position: absolute; inset: 0 var(--content-padding) var(--content-padding); margin: 0; align-items: center; pointer-events: none; }
   .glyph-globe { width: 40px; height: 40px; pointer-events: auto; }
+  .glyph-cross { width: 40px; height: 40px; --cross-scale: .6; }
 }
 @media (max-width: 767px) { .glyph-globe-row { margin-top: 32px; } }
 .palette-toy-track {
