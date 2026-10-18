@@ -716,19 +716,27 @@
 .glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
 .glyph-globe-char { position: absolute; left: 50%; top: 50%; line-height: 1; white-space: pre; will-change: transform, opacity; }
 .glyph-globe-row { position: relative; }
-/* The exit: the globe collapses into a small black dot, like the toolbar's dot, above the swarm.
-   Its hit area keeps the globe's size; like the site's text buttons it dims on hover and on keyboard focus. */
-.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; color: var(--text-primary); transition: opacity var(--hover-duration) var(--hover-ease); }
+/* The exit: a ring of the globe's glyphs around an empty centre, like a stroke, turning slowly clockwise above
+   the swarm. Like the site's text buttons it dims on hover and on keyboard focus. */
+.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .62; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
+.glyph-exit::before { content: ""; position: absolute; inset: -4px; }
 .glyph-exit:disabled { cursor: default; }
 .glyph-exit:focus-visible { opacity: var(--hover-dim); }
 @media (hover: hover) { .glyph-exit:not(:disabled):hover { opacity: var(--hover-dim); } }
-.glyph-exit-dot { display: block; width: 12px; height: 12px; background: currentColor; clip-path: circle(50%); }
+@keyframes glyph-ring-spin { to { transform: rotate(360deg); } }
+.glyph-exit-ring { position: absolute; inset: 0; animation: glyph-ring-spin 14s linear infinite; }
+/* On exit the spin holds still so the glyphs glide home from where they are. */
+.glyph-exit.is-leaving .glyph-exit-ring { animation-play-state: paused; }
+.glyph-exit-slot { position: absolute; left: calc(50% + var(--ring-x) * 100%); top: calc(50% + var(--ring-y) * 100%); translate: -50% -50%; }
+.glyph-exit-glyph { display: block; font-size: calc(var(--text-caption) * var(--ring-scale)); line-height: 1; white-space: pre; rotate: var(--ring-turn); }
+/* Once the globe has re-formed around the returned glyphs, the ring steps aside after the globe's fade-in. */
+.glyph-exit.is-reformed > * { visibility: hidden; transition: visibility 0s var(--motion-duration); }
 /* Desktop: the globe sits at 48px in the middle of the footer's content box. */
 @media (min-width: 768px) {
   .portfolio-footer { position: relative; }
   .glyph-globe-row { position: absolute; inset: 0 var(--content-padding) var(--content-padding); margin: 0; align-items: center; pointer-events: none; }
   .glyph-globe { width: 48px; height: 48px; pointer-events: auto; }
-  .glyph-exit { width: 48px; height: 48px; }
+  .glyph-exit { width: 48px; height: 48px; --ring-scale: .7; }
 }
 @media (max-width: 767px) { .glyph-globe-row { margin-top: 32px; } }
 .palette-toy-track {

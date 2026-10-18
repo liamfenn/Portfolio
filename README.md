@@ -81,9 +81,10 @@ character position rather than a text node, so it survives re-renders: menu labe
 that rewrite themselves on hover stay masked, and when the song or clock changes,
 a floating letter quietly becomes the new character at its place (after the text
 has held still for a moment, so scrambles pass by). If a new title is shorter,
-letters without a place fade into the end of the line on exit. In the globe's place it
-shrinks into a small black dot, like the toolbar's dot: the exit. The swarm keeps a
-small clear pocket around it so it always reads.
+letters without a place fade into the end of the line on exit. Twelve of its characters
+stay behind as the exit: a flat ring of glyphs around an empty centre, like a
+stroke, turning slowly clockwise. The swarm keeps a small clear pocket around it
+so it always reads.
 
 The swarm has no downward gravity. It floats in a loose zone that trails the
 cursor lazily and sways a little. Each letter circles its own spot in the zone and
@@ -93,10 +94,10 @@ the cursor stays clear. Moving the cursor through the swarm pushes letters away
 and they float back. On touch, dragging pushes and steers the swarm (the page
 doesn't scroll while it's out); lifting the finger lets it drift to the centre.
 
-The dot (or the Esc key) mirrors the entry: each letter loosens and floats free for
+The ring (or the Esc key) mirrors the entry: each letter loosens and floats free for
 a moment, then glides home on a spring at its own speed. It arrives just off its
 slot, still a little tilted and turning, then settles the last few pixels on its own
-short ease and reappears in its text. The globe re-forms as the dot swells back into it. Reduced motion
+short ease and reappears in its text. The ring's glyphs glide back into the globe as it re-forms. Reduced motion
 disables the toy.
 
 Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,

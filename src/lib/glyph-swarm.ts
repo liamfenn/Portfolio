@@ -6,7 +6,7 @@ import type { GlyphSettings } from "@/lib/palette-toy";
 const SKIP = ".glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
-/** The exit dot swells back into the globe this far into the exit, while the swarm is still letting go. */
+/** The exit ring's glyphs leave for the globe this far into the exit, while the swarm is still letting go. */
 export const EXIT_RETURN_DELAY_MS = 420;
 /** Intro: letters pop out of the text across this window, nearest to the globe tending to go first. */
 const RELEASE_SPREAD_MS = 1400;
@@ -165,7 +165,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const queue = chosen.map(source => ({ source, at: releaseDelay(distance(source), farthest, RELEASE_SPREAD_MS * 0.4) + Math.random() * RELEASE_SPREAD_MS * 0.6 })).sort((a, b) => a.at - b.at);
   let queued = 0;
 
-  // The viewport edges are the walls. The exit dot sits above the swarm rather than in it, so letters never pin beneath it.
+  // The viewport edges are the walls. The exit ring sits above the swarm rather than in it, so letters never pin beneath it.
   let walls: MatterJS.Body[] = [];
   const placeWalls = () => {
     Composite.remove(engine.world, walls);
@@ -225,8 +225,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     spawn(char, rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
   };
 
-  // The globe's own characters burst outward from its centre.
-  for (const char of globe.querySelectorAll<HTMLElement>(".glyph-globe-char")) {
+  // The globe's own characters burst outward from its centre; the ones that form the exit ring stay behind.
+  for (const char of globe.querySelectorAll<HTMLElement>(".glyph-globe-char:not([data-ring])")) {
     const rect = char.getBoundingClientRect();
     if (!rect.width || !char.textContent) continue;
     const style = getComputedStyle(char), scale = rect.height / (char.offsetHeight || rect.height);
@@ -395,7 +395,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const target = pointer ?? viewportCenter();
     const goal = { x: target.x + Math.sin(time * 0.00071) * 24, y: target.y + Math.cos(time * 0.00053) * 18 };
     const zone = radius(), gap = spacing(), members = floating();
-    // Letters drift out of the exit dot's way so it always reads, wherever the swarm is.
+    // Letters drift out of the exit ring's way so it always reads, wherever the swarm is.
     const clearBox = options.keepClear()?.getBoundingClientRect();
     const clear = clearBox?.width ? { center: centerOf(clearBox), radius: Math.max(clearBox.width, clearBox.height) / 2 + 18 } : null;
     while (pending >= STEP) {
