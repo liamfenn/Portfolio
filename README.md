@@ -70,8 +70,8 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The footer palette strip is decorative.
 
-A globe of orbiting characters sits in the middle of the footer on desktop (48px)
-and centered below it on mobile (44px). Tapping it bursts the globe and frees about
+A 44px globe of orbiting characters sits in the middle of the footer on desktop
+and centered below it on mobile. Tapping it bursts the globe and frees about
 70% of every letter on the page, including letters scrolled out of view, which
 enter from the screen edge. Letters pop out of their text at their own moments
 over about a second and a half, float loose for a while, then are sucked in at

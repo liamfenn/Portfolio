@@ -729,12 +729,11 @@
 .glyph-exit-glyph { display: block; font-size: calc(var(--text-caption) * var(--ring-scale)); line-height: 1; white-space: pre; rotate: var(--ring-turn); }
 /* Once the globe has re-formed around the returned glyphs, the ring steps aside after the globe's fade-in. */
 .glyph-exit.is-reformed > * { visibility: hidden; transition: visibility 0s var(--motion-duration); }
-/* Desktop: the globe sits at 48px in the middle of the footer's content box. */
+/* Desktop: the globe sits in the middle of the footer's content box. */
 @media (min-width: 768px) {
   .portfolio-footer { position: relative; }
   .glyph-globe-row { position: absolute; inset: 0 var(--content-padding) var(--content-padding); margin: 0; align-items: center; pointer-events: none; }
-  .glyph-globe { width: 48px; height: 48px; pointer-events: auto; }
-  .glyph-exit { width: 48px; height: 48px; --ring-scale: .7; }
+  .glyph-globe { pointer-events: auto; }
 }
 @media (max-width: 767px) { .glyph-globe-row { margin-top: 32px; } }
 .palette-toy-track {
