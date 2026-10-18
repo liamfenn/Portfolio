@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { closestOnSegment, entryPoint, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
+import { captureStrength, closestOnSegment, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -20,13 +20,27 @@ test("segment geometry catches fast sweeps between pointer events", () => {
   assert.equal(segmentDistance({x:3,y:4},{x:0,y:0},{x:0,y:0}), 5);
   assert.deepEqual(closestOnSegment({x:150,y:10},{x:0,y:0},{x:100,y:0}), {x:100,y:0});
 });
-test("the zone is faint inside, firm past its edge, and keeps a pocket at the cursor", () => {
+test("the zone is faint inside and firms up past its edge", () => {
   const radius = 150;
-  const inside = zoneForce({x:100,y:0}, radius), outside = zoneForce({x:300,y:0}, radius);
+  const inside = zoneForce({x:100,y:0}, radius), outside = zoneForce({x:400,y:0}, radius);
   assert.ok(inside.x > 0 && outside.x > inside.x * 3, "strays past the edge are pulled back much harder");
-  assert.ok(zoneForce({x:10,y:0}, radius).x < 0, "letters right at the cursor are eased out of the pocket");
   assert.deepEqual(zoneForce({x:0,y:0}, radius), {x:0,y:0});
   assert.deepEqual(zoneForce({x:300,y:0}, radius, 0), {x:0,y:0});
+});
+test("letters right at the cursor are eased out of its pocket", () => {
+  assert.ok(pocketForce({x:10,y:0}).x > 0);
+  assert.ok(pocketForce({x:0,y:-10}).y < 0);
+  assert.deepEqual(pocketForce({x:80,y:0}), {x:0,y:0});
+});
+test("a letter floats free, is sucked in, then relaxes to the ambient pull", () => {
+  assert.equal(captureStrength(200, 500, 800), 0, "still floating");
+  const suction = captureStrength(1300, 500, 800);
+  assert.ok(suction > 1.5, "suction is stronger than the resting pull");
+  assert.ok(Math.abs(captureStrength(10_000, 500, 800) - 1) < 1e-9, "settles back to the resting pull");
+});
+test("each letter's pull fades in smoothly", () => {
+  assert.equal(smoothstep(-1), 0); assert.equal(smoothstep(2), 1); assert.equal(smoothstep(0.5), 0.5);
+  assert.ok(smoothstep(0.1) < 0.1, "a soft start");
 });
 test("the zone grows with the swarm and the spacing", () => {
   assert.ok(zoneRadius(240) > zoneRadius(60));

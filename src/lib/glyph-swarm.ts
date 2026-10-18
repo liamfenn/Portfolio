@@ -1,18 +1,21 @@
 import type MatterJS from "matter-js";
-import { SPACING, entryPoint, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, pocketForce, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
 const SKIP = ".glyph-globe,.glyph-esc,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
-/** How long the swarm gathers at Esc before the letters glide home. Esc's own letters leave for the globe at the same moment. */
-export const GATHER_MS = 300;
-const HOMEWARD_STAGGER_MS = 220;
-const LANDING_TIMEOUT_MS = 3200;
+/** Esc's own letters leave for the globe this far into the exit, while the swarm is still letting go. */
+export const ESC_RETURN_DELAY_MS = 420;
+/** Intro: letters pop out of the text across this window, nearest to the globe tending to go first. */
+const RELEASE_SPREAD_MS = 1400;
+/** Exit: letters let go of the swarm and turn for home across this window. */
+const LET_GO_MS = 900;
+const LANDING_TIMEOUT_MS = 4200;
 
 interface Source { node: Text; offset: number; parent: HTMLElement; range: Range; rect: DOMRect; home: Point }
-interface Flight { x: number; y: number; vx: number; vy: number; angle: number; spin: number; gather: Point; homewardAt: number }
+interface Flight { x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number }
 interface Glyph {
   element: HTMLSpanElement;
   body: MatterJS.Body;
@@ -22,6 +25,18 @@ interface Glyph {
   width: number;
   height: number;
   wander: number;
+  /** Intro timing: each letter floats loose for a while, then its pull fades in over its own ramp. */
+  bornAt: number;
+  floatMs: number;
+  captureMs: number;
+  /** How hard this letter is drawn in, so the swarm arrives at different speeds. */
+  pullScale: number;
+  /** Each letter circles its own spot in the zone, which keeps the cloud flowing and uneven. */
+  orbit: number;
+  orbitSpeed: number;
+  reach: number;
+  /** Exit timing: when this letter turns for home. */
+  departAt: number;
   flight?: Flight;
   landed?: boolean;
 }
@@ -91,7 +106,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const distance = (source: Source) => Math.hypot(centerOf(source.rect).x - origin.x, centerOf(source.rect).y - origin.y);
   const chosen = sources.slice(0, count);
   const farthest = chosen.reduce((max, source) => Math.max(max, distance(source)), 0);
-  const queue = chosen.map(source => ({ source, at: releaseDelay(distance(source), farthest) + Math.random() * 60 })).sort((a, b) => a.at - b.at);
+  const queue = chosen.map(source => ({ source, at: releaseDelay(distance(source), farthest, RELEASE_SPREAD_MS * 0.4) + Math.random() * RELEASE_SPREAD_MS * 0.6 })).sort((a, b) => a.at - b.at);
   let queued = 0;
 
   // The viewport edges are the walls. Esc sits above the swarm rather than in it, so letters never pin beneath it.
@@ -115,7 +130,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   let pointer: Point | null = window.matchMedia("(hover: hover)").matches ? { ...origin } : null;
 
   const glyphs: Glyph[] = [];
-  const spawn = (character: string, rect: DOMRect, at: Point, font: string, color: string, velocity: Point, source?: Source) => {
+  const spawn = (character: string, rect: DOMRect, at: Point, font: string, color: string, velocity: Point, floatMs: number, source?: Source) => {
     const element = document.createElement("span"); element.className = "glyph-swarm-glyph"; element.textContent = character;
     element.style.cssText = `width:${rect.width}px;height:${rect.height}px;font:${font};line-height:${rect.height}px;color:${color}`;
     const body = Bodies.rectangle(at.x, at.y, Math.max(2, rect.width * 0.9), Math.max(2, rect.height * 0.72),
@@ -129,16 +144,18 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       while (background && (fill === "transparent" || fill === "rgba(0, 0, 0, 0)")) { fill = getComputedStyle(background).backgroundColor; background = background.parentElement; }
       patch.style.backgroundColor = fill; layer.append(patch);
     }
-    const glyph: Glyph = { element, body, source, patch, width: rect.width, height: rect.height, wander: Math.random() * Math.PI * 2 };
+    const glyph: Glyph = { element, body, source, patch, width: rect.width, height: rect.height, wander: Math.random() * Math.PI * 2,
+      bornAt: performance.now(), floatMs, captureMs: 500 + Math.random() * 1000, pullScale: 0.55 + Math.random() * 0.9,
+      orbit: Math.random() * Math.PI * 2, orbitSpeed: (Math.random() - 0.5) * 0.012, reach: Math.sqrt(Math.random()), departAt: 0 };
     glyphs.push(glyph); layer.append(element); Composite.add(engine.world, body);
     return glyph;
   };
-  // Each letter is thrown at its own spot inside the zone, hard enough to glide there and stop: drag over n steps sums to v / AIR.
-  const throwToward = (from: Point) => {
-    const angle = Math.random() * Math.PI * 2, reach = Math.sqrt(Math.random()) * radius() * 0.8;
-    const dx = anchor.x + Math.cos(angle) * reach - from.x, dy = anchor.y + Math.sin(angle) * reach - from.y;
-    const length = Math.hypot(dx, dy) || 1, speed = Math.max(3, Math.min(22, length * AIR * 1.1));
-    return { x: dx / length * speed, y: dy / length * speed };
+  // Each letter hops out of its text in its own direction, mostly up and away; letters entering at a screen edge hop inward.
+  const pop = (at: Point) => {
+    const w = window.innerWidth, h = window.innerHeight, edge = at.x <= 8 || at.y <= 8 || at.x >= w - 8 || at.y >= h - 8;
+    const angle = edge ? Math.atan2(h / 2 - at.y, w / 2 - at.x) + (Math.random() - 0.5) * 1.4 : -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3;
+    const speed = 1.2 + Math.random() * 3;
+    return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
   };
   const release = (source: Source) => {
     const { node, offset, parent, range } = source;
@@ -150,7 +167,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     // Letters scrolled out of view stream in from the nearest edge.
     const at = entryPoint(centerOf(rect), window.innerWidth, window.innerHeight);
     const style = getComputedStyle(parent);
-    spawn(node.data[offset], rect, at, fontOf(style), style.color, throwToward(at), source);
+    spawn(node.data[offset], rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
   };
 
   // The globe's own characters burst outward from its centre. Esc's three letters are animated by the component.
@@ -159,7 +176,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (!rect.width || !char.textContent) continue;
     const style = getComputedStyle(char), scale = rect.height / (char.offsetHeight || rect.height);
     const at = centerOf(rect), dx = at.x - origin.x, dy = at.y - origin.y, length = Math.hypot(dx, dy) || 1, speed = 4 + Math.random() * 4;
-    spawn(char.textContent, rect, at, fontOf(style, `${parseFloat(style.fontSize) * scale}px`), style.color, { x: dx / length * speed, y: dy / length * speed - 2 });
+    spawn(char.textContent, rect, at, fontOf(style, `${parseFloat(style.fontSize) * scale}px`), style.color, { x: dx / length * speed, y: dy / length * speed - 2 }, 200 + Math.random() * 800);
   }
 
   let phase: "loose" | "collapse" | "done" = "loose", removed = false;
@@ -206,17 +223,19 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   document.body.append(layer);
   document.documentElement.classList.add("is-glyph-swarm");
 
+  // Letters still in the physics world: everything except those already gliding home.
+  const floating = () => glyphs.filter(glyph => !glyph.flight);
   // Neighbour spacing on a coarse grid: each letter only checks the cells around it.
   const cells = new Map<number, Glyph[]>();
-  const separate = (gap: number) => {
+  const separate = (members: Glyph[], gap: number) => {
     cells.clear();
     const key = (cx: number, cy: number) => cx * 4096 + cy;
-    for (const glyph of glyphs) {
+    for (const glyph of members) {
       const k = key(Math.floor(glyph.body.position.x / gap), Math.floor(glyph.body.position.y / gap));
       const cell = cells.get(k);
       if (cell) cell.push(glyph); else cells.set(k, [glyph]);
     }
-    for (const glyph of glyphs) {
+    for (const glyph of members) {
       const { position, mass } = glyph.body, cx = Math.floor(position.x / gap), cy = Math.floor(position.y / gap);
       let fx = 0, fy = 0;
       for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
@@ -235,36 +254,34 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     glyph.landed = true; glyph.element.remove(); glyph.patch?.remove();
     if (glyph.source && highlight) highlight.delete(glyph.source.range);
   };
-  // Exit: every letter rides a critically damped spring, first toward Esc, then home. Retargeting a spring keeps
-  // its velocity, so the gather and the return read as one continuous glide; each letter reappears in its text as it lands.
+  // Exit: once a letter lets go, it rides a critically damped spring home at its own speed. The spring starts from
+  // the letter's current velocity, so the hand-off from floating to returning has no jolt; it reappears in its text as it lands.
   const fly = (time: number, dt: number) => {
-    const elapsed = time - collapseStartedAt, globeBox = globe.getBoundingClientRect(), globeCenter = centerOf(globeBox);
-    let flying = 0;
+    const elapsed = time - collapseStartedAt, globeCenter = centerOf(globe.getBoundingClientRect());
+    for (const glyph of glyphs) {
+      if (glyph.flight || glyph.landed || elapsed < glyph.departAt) continue;
+      const { position, velocity, angle, angularVelocity } = glyph.body;
+      glyph.flight = { x: position.x, y: position.y, vx: velocity.x * 60, vy: velocity.y * 60, angle, spin: angularVelocity * 60, omega: 4.5 + Math.random() * 4 };
+      Composite.remove(engine.world, glyph.body);
+    }
+    let remaining = 0;
     for (const glyph of glyphs) {
       const flight = glyph.flight;
-      if (!flight || glyph.landed) continue;
-      const homeward = elapsed >= flight.homewardAt;
-      const target = !homeward ? flight.gather
-        : glyph.source ? { x: glyph.source.home.x - window.scrollX + glyph.width / 2, y: glyph.source.home.y - window.scrollY + glyph.height / 2 } : globeCenter;
-      const omega = homeward ? 10 : 14;
-      const x = springStep(flight.x, flight.vx, target.x, omega, dt), y = springStep(flight.y, flight.vy, target.y, omega, dt);
-      const spinTarget = homeward ? Math.round(flight.angle / (Math.PI * 2)) * Math.PI * 2 : flight.angle;
-      const turn = springStep(flight.angle, flight.spin, spinTarget, homeward ? 12 : 4, dt);
+      if (glyph.landed) continue;
+      remaining++;
+      if (!flight) continue;
+      const target = glyph.source ? { x: glyph.source.home.x - window.scrollX + glyph.width / 2, y: glyph.source.home.y - window.scrollY + glyph.height / 2 } : globeCenter;
+      const x = springStep(flight.x, flight.vx, target.x, flight.omega, dt), y = springStep(flight.y, flight.vy, target.y, flight.omega, dt);
+      const turn = springStep(flight.angle, flight.spin, Math.round(flight.angle / (Math.PI * 2)) * Math.PI * 2, flight.omega * 1.3, dt);
       Object.assign(flight, { x: x.position, vx: x.velocity, y: y.position, vy: y.velocity, angle: turn.position, spin: turn.velocity });
       const away = Math.hypot(target.x - flight.x, target.y - flight.y);
-      if (homeward && (elapsed > LANDING_TIMEOUT_MS || (away < 0.5 && Math.hypot(flight.vx, flight.vy) < 20))) { land(glyph); continue; }
-      flying++;
+      if (elapsed > LANDING_TIMEOUT_MS || (away < 0.5 && Math.hypot(flight.vx, flight.vy) < 20)) { land(glyph); remaining--; continue; }
       // Globe letters shrink and fade as they sink back into it.
-      const fade = glyph.source || !homeward ? 1 : Math.min(1, away / 60);
+      const fade = glyph.source ? 1 : Math.min(1, away / 60);
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
       glyph.element.style.opacity = String(fade);
-      if (glyph.patch && patchesStale) {
-        const box = glyph.source!.range.getClientRects()[0];
-        Object.assign(glyph.patch.style, box ? { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` } : { width: "0", height: "0" });
-      }
     }
-    patchesStale = false;
-    if (!flying) finishLanding();
+    if (!remaining) finishLanding();
   };
 
   const startedAt = performance.now();
@@ -272,32 +289,49 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const render = (time: number) => {
     const dt = Math.min(64, time - previousTime) / 1000;
     pending = Math.min(pending + time - previousTime, STEP * 4); previousTime = time;
-    if (phase === "collapse") { fly(time, dt); frame = requestAnimationFrame(render); return; }
-    const elapsed = time - startedAt;
-    while (queued < queue.length && queue[queued].at <= elapsed) release(queue[queued++].source);
-    const goal = pointer ?? viewportCenter(), zone = radius(), gap = spacing();
+    const elapsed = time - startedAt, loose = phase === "loose";
+    while (loose && queued < queue.length && queue[queued].at <= elapsed) release(queue[queued++].source);
+    // The anchor trails the pointer lazily and never quite sits still, so the cloud sways rather than snapping into place.
+    const target = pointer ?? viewportCenter();
+    const goal = { x: target.x + Math.sin(time * 0.00071) * 24, y: target.y + Math.cos(time * 0.00053) * 18 };
+    const zone = radius(), gap = spacing(), members = floating();
     while (pending >= STEP) {
-      anchor.x += (goal.x - anchor.x) * 0.08; anchor.y += (goal.y - anchor.y) * 0.08;
-      for (const glyph of glyphs) {
+      anchor.x += (goal.x - anchor.x) * 0.035; anchor.y += (goal.y - anchor.y) * 0.035;
+      for (const glyph of members) {
         const { body } = glyph;
-        const pull = zoneForce({ x: anchor.x - body.position.x, y: anchor.y - body.position.y }, zone, settings.pull);
         glyph.wander += (Math.random() - 0.5) * 0.3;
-        const drift = wanderForce(glyph.wander, settings.drift);
-        Body.applyForce(body, body.position, { x: (pull.x + drift.x) * body.mass, y: (pull.y + drift.y) * body.mass });
+        glyph.orbit += glyph.orbitSpeed;
+        // Until its pull fades in (and again while letting go on exit), a letter only drifts, a little more than usual.
+        // Once caught, a brief suction carries it across the screen before it relaxes into the cloud.
+        const capture = loose ? captureStrength(time - glyph.bornAt, glyph.floatMs, glyph.captureMs) : 0, caught = Math.min(1, capture);
+        const drift = wanderForce(glyph.wander, settings.drift * (1 + 1.5 * (1 - caught)));
+        let fx = drift.x, fy = drift.y;
+        if (capture > 0) {
+          const reach = glyph.reach * zone * 0.45;
+          const spot = { x: anchor.x + Math.cos(glyph.orbit) * reach, y: anchor.y + Math.sin(glyph.orbit) * reach };
+          const pull = zoneForce({ x: spot.x - body.position.x, y: spot.y - body.position.y }, zone * 0.6, settings.pull * glyph.pullScale);
+          const pocket = pointer ? pocketForce({ x: body.position.x - pointer.x, y: body.position.y - pointer.y }) : { x: 0, y: 0 };
+          fx += pull.x * capture + pocket.x * caught; fy += pull.y * capture + pocket.y * caught;
+        }
+        Body.applyForce(body, body.position, { x: fx * body.mass, y: fy * body.mass });
       }
-      separate(gap);
+      separate(members, gap);
       Engine.update(engine, STEP); pending -= STEP;
     }
+    if (!loose) fly(time, dt);
     for (const glyph of glyphs) {
-      const { x, y } = glyph.body.position;
-      glyph.element.style.transform = `translate(${x - glyph.width / 2}px,${y - glyph.height / 2}px) rotate(${glyph.body.angle}rad)`;
+      if (glyph.landed) continue;
+      if (!glyph.flight) {
+        const { x, y } = glyph.body.position;
+        glyph.element.style.transform = `translate(${x - glyph.width / 2}px,${y - glyph.height / 2}px) rotate(${glyph.body.angle}rad)`;
+      }
       if (glyph.patch && patchesStale) {
         const box = glyph.source!.range.getClientRects()[0];
         Object.assign(glyph.patch.style, box ? { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` } : { width: "0", height: "0" });
       }
     }
     patchesStale = false;
-    frame = requestAnimationFrame(render);
+    if (phase !== "done") frame = requestAnimationFrame(render);
   };
   frame = requestAnimationFrame(render);
 
@@ -325,17 +359,15 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     cancel: cleanup,
     collapse() {
       if (phase !== "loose") return landing ?? Promise.resolve();
+      // Letters not yet released simply stay in their text.
       phase = "collapse"; queued = queue.length; collapseStartedAt = performance.now();
-      unlisten(); Engine.clear(engine);
+      unlisten(); pointer = null;
       document.documentElement.classList.remove("is-glyph-swarm");
-      const exit = options.exit()?.getBoundingClientRect(), center = exit?.width ? centerOf(exit) : viewportCenter();
+      // Each letter loosens with a small nudge, floats free for its own moment, then turns for home.
       for (const glyph of glyphs) {
-        const { position, velocity, angle, angularVelocity } = glyph.body;
-        // A loose knot around Esc, not a single point; letters turn for home at slightly different moments.
-        const knot = Math.random() * Math.PI * 2, spread = Math.sqrt(Math.random()) * 34;
-        glyph.flight = { x: position.x, y: position.y, vx: velocity.x * 60, vy: velocity.y * 60, angle, spin: angularVelocity * 60,
-          gather: { x: center.x + Math.cos(knot) * spread, y: center.y + Math.sin(knot) * spread * 0.6 },
-          homewardAt: GATHER_MS + Math.random() * HOMEWARD_STAGGER_MS };
+        glyph.departAt = Math.random() * LET_GO_MS;
+        const angle = Math.random() * Math.PI * 2, nudge = 0.5 + Math.random() * 1.5;
+        Body.setVelocity(glyph.body, { x: glyph.body.velocity.x + Math.cos(angle) * nudge, y: glyph.body.velocity.y + Math.sin(angle) * nudge });
       }
       landing = new Promise<void>(resolve => { finishLanding = resolve; }).then(cleanup);
       return landing;

@@ -36,17 +36,38 @@ export function zoneRadius(letters: number, spacing = SPACING) {
 }
 
 /**
- * The anchor's pull. Inside the zone it is a faint centring drift, so letters wander freely and only
- * neighbour spacing shapes the cloud; past the edge it firms up to bring strays back. A small pocket
- * right at the anchor stays clear, so the cursor is never buried.
+ * The pull toward a letter's spot in the zone. Inside the zone it is a faint centring drift, so letters wander
+ * freely and only neighbour spacing shapes the cloud; past the edge it gently firms up to bring strays back.
  */
 export function zoneForce(delta: Point, radius: number, strength = 1): Point {
   const distance = Math.hypot(delta.x, delta.y);
   if (distance < 1 || strength <= 0) return { x: 0, y: 0 };
   const outside = Math.max(0, distance - radius);
-  let weight = PULL * Math.min(3, strength) * (0.18 * Math.min(1, distance / radius) + Math.min(1, outside / 140));
-  if (distance < POCKET) weight -= PULL * 1.6 * (1 - distance / POCKET);
+  const weight = PULL * Math.min(3, strength) * (0.12 * Math.min(1, distance / radius) + Math.min(1, outside / 220));
   return { x: delta.x / distance * weight, y: delta.y / distance * weight };
+}
+
+/** A small pocket right at the cursor stays clear, so it is never buried. Push direction is away from the cursor. */
+export function pocketForce(fromCursor: Point): Point {
+  const distance = Math.hypot(fromCursor.x, fromCursor.y);
+  if (distance < 0.5 || distance >= POCKET) return { x: 0, y: 0 };
+  const weight = PULL * 1.6 * (1 - distance / POCKET);
+  return { x: fromCursor.x / distance * weight, y: fromCursor.y / distance * weight };
+}
+
+/**
+ * How strongly a letter is being drawn in, by its age. It floats free at first, then a suction fades in over its
+ * own ramp and carries it across the screen, then relaxes to the swarm's loose ambient pull.
+ */
+export function captureStrength(age: number, floatMs: number, captureMs: number, suction = 1.8, settleMs = 1600) {
+  const capture = smoothstep((age - floatMs) / captureMs);
+  return capture * (1 + suction * (1 - smoothstep((age - floatMs - captureMs) / settleMs)));
+}
+
+/** Eases 0 → 1 with a soft start and finish; used to fade each letter's pull in at its own pace. */
+export function smoothstep(t: number) {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
 }
 
 /** Neighbours closer than the spacing ease apart, so the swarm stays a loose cloud instead of one packed shape. */

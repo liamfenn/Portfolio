@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { createPortal } from "react-dom";
-import { GATHER_MS, preloadSwarm } from "@/lib/glyph-swarm";
+import { ESC_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
 
@@ -65,7 +65,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
   const spent = mode === "active" || (mode === "collapsing" && !reforming);
   useEffect(() => {
     if (mode !== "collapsing") return;
-    const timer = window.setTimeout(() => setReforming(true), GATHER_MS + RETURN_MS * 0.6);
+    const timer = window.setTimeout(() => setReforming(true), ESC_RETURN_DELAY_MS + RETURN_MS * 0.6);
     return () => { window.clearTimeout(timer); setReforming(false); };
   }, [mode]);
 
@@ -100,7 +100,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
       pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), false, 80 + order * 60); });
     }
     if (mode === "collapsing") {
-      pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), true, GATHER_MS + order * 40); });
+      pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), true, ESC_RETURN_DELAY_MS + order * 40); });
     }
   }, [mode]);
 

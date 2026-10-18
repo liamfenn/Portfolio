@@ -71,23 +71,26 @@ The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The footer palette strip is decorative.
 
 A globe of orbiting characters sits in the middle of the footer on desktop (40px)
-and centered below it on mobile (28px). Tapping it bursts the globe and pulls about
-70% of every letter on the page into a floating swarm, including letters scrolled
-out of view, which stream in from the screen edge. Their original spots go blank
-while the text stays mounted and current. Three of the globe's characters snap
-into an **Esc** button at the bottom of the screen.
+and centered below it on mobile (28px). Tapping it bursts the globe and frees about
+70% of every letter on the page, including letters scrolled out of view, which
+enter from the screen edge. Letters pop out of their text at their own moments
+over about a second and a half, float loose for a while, then are sucked in at
+their own pace and strength before relaxing into the swarm. Their original spots
+go blank while the text stays mounted and current. Three of the globe's
+characters snap into an **Esc** button at the bottom of the screen.
 
-The swarm has no downward gravity. It floats in a loose zone around the cursor:
-inside the zone the pull is faint and each letter keeps a little room from its
-neighbours, so the cloud churns and bumps without packing into one shape; strays
-past the edge are drawn back, and a small pocket at the cursor stays clear.
-Moving the cursor through the swarm pushes letters away and they float back. On
-touch, dragging pushes and steers the swarm (the page doesn't scroll while it's
-out); lifting the finger lets it drift to the screen centre.
+The swarm has no downward gravity. It floats in a loose zone that trails the
+cursor lazily and sways a little. Each letter circles its own spot in the zone and
+keeps some room from its neighbours, so the cloud flows and bumps without packing
+into one shape; strays past the edge are drawn gently back, and a small pocket at
+the cursor stays clear. Moving the cursor through the swarm pushes letters away
+and they float back. On touch, dragging pushes and steers the swarm (the page
+doesn't scroll while it's out); lifting the finger lets it drift to the centre.
 
-**Esc** (button or key) gathers the swarm loosely at Esc, then each letter glides
-home on a spring and reappears in its text as it lands; the globe re-forms as
-Esc's letters return to it. Reduced motion disables the toy.
+**Esc** (button or key) mirrors the entry: each letter loosens and floats free for
+a moment, then glides home on a spring at its own speed and reappears in its text
+as it lands. The globe re-forms as Esc's letters return to it. Reduced motion
+disables the toy.
 
 Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,
 anchor pull, pointer push, bounce, ambient drift, and spacing. Preferences stay
