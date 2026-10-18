@@ -82,9 +82,8 @@ that rewrite themselves on hover stay masked, and when the song or clock changes
 a floating letter quietly becomes the new character at its place (after the text
 has held still for a moment, so scrambles pass by). If a new title is shorter,
 letters without a place fade into the end of the line on exit. Nine of the globe's
-characters stay behind and snap into an **X** in the globe's place; it turns a
-quarter-turn on hover, and the swarm keeps a small clear pocket around it so it
-always reads.
+characters stay behind and snap into an **X** in the globe's place, and the swarm
+keeps a small clear pocket around it so it always reads.
 
 The swarm has no downward gravity. It floats in a loose zone that trails the
 cursor lazily and sways a little. Each letter circles its own spot in the zone and

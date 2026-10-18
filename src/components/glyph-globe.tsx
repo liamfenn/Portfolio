@@ -11,7 +11,7 @@ const GLOBE_CHARS = "a&RE7?g*Q2ks@m0yt%cWb#f5j".split("");
 // Nine of them stay behind when the globe bursts and become the close control: an X with one character at its
 // centre and two along each arm. Positions are fractions of the control's size, arms on the diagonals.
 const CROSS_INDEX = [12, 3, 0, 9, 6, 15, 18, 21, 24];
-const CROSS_POINTS = [[0, 0], [-0.17, -0.17], [-0.36, -0.36], [0.17, -0.17], [0.36, -0.36], [-0.17, 0.17], [-0.36, 0.36], [0.17, 0.17], [0.36, 0.36]];
+const CROSS_POINTS = [[0, 0], [-0.21, -0.21], [-0.43, -0.43], [0.21, -0.21], [0.43, -0.43], [-0.21, 0.21], [-0.43, 0.43], [0.21, 0.21], [0.43, 0.43]];
 // Sized against the 28px globe; a larger globe scales its orbit and characters to match.
 const BASE_SIZE = 28;
 const RADIUS = 10;
@@ -59,6 +59,8 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
   const crossRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const crossRef = useRef<HTMLButtonElement>(null);
   const hoverRef = useRef(false);
+  // Whether the globe was pressed from the keyboard (a click with no pointer detail), so focus can follow to the X.
+  const keyboardRef = useRef(false);
   // Kept across bursts, so the globe re-forms exactly where the X's characters return to.
   const angleRef = useRef(0.6);
   const previousMode = useRef(mode);
@@ -99,8 +101,9 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     previousMode.current = mode;
     const pairs = CROSS_INDEX.map((index, order) => ({ globe: charRefs.current[index], cross: crossRefs.current[order], ring: Math.ceil(order / 4) }));
     if (mode === "active" && previous === "loading") {
-      // The globe is now disabled; a keyboard user's focus moves to the control that replaced it.
-      if (document.activeElement === globeRef.current || document.activeElement === document.body) crossRef.current?.focus({ preventScroll: true });
+      // The globe is now disabled; a keyboard user's focus moves to the control that replaced it. After a mouse
+      // click it stays put, since browsers can show programmatic focus as keyboard focus.
+      if (keyboardRef.current) crossRef.current?.focus({ preventScroll: true });
       pairs.forEach(({ globe, cross, ring }, order) => { if (globe && cross) flip(cross, globe.getBoundingClientRect(), cross.getBoundingClientRect(), false, 80 + ring * 70 + order * 12); });
     }
     if (mode === "collapsing") {
@@ -112,7 +115,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
 
   return <>
     <button ref={globeRef} type="button" className={`glyph-globe text-captionSans${spent ? " is-spent" : ""}`}
-      aria-label="Play with the letters" disabled={disabled || mode !== "idle"} onClick={onToggle}
+      aria-label="Play with the letters" disabled={disabled || mode !== "idle"} onClick={event => { keyboardRef.current = event.detail === 0; onToggle(); }}
       onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={preloadSwarm} onTouchStart={preloadSwarm}>
       <span className="glyph-globe-sphere" aria-hidden="true">
         {GLOBE_CHARS.map((char, index) => <span key={index} ref={element => { charRefs.current[index] = element; }}
