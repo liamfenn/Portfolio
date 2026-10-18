@@ -71,7 +71,7 @@ The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The footer palette strip is decorative.
 
 A globe of orbiting characters sits in the middle of the footer on desktop (48px)
-and centered below it on mobile (40px). Tapping it bursts the globe and frees about
+and centered below it on mobile (44px). Tapping it bursts the globe and frees about
 70% of every letter on the page, including letters scrolled out of view, which
 enter from the screen edge. Letters pop out of their text at their own moments
 over about a second and a half, float loose for a while, then are sucked in at
@@ -91,8 +91,9 @@ cursor lazily and sways a little. Each letter circles its own spot in the zone a
 keeps some room from its neighbours, so the cloud flows and bumps without packing
 into one shape; strays past the edge are drawn gently back, and a small pocket at
 the cursor stays clear. Moving the cursor through the swarm pushes letters away
-and they float back. On touch, dragging pushes and steers the swarm (the page
-doesn't scroll while it's out); lifting the finger lets it drift to the centre.
+and they float back. On touch, the page still scrolls vertically, and the moving
+finger pushes and steers the swarm as it goes, scrolling or not; lifting the finger
+lets it drift to the centre.
 
 The ring (or the Esc key) mirrors the entry: each letter loosens and floats free for
 a moment, then glides home on a spring at its own speed. It arrives just off its

@@ -243,7 +243,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
 
   let phase: "loose" | "collapse" | "done" = "loose", removed = false;
-  let last: Point | null = null, touchId: number | null = null;
+  let last: Point | null = null, touchId: number | null = null, penId: number | null = null;
   const push = (from: Point, to: Point) => {
     if (phase !== "loose") return;
     for (const glyph of glyphs) {
@@ -253,25 +253,43 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + impulse.x * 0.004);
     }
   };
-  const excluded = (event: PointerEvent) => (event.target as Element | null)?.closest?.(".glyph-exit,.palette-lab,.design-inspector,[role='menu']");
-  // Desktop: the cursor anchors the zone and its movement pushes. Touch: a dragging finger is both.
-  const onDown = (event: PointerEvent) => {
-    if (event.pointerType === "mouse" || excluded(event)) return;
-    touchId = event.pointerId; pointer = last = { x: event.clientX, y: event.clientY };
-  };
-  const onMove = (event: PointerEvent) => {
-    if (event.pointerType !== "mouse" && event.pointerId !== touchId) return;
-    const next = { x: event.clientX, y: event.clientY };
+  const excluded = (target: EventTarget | null) => (target as Element | null)?.closest?.(".glyph-exit,.palette-lab,.design-inspector,[role='menu']");
+  const steer = (next: Point) => {
     if (last) push(last, next);
     pointer = last = next;
   };
-  const onUp = (event: PointerEvent) => { if (event.pointerId === touchId) { touchId = null; pointer = last = null; } };
-  const onLeave = () => { if (touchId === null) pointer = last = null; };
+  // Desktop: the cursor anchors the zone and its movement pushes. A pen drag does the same.
+  const onDown = (event: PointerEvent) => {
+    if (event.pointerType !== "pen" || excluded(event.target)) return;
+    penId = event.pointerId; pointer = last = { x: event.clientX, y: event.clientY };
+  };
+  const onMove = (event: PointerEvent) => {
+    if (event.pointerType === "mouse" || event.pointerId === penId) steer({ x: event.clientX, y: event.clientY });
+  };
+  const onUp = (event: PointerEvent) => { if (event.pointerId === penId) { penId = null; pointer = last = null; } };
+  const onLeave = () => { if (touchId === null && penId === null) pointer = last = null; };
+  // Touch: a moving finger is both the anchor and the push. These are passive touch events rather than pointer
+  // events, because the page stays scrollable: browsers cancel a pointer once it starts scrolling the page, but
+  // keep reporting touch moves, so a vertical scroll still sweeps through the swarm.
+  const touchOf = (event: TouchEvent) => Array.from(event.changedTouches).find(touch => touch.identifier === touchId);
+  const onTouchStart = (event: TouchEvent) => {
+    const touch = event.changedTouches[0];
+    if (touchId !== null || !touch || excluded(touch.target)) return;
+    touchId = touch.identifier; pointer = last = { x: touch.clientX, y: touch.clientY };
+  };
+  const onTouchMove = (event: TouchEvent) => {
+    const touch = touchOf(event);
+    if (touch) steer({ x: touch.clientX, y: touch.clientY });
+  };
+  const onTouchEnd = (event: TouchEvent) => { if (touchOf(event)) { touchId = null; pointer = last = null; } };
   const preventSelection = (event: Event) => event.preventDefault();
   window.addEventListener("pointerdown", onDown, { capture: true });
   window.addEventListener("pointermove", onMove, { capture: true });
   window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
   document.documentElement.addEventListener("pointerleave", onLeave);
+  window.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
+  window.addEventListener("touchmove", onTouchMove, { capture: true, passive: true });
+  window.addEventListener("touchend", onTouchEnd, { passive: true }); window.addEventListener("touchcancel", onTouchEnd, { passive: true });
   document.addEventListener("selectstart", preventSelection);
   let patchesStale = true;
   const onScroll = () => { patchesStale = true; };
@@ -284,7 +302,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onResize);
   document.body.append(layer);
-  document.documentElement.classList.add("is-glyph-swarm");
 
   // Letters still in the physics world: everything except those already gliding home.
   const floating = () => glyphs.filter(glyph => !glyph.flight);
@@ -459,6 +476,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     window.removeEventListener("pointerdown", onDown, true); window.removeEventListener("pointermove", onMove, true);
     window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp);
     document.documentElement.removeEventListener("pointerleave", onLeave);
+    window.removeEventListener("touchstart", onTouchStart, true); window.removeEventListener("touchmove", onTouchMove, true);
+    window.removeEventListener("touchend", onTouchEnd); window.removeEventListener("touchcancel", onTouchEnd);
     window.removeEventListener("resize", onResize);
   };
   const cleanup = () => {
@@ -469,7 +488,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     highlightStyle.remove(); layer.remove();
     globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });
     document.removeEventListener("selectstart", preventSelection);
-    document.documentElement.classList.remove("is-glyph-swarm");
     options.signal.removeEventListener("abort", cleanup); finishLanding(); options.onFinish();
   };
   options.signal.addEventListener("abort", cleanup, { once: true });
@@ -483,7 +501,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       // Letters not yet released simply stay in their text.
       phase = "collapse"; queued = queue.length; collapseStartedAt = performance.now();
       unlisten(); pointer = null;
-      document.documentElement.classList.remove("is-glyph-swarm");
       // Each letter loosens with a small nudge, floats free for its own moment, then turns for home.
       for (const glyph of glyphs) {
         // Globe letters left first on entry, so they come home last, alongside the ring folding back.

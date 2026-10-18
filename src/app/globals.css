@@ -513,8 +513,9 @@
     gap: 4px;
   }
 
-  .portfolio-socials,
-  .portfolio-socials span {
+  /* Only the list stacks. Its links' text stays inline: Safari doesn't paint the swarm's text mask on text that
+     flex has wrapped in anonymous boxes. */
+  .portfolio-socials {
     display: flex;
     flex-direction: column;
   }
@@ -708,7 +709,7 @@
 
 /* Footer globe: the entry to the letter swarm. Esc takes its place while the swarm is out; tuning stays in ?palette-lab. */
 .glyph-globe-row { display: flex; justify-content: center; margin-top: 48px; }
-.glyph-globe { position: relative; width: 40px; height: 40px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.glyph-globe { position: relative; width: 44px; height: 44px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .glyph-globe::before { content: ""; position: absolute; inset: -8px; }
 .glyph-globe:disabled { cursor: default; }
 .glyph-globe:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
@@ -720,7 +721,7 @@
 .glyph-globe-row { position: relative; }
 /* The exit: a ring of the globe's glyphs around an empty centre, like a stroke, turning slowly clockwise above
    the swarm. Hover and keyboard focus wind its spin up (glyph-globe.tsx) rather than dimming it. */
-.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .62; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .68; --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .glyph-exit::before { content: ""; position: absolute; inset: -4px; }
 .glyph-exit:disabled { cursor: default; }
 .glyph-exit-ring { position: absolute; inset: 0; }
@@ -753,8 +754,6 @@
 .glyph-swarm-layer { position: fixed; inset: 0; z-index: 1500; overflow: clip; pointer-events: none; }
 .glyph-swarm-glyph { z-index: 1; position: absolute; left: 0; top: 0; display: block; white-space: pre; transform-origin: center; will-change: transform; }
 .glyph-swarm-patch { position: absolute; display: block; }
-/* A drag steers the swarm on touch screens instead of scrolling the page. */
-html.is-glyph-swarm, html.is-glyph-swarm body { touch-action: none; overscroll-behavior: none; }
 
 .palette-lab {
   position: fixed;
