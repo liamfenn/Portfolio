@@ -1,7 +1,8 @@
 /* Shared portfolio tokens. Keep raw UI colors and type values here. */
 @theme {
   /* Typography - uses CSS variable from next/font */
-  --font-sans: var(--font-suisse-intl), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Every text style sets its own face; this default only catches unstyled text, so it matches the sans style. */
+  --font-sans: var(--font-abc-oracle), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Type scale: font size, weight, leading, and tracking are independent. */
   --text-caption: 14px;

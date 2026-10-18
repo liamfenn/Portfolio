@@ -49,7 +49,7 @@
 }
 
 .type-mono-responsive {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-family: ui-monospace, monospace;
   font-weight: 500;
   font-size: 12.4px;
   line-height: 1.25;
