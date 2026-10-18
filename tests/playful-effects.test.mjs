@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { anchorPull, closestOnSegment, pushImpulse, releaseDelay, segmentDistance, swarmCount, wanderForce } from "../src/lib/glyph-physics.ts";
+import { closestOnSegment, entryPoint, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -13,20 +13,42 @@ test("the swarm takes its share of on-screen letters, capped for long pages", ()
 test("letters nearest the globe are released first", () => {
   assert.equal(releaseDelay(0, 800), 0);
   assert.ok(releaseDelay(200, 800) < releaseDelay(600, 800));
-  assert.equal(releaseDelay(2000, 800), 520);
+  assert.equal(releaseDelay(2000, 800), 280);
 });
 test("segment geometry catches fast sweeps between pointer events", () => {
   assert.equal(segmentDistance({x:50,y:30},{x:0,y:0},{x:100,y:0}), 30);
   assert.equal(segmentDistance({x:3,y:4},{x:0,y:0},{x:0,y:0}), 5);
   assert.deepEqual(closestOnSegment({x:150,y:10},{x:0,y:0},{x:100,y:0}), {x:100,y:0});
 });
-test("the anchor pulls toward itself and softens close in", () => {
-  const far = anchorPull({x:400,y:0}), near = anchorPull({x:20,y:0});
-  assert.ok(far.x > 0 && far.y === 0);
-  assert.ok(near.x > 0 && near.x < far.x);
-  assert.ok(anchorPull({x:0,y:-300}).y < 0);
-  assert.deepEqual(anchorPull({x:0,y:0}), {x:0,y:0});
-  assert.deepEqual(anchorPull({x:100,y:0}, 0), {x:0,y:0});
+test("the zone is faint inside, firm past its edge, and keeps a pocket at the cursor", () => {
+  const radius = 150;
+  const inside = zoneForce({x:100,y:0}, radius), outside = zoneForce({x:300,y:0}, radius);
+  assert.ok(inside.x > 0 && outside.x > inside.x * 3, "strays past the edge are pulled back much harder");
+  assert.ok(zoneForce({x:10,y:0}, radius).x < 0, "letters right at the cursor are eased out of the pocket");
+  assert.deepEqual(zoneForce({x:0,y:0}, radius), {x:0,y:0});
+  assert.deepEqual(zoneForce({x:300,y:0}, radius, 0), {x:0,y:0});
+});
+test("the zone grows with the swarm and the spacing", () => {
+  assert.ok(zoneRadius(240) > zoneRadius(60));
+  assert.ok(zoneRadius(240, 30) > zoneRadius(240, 20));
+  assert.equal(zoneRadius(0), 60);
+});
+test("neighbours ease apart only inside the spacing", () => {
+  assert.ok(separationForce(5, 0, 22).x > 0);
+  assert.ok(separationForce(5, 0, 22).x > separationForce(15, 0, 22).x);
+  assert.deepEqual(separationForce(30, 0, 22), {x:0,y:0});
+  assert.ok(separationForce(0, 0, 22).x > 0, "overlapping letters still separate");
+});
+test("off-screen letters enter from the nearest screen edge", () => {
+  assert.deepEqual(entryPoint({x:200,y:-500}, 800, 600), {x:200,y:8});
+  assert.deepEqual(entryPoint({x:900,y:1400}, 800, 600), {x:792,y:592});
+  assert.deepEqual(entryPoint({x:300,y:300}, 800, 600), {x:300,y:300});
+});
+test("the exit spring settles on its target without overshooting", () => {
+  let state = { position: 0, velocity: 0 }, peak = 0;
+  for (let i = 0; i < 120; i++) { state = springStep(state.position, state.velocity, 100, 10, 1 / 60); peak = Math.max(peak, state.position); }
+  assert.ok(Math.abs(state.position - 100) < 0.5);
+  assert.ok(peak <= 100.01);
 });
 test("a moving pointer pushes nearby letters away from its path", () => {
   const above = pushImpulse({x:50,y:-20}, {x:40,y:0}, {x:60,y:0});
@@ -41,7 +63,7 @@ test("a moving pointer pushes nearby letters away from its path", () => {
 });
 test("ambient drift stays far weaker than the anchor pull", () => {
   const drift = wanderForce(0.3);
-  assert.ok(Math.hypot(drift.x, drift.y) < Math.hypot(anchorPull({x:300,y:0}).x, 0) / 3);
+  assert.ok(Math.hypot(drift.x, drift.y) < zoneForce({x:300,y:0}, 150).x / 3);
   assert.deepEqual(wanderForce(1, 0), {x:0,y:0});
 });
 test("saved glyph controls retain votes and clamp values", () => {
@@ -51,21 +73,21 @@ test("saved glyph controls retain votes and clamp values", () => {
   assert.deepEqual(parsePalettePreferences(null).glyphs, DEFAULT_GLYPHS);
 });
 
-test("a pushed letter floats back to the anchor in zero gravity", () => {
+test("a pushed letter floats back into the zone in zero gravity", () => {
   const { Engine, Bodies, Body, Composite } = Matter;
   const engine = Engine.create(); engine.gravity.y = 0;
-  const anchor = { x: 300, y: 300 };
-  const glyph = Bodies.rectangle(300, 300, 8, 10, { frictionAir: 0.035 });
+  const anchor = { x: 300, y: 300 }, radius = 80;
+  const glyph = Bodies.rectangle(340, 300, 8, 10, { frictionAir: 0.035 });
   Composite.add(engine.world, glyph);
-  Body.setVelocity(glyph, pushImpulse(glyph.position, {x:260,y:300}, {x:300,y:300}));
-  for (let i = 0; i < 20; i++) Engine.update(engine, 1000 / 60);
+  Body.setVelocity(glyph, pushImpulse(glyph.position, {x:300,y:300}, {x:330,y:300}, 3));
+  for (let i = 0; i < 30; i++) Engine.update(engine, 1000 / 60);
   const pushed = Math.hypot(glyph.position.x - anchor.x, glyph.position.y - anchor.y);
-  assert.ok(pushed > 20, "the push should move the letter clear of the anchor");
+  assert.ok(pushed > radius, "the push should carry the letter out of the zone");
   for (let i = 0; i < 600; i++) {
-    const pull = anchorPull({ x: anchor.x - glyph.position.x, y: anchor.y - glyph.position.y });
+    const pull = zoneForce({ x: anchor.x - glyph.position.x, y: anchor.y - glyph.position.y }, radius);
     Body.applyForce(glyph, glyph.position, { x: pull.x * glyph.mass, y: pull.y * glyph.mass });
     Engine.update(engine, 1000 / 60);
   }
-  assert.ok(Math.hypot(glyph.position.x - anchor.x, glyph.position.y - anchor.y) < pushed / 2, "the letter should drift back");
+  assert.ok(Math.hypot(glyph.position.x - anchor.x, glyph.position.y - anchor.y) < radius, "the letter should float back inside the zone");
   Engine.clear(engine);
 });

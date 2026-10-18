@@ -70,20 +70,28 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
 UI colors. The footer palette strip is decorative.
 
-A small globe of orbiting characters sits centered below the footer. Tapping it
-bursts the globe and pulls about 70% of the letters on screen into a floating
-swarm; their original spots go blank while the text stays mounted and current.
-Three of the globe's characters snap into an **Esc** button at the bottom of the
-screen. The swarm has no downward gravity: the cursor is its anchor, so letters
-drift toward it, collide, tumble, and bounce off the viewport edges. Moving the
-cursor through them pushes them away and they float back. On touch, dragging
-pushes and steers the swarm (the page doesn't scroll while it's out); lifting the
-finger lets it drift to the screen centre. **Esc** (button or key) balls the swarm
-up, flies every letter home, and re-forms the globe. Reduced motion disables it.
+A globe of orbiting characters sits in the middle of the footer on desktop (40px)
+and centered below it on mobile (28px). Tapping it bursts the globe and pulls about
+70% of every letter on the page into a floating swarm, including letters scrolled
+out of view, which stream in from the screen edge. Their original spots go blank
+while the text stays mounted and current. Three of the globe's characters snap
+into an **Esc** button at the bottom of the screen.
+
+The swarm has no downward gravity. It floats in a loose zone around the cursor:
+inside the zone the pull is faint and each letter keeps a little room from its
+neighbours, so the cloud churns and bumps without packing into one shape; strays
+past the edge are drawn back, and a small pocket at the cursor stays clear.
+Moving the cursor through the swarm pushes letters away and they float back. On
+touch, dragging pushes and steers the swarm (the page doesn't scroll while it's
+out); lifting the finger lets it drift to the screen centre.
+
+**Esc** (button or key) gathers the swarm loosely at Esc, then each letter glides
+home on a spring and reappears in its text as it lands; the globe re-forms as
+Esc's letters return to it. Reduced motion disables the toy.
 
 Open `?palette-lab` and choose **Glyphs** to tune how many letters are pulled in,
-anchor pull, pointer push, bounce, and ambient drift. Preferences stay local.
-Matter.js preloads when the globe is hovered, focused, or touched.
+anchor pull, pointer push, bounce, ambient drift, and spacing. Preferences stay
+local. Matter.js preloads when the globe is hovered, focused, or touched.
 
 ## Spotify authorization
 

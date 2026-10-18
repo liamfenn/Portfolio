@@ -2,6 +2,10 @@
 export type Point = { x: number; y: number };
 
 const PULL = 0.00028;
+const POCKET = 34;
+/** The room each letter keeps around itself, in px. */
+export const SPACING = 22;
+const SEPARATION = 0.00022;
 const PUSH_RADIUS = 64;
 const WANDER = 0.00005;
 
@@ -11,7 +15,7 @@ export function swarmCount(visibleLetters: number, share: number, cap = 520) {
 }
 
 /** Letters nearest the globe leave first, so the pull ripples outward across the page. */
-export function releaseDelay(distance: number, farthest: number, spread = 520) {
+export function releaseDelay(distance: number, farthest: number, spread = 280) {
   return spread * Math.min(1, Math.max(0, distance) / Math.max(1, farthest));
 }
 
@@ -26,12 +30,33 @@ export function segmentDistance(point: Point, from: Point, to: Point) {
   return Math.hypot(point.x - near.x, point.y - near.y);
 }
 
-/** The anchor is the swarm's gravity. Close in, the pull softens so letters settle around it instead of onto one point. */
-export function anchorPull(delta: Point, strength = 1): Point {
+/** The zone around the anchor that a swarm of this size floats in, given the room each letter keeps around itself. */
+export function zoneRadius(letters: number, spacing = SPACING) {
+  return Math.max(60, Math.sqrt(Math.max(0, letters) * spacing * spacing / Math.PI));
+}
+
+/**
+ * The anchor's pull. Inside the zone it is a faint centring drift, so letters wander freely and only
+ * neighbour spacing shapes the cloud; past the edge it firms up to bring strays back. A small pocket
+ * right at the anchor stays clear, so the cursor is never buried.
+ */
+export function zoneForce(delta: Point, radius: number, strength = 1): Point {
   const distance = Math.hypot(delta.x, delta.y);
   if (distance < 1 || strength <= 0) return { x: 0, y: 0 };
-  const weight = PULL * Math.min(3, strength) * Math.max(0.2, Math.min(1, distance / 160));
+  const outside = Math.max(0, distance - radius);
+  let weight = PULL * Math.min(3, strength) * (0.18 * Math.min(1, distance / radius) + Math.min(1, outside / 140));
+  if (distance < POCKET) weight -= PULL * 1.6 * (1 - distance / POCKET);
   return { x: delta.x / distance * weight, y: delta.y / distance * weight };
+}
+
+/** Neighbours closer than the spacing ease apart, so the swarm stays a loose cloud instead of one packed shape. */
+export function separationForce(dx: number, dy: number, spacing = SPACING): Point {
+  const distance = Math.hypot(dx, dy);
+  if (distance >= spacing) return { x: 0, y: 0 };
+  // Exactly overlapping letters still need a direction to separate in.
+  const away = distance > 0.01 ? { x: dx / distance, y: dy / distance } : { x: 1, y: 0 };
+  const weight = SEPARATION * (1 - distance / spacing);
+  return { x: away.x * weight, y: away.y * weight };
 }
 
 /** A moving pointer shoves letters out of its path; faster gestures shove harder. Returns a velocity change. */
@@ -49,6 +74,17 @@ export function pushImpulse(position: Point, from: Point, to: Point, strength = 
     x: (away.x + mx / travel * 0.35) * speed * weight,
     y: (away.y + my / travel * 0.35) * speed * weight,
   };
+}
+
+/** Where a letter enters the swarm: its own spot, or the nearest screen edge when it lives off screen. */
+export function entryPoint(point: Point, width: number, height: number, inset = 8): Point {
+  return { x: Math.max(inset, Math.min(width - inset, point.x)), y: Math.max(inset, Math.min(height - inset, point.y)) };
+}
+
+/** One step of a critically damped spring: a smooth glide that keeps the current velocity and never overshoots. */
+export function springStep(position: number, velocity: number, target: number, omega: number, dt: number) {
+  const next = velocity + (omega * omega * (target - position) - 2 * omega * velocity) * dt;
+  return { position: position + next * dt, velocity: next };
 }
 
 /** A slow, wandering force that keeps a resting swarm churning. */

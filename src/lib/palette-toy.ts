@@ -33,9 +33,10 @@ export interface GlyphSettings {
   push: number;
   bounce: number;
   drift: number;
+  spacing: number;
 }
 export const DEFAULT_GLYPHS: GlyphSettings = {
-  amount: 0.7, pull: 1, push: 1, bounce: 0.5, drift: 1,
+  amount: 0.7, pull: 1, push: 1, bounce: 0.5, drift: 1, spacing: 1,
 };
 export const GLYPH_CONTROLS = [
   { key: "amount", label: "Letters pulled in", min: 0.1, max: 1, step: 0.05, unit: "%" },
@@ -43,6 +44,7 @@ export const GLYPH_CONTROLS = [
   { key: "push", label: "Pointer push", min: 0, max: 3, step: 0.1, unit: "×" },
   { key: "bounce", label: "Bounce", min: 0, max: 0.95, step: 0.05, unit: "%" },
   { key: "drift", label: "Ambient drift", min: 0, max: 3, step: 0.1, unit: "×" },
+  { key: "spacing", label: "Spacing", min: 0.5, max: 2, step: 0.1, unit: "×" },
 ] as const;
 
 export type PaletteVotes = Record<string, boolean>;
