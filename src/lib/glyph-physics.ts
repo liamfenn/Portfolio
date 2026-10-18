@@ -47,12 +47,12 @@ export function zoneForce(delta: Point, radius: number, strength = 1): Point {
   return { x: delta.x / distance * weight, y: delta.y / distance * weight };
 }
 
-/** A small pocket right at the cursor stays clear, so it is never buried. Push direction is away from the cursor. */
-export function pocketForce(fromCursor: Point): Point {
-  const distance = Math.hypot(fromCursor.x, fromCursor.y);
-  if (distance < 0.5 || distance >= POCKET) return { x: 0, y: 0 };
-  const weight = PULL * 1.6 * (1 - distance / POCKET);
-  return { x: fromCursor.x / distance * weight, y: fromCursor.y / distance * weight };
+/** A small pocket that stays clear (around the cursor, or around Esc), so it is never buried. Pushes away from its centre. */
+export function pocketForce(fromCenter: Point, radius = POCKET): Point {
+  const distance = Math.hypot(fromCenter.x, fromCenter.y);
+  if (distance < 0.5 || distance >= radius) return { x: 0, y: 0 };
+  const weight = PULL * 1.6 * (1 - distance / radius);
+  return { x: fromCenter.x / distance * weight, y: fromCenter.y / distance * weight };
 }
 
 /**

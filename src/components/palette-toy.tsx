@@ -153,7 +153,7 @@ export function PaletteToy() {
       swarmRef.current = null;
       setMode("idle");
     };
-    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, exit: () => document.querySelector(".glyph-esc") })
+    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-esc") })
       .then(next => {
         if (controller.signal.aborted) next.cancel();
         else { swarmRef.current = next; setMode("active"); }

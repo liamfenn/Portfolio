@@ -103,7 +103,7 @@ const fontOf = (style: CSSStyleDeclaration, size = style.fontSize) => `${style.f
  * The swarm floats in a loose zone around the pointer (or the viewport centre). The original text stays mounted; released characters are only masked.
  */
 export async function startSwarm(root: Element, globe: HTMLElement, initial: GlyphSettings,
-  options: { signal: AbortSignal; onFinish: () => void; exit: () => Element | null }): Promise<GlyphSwarm> {
+  options: { signal: AbortSignal; onFinish: () => void; keepClear: () => Element | null }): Promise<GlyphSwarm> {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
   options.signal.throwIfAborted();
   let settings = initial;
@@ -395,6 +395,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const target = pointer ?? viewportCenter();
     const goal = { x: target.x + Math.sin(time * 0.00071) * 24, y: target.y + Math.cos(time * 0.00053) * 18 };
     const zone = radius(), gap = spacing(), members = floating();
+    // Letters drift out of Esc's way so it always reads, wherever the swarm is.
+    const clearBox = options.keepClear()?.getBoundingClientRect();
+    const clear = clearBox?.width ? { center: centerOf(clearBox), radius: Math.max(clearBox.width, clearBox.height) / 2 + 18 } : null;
     while (pending >= STEP) {
       anchor.x += (goal.x - anchor.x) * 0.035; anchor.y += (goal.y - anchor.y) * 0.035;
       for (const glyph of members) {
@@ -406,6 +409,10 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
         const capture = loose ? captureStrength(time - glyph.bornAt, glyph.floatMs, glyph.captureMs) : 0, caught = Math.min(1, capture);
         const drift = wanderForce(glyph.wander, settings.drift * (1 + 1.5 * (1 - caught)));
         let fx = drift.x, fy = drift.y;
+        if (clear) {
+          const away = pocketForce({ x: body.position.x - clear.center.x, y: body.position.y - clear.center.y }, clear.radius);
+          fx += away.x * 6; fy += away.y * 6;
+        }
         if (capture > 0) {
           const reach = glyph.reach * zone * 0.45;
           const spot = { x: anchor.x + Math.cos(glyph.orbit) * reach, y: anchor.y + Math.sin(glyph.orbit) * reach };

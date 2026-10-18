@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { createPortal } from "react-dom";
 import { ESC_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
@@ -56,6 +55,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
 }) {
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const escRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const escRef = useRef<HTMLButtonElement>(null);
   const hoverRef = useRef(false);
   // Kept across bursts, so the globe re-forms exactly where Esc's letters return to.
   const angleRef = useRef(0.6);
@@ -67,7 +67,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     if (mode !== "collapsing") return;
     const timer = window.setTimeout(() => setReforming(true), ESC_RETURN_DELAY_MS + RETURN_MS * 0.6);
     return () => { window.clearTimeout(timer); setReforming(false); };
-  }, [mode]);
+  }, [globeRef, mode]);
 
   // The globe turns slowly, faster under the cursor, and pauses off screen or while it is spent.
   useEffect(() => {
@@ -97,12 +97,14 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     previousMode.current = mode;
     const pairs = ESC_INDEX.map((index, order) => ({ globe: charRefs.current[index], esc: escRefs.current[order] }));
     if (mode === "active" && previous === "loading") {
+      // The globe is now disabled; a keyboard user's focus moves to the control that replaced it.
+      if (document.activeElement === globeRef.current || document.activeElement === document.body) escRef.current?.focus({ preventScroll: true });
       pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), false, 80 + order * 60); });
     }
     if (mode === "collapsing") {
       pairs.forEach(({ globe, esc }, order) => { if (globe && esc) flip(esc, globe.getBoundingClientRect(), esc.getBoundingClientRect(), true, ESC_RETURN_DELAY_MS + order * 40); });
     }
-  }, [mode]);
+  }, [globeRef, mode]);
 
   const warm = () => { hoverRef.current = true; preloadSwarm(); };
 
@@ -115,9 +117,10 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
           className="glyph-globe-char" data-esc={ESC_INDEX.includes(index) ? "" : undefined}>{char}</span>)}
       </span>
     </button>
-    {(mode === "active" || mode === "collapsing") && createPortal(<button type="button" className="glyph-esc text-captionSans" aria-label="Put the letters back"
+    {/* Esc takes the globe's place, so it sits where the swarm came from rather than over the page. */}
+    {(mode === "active" || mode === "collapsing") && <button ref={escRef} type="button" className="glyph-esc text-captionSans" aria-label="Put the letters back"
       aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}>
       {["E", "s", "c"].map((char, order) => <span key={char} ref={element => { escRefs.current[order] = element; }} aria-hidden="true">{char}</span>)}
-    </button>, document.body)}
+    </button>}
   </>;
 }

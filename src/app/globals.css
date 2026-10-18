@@ -715,7 +715,9 @@
 .glyph-globe-sphere { position: absolute; inset: 0; transition: opacity var(--motion-duration) var(--motion-ease); }
 .glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
 .glyph-globe-char { position: absolute; left: 50%; top: 50%; line-height: 1; white-space: pre; will-change: transform, opacity; }
-.glyph-esc { position: fixed; z-index: 1600; left: 50%; bottom: var(--content-padding); display: flex; padding: 8px 12px; border: 0; background: transparent; transform: translateX(-50%); cursor: pointer; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
+.glyph-globe-row { position: relative; }
+/* Esc sits exactly where the globe was, above the swarm. */
+.glyph-esc { position: absolute; z-index: 1600; left: 50%; top: 50%; display: flex; padding: 8px 12px; border: 0; background: transparent; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; --inspect-color-token: text-secondary; color: var(--text-secondary); transition: opacity var(--hover-duration) var(--hover-ease); }
 .glyph-esc span { display: inline-block; }
 .glyph-esc:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 @media (hover: hover) { .glyph-esc:not(:disabled):hover { opacity: var(--hover-dim); } }
