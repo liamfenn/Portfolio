@@ -1,5 +1,5 @@
 import type MatterJS from "matter-js";
-import { SPACING, captureStrength, entryPoint, pocketForce, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
@@ -268,27 +268,40 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   const onUp = (event: PointerEvent) => { if (event.pointerId === penId) { penId = null; pointer = last = null; } };
   const onLeave = () => { if (touchId === null && penId === null) pointer = last = null; };
-  // Touch: a moving finger is both the anchor and the push. These are passive touch events rather than pointer
-  // events, because the page stays scrollable: browsers cancel a pointer once it starts scrolling the page, but
-  // keep reporting touch moves, so a vertical scroll still sweeps through the swarm.
+  // Touch: a moving finger is both the anchor and the push. These are touch events rather than pointer events,
+  // because the page stays scrollable: browsers cancel a pointer once it starts scrolling the page, but keep
+  // reporting touch moves, so a vertical scroll still sweeps through the swarm. Each touch is read once, on its
+  // first move (see touchIntent): play holds the page still for the whole touch, so drawing circles through the
+  // letters doesn't scroll; a flick, or a vertical drag from open space, scrolls as usual.
+  let gesture: "pending" | "play" | "scroll" = "pending", touchStart: Point = { x: 0, y: 0 }, touchStartedAt = 0, touchOnSwarm = false;
   const touchOf = (event: TouchEvent) => Array.from(event.changedTouches).find(touch => touch.identifier === touchId);
   const onTouchStart = (event: TouchEvent) => {
     const touch = event.changedTouches[0];
     if (touchId !== null || !touch || excluded(touch.target)) return;
-    touchId = touch.identifier; pointer = last = { x: touch.clientX, y: touch.clientY };
+    touchId = touch.identifier; pointer = last = touchStart = { x: touch.clientX, y: touch.clientY };
+    touchStartedAt = event.timeStamp; gesture = "pending";
+    touchOnSwarm = glyphs.some(glyph => !glyph.flight && Math.hypot(glyph.body.position.x - touch.clientX, glyph.body.position.y - touch.clientY) < 28);
   };
   const onTouchMove = (event: TouchEvent) => {
     const touch = touchOf(event);
-    if (touch) steer({ x: touch.clientX, y: touch.clientY });
+    if (!touch) return;
+    const next = { x: touch.clientX, y: touch.clientY };
+    if (gesture === "pending" && (next.x !== touchStart.x || next.y !== touchStart.y)) {
+      gesture = touchIntent({ delta: { x: next.x - touchStart.x, y: next.y - touchStart.y }, elapsedMs: event.timeStamp - touchStartedAt, onSwarm: touchOnSwarm });
+    }
+    // Only cancellable before the browser starts scrolling, which is why the decision comes on the first move.
+    if (gesture === "play" && event.cancelable) event.preventDefault();
+    steer(next);
   };
-  const onTouchEnd = (event: TouchEvent) => { if (touchOf(event)) { touchId = null; pointer = last = null; } };
+  const onTouchEnd = (event: TouchEvent) => { if (touchOf(event)) { touchId = null; pointer = last = null; gesture = "pending"; } };
   const preventSelection = (event: Event) => event.preventDefault();
   window.addEventListener("pointerdown", onDown, { capture: true });
   window.addEventListener("pointermove", onMove, { capture: true });
   window.addEventListener("pointerup", onUp); window.addEventListener("pointercancel", onUp);
   document.documentElement.addEventListener("pointerleave", onLeave);
   window.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
-  window.addEventListener("touchmove", onTouchMove, { capture: true, passive: true });
+  // Not passive: a play gesture cancels the scroll.
+  window.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
   window.addEventListener("touchend", onTouchEnd, { passive: true }); window.addEventListener("touchcancel", onTouchEnd, { passive: true });
   document.addEventListener("selectstart", preventSelection);
   let patchesStale = true;

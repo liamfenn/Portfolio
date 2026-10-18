@@ -91,9 +91,10 @@ cursor lazily and sways a little. Each letter circles its own spot in the zone a
 keeps some room from its neighbours, so the cloud flows and bumps without packing
 into one shape; strays past the edge are drawn gently back, and a small pocket at
 the cursor stays clear. Moving the cursor through the swarm pushes letters away
-and they float back. On touch, the page still scrolls vertically, and the moving
-finger pushes and steers the swarm as it goes, scrolling or not; lifting the finger
-lets it drift to the centre.
+and they float back. On touch, a flick, or a vertical drag from open space, still
+scrolls the page (and the finger pushes letters as it goes). A touch that starts
+on the swarm, rests before moving, or starts sideways is play: the page holds
+still for that touch so you can draw through the letters. Lifting the finger lets the swarm drift to the centre.
 
 The ring (or the Esc key) mirrors the entry: each letter loosens and floats free for
 a moment, then glides home on a spring at its own speed. It arrives just off its

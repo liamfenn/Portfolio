@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { captureStrength, closestOnSegment, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
+import { captureStrength, closestOnSegment, touchIntent, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -104,4 +104,15 @@ test("a pushed letter floats back into the zone in zero gravity", () => {
   }
   assert.ok(Math.hypot(glyph.position.x - anchor.x, glyph.position.y - anchor.y) < radius, "the letter should float back inside the zone");
   Engine.clear(engine);
+});
+
+test("a touch reads as play or scroll from how it begins", () => {
+  const read = (x, y, elapsedMs, onSwarm = false) => touchIntent({ delta: { x, y }, elapsedMs, onSwarm });
+  assert.equal(read(0, -20, 16), "scroll", "a vertical drag from open space scrolls");
+  assert.equal(read(4, -20, 16), "scroll", "slightly off vertical still scrolls");
+  assert.equal(read(15, -10, 16), "play", "a sideways start is play");
+  assert.equal(read(0, -20, 200), "play", "resting before moving is play");
+  assert.equal(read(0, 6, 16, true), "play", "a slow drag that starts on the swarm is play");
+  assert.equal(read(0, -40, 16, true), "scroll", "a fast flick scrolls even from the swarm");
+  assert.equal(read(0, -200, 200), "scroll", "a long fast first move is not a rest");
 });

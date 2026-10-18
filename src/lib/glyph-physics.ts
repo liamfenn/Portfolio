@@ -108,6 +108,19 @@ export function springStep(position: number, velocity: number, target: number, o
   return { position: position + next * dt, velocity: next };
 }
 
+/**
+ * Reads a touch's intent from how it begins. It is play when the finger rests before moving, when its first
+ * movement isn't mostly vertical (more than about 30 degrees off), or when it starts on the swarm without flicking.
+ * Otherwise (a vertical drag from open space, or a fast vertical flick anywhere) it is a scroll.
+ */
+export function touchIntent(start: { delta: Point; elapsedMs: number; onSwarm: boolean }, holdMs = 150, flickSpeed = 0.8): "play" | "scroll" {
+  const { delta, elapsedMs, onSwarm } = start;
+  const distance = Math.hypot(delta.x, delta.y), speed = distance / Math.max(1, elapsedMs);
+  if (elapsedMs >= holdMs && speed < flickSpeed) return "play";
+  if (Math.abs(delta.x) > Math.abs(delta.y) * Math.tan(Math.PI / 6)) return "play";
+  return onSwarm && speed < flickSpeed ? "play" : "scroll";
+}
+
 /** A slow, wandering force that keeps a resting swarm churning. */
 export function wanderForce(angle: number, strength = 1): Point {
   const weight = WANDER * Math.max(0, Math.min(3, strength));
