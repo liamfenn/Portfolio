@@ -17,6 +17,8 @@ const RELEASE_SPREAD_MS = 1400;
 /** Exit: letters let go of the swarm and turn for home across this window. */
 const LET_GO_MS = 900;
 const LANDING_TIMEOUT_MS = 5000;
+/** A page letter's colour glitch: it flickers between palette colours this often, for 300-750ms, then settles. */
+const FLICKER_MS = 55;
 /** Text must hold a new character this long (a new song, a clock tick) before a floating letter becomes it; scrambles pass by. */
 const MORPH_AFTER_MS = 400;
 const ANCHOR_LEVELS = 3;
@@ -64,6 +66,10 @@ interface Glyph {
   /** Exit timing: when this letter turns for home. */
   departAt: number;
   flight?: Flight;
+  /** A page letter's own text colour, which it glitches back to on the way home. */
+  baseColor: string;
+  /** A colour glitch in progress: flickering between palette colours until `end`, then settling on `to`. */
+  tint?: { start: number; end: number; to: string; flickAt: number };
   landed?: boolean;
 }
 export interface GlyphSwarm {
@@ -109,7 +115,7 @@ const fontOf = (style: CSSStyleDeclaration, size = style.fontSize) => `${style.f
  * The swarm floats in a loose zone around the pointer (or the viewport centre). The original text stays mounted; released characters are only masked.
  */
 export async function startSwarm(root: Element, globe: HTMLElement, initial: GlyphSettings,
-  options: { signal: AbortSignal; onFinish: () => void; keepClear: () => Element | null }): Promise<GlyphSwarm> {
+  options: { signal: AbortSignal; onFinish: () => void; keepClear: () => Element | null; palette: () => string[] }): Promise<GlyphSwarm> {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
   options.signal.throwIfAborted();
   let settings = initial;
@@ -192,6 +198,16 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   let pointer: Point | null = window.matchMedia("(hover: hover)").matches ? { ...origin } : null;
 
   const glyphs: Glyph[] = [];
+  const randomColor = () => { const colors = options.palette(); return colors[Math.floor(Math.random() * colors.length)]; };
+  // Runs a letter's colour glitch: a quick flicker through palette colours (now and then its destination), then it settles.
+  const tintStep = (glyph: Glyph, time: number) => {
+    const tint = glyph.tint;
+    if (!tint || time < tint.start) return;
+    if (time >= tint.end) { glyph.element.style.color = tint.to; glyph.tint = undefined; return; }
+    if (time - tint.flickAt < FLICKER_MS) return;
+    tint.flickAt = time;
+    glyph.element.style.color = Math.random() < 0.25 ? tint.to : randomColor();
+  };
   const spawn = (character: string, rect: DOMRect, at: Point, font: string, color: string, velocity: Point, floatMs: number, source?: Source) => {
     const element = document.createElement("span"); element.className = "glyph-swarm-glyph"; element.textContent = character;
     element.style.cssText = `width:${rect.width}px;height:${rect.height}px;font:${font};line-height:${rect.height}px;color:${color}`;
@@ -208,7 +224,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     }
     const glyph: Glyph = { element, body, source, patch, width: rect.width, height: rect.height, wander: Math.random() * Math.PI * 2,
       bornAt: performance.now(), floatMs, captureMs: 500 + Math.random() * 1000, pullScale: 0.55 + Math.random() * 0.9,
-      orbit: Math.random() * Math.PI * 2, orbitSpeed: (Math.random() - 0.5) * 0.012, reach: Math.sqrt(Math.random()), departAt: 0 };
+      orbit: Math.random() * Math.PI * 2, orbitSpeed: (Math.random() - 0.5) * 0.012, reach: Math.sqrt(Math.random()), departAt: 0, baseColor: color };
+    // Page letters glitch into a random palette colour as the suction catches them.
+    if (source) glyph.tint = { start: glyph.bornAt + floatMs, end: glyph.bornAt + floatMs + 300 + Math.random() * 450, to: randomColor(), flickAt: 0 };
     glyphs.push(glyph); layer.append(element); Composite.add(engine.world, body);
     return glyph;
   };
@@ -469,6 +487,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     }
     if (morphing) reattach(time);
     if (!loose) fly(time, dt);
+    for (const glyph of glyphs) if (glyph.tint && !glyph.landed) tintStep(glyph, time);
     for (const glyph of glyphs) {
       if (glyph.landed) continue;
       if (!glyph.flight) {
@@ -518,6 +537,11 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       for (const glyph of glyphs) {
         // Globe letters left first on entry, so they come home last, alongside the ring folding back.
         glyph.departAt = glyph.globeChar ? LET_GO_MS * 0.8 + Math.random() * LET_GO_MS * 0.5 : Math.random() * LET_GO_MS;
+        // Page letters glitch back to their own colour as they turn for home, well before they land.
+        if (glyph.source) {
+          const start = collapseStartedAt + glyph.departAt;
+          glyph.tint = { start, end: start + 300 + Math.random() * 400, to: glyph.baseColor, flickAt: 0 };
+        }
         const angle = Math.random() * Math.PI * 2, nudge = 0.5 + Math.random() * 1.5;
         Body.setVelocity(glyph.body, { x: glyph.body.velocity.x + Math.cos(angle) * nudge, y: glyph.body.velocity.y + Math.sin(angle) * nudge });
       }

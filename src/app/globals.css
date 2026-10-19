@@ -716,7 +716,7 @@
 .glyph-globe:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .glyph-globe-sphere { position: absolute; inset: 0; transition: opacity var(--motion-duration) var(--motion-ease), scale var(--motion-duration) var(--motion-ease); }
 /* Hover swells the globe a touch while it spins faster and its colours glitch (glyph-globe.tsx). */
-@media (hover: hover) { .glyph-globe:not(:disabled):hover .glyph-globe-sphere { scale: 1.05; } }
+@media (hover: hover) { .glyph-globe:not(:disabled):hover .glyph-globe-sphere { scale: 1.12; } }
 .glyph-globe.is-spent .glyph-globe-sphere { opacity: 0; transition: none; }
 /* A burst letter's spot stays empty until the letter flies back into it. */
 .glyph-globe-char[data-away] { visibility: hidden; }

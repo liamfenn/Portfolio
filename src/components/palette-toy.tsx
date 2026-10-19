@@ -88,6 +88,9 @@ export function PaletteToy() {
   }, [glyphs]);
 
   const paletteKey = palette.map(color => color.hex).join(" ");
+  // The swarm reads the current palette as page letters glitch into it.
+  const paletteRef = useRef(paletteKey);
+  useEffect(() => { paletteRef.current = paletteKey; }, [paletteKey]);
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -153,7 +156,7 @@ export function PaletteToy() {
       swarmRef.current = null;
       setMode("idle");
     };
-    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit") })
+    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit"), palette: () => paletteRef.current.split(" ") })
       .then(next => {
         if (controller.signal.aborted) next.cancel();
         else { swarmRef.current = next; setMode("active"); }
