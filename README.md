@@ -67,7 +67,7 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
-The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 30
+The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
 periwinkles through amethysts, light aquas and greens, highlighter yellows). It
 colours the decorative footer strip, the globe, the exit ring and the swarm's

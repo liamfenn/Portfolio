@@ -70,11 +70,12 @@ export const PALETTE_CANDIDATES = [
   { name: "Deep Bubblegum", hex: "#CD3F9B" },
 ] as const;
 
-// The site's palette for every visitor: the 30 colours kept in the full-spectrum quiz (2026-10-18), in hue order,
+// The site's palette for every visitor: the colours kept in the full-spectrum quiz (2026-10-18), less Light
+// Apricot, in hue order,
 // so the footer strip sweeps the wheel. Pinks and raspberries, periwinkles through amethysts, light aquas and
 // greens, and the brightest highlighter yellows. A visitor's own quiz votes in ?palette-lab replace it locally.
 const DEFAULT_HEXES = [
-  "#FE96B7", "#F06397", "#D7397B", "#F66377", "#DD3858", "#F9BA5F",
+  "#FE96B7", "#F06397", "#D7397B", "#F66377", "#DD3858",
   "#FCEE0C", "#D8FA43", "#CDF100", "#96CD76", "#79D28D", "#08B785",
   "#3BD5BE", "#29D1E8", "#45CBF9", "#6EC4FF", "#8BBEFF", "#A0B7FE",
   "#7C96EC", "#B3B1FF", "#9388FF", "#7965F0", "#C7A8FE", "#AE7DF9",
