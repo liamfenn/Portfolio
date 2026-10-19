@@ -4,6 +4,10 @@ Built with Next.js 16, Tailwind CSS 4, and TypeScript. The current homepage is s
 
 Weather data from OpenWeatherMap. Now playing from the Spotify API. Designed and developed by Liam Fennell with assistance from Claude.
 
+Working on the site: start with [`AGENTS.md`](AGENTS.md) (rules for people and coding agents), then
+[`docs/progress.md`](docs/progress.md), [`docs/workflow.md`](docs/workflow.md), and
+[`docs/design-principles.md`](docs/design-principles.md).
+
 ## Design tokens
 
 Edit `src/app/tokens.css` to change the homepage's shared colors and typography.
