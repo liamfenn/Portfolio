@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cubicBezier } from "motion";
-import { DEFAULT_GLYPHS, GLYPH_CONTROLS, PALETTE_CANDIDATES, colorsFromVotes, parsePalettePreferences } from "@/lib/palette-toy";
+import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
@@ -11,7 +11,11 @@ import { InspectableText } from "@/components/design-inspector";
 import { GlyphGlobe } from "@/components/glyph-globe";
 import type { GlyphMode } from "@/components/glyph-globe";
 
-const STORAGE_KEY = "portfolio-palette-lab-v1";
+const STORAGE_KEY = "portfolio-palette-lab-v2";
+// Votes on the first, pastel palette stay saved under the old key, untouched; only the glyph tuning carries over.
+const LEGACY_STORAGE_KEY = "portfolio-palette-lab-v1";
+// The quiz previews each colour as it will be used: thin glyphs on the white page.
+const PREVIEW_GLYPHS = "a&Ro7?g*Q2ks@m0yt%cWb#f5j";
 // The strip holds each color, then slides one swatch left. Position and colors come from the same clock,
 // so a new color and the snap back always land in the same frame.
 const STRIP_SWATCHES = 6;
@@ -22,6 +26,9 @@ const stripEase = cubicBezier(0.16, 1, 0.3, 1);
 
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
+  // Colours voted Yes and then dropped in the final cut, and the order of votes for undo.
+  const [cuts, setCuts] = useState<string[]>([]);
+  const [voteHistory, setVoteHistory] = useState<string[]>([]);
   const [glyphs, setGlyphs] = useState<GlyphSettings>({ ...DEFAULT_GLYPHS });
   // The swarm lasts until Esc; a refresh resets it.
   const swarmRef = useRef<GlyphSwarm | null>(null);
@@ -40,7 +47,7 @@ export function PaletteToy() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const globeRef = useRef<HTMLButtonElement>(null);
   const trackRef = useRef<HTMLSpanElement>(null);
-  const palette = colorsFromVotes(votes);
+  const palette = colorsFromVotes(votes, cuts);
   const unansweredIndex = PALETTE_CANDIDATES.findIndex(color => votes[color.hex] === undefined);
   const quizIndex = reviewIndex ?? unansweredIndex;
   const candidate = PALETTE_CANDIDATES[quizIndex];
@@ -59,11 +66,12 @@ export function PaletteToy() {
       }
     };
     const frame = window.requestAnimationFrame(() => {
-      let raw: string | null = null;
-      try { raw = localStorage.getItem(STORAGE_KEY); } catch { /* Preferences are optional. */ }
+      let raw: string | null = null, legacy: string | null = null;
+      try { raw = localStorage.getItem(STORAGE_KEY); legacy = raw ? null : localStorage.getItem(LEGACY_STORAGE_KEY); } catch { /* Preferences are optional. */ }
       const saved = parsePalettePreferences(raw);
       setVotes(saved.votes);
-      setGlyphs(saved.glyphs);
+      setCuts(saved.cuts);
+      setGlyphs(raw ? saved.glyphs : parsePalettePreferences(legacy).glyphs);
       setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
       updateMotion();
       setGlobeHost(document.getElementById("glyph-globe-slot"));
@@ -78,8 +86,8 @@ export function PaletteToy() {
 
   useEffect(() => {
     if (!ready) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ votes, glyphs })); } catch { /* Private browsing may disable storage. */ }
-  }, [ready, votes, glyphs]);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ votes, cuts, glyphs })); } catch { /* Private browsing may disable storage. */ }
+  }, [ready, votes, cuts, glyphs]);
 
   // Slider changes apply to letters that are already down.
   useEffect(() => {
@@ -88,9 +96,10 @@ export function PaletteToy() {
   }, [glyphs]);
 
   const paletteKey = palette.map(color => color.hex).join(" ");
-  // The swarm reads the current palette as page letters glitch into it.
-  const paletteRef = useRef(paletteKey);
-  useEffect(() => { paletteRef.current = paletteKey; }, [paletteKey]);
+  // The globe, ring and swarm use only the colours that read as thin glyphs on white; the strip shows them all.
+  const glyphPaletteKey = glyphColors(palette).map(color => color.hex).join(" ");
+  const paletteRef = useRef(glyphPaletteKey);
+  useEffect(() => { paletteRef.current = glyphPaletteKey; }, [glyphPaletteKey]);
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -182,16 +191,43 @@ export function PaletteToy() {
 
   const swarmLabel = mode === "idle" ? "Play with the letters" : mode === "loading" ? "Loading" : "Put the letters back";
 
-  const vote = (keep: boolean) => {
+  const vote = useCallback((keep: boolean) => {
     if (!candidate) return;
     setCopied(false);
     setVotes(current => ({ ...current, [candidate.hex]: keep }));
+    setVoteHistory(current => [...current.filter(hex => hex !== candidate.hex), candidate.hex]);
+    if (!keep) setCuts(current => current.filter(hex => hex !== candidate.hex));
     setReviewIndex(null);
-  };
+  }, [candidate]);
+  // Undo takes the last vote back and shows that colour again.
+  const undo = useCallback(() => {
+    const last = voteHistory[voteHistory.length - 1];
+    if (!last) return;
+    setVoteHistory(current => current.slice(0, -1));
+    setVotes(current => { const next = { ...current }; delete next[last]; return next; });
+    setReviewIndex(null);
+  }, [voteHistory]);
+  const toggleCut = (hex: string) => setCuts(current => current.includes(hex) ? current.filter(cut => cut !== hex) : [...current, hex]);
+
+  // While the quiz is open: Y or → keeps a colour, N or ← passes, Backspace undoes the last vote.
+  useEffect(() => {
+    if (!labEnabled || !panelOpen || tab !== "palette") return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || (event.target as Element | null)?.closest?.("input, textarea")) return;
+      const key = event.key.toLowerCase();
+      if (key === "y" || key === "arrowright") vote(true);
+      else if (key === "n" || key === "arrowleft") vote(false);
+      else if (key === "backspace") undo();
+      else return;
+      event.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [labEnabled, panelOpen, tab, vote, undo]);
 
   const copySettings = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify({ palette: palette.map(color => ({ name: color.name, hex: color.hex })), votes, glyphs }, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify({ palette: palette.map(color => ({ name: color.name, hex: color.hex })), votes, cuts, glyphs }, null, 2));
       setCopied(true);
     } catch { setCopied(false); }
   };
@@ -202,7 +238,7 @@ export function PaletteToy() {
         {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
     </span>
-    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={paletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
+    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>
@@ -214,17 +250,33 @@ export function PaletteToy() {
           <div id="palette-panel" role="tabpanel" aria-labelledby="palette-tab" hidden={tab !== "palette"}>
             <div className="palette-quiz-progress text-captionSans"><span><InspectableText>{`${answered} / ${PALETTE_CANDIDATES.length}`}</InspectableText></span><span><InspectableText>{`${liked.length} kept`}</InspectableText></span></div>
             {candidate ? <>
-              <div className="palette-quiz-swatch" style={{ backgroundColor: candidate.hex }} aria-label={`${candidate.name}, ${candidate.hex}`} />
-              <div className="palette-quiz-name"><span><InspectableText>{candidate.name}</InspectableText></span><span className="text-captionSans"><InspectableText>{candidate.hex}</InspectableText></span></div>
-              <div className="palette-quiz-actions"><button type="button" onClick={() => vote(false)}><InspectableText>No</InspectableText></button><button type="button" onClick={() => vote(true)}><InspectableText>Yes</InspectableText></button></div>
-            </> : <p className="palette-quiz-complete"><InspectableText>Round complete. Select a color below to revisit it.</InspectableText></p>}
+              {/* Judged as it will be used: thin type and glyphs on the white page. */}
+              <div className="palette-quiz-preview" style={{ color: candidate.hex }} aria-label={`${candidate.name}, ${candidate.hex}`}>
+                <span className="text-bodySans">Liam Fennell is a designer based in Atlanta.</span>
+                <span className="text-bodySerif">Office of Liam Fennell</span>
+                <span className="palette-quiz-glyphs">{PREVIEW_GLYPHS}</span>
+                <span className="palette-quiz-swatch" style={{ backgroundColor: candidate.hex }} />
+              </div>
+              <div className="palette-quiz-name"><span><InspectableText>{candidate.name}</InspectableText></span><span className="text-captionSans"><InspectableText>{`${candidate.hex} · ${contrastOnWhite(candidate.hex).toFixed(1)}:1${contrastOnWhite(candidate.hex) < GLYPH_MIN_CONTRAST ? " · strip only" : ""}`}</InspectableText></span></div>
+              <div className="palette-quiz-actions"><button type="button" onClick={() => vote(false)} aria-keyshortcuts="N ArrowLeft"><InspectableText>No</InspectableText></button><button type="button" onClick={() => vote(true)} aria-keyshortcuts="Y ArrowRight"><InspectableText>Yes</InspectableText></button></div>
+              <div className="palette-quiz-hint text-captionSans"><span><InspectableText>Y / N or arrow keys</InspectableText></span>{voteHistory.length > 0 && <button type="button" onClick={undo} aria-keyshortcuts="Backspace"><InspectableText>Undo</InspectableText></button>}</div>
+            </> : <div className="palette-quiz-cut">
+              <p className="palette-quiz-complete"><InspectableText>{liked.length ? "Final cut: tap a color to drop it from the palette." : "Round complete. Select a color below to revisit it."}</InspectableText></p>
+              {liked.length > 0 && <div className="palette-quiz-cut-grid" aria-label="Kept colors">
+                {liked.map(color => <button key={color.hex} type="button" aria-pressed={!cuts.includes(color.hex)} onClick={() => toggleCut(color.hex)}
+                  aria-label={`${color.name}: ${cuts.includes(color.hex) ? "dropped" : "kept"}. Toggle.`}>
+                  <span className="palette-quiz-cut-swatch" style={{ backgroundColor: color.hex }} />
+                  <span style={{ color: color.hex }}>{color.name}</span>
+                </button>)}
+              </div>}
+            </div>}
             <div className="palette-quiz-history" aria-label="Color votes">
               {PALETTE_CANDIDATES.filter(color => votes[color.hex] !== undefined).map(color => <button key={color.hex} type="button" style={{ backgroundColor: color.hex }}
                 aria-label={`${color.name}: ${votes[color.hex] ? "Yes" : "No"}. Revisit color.`} onClick={() => setReviewIndex(PALETTE_CANDIDATES.indexOf(color))}>
                 <span><InspectableText>{votes[color.hex] ? "+" : "−"}</InspectableText></span>
               </button>)}
             </div>
-            {answered > 0 && <button type="button" className="palette-lab-reset" onClick={() => { setVotes({}); setReviewIndex(null); setCopied(false); }}><InspectableText>Restart quiz</InspectableText></button>}
+            {answered > 0 && <button type="button" className="palette-lab-reset" onClick={() => { setVotes({}); setCuts([]); setVoteHistory([]); setReviewIndex(null); setCopied(false); }}><InspectableText>Restart quiz</InspectableText></button>}
           </div>
           <div id="glyphs-panel" role="tabpanel" aria-labelledby="glyphs-tab" hidden={tab !== "glyphs"}>
             <div className="palette-lab-controls">{GLYPH_CONTROLS.map(control => <label key={control.key}>

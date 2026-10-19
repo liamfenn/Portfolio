@@ -50,9 +50,12 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
 // While hovered, the glyphs' colours glitch this often: two pairs swap and one flickers to a new palette colour.
 const GLITCH_MS = 70;
 
-/** Gives each glyph a palette colour, spread so neighbours differ. */
+/**
+ * Gives each glyph a palette colour, cycling through every colour in turn. Glyphs sit on a Fibonacci sphere,
+ * so consecutive indices already land far apart.
+ */
 function paintColors(glyphs: (HTMLElement | null)[], colors: string[]) {
-  glyphs.forEach((glyph, index) => { if (glyph) glyph.style.color = colors[(index * 5) % colors.length]; });
+  glyphs.forEach((glyph, index) => { if (glyph) glyph.style.color = colors[index % colors.length]; });
 }
 
 /** One glitch tick: two pairs of glyphs trade colours and one flickers to a random palette colour. The mix keeps whatever it lands on. */

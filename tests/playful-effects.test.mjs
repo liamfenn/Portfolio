@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
 import { captureStrength, closestOnSegment, touchIntent, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
-import { DEFAULT_GLYPHS, parsePalettePreferences } from "../src/lib/palette-toy.ts";
+import { DEFAULT_GLYPHS, DEFAULT_PALETTE, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
   assert.equal(swarmCount(0, 0.7), 0);
@@ -81,9 +81,11 @@ test("ambient drift stays far weaker than the anchor pull", () => {
   assert.deepEqual(wanderForce(1, 0), {x:0,y:0});
 });
 test("saved glyph controls retain votes and clamp values", () => {
-  const saved = parsePalettePreferences(JSON.stringify({ glyphs: { pull: 8, bounce: -1, amount: 0.4 }, votes: { "#B9A7E8": true } }));
+  const saved = parsePalettePreferences(JSON.stringify({ glyphs: { pull: 8, bounce: -1, amount: 0.4 }, votes: { "#F66754": true, "#B9A7E8": true }, cuts: ["#F66754", "#000000"] }));
   assert.equal(saved.glyphs.pull, 3); assert.equal(saved.glyphs.bounce, 0);
-  assert.equal(saved.glyphs.amount, 0.4); assert.equal(saved.votes["#B9A7E8"], true);
+  assert.equal(saved.glyphs.amount, 0.4); assert.equal(saved.votes["#F66754"], true);
+  assert.equal(saved.votes["#B9A7E8"], undefined, "votes on retired colours are ignored");
+  assert.deepEqual(saved.cuts, ["#F66754"], "only cuts of current candidates are kept");
   assert.deepEqual(parsePalettePreferences(null).glyphs, DEFAULT_GLYPHS);
 });
 
@@ -115,4 +117,20 @@ test("a touch reads as play or scroll from how it begins", () => {
   assert.equal(read(0, 6, 16, true), "play", "a slow drag that starts on the swarm is play");
   assert.equal(read(0, -40, 16, true), "scroll", "a fast flick scrolls even from the swarm");
   assert.equal(read(0, -200, 200), "scroll", "a long fast first move is not a rest");
+});
+
+test("the palette spans the hue wheel and reads on white", () => {
+  assert.equal(PALETTE_CANDIDATES.length, 64);
+  assert.equal(new Set(PALETTE_CANDIDATES.map(color => color.hex)).size, 64, "no duplicate colours");
+  assert.equal(DEFAULT_PALETTE.length, 10);
+  const glyphReady = PALETTE_CANDIDATES.filter(color => contrastOnWhite(color.hex) >= 1.5);
+  assert.ok(glyphReady.length >= 55, "most candidates read as thin glyphs on white");
+  assert.ok(Math.abs(contrastOnWhite("#000000") - 21) < 0.01 && Math.abs(contrastOnWhite("#FFFFFF") - 1) < 0.01);
+});
+test("glyph effects skip colours that vanish on white, the palette keeps them", () => {
+  const palette = colorsFromVotes({ "#F2E309": true, "#F66754": true });
+  assert.deepEqual(palette.map(color => color.name), ["Tomato", "Highlighter"]);
+  assert.deepEqual(glyphColors(palette).map(color => color.name), ["Tomato"]);
+  assert.deepEqual(glyphColors(colorsFromVotes({ "#F2E309": true })).map(color => color.name), ["Highlighter"], "an all-pale palette still colours the glyphs");
+  assert.deepEqual(colorsFromVotes({ "#F66754": true, "#F2E309": true }, ["#F66754"]).map(color => color.name), ["Highlighter"], "the final cut drops a kept colour");
 });

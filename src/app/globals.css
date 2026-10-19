@@ -788,7 +788,15 @@
 .palette-lab-tabs button[aria-selected="true"] { --inspect-color-token: text-primary; color: var(--text-primary); }
 .palette-lab-tabs button[aria-selected="true"]::after { content: ""; position: absolute; bottom: -1px; height: 1px; left: 0; right: 0; background: var(--text-primary); }
 .palette-quiz-progress { display: flex; justify-content: space-between; margin: 16px 0 10px; --inspect-color-token: text-secondary; color: var(--text-secondary); }
-.palette-quiz-swatch { height: 160px; border-radius: 5px; }
+.palette-quiz-preview { display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 12px; border-radius: 5px; background: var(--bg-fill); box-shadow: inset 0 0 0 1px var(--bg-secondary-fill); }
+.palette-quiz-glyphs { font: var(--type-captionSans); letter-spacing: .12em; word-break: break-all; }
+.palette-quiz-swatch { display: block; height: 28px; margin-top: 6px; border-radius: 3px; }
+.palette-quiz-hint { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; --inspect-color-token: text-muted; color: var(--text-muted); }
+.palette-quiz-hint button { padding: 0; border: 0; background: none; --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.palette-quiz-cut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; max-height: 260px; overflow: auto; }
+.palette-quiz-cut-grid button { display: flex; align-items: center; gap: 8px; padding: 6px; border: 0; border-radius: 3px; background: var(--bg-secondary-fill); text-align: left; }
+.palette-quiz-cut-grid button[aria-pressed="false"] { opacity: var(--hover-dim); text-decoration: line-through; }
+.palette-quiz-cut-swatch { flex: none; width: 14px; height: 14px; border-radius: 2px; }
 .palette-quiz-name { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
 .palette-quiz-name > span + span { --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .palette-quiz-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
@@ -811,7 +819,7 @@
 .palette-lab.is-collapsed { width: 180px; }
 @media (max-width: 767px) {
   .palette-lab { left: 12px; bottom: 12px; width: 300px; max-width: calc(100vw - 24px); max-height: min(620px, 75dvh); }
-  .palette-quiz-swatch { height: 120px; }
+  .palette-quiz-swatch { height: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .palette-toy-track i { animation: none; }
