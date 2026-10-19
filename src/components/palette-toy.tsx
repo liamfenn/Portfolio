@@ -199,7 +199,7 @@ export function PaletteToy() {
         {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
       </span>
     </span>
-    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} globeRef={globeRef} onToggle={toggle} />, globeHost)}
+    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={paletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>

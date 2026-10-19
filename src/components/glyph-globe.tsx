@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 
@@ -47,6 +47,26 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
   });
 }
 
+// While hovered, the glyphs' colours glitch this often: two pairs swap and one flickers to a new palette colour.
+const GLITCH_MS = 70;
+
+/** Gives each glyph a palette colour, spread so neighbours differ. */
+function paintColors(glyphs: (HTMLElement | null)[], colors: string[]) {
+  glyphs.forEach((glyph, index) => { if (glyph) glyph.style.color = colors[(index * 5) % colors.length]; });
+}
+
+/** One glitch tick: two pairs of glyphs trade colours and one flickers to a random palette colour. The mix keeps whatever it lands on. */
+function glitchColors(glyphs: (HTMLElement | null)[], colors: string[]) {
+  const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
+  if (live.length < 2) return;
+  const pick = () => live[Math.floor(Math.random() * live.length)];
+  for (let swap = 0; swap < 2; swap++) {
+    const a = pick(), b = pick();
+    [a.style.color, b.style.color] = [b.style.color, a.style.color];
+  }
+  pick().style.color = colors[Math.floor(Math.random() * colors.length)];
+}
+
 /** The ring's current turn, in radians. */
 function ringAngle(ring: HTMLElement) {
   const matrix = new DOMMatrix(getComputedStyle(ring).transform);
@@ -73,14 +93,17 @@ function glide(slot: HTMLElement, glyph: HTMLElement, globeChar: HTMLElement, ri
   glyph.animate([upright, along], timing);
 }
 
-export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }: {
+export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, onToggle }: {
   mode: GlyphMode;
+  /** The palette strip's colours, space-separated, so the globe's glyphs share them. */
+  palette: string;
   disabled: boolean;
   reducedMotion: boolean;
   globeRef: RefObject<HTMLButtonElement | null>;
   onToggle: () => void;
 }) {
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const colors = useMemo(() => palette.split(" "), [palette]);
   const exitRef = useRef<HTMLButtonElement>(null);
   const ringRef = useRef<HTMLSpanElement>(null);
   const slotRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -143,6 +166,23 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
     return () => cancelAnimationFrame(frame);
   }, [mode, reducedMotion]);
 
+  // The globe's glyphs wear a mix of palette colours that glitch and swap while it is hovered.
+  useEffect(() => {
+    const chars = charRefs.current;
+    paintColors(chars, colors);
+    if (reducedMotion) return;
+    const timer = window.setInterval(() => { if (hoverRef.current) glitchColors(chars, colors); }, GLITCH_MS);
+    return () => window.clearInterval(timer);
+  }, [colors, reducedMotion]);
+
+  // The ring's glyphs keep the colours they carried out of the globe, and glitch the same way under the cursor.
+  useEffect(() => {
+    if (mode !== "active" || reducedMotion) return;
+    const glyphs = glyphRefs.current;
+    const timer = window.setInterval(() => { if (ringHotRef.current) glitchColors(glyphs, colors); }, GLITCH_MS);
+    return () => window.clearInterval(timer);
+  }, [colors, mode, reducedMotion]);
+
   // The ring glyphs glide out of the bursting globe into the ring, and back on exit. The globe is frozen while
   // spent, so each glyph returns to exactly where it left.
   useLayoutEffect(() => {
@@ -158,9 +198,13 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, globeRef, onToggle }
       // The globe is now disabled; a keyboard user's focus moves to the control that replaced it. After a mouse
       // click it stays put, since browsers can show programmatic focus as keyboard focus.
       if (keyboardRef.current) exitRef.current?.focus({ preventScroll: true });
+      // Each glyph keeps its colour from the globe as it moves onto the ring.
+      RING_INDEX.forEach((index, order) => { const glyph = glyphRefs.current[order]; if (glyph) glyph.style.color = charRefs.current[index]?.style.color ?? ""; });
       each(false, order => 60 + order * RING_STAGGER_MS);
     }
     // The last glyph to arrive on entry is the first to leave.
+    // ...and takes whatever colour it has now back into the globe.
+    if (mode === "collapsing") RING_INDEX.forEach((index, order) => { const char = charRefs.current[index]; if (char) char.style.color = glyphRefs.current[order]?.style.color ?? ""; });
     if (mode === "collapsing") each(true, order => EXIT_RETURN_DELAY_MS + (RING_INDEX.length - 1 - order) * RING_STAGGER_MS);
   }, [globeRef, mode]);
 
