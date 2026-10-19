@@ -168,13 +168,18 @@
   justify-content: flex-start;
 }
 
-.work-sort-menu {
+/* Doubled class: the shared .work-density-menu rule comes later in the file and would otherwise win. */
+.work-density-menu.work-sort-menu {
   right: auto;
   left: 0;
+  width: max-content;
   align-items: flex-start;
 }
 
+/* Sort options line up with the label text: indented past the dot and the dot-to-label gap. */
 .work-sort-menu .work-density-option {
+  width: auto;
+  padding-left: calc(var(--work-glyph-size) * var(--work-dot-ratio) + var(--work-label-gap));
   justify-content: flex-start;
 }
 
@@ -575,7 +580,8 @@
 }
 .portfolio-v3 .work-toolbar { padding: 0 var(--content-padding); }
 .portfolio-v3 .work-control { padding: 0; }
-.portfolio-v3 .work-label-group { gap: 8px; }
+.portfolio-v3 .work-toolbar { --work-label-gap: 8px; }
+.portfolio-v3 .work-label-group { gap: var(--work-label-gap); }
 .portfolio-v3 .project-grid { padding: 0; }
 .portfolio-v3 .portfolio-footer { padding: 0 var(--content-padding) var(--content-padding); }
 .portfolio-v3 .portfolio-bio-group { width: 445.333px; max-width: 100%; }
@@ -672,7 +678,7 @@
   .portfolio-v3 { padding: 0; }
   .portfolio-v3 .portfolio-intro { width: 100%; margin-bottom: 72px; padding: 8px 12px 0; }
   .portfolio-v3 .work-toolbar { padding: 0 12px; }
-  .portfolio-v3 .work-label-group { gap: 4px; }
+  .portfolio-v3 .work-toolbar { --work-label-gap: 4px; }
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
   .homepage-identity { width: 24px; height: 24px; flex-basis: 24px; }
   .homepage-avatar { width: 24px; height: 24px; }
