@@ -67,8 +67,15 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
-The user-selected palette remains in `src/lib/palette-toy.ts`, independent of
-UI colors. The footer palette strip is decorative.
+The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 30
+colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
+periwinkles through amethysts, light aquas and greens, highlighter yellows). It
+colours the decorative footer strip, the globe, the exit ring and the swarm's
+colour glitch. Colours under 1.5:1 on white (the yellows) stay in the strip but
+sit out the glyph effects, where they would vanish. `?palette-lab` → **Colors**
+reruns the quiz locally: each colour is previewed as type and glyphs on white
+(Y/N or arrow keys, Backspace to undo), then a final cut; **Copy settings**
+exports the result to bake in as the new default.
 
 A 44px globe of orbiting characters sits in the middle of the footer on desktop
 and centered below it on mobile. Tapping it bursts the globe and frees about

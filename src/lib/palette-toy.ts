@@ -70,9 +70,17 @@ export const PALETTE_CANDIDATES = [
   { name: "Deep Bubblegum", hex: "#CD3F9B" },
 ] as const;
 
-// Until the quiz is answered: a set drawn straight from the references.
-const DEFAULT_NAMES = ["Tomato", "Raspberry", "Light Bubblegum", "Light Orchid", "Violet", "Light Iris", "Kelly", "Sky", "Highlighter", "Light Apricot"];
-export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color => DEFAULT_NAMES.includes(color.name));
+// The site's palette for every visitor: the 30 colours kept in the full-spectrum quiz (2026-10-18), in hue order,
+// so the footer strip sweeps the wheel. Pinks and raspberries, periwinkles through amethysts, light aquas and
+// greens, and the brightest highlighter yellows. A visitor's own quiz votes in ?palette-lab replace it locally.
+const DEFAULT_HEXES = [
+  "#FE96B7", "#F06397", "#D7397B", "#F66377", "#DD3858", "#F9BA5F",
+  "#FCEE0C", "#D8FA43", "#CDF100", "#96CD76", "#79D28D", "#08B785",
+  "#3BD5BE", "#29D1E8", "#45CBF9", "#6EC4FF", "#8BBEFF", "#A0B7FE",
+  "#7C96EC", "#B3B1FF", "#9388FF", "#7965F0", "#C7A8FE", "#AE7DF9",
+  "#DAA0F4", "#E99BE2", "#BE47B8", "#F697CE", "#E666B4", "#CD3F9B",
+];
+export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color => DEFAULT_HEXES.includes(color.hex));
 export type PaletteColor = { name: string; hex: string };
 
 /** WCAG contrast of a colour against the white page. */
@@ -101,7 +109,7 @@ export interface GlyphSettings {
   spacing: number;
 }
 export const DEFAULT_GLYPHS: GlyphSettings = {
-  amount: 0.7, pull: 1, push: 1, bounce: 0.5, drift: 1, spacing: 1,
+  amount: 0.7, pull: 1, push: 1, bounce: 0.15, drift: 1, spacing: 1,
 };
 export const GLYPH_CONTROLS = [
   { key: "amount", label: "Letters pulled in", min: 0.1, max: 1, step: 0.05, unit: "%" },
@@ -113,7 +121,7 @@ export const GLYPH_CONTROLS = [
 ] as const;
 
 export type PaletteVotes = Record<string, boolean>;
-/** The palette: the colours voted Yes, less any dropped in the final cut. Before any Yes, the reference set. */
+/** The palette: the colours voted Yes, less any dropped in the final cut. Before any Yes, the site palette. */
 export function colorsFromVotes(votes: PaletteVotes, cuts: readonly string[] = []): PaletteColor[] {
   const liked = PALETTE_CANDIDATES.filter(color => votes[color.hex] === true && !cuts.includes(color.hex));
   if (liked.length) return liked;

@@ -122,7 +122,8 @@ test("a touch reads as play or scroll from how it begins", () => {
 test("the palette spans the hue wheel and reads on white", () => {
   assert.equal(PALETTE_CANDIDATES.length, 64);
   assert.equal(new Set(PALETTE_CANDIDATES.map(color => color.hex)).size, 64, "no duplicate colours");
-  assert.equal(DEFAULT_PALETTE.length, 10);
+  assert.equal(DEFAULT_PALETTE.length, 30, "the quiz picks");
+  assert.equal(glyphColors(DEFAULT_PALETTE).length, 27, "all but the three palest yellows colour the glyphs");
   const glyphReady = PALETTE_CANDIDATES.filter(color => contrastOnWhite(color.hex) >= 1.5);
   assert.ok(glyphReady.length >= 55, "most candidates read as thin glyphs on white");
   assert.ok(Math.abs(contrastOnWhite("#000000") - 21) < 0.01 && Math.abs(contrastOnWhite("#FFFFFF") - 1) < 0.01);
