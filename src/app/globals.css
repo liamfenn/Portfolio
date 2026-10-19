@@ -727,7 +727,10 @@
 .glyph-exit { position: absolute; z-index: 1600; left: 50%; top: 50%; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; translate: -50% -50%; cursor: pointer; pointer-events: auto; outline: none; --ring-scale: .68; --inspect-color-token: text-primary; color: var(--text-primary); }
 .glyph-exit::before { content: ""; position: absolute; inset: -4px; }
 .glyph-exit:disabled { cursor: default; }
-.glyph-exit-ring { position: absolute; inset: 0; }
+.glyph-exit-ring { position: absolute; inset: 0; transition: scale var(--motion-duration) var(--motion-ease); }
+/* Like the globe, the ring swells under the cursor or keyboard focus. It eases back once clicked, before its glyphs fold in. */
+.glyph-exit:not(:disabled):focus-visible .glyph-exit-ring { scale: 1.12; }
+@media (hover: hover) { .glyph-exit:not(:disabled):hover .glyph-exit-ring { scale: 1.12; } }
 .glyph-exit-slot { position: absolute; left: calc(50% + var(--ring-x) * 100%); top: calc(50% + var(--ring-y) * 100%); translate: -50% -50%; }
 .glyph-exit-glyph { display: block; font-size: calc(var(--text-caption) * var(--ring-scale)); line-height: 1; white-space: pre; rotate: var(--ring-turn); }
 /* Once the globe has re-formed around the returned glyphs, the ring steps aside after the globe's fade-in. */

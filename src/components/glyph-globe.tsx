@@ -111,6 +111,9 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
   const hoverRef = useRef(false);
   // Hover or keyboard focus on the ring winds its spin up; the speed eases, so the ring never jumps.
   const ringHotRef = useRef(false);
+  // The ring's speed carries across the click, and the spin halts only as its glyphs start folding back.
+  const ringSpeedRef = useRef(1);
+  const ringHaltRef = useRef(false);
   // Whether the globe was pressed from the keyboard (a click with no pointer detail), so focus can follow to the exit.
   const keyboardRef = useRef(false);
   // Kept across bursts, so the globe re-forms at the angle it burst from, where the ring glyphs return to.
@@ -148,17 +151,18 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [globeRef, reducedMotion, spent]);
 
-  // The ring turns slowly clockwise while the swarm is out, faster under the cursor. It holds still on exit so its
-  // glyphs glide home from where they are.
+  // The ring turns slowly clockwise while the swarm is out, faster under the cursor, and keeps turning after the
+  // click until its glyphs start folding back into the globe.
   useEffect(() => {
     const ring = ringRef.current;
-    if (!ring || mode !== "active" || reducedMotion) return;
-    let frame = 0, previous = 0, speed = 1, angle = ringAngle(ring);
+    if (!ring || (mode !== "active" && mode !== "collapsing") || reducedMotion) return;
+    let frame = 0, previous = 0, angle = ringAngle(ring);
     const spin = (time: number) => {
+      if (ringHaltRef.current) return;
       const dt = Math.min(64, previous ? time - previous : 0); previous = time;
       // Eases toward the target speed over about 200ms, whatever the frame rate.
-      speed += ((ringHotRef.current ? RING_HOT_SPEED : 1) - speed) * (1 - Math.exp(-dt / 200));
-      angle += dt / RING_TURN_MS * Math.PI * 2 * speed;
+      ringSpeedRef.current += ((ringHotRef.current ? RING_HOT_SPEED : 1) - ringSpeedRef.current) * (1 - Math.exp(-dt / 200));
+      angle += dt / RING_TURN_MS * Math.PI * 2 * ringSpeedRef.current;
       ring.style.transform = `rotate(${angle}rad)`;
       frame = requestAnimationFrame(spin);
     };
@@ -198,14 +202,21 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
       // The globe is now disabled; a keyboard user's focus moves to the control that replaced it. After a mouse
       // click it stays put, since browsers can show programmatic focus as keyboard focus.
       if (keyboardRef.current) exitRef.current?.focus({ preventScroll: true });
+      ringHaltRef.current = false; ringSpeedRef.current = 1;
       // Each glyph keeps its colour from the globe as it moves onto the ring.
       RING_INDEX.forEach((index, order) => { const glyph = glyphRefs.current[order]; if (glyph) glyph.style.color = charRefs.current[index]?.style.color ?? ""; });
       each(false, order => 60 + order * RING_STAGGER_MS);
     }
-    // The last glyph to arrive on entry is the first to leave.
-    // ...and takes whatever colour it has now back into the globe.
-    if (mode === "collapsing") RING_INDEX.forEach((index, order) => { const char = charRefs.current[index]; if (char) char.style.color = glyphRefs.current[order]?.style.color ?? ""; });
-    if (mode === "collapsing") each(true, order => EXIT_RETURN_DELAY_MS + (RING_INDEX.length - 1 - order) * RING_STAGGER_MS);
+    if (mode !== "collapsing") return;
+    // The ring spins on until its glyphs fold back. At that moment the spin halts and each glyph's path home is
+    // measured from wherever the ring has turned to. Each takes its current colour back into the globe, and the
+    // last glyph to arrive on entry is the first to leave.
+    const fold = window.setTimeout(() => {
+      ringHaltRef.current = true;
+      RING_INDEX.forEach((index, order) => { const char = charRefs.current[index]; if (char) char.style.color = glyphRefs.current[order]?.style.color ?? ""; });
+      each(true, order => (RING_INDEX.length - 1 - order) * RING_STAGGER_MS);
+    }, EXIT_RETURN_DELAY_MS);
+    return () => window.clearTimeout(fold);
   }, [globeRef, mode]);
 
   const warm = () => { hoverRef.current = true; preloadSwarm(); };
