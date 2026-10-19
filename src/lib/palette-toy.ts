@@ -70,15 +70,14 @@ export const PALETTE_CANDIDATES = [
   { name: "Deep Bubblegum", hex: "#CD3F9B" },
 ] as const;
 
-// The site's palette for every visitor: the 30 colours kept in the full-spectrum quiz (2026-10-18), in hue order,
-// so the footer strip sweeps the wheel. Pinks and raspberries, periwinkles through amethysts, light aquas and
-// greens, and the brightest highlighter yellows. A visitor's own quiz votes in ?palette-lab replace it locally.
+// The site's palette for every visitor: the colours kept in the full-spectrum quiz (2026-10-18), thinned to 20.
+// Pale Chartreuse went, and of each run of near-identical neighbours (OKLab distance under 0.05: the light blues,
+// light purples, raspberries and light greens) only the most distinct stayed.
 const DEFAULT_HEXES = [
-  "#FE96B7", "#F06397", "#D7397B", "#F66377", "#DD3858", "#F9BA5F",
-  "#FCEE0C", "#D8FA43", "#CDF100", "#96CD76", "#79D28D", "#08B785",
-  "#3BD5BE", "#29D1E8", "#45CBF9", "#6EC4FF", "#8BBEFF", "#A0B7FE",
-  "#7C96EC", "#B3B1FF", "#9388FF", "#7965F0", "#C7A8FE", "#AE7DF9",
-  "#DAA0F4", "#E99BE2", "#BE47B8", "#F697CE", "#E666B4", "#CD3F9B",
+  "#FE96B7", "#D7397B", "#F66377", "#DD3858", "#F9BA5F",
+  "#FCEE0C", "#CDF100", "#96CD76", "#08B785", "#3BD5BE",
+  "#29D1E8", "#8BBEFF", "#7C96EC", "#7965F0", "#C7A8FE",
+  "#AE7DF9", "#E99BE2", "#BE47B8", "#E666B4", "#CD3F9B",
 ];
 export const DEFAULT_PALETTE = PALETTE_CANDIDATES.filter(color => DEFAULT_HEXES.includes(color.hex));
 export type PaletteColor = { name: string; hex: string };
@@ -126,14 +125,28 @@ export const GLYPH_CONTROLS = [
   { key: "spacing", label: "Spacing", min: 0.5, max: 2, step: 0.1, unit: "×" },
 ] as const;
 
+const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+/**
+ * Reorders a hue-sorted palette so neighbours sit far apart on the wheel. It steps through the list by about 0.38
+ * of its length (adjusted to share no factor with the length, so every colour comes up once), so the strip and the
+ * globe never dwell on one family.
+ */
+export function spreadHues<T>(colors: readonly T[]): T[] {
+  const n = colors.length;
+  if (n < 4) return [...colors];
+  let stride = Math.round(n * 0.382);
+  while (gcd(stride, n) !== 1) stride++;
+  return colors.map((_, index) => colors[(index * stride) % n]);
+}
+
 export type PaletteVotes = Record<string, boolean>;
 /** The palette: the colours voted Yes, less any dropped in the final cut. Before any Yes, the site palette. */
 export function colorsFromVotes(votes: PaletteVotes, cuts: readonly string[] = []): PaletteColor[] {
   const liked = PALETTE_CANDIDATES.filter(color => votes[color.hex] === true && !cuts.includes(color.hex));
-  if (liked.length) return liked;
+  if (liked.length) return spreadHues(liked);
   const available = DEFAULT_PALETTE.filter(color => votes[color.hex] !== false);
   // An entirely rejected set stays neutral until the next palette round.
-  return available.length ? available : [{ name: "Neutral", hex: "#D7DAE1" }];
+  return available.length ? spreadHues(available) : [{ name: "Neutral", hex: "#D7DAE1" }];
 }
 
 export function parsePalettePreferences(raw: string | null): { glyphs: GlyphSettings; votes: PaletteVotes; cuts: string[] } {

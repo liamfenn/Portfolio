@@ -67,10 +67,12 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
-The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 30
-colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
-periwinkles through amethysts, light aquas and greens, highlighter yellows). It
-colours the decorative footer strip, the globe, the exit ring and the swarm's
+The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 20
+colours from a 64-colour, full-spectrum quiz (pinks and raspberries,
+periwinkles through amethysts, light aquas and greens, highlighter yellows),
+with near-identical neighbours thinned out. It is ordered to hop around the hue
+wheel rather than step through it, so no stretch of the strip reads as one
+colour. It colours the decorative footer strip, the globe, the exit ring and the swarm's
 colour glitch. Colours under 1.5:1 on white (the yellows) stay in the strip but
 sit out the glyph effects, where they would vanish. `?palette-lab` → **Colors**
 reruns the quiz locally: each colour is previewed as type and glyphs on white
