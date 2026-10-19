@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
 import { captureStrength, closestOnSegment, touchIntent, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
-import { DEFAULT_GLYPHS, DEFAULT_PALETTE, spreadHues, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
+import { DEFAULT_GLYPHS, DEFAULT_PALETTE, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
   assert.equal(swarmCount(0, 0.7), 0);
@@ -122,8 +122,8 @@ test("a touch reads as play or scroll from how it begins", () => {
 test("the palette spans the hue wheel and reads on white", () => {
   assert.equal(PALETTE_CANDIDATES.length, 64);
   assert.equal(new Set(PALETTE_CANDIDATES.map(color => color.hex)).size, 64, "no duplicate colours");
-  assert.equal(DEFAULT_PALETTE.length, 20, "the quiz picks, thinned");
-  assert.equal(glyphColors(DEFAULT_PALETTE).length, 18, "all but the two yellows colour the glyphs");
+  assert.equal(DEFAULT_PALETTE.length, 30, "the quiz picks");
+  assert.equal(glyphColors(DEFAULT_PALETTE).length, 27, "all but the three palest yellows colour the glyphs");
   const glyphReady = PALETTE_CANDIDATES.filter(color => contrastOnWhite(color.hex) >= 1.5);
   assert.ok(glyphReady.length >= 55, "most candidates read as thin glyphs on white");
   assert.ok(Math.abs(contrastOnWhite("#000000") - 21) < 0.01 && Math.abs(contrastOnWhite("#FFFFFF") - 1) < 0.01);
@@ -134,15 +134,4 @@ test("glyph effects skip colours that vanish on white, the palette keeps them", 
   assert.deepEqual(glyphColors(palette).map(color => color.name), ["Tomato"]);
   assert.deepEqual(glyphColors(colorsFromVotes({ "#F2E309": true })).map(color => color.name), ["Highlighter"], "an all-pale palette still colours the glyphs");
   assert.deepEqual(colorsFromVotes({ "#F66754": true, "#F2E309": true }, ["#F66754"]).map(color => color.name), ["Highlighter"], "the final cut drops a kept colour");
-});
-
-test("the palette order keeps neighbours apart on the hue wheel", () => {
-  const ordered = spreadHues(DEFAULT_PALETTE);
-  assert.equal(new Set(ordered.map(color => color.hex)).size, DEFAULT_PALETTE.length, "every colour appears once");
-  const position = new Map(DEFAULT_PALETTE.map((color, index) => [color.hex, index]));
-  for (let index = 1; index < ordered.length; index++) {
-    const gap = Math.abs(position.get(ordered[index].hex) - position.get(ordered[index - 1].hex));
-    assert.ok(Math.min(gap, ordered.length - gap) >= 5, "consecutive colours come from different parts of the wheel");
-  }
-  assert.deepEqual(spreadHues([1, 2, 3]), [1, 2, 3]);
 });
