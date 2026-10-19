@@ -99,6 +99,12 @@ export function glyphColors(palette: readonly PaletteColor[]) {
   return legible.length ? legible : palette;
 }
 
+// The glyph palette in use right now, shared with effects outside the toy (the text scrambles). The palette toy
+// keeps it in step with the lab; everything else just reads it.
+let glyphPalette = glyphColors(DEFAULT_PALETTE).map(color => color.hex);
+export const currentGlyphPalette = () => glyphPalette;
+export function setGlyphPalette(hexes: readonly string[]) { if (hexes.length) glyphPalette = [...hexes]; }
+
 /** Live tuning for the letter swarm. */
 export interface GlyphSettings {
   amount: number;

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
-import { useScramble } from "use-scramble";
+import { useColorScramble } from "@/hooks/use-color-scramble";
 import { useSpotify } from "@/hooks/use-spotify";
 import { trackPositionAt } from "@/lib/track-clock";
 import { InspectableText } from "@/components/design-inspector";
@@ -35,7 +35,7 @@ function formatAgo(timestamp: string | null | undefined, now: number) {
 
 /** Glyph-scrambles in on mount; the track line remounts per song, so this plays on song changes. */
 function ScrambledTrackText({ text }: { text: string }) {
-  const { ref } = useScramble({
+  const { ref } = useColorScramble({
     ...FILTER_SCRAMBLE, text, playOnMount: true,
     // Keep long titles as quick as the short filter labels.
     step: Math.max(1, Math.ceil(text.length / 24)),

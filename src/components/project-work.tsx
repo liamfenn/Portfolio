@@ -3,7 +3,7 @@
 import { HomepageCard } from "@/components/homepage-card";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useScramble } from "use-scramble";
+import { useColorScramble } from "@/hooks/use-color-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
@@ -66,7 +66,7 @@ function WorkGlyphControl({
 }) {
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
-  const { ref } = useScramble({
+  const { ref } = useColorScramble({
     ...FILTER_SCRAMBLE,
     text,
     playOnMount: false,

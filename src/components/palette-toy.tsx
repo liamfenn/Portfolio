@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cubicBezier } from "motion";
-import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "@/lib/palette-toy";
+import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
@@ -99,7 +99,7 @@ export function PaletteToy() {
   // The globe, ring and swarm use only the colours that read as thin glyphs on white; the strip shows them all.
   const glyphPaletteKey = glyphColors(palette).map(color => color.hex).join(" ");
   const paletteRef = useRef(glyphPaletteKey);
-  useEffect(() => { paletteRef.current = glyphPaletteKey; }, [glyphPaletteKey]);
+  useEffect(() => { paletteRef.current = glyphPaletteKey; setGlyphPalette(glyphPaletteKey.split(" ")); }, [glyphPaletteKey]);
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;

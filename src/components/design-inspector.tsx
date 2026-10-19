@@ -3,7 +3,7 @@
 import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
-import { useScramble } from "use-scramble";
+import { useColorScramble } from "@/hooks/use-color-scramble";
 import {
   colorToHex, formatPixels, formatTextMetrics, gapBoxes, isLabelMode, nextInspectionMode,
   resolveInspectorFlag, spacingKinds,
@@ -147,7 +147,7 @@ function textContent(children: ReactNode): string {
 }
 
 function ScrambledLabel({ text, onEnd }: { text: string; onEnd: () => void }) {
-  const { ref } = useScramble({
+  const { ref } = useColorScramble({
     ...FILTER_SCRAMBLE, text, playOnMount: true,
     // Keep long prose transitions as quick as the short filter labels.
     step: Math.max(1, Math.ceil(text.length / 24)),

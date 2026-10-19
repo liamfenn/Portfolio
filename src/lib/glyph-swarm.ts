@@ -19,6 +19,9 @@ const LET_GO_MS = 900;
 const LANDING_TIMEOUT_MS = 5000;
 /** A page letter's colour glitch: it flickers between palette colours this often, for 300-750ms, then settles. */
 const FLICKER_MS = 55;
+/** A pointer hitting a letter sometimes knocks it into a new colour: this chance per hit, with a hit being a fresh contact. */
+const HIT_RECOLOR_CHANCE = 0.22;
+const HIT_GAP_MS = 300;
 /** Text must hold a new character this long (a new song, a clock tick) before a floating letter becomes it; scrambles pass by. */
 const MORPH_AFTER_MS = 400;
 const ANCHOR_LEVELS = 3;
@@ -68,6 +71,8 @@ interface Glyph {
   flight?: Flight;
   /** A page letter's own text colour, which it glitches back to on the way home. */
   baseColor: string;
+  /** When the pointer last pushed this letter, so a sweep through it counts as one hit. */
+  lastHitAt?: number;
   /** A colour glitch in progress: flickering between palette colours until `end`, then settling on `to`. */
   tint?: { start: number; end: number; to: string; flickAt: number };
   landed?: boolean;
@@ -267,6 +272,12 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     for (const glyph of glyphs) {
       const impulse = pushImpulse(glyph.body.position, from, to, settings.push);
       if (!impulse.x && !impulse.y) continue;
+      // Now and then a hit knocks the letter into a new colour with a quick glitch; not every hit, and never mid-glitch.
+      const now = performance.now();
+      if (now - (glyph.lastHitAt ?? -Infinity) > HIT_GAP_MS && !glyph.tint && Math.random() < HIT_RECOLOR_CHANCE) {
+        glyph.tint = { start: now, end: now + 120 + Math.random() * 160, to: randomColor(), flickAt: 0 };
+      }
+      glyph.lastHitAt = now;
       Body.setVelocity(glyph.body, { x: Math.max(-16, Math.min(16, glyph.body.velocity.x + impulse.x)), y: Math.max(-16, Math.min(16, glyph.body.velocity.y + impulse.y)) });
       Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + impulse.x * 0.004);
     }
@@ -364,7 +375,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const land = (glyph: Glyph) => {
     glyph.landed = true; glyph.element.remove(); glyph.patch?.remove();
     if (glyph.source && highlight) highlight.delete(glyph.source.range);
-    if (glyph.globeChar) delete glyph.globeChar.dataset.away;
+    // A globe letter brings home whatever colour it ended up with.
+    if (glyph.globeChar) { delete glyph.globeChar.dataset.away; glyph.globeChar.style.color = glyph.element.style.color; }
   };
   // Exit, mirroring the entry: once a letter lets go, it rides a critically damped spring at its own speed toward a
   // spot just off its slot, still tilted and turning, so nothing lines up early. The spring starts from the letter's
