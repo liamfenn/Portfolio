@@ -17,9 +17,10 @@ production) is still the August version. Merging is Liam's call.
   Production never shows it.
 
 **Footer comparison (2026-10-19)**
-- Tap “Office of Liam Fennell” in either footer to switch layouts for testing; no separate controls affect spacing.
-- New footer: office and copyright, Atlanta clock/location, then weather on the left; globe on the right, vertically centered. No palette strip or type credit.
-- The original remains the default; switching keeps the toy mounted. Both versions share the original sans office/highlight styles and secondary serif clock/weather, with gray blocks around copyright and location.
+- Tap “Office of Liam Fennell” to cycle through ten layouts, then back to the original. No separate controls affect spacing. The button's accessible label and live announcement identify the current version.
+- Order: Original, Office block, Centered stack, Globe first, Three columns, Single line, Split signature, Minimal, Colophon, Centered globe.
+- Every version keeps the office name and globe, reuses original text styles and gray highlights, and adapts to mobile. Some omit weather, credits, copyright, or the palette strip.
+- Original is still the default. Globe and palette engine stay mounted through every switch.
 
 **The letter swarm (the "glyph toy")**
 - A 44px globe of orbiting characters in the footer (centered in the footer on desktop, below it on mobile).
