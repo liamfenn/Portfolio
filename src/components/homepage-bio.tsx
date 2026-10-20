@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type CSSProperties, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
-
-/** Add final expansion copy here; the collapsed biography stays verbatim. */
-const BIO_EXPANSIONS: Partial<Record<"designer" | "Shop", string>> = {};
+import { DEFAULT_PALETTE, glyphColors, type PaletteColor } from "@/lib/palette-toy";
 
 export function InlineBioExpansion({ word, children }: { word: string; children?: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -36,8 +34,40 @@ export function InlineBioExpansion({ word, children }: { word: string; children?
   </>;
 }
 
+const BIO_LINK_PALETTE = glyphColors(DEFAULT_PALETTE);
+const BIO_LINK_COUNT = 3;
+
+function BioLink({ href, number, color, children }: {
+  href: string;
+  number: number;
+  color: PaletteColor;
+  children: ReactNode;
+}) {
+  const external = href.startsWith("https:");
+  return <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+    {children}<sup className="bio-reference text-captionSerif" style={{
+      "--bio-reference-color": color.hex,
+      "--inspect-color-token": `palette-${color.name.toLowerCase().replaceAll(" ", "-")}`,
+    } as CSSProperties} aria-hidden="true">{number}</sup>
+  </a>;
+}
+
 export function HomepageBio() {
-  return <div className="portfolio-bio text-bodySerif"><p><InspectableText>
-    <strong>Liam Fennell</strong> is a <InlineBioExpansion word="designer">{BIO_EXPANSIONS.designer}</InlineBioExpansion> based in Atlanta. Currently at <a href="https://shop.app" target="_blank" rel="noreferrer">Shop</a>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
-  </InspectableText></p></div>;
+  // Match server markup first; choose fresh colors once after hydration, never on re-renders.
+  const [colors, setColors] = useState<PaletteColor[]>(BIO_LINK_PALETTE.slice(0, BIO_LINK_COUNT));
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setColors(Array.from({ length: BIO_LINK_COUNT }, () => BIO_LINK_PALETTE[Math.floor(Math.random() * BIO_LINK_PALETTE.length)]));
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  return <div className="portfolio-bio text-bodySerif">
+    <p><InspectableText>
+      <strong>Liam Fennell</strong> is a designer based in Atlanta. Currently at <BioLink href="https://shop.app" number={1} color={colors[0]}>Shop</BioLink>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
+    </InspectableText></p>
+    <p><InspectableText>
+      The work moves between interfaces, identities, and small experiments on the web. An interest in typography, everyday objects, and unexpected details leaves room for things to feel a little playful. This space is a collection of projects, ideas in progress, and <BioLink href="https://cosmos.so/notliam" number={2} color={colors[1]}>visual references</BioLink>. For a new project, a collaboration, or a conversation, <BioLink href="mailto:info@fennell.cv" number={3} color={colors[2]}>get in touch</BioLink>.
+    </InspectableText></p>
+  </div>;
 }

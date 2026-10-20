@@ -22,6 +22,10 @@ production) is still the August version. Merging is Liam's call.
 - Every version keeps the office name and globe, reuses original text styles and gray highlights, and adapts to mobile. Some omit weather, credits, copyright, or the palette strip.
 - Original is still the default. Globe and palette engine stay mounted through every switch.
 
+**Intro experiment (2026-10-19)**
+- Two paragraphs in the existing bodySerif style, using draft copy in the second paragraph. First paragraph stays flush left; subsequent paragraphs indent by the new `--bio-paragraph-indent` token (2em) with no blank line, following the book reference.
+- Links use numbered captionSerif superscripts instead of underlines. Each number gets an independent random color from the existing legible glyph palette on page load, stable until refresh.
+
 **The letter swarm (the "glyph toy")**
 - A 44px globe of orbiting characters in the footer (centered in the footer on desktop, below it on mobile).
   On hover it spins faster, swells to 1.12×, and its characters glitch through palette colors.
