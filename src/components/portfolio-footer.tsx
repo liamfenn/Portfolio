@@ -31,21 +31,24 @@ export function PortfolioFooter() {
   const condition = data?.condition ?? "Partly cloudy";
   const temperature = data ? Math.round(data.temperature) : 71;
 
+  const officeToggle = <button
+    type="button"
+    className="footer-office-toggle"
+    aria-label={alternate ? "Switch to original footer" : "Switch to new footer"}
+    aria-pressed={alternate}
+    onClick={() => setAlternate(value => !value)}
+  ><InspectableText>Office of Liam Fennell</InspectableText></button>;
+
   return (
-    <>
-    <div className="footer-version-controls text-captionSans" role="group" aria-label="Footer version">
-      <button type="button" aria-pressed={!alternate} onClick={() => setAlternate(false)}><InspectableText>Original footer</InspectableText></button>
-      <button type="button" aria-pressed={alternate} onClick={() => setAlternate(true)}><InspectableText>New footer</InspectableText></button>
-    </div>
     <footer className={`portfolio-footer text-bodySans${alternate ? " portfolio-footer-alternate" : ""}`}>
       {alternate && <div className="footer-office">
-        <div><InspectableText>Office of Liam Fennell [©2026]</InspectableText></div>
-        <div><InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>{time ?? "12:00 PM"}</span> [Atlanta, Ga]</InspectableText></div>
+        <div>{officeToggle}{" "}<span className="footer-highlight"><InspectableText>© 2026</InspectableText></span></div>
+        <div><span className="footer-weather text-bodySerif"><InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>{time ?? "12:00 PM"}</span></InspectableText></span>{" "}<span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span></div>
         <div className="footer-weather text-bodySerif"><InspectableText>{condition} at {temperature}°F</InspectableText></div>
       </div>}
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>© 2026</InspectableText></span>
-        <span><InspectableText>Office of Liam Fennell</InspectableText></span>
+        {officeToggle}
       </div>
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
@@ -66,6 +69,5 @@ export function PortfolioFooter() {
       </div>
       <div id="glyph-globe-slot" className="glyph-globe-row" />
     </footer>
-    </>
   );
 }

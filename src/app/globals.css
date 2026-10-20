@@ -833,30 +833,28 @@
 }
 
 /* Keep the toy and its portal host mounted while comparing footer layouts. */
-.footer-version-controls {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--content-padding);
-  padding-inline: var(--content-padding);
-  margin-top: var(--content-padding);
-}
-.footer-version-controls button {
-  min-height: calc(var(--content-padding) * 3);
+.footer-office-toggle {
+  position: relative;
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--text-secondary);
-  --inspect-color-token: text-secondary;
-  transition: opacity var(--hover-duration) var(--hover-ease);
-}
-.footer-version-controls button[aria-pressed="true"] {
+  font: inherit;
+  letter-spacing: inherit;
   color: var(--text-primary);
   --inspect-color-token: text-primary;
-  text-decoration: underline;
-  text-underline-offset: var(--focus-offset);
+  transition: opacity var(--hover-duration) var(--hover-ease);
+}
+/* Expand the tap target without changing the footer's line height or spacing. */
+.footer-office-toggle::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: calc(var(--content-padding) * 3);
+  translate: 0 -50%;
 }
 @media (hover: hover) {
-  .footer-version-controls button:hover { opacity: var(--hover-dim); }
+  .footer-office-toggle:hover { opacity: var(--hover-dim); }
 }
 .portfolio-footer-alternate {
   flex-direction: row;
