@@ -11,6 +11,10 @@ production) is still the August version. Merging is Liam's call.
 **Project grid update (2026-10-21)**
 - Removed 5 × 5 from both desktop density menus. Added nine blank tiles using the existing Shop placeholders, for 12 total projects.
 
+**Project labels (2026-10-21)**
+- Hover/focus on desktop or tap on mobile reveals company and short quarter/year inside the tile, both captionSans. Company uses text-primary, date text-secondary, with a 2px gap and 12px desktop / 8px mobile insets, defined as project-info tokens.
+- Removed the project logos, cursor tooltips, mobile expansion layout, and avatar Shop badge pop-out.
+
 **The page**
 - Header with avatar and bio, a work grid with sort (Featured / Recent / Random) and density (2–4 columns, plus 6 on wide screens)
   menus, contact links, a now-playing music player (Spotify), and a footer with weather, clock, type credit,

@@ -20,6 +20,9 @@
   --page-frame: 8px;
   --content-padding: 16px;
   --bio-paragraph-indent: 2em;
+  --project-info-inset: 12px;
+  --project-info-inset-mobile: 8px;
+  --project-info-gap: 2px;
 }
 
 /* Interaction: hover feedback, slide motion, and one focus ring. */

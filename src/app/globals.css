@@ -593,7 +593,7 @@
   color: var(--bio-reference-color);
 }
 .homepage-slide-badge { position: relative; display: block; width: 56px; height: 28px; }
-.homepage-identity { flex: 0 0 28px; }
+.homepage-identity { display: block; width: 28px; height: 28px; flex: 0 0 28px; }
 /*
  * Hover system, three patterns:
  * - text links and text buttons dim to --hover-dim;
@@ -606,22 +606,12 @@
   :where(a:not(.hover-surface), .bio-expand-word):hover { opacity: var(--hover-dim); }
 }
 :where(a, button):focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-.homepage-brand { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 28px; height: 28px; transition: transform var(--motion-duration) var(--motion-ease); }
-.homepage-shop-brand { background: var(--bg-purple-fill); }
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--bg-secondary-fill); }
-.homepage-shop-brand img { width: 24px; height: 24px; transform: scale(.666667); filter: brightness(0) invert(1); }
-.homepage-identity:focus-visible .homepage-brand { transform: translateX(28px); }
-@media (hover: hover) and (min-width: 768px) {
-  .homepage-identity:hover .homepage-brand { transform: translateX(28px); }
-}
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
 .homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--bg-secondary-fill); color: inherit; cursor: pointer; overflow: hidden; }
 .homepage-card-trigger:focus-visible { outline: 2px solid var(--bg-purple-fill); outline-offset: -2px; }
-.homepage-project-details { --badge-cutout-left: 14px; --badge-cutout-right: 38px; --badge-cutout-depth: 12px; }
 /* Cut only the panel surface so the artwork and the clear gap stay independent. */
-.homepage-project-details,
 .homepage-spotify { isolation: isolate; cursor: pointer; }
-.homepage-project-details::before,
 .homepage-spotify::before {
   content: "";
   position: absolute;
@@ -638,14 +628,22 @@
     100% 0, 100% 100%, 0 100%
   );
 }
-.homepage-project-title { display: flex; justify-content: space-between; align-items: baseline; gap: 32px; }
-.homepage-project-period { --inspect-color-token: text-muted; color: var(--text-muted); white-space: nowrap; }
-.homepage-project-company { display: block; --inspect-color-token: text-secondary; color: var(--text-secondary); }
-.homepage-project-badge { position: absolute; left: var(--badge-cutout-left); top: -12px; border: 2px solid transparent; background-clip: padding-box; width: 24px; height: 24px; overflow: hidden; }
-.homepage-project-badge img { display: block; width: 20px; height: 20px; object-fit: contain; }
-.homepage-project-tooltip { --badge-panel-background: color-mix(in srgb, var(--bg-fill) 90%, transparent); --badge-panel-blur: blur(6px); position: fixed; z-index: 20; left: 24px; top: 24px; min-width: 230px; padding: 16px 12px 12px; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
-.homepage-project-tooltip.is-visible { visibility: visible; opacity: 1; }
-.homepage-project-tooltip.is-keyboard { position: absolute; top: auto !important; left: 12px !important; bottom: 12px; }
+.homepage-project-overlay {
+  position: absolute;
+  z-index: 1;
+  top: var(--project-info-inset);
+  left: var(--project-info-inset);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--project-info-gap);
+  text-align: left;
+  pointer-events: none;
+  visibility: hidden;
+}
+.homepage-project-overlay.is-visible { visibility: visible; }
+.homepage-project-company { color: var(--text-primary); --inspect-color-token: text-primary; }
+.homepage-project-period { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding) 12px; }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { --inspect-color-token: text-secondary; color: var(--text-secondary); }
@@ -688,9 +686,6 @@
   .portfolio-v3 .portfolio-bio-group { width: 100%; gap: 12px; }
   .homepage-identity { width: 24px; height: 24px; flex-basis: 24px; }
   .homepage-avatar { width: 24px; height: 24px; }
-  .homepage-brand { display: none; }
-  .homepage-card.is-expanded { grid-column: 1 / -1; }
-  .homepage-project-inline { --badge-cutout-left: 12px; --badge-cutout-right: 36px; position: relative; padding: 20px 12px 12px; margin-top: 0; }
   .portfolio-v3 .homepage-contact { margin: 0; padding: 24px 12px 32px; }
   .homepage-spotify { --badge-cutout-left: 12px; --badge-cutout-right: 40px; margin: 8px 0 0; padding: 20px 12px 16px; min-height: 73px; gap: 12px; }
   .homepage-album-badge { top: -10px; left: 14px; width: 24px; height: 24px; }
@@ -719,7 +714,6 @@
 }
 .homepage-avatar img { position: absolute; width: 411.8%; height: 514.75%; max-width: none; left: -154.13%; top: -32.44%; }
 
-.homepage-project-badge.is-shop img { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; max-width: none; transform: translate(-50%, -50%) scale(.571429); filter: brightness(0) invert(1); }
 
 /* Footer globe: the entry to the letter swarm. Esc takes its place while the swarm is out; tuning stays in ?palette-lab. */
 .glyph-globe-row { display: flex; justify-content: center; margin-top: 48px; }
@@ -836,4 +830,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .palette-toy-track i { animation: none; }
+}
+
+@media (max-width: 767px) {
+  .homepage-project-overlay { top: var(--project-info-inset-mobile); left: var(--project-info-inset-mobile); }
 }
