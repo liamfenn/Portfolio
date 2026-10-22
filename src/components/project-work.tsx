@@ -424,6 +424,15 @@ export function ProjectWork() {
       .map(({ preview }) => preview);
   }, [randomSeed, sortMode]);
 
+  const displayedPreviews = [...sortedPreviews];
+  const expandedIndex = displayedPreviews.findIndex(preview => preview.id === expandedId);
+  if (isMobile && mobileColumns === 2 && expandedIndex % 2 === 1) {
+    // Put a right-column selection at its row's start before spanning both columns.
+    // Its left neighbour flows below it; collapsing restores the selected sort order.
+    [displayedPreviews[expandedIndex - 1], displayedPreviews[expandedIndex]] =
+      [displayedPreviews[expandedIndex], displayedPreviews[expandedIndex - 1]];
+  }
+
   return (
     <section className="portfolio-work" aria-label="Work" onPointerMoveCapture={handleWorkPointerMove}>
       <div className="work-toolbar text-bodySans" aria-label="Project display controls">
@@ -561,7 +570,7 @@ export function ProjectWork() {
       </div>
 
       <ul className="project-grid" style={gridStyle} aria-label="Selected work">
-        {sortedPreviews.map((preview) => (
+        {displayedPreviews.map((preview) => (
           <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
             expanded={expandedId === preview.id}
             onToggle={() => setExpandedId(current => current === preview.id ? null : preview.id)} />
