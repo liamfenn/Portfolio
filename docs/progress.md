@@ -16,11 +16,9 @@ production) is still the August version. Merging is Liam's call.
 - A design inspector for development and previews (keyboard modes for text styles, colors, and spacing).
   Production never shows it.
 
-**Footer comparison (2026-10-19)**
-- Tap “Office of Liam Fennell” to cycle through ten layouts, then back to the original. No separate controls affect spacing. The button's accessible label and live announcement identify the current version.
-- Order: Original, Office block, Centered stack, Globe first, Three columns, Single line, Split signature, Minimal, Colophon, Centered globe.
-- Every version keeps the office name and globe, reuses original text styles and gray highlights, and adapts to mobile. Some omit weather, credits, copyright, or the palette strip.
-- Original is still the default. Globe and palette engine stay mounted through every switch.
+**Footer decision (2026-10-21)**
+- Kept the original footer. Removed the nine alternate layouts and the office-name cycle.
+- Globe and exit ring are monochrome at rest with brief random palette flickers on a few glyphs about every 2–3 seconds. Hover/focus increases burst frequency and count, capped below half the glyphs. Each flicker returns to the inherited color; reduced motion disables it.
 
 **Intro experiment (2026-10-19)**
 - Two paragraphs in the existing bodySerif style, using draft copy in the second paragraph. First paragraph stays flush left; subsequent paragraphs indent by the new `--bio-paragraph-indent` token (2em) with no blank line, following the book reference.
@@ -28,7 +26,7 @@ production) is still the August version. Merging is Liam's call.
 
 **The letter swarm (the "glyph toy")**
 - A 44px globe of orbiting characters in the footer (centered in the footer on desktop, below it on mobile).
-  On hover it spins faster, swells to 1.12×, and its characters glitch through palette colors.
+  On hover it spins faster, swells to 1.12×, and more of its characters briefly glitch through palette colors.
 - Tapping it bursts the globe. About 70% of every letter on the page pops out, floats, and is pulled into a
   loose, drifting swarm around the cursor (or the screen center on touch), changing to palette colors as
   it goes.

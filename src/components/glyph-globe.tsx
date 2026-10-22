@@ -47,27 +47,38 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
   });
 }
 
-// While hovered, the glyphs' colours glitch this often: two pairs swap and one flickers to a new palette colour.
-const GLITCH_MS = 70;
-
-/**
- * Gives each glyph a palette colour, cycling through every colour in turn. Glyphs sit on a Fibonacci sphere,
- * so consecutive indices already land far apart.
- */
-function paintColors(glyphs: (HTMLElement | null)[], colors: string[]) {
-  glyphs.forEach((glyph, index) => { if (glyph) glyph.style.color = colors[index % colors.length]; });
-}
-
-/** One glitch tick: two pairs of glyphs trade colours and one flickers to a random palette colour. The mix keeps whatever it lands on. */
-function glitchColors(glyphs: (HTMLElement | null)[], colors: string[]) {
+// Sparse bursts return to the inherited text color instead of accumulating across the globe.
+function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], isHot: () => boolean) {
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
-  if (live.length < 2) return;
-  const pick = () => live[Math.floor(Math.random() * live.length)];
-  for (let swap = 0; swap < 2; swap++) {
-    const a = pick(), b = pick();
-    [a.style.color, b.style.color] = [b.style.color, a.style.color];
-  }
-  pick().style.color = colors[Math.floor(Math.random() * colors.length)];
+  const active = new Map<HTMLElement, number>();
+  let nextBurst = performance.now() + 1800 + Math.random() * 1200;
+  let wasHot = false;
+  const timer = window.setInterval(() => {
+    const now = performance.now(), hot = isHot();
+    for (const [glyph, until] of active) {
+      if (now >= until) { glyph.style.color = ""; active.delete(glyph); }
+    }
+    if (hot !== wasHot) {
+      nextBurst = hot ? now : now + 1800 + Math.random() * 1200;
+      wasHot = hot;
+      if (!hot) { live.forEach(glyph => { glyph.style.color = ""; }); active.clear(); }
+    }
+    if (now < nextBurst || !colors.length) return;
+    // A shuffled pool prevents duplicate picks; even overlapping hot bursts stay below half the glyphs.
+    const available = live.filter(glyph => !active.has(glyph));
+    const limit = Math.floor(live.length * (hot ? 0.45 : 0.15));
+    const count = Math.min(limit - active.size, hot ? 3 + Math.floor(Math.random() * 3) : 2);
+    for (let index = 0; index < count && available.length; index++) {
+      const glyph = available.splice(Math.floor(Math.random() * available.length), 1)[0];
+      glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
+      active.set(glyph, now + 90 + Math.random() * (hot ? 170 : 240));
+    }
+    nextBurst = now + (hot ? 100 + Math.random() * 140 : 1800 + Math.random() * 1200);
+  }, 50);
+  return () => {
+    window.clearInterval(timer);
+    live.forEach(glyph => { glyph.style.color = ""; });
+  };
 }
 
 /** The ring's current turn, in radians. */
@@ -173,21 +184,17 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     return () => cancelAnimationFrame(frame);
   }, [mode, reducedMotion]);
 
-  // The globe's glyphs wear a mix of palette colours that glitch and swap while it is hovered.
+  // Mostly monochrome, with brief sparse flickers; hover and keyboard focus intensify them.
   useEffect(() => {
-    const chars = charRefs.current;
-    paintColors(chars, colors);
-    if (reducedMotion) return;
-    const timer = window.setInterval(() => { if (hoverRef.current) glitchColors(chars, colors); }, GLITCH_MS);
-    return () => window.clearInterval(timer);
-  }, [colors, reducedMotion]);
+    const globe = globeRef.current;
+    if (reducedMotion || spent) return;
+    hoverRef.current = globe?.matches(":hover, :focus-visible") ?? false;
+    return startColorGlitches(charRefs.current, colors, () => hoverRef.current);
+  }, [colors, globeRef, reducedMotion, spent]);
 
-  // The ring's glyphs keep the colours they carried out of the globe, and glitch the same way under the cursor.
   useEffect(() => {
     if (mode !== "active" || reducedMotion) return;
-    const glyphs = glyphRefs.current;
-    const timer = window.setInterval(() => { if (ringHotRef.current) glitchColors(glyphs, colors); }, GLITCH_MS);
-    return () => window.clearInterval(timer);
+    return startColorGlitches(glyphRefs.current, colors, () => ringHotRef.current);
   }, [colors, mode, reducedMotion]);
 
   // The ring glyphs glide out of the bursting globe into the ring, and back on exit. The globe is frozen while
@@ -227,7 +234,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
   return <>
     <button ref={globeRef} type="button" className={`glyph-globe text-captionSans${spent ? " is-spent" : ""}`}
       aria-label="Play with the letters" disabled={disabled || mode !== "idle"} onClick={event => { keyboardRef.current = event.detail === 0; onToggle(); }}
-      onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={preloadSwarm} onTouchStart={preloadSwarm}>
+      onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={event => { hoverRef.current = event.currentTarget.matches(":focus-visible"); preloadSwarm(); }} onBlur={() => { hoverRef.current = false; }} onTouchStart={preloadSwarm}>
       <span className="glyph-globe-sphere" aria-hidden="true">
         {GLOBE_CHARS.map((char, index) => <span key={index} ref={element => { charRefs.current[index] = element; }}
           className="glyph-globe-char" data-ring={RING_INDEX.includes(index) ? "" : undefined}>{char}</span>)}
