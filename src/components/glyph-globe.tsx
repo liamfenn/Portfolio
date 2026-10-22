@@ -52,7 +52,7 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
   const active = new Map<HTMLElement, number>();
   let pending: { glyph: HTMLElement; at: number }[] = [];
-  let nextBurst = performance.now() + 1800 + Math.random() * 1200;
+  let nextBurst = performance.now() + 1550 + Math.random() * 1200;
   let wasHot = false;
   const timer = window.setInterval(() => {
     const now = performance.now(), hot = isHot();
@@ -60,7 +60,7 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
       if (now >= until) { glyph.style.color = ""; active.delete(glyph); }
     }
     if (hot !== wasHot) {
-      nextBurst = hot ? now : now + 1800 + Math.random() * 1200;
+      nextBurst = hot ? now : now + 1550 + Math.random() * 1200;
       pending = [];
       wasHot = hot;
     }
@@ -68,7 +68,7 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
       // A scattered subset ripples from a fresh origin; gaps keep it from reading as a solid band.
       const origin = live[Math.floor(Math.random() * live.length)]?.getBoundingClientRect();
       const x = origin ? origin.left + origin.width / 2 : 0, y = origin ? origin.top + origin.height / 2 : 0;
-      const count = Math.min(live.length, hot ? 9 + Math.floor(Math.random() * 5) : 5 + Math.floor(Math.random() * 4));
+      const count = Math.min(live.length, hot ? 11 + Math.floor(Math.random() * 5) : 8 + Math.floor(Math.random() * 4));
       const pool = [...live];
       const selected = Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
       const ordered = selected.map(glyph => {
@@ -80,7 +80,7 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
         at += hot ? 20 + Math.random() * 25 : 40 + Math.random() * 45;
         return { glyph, at };
       });
-      nextBurst = at + (hot ? 100 + Math.random() * 200 : 1400 + Math.random() * 1000);
+      nextBurst = at + (hot ? 100 + Math.random() * 200 : 1150 + Math.random() * 1000);
     }
     // Keep a monochrome majority even when the tail of one flicker overlaps the next.
     const limit = Math.max(1, Math.floor(live.length * (hot ? 0.45 : 0.3)));
