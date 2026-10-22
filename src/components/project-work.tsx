@@ -1,5 +1,6 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import { HomepageCard } from "@/components/homepage-card";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -106,6 +107,8 @@ function WorkGlyphControl({
 export function ProjectWork() {
   const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
     useProjectDisplayState();
+  const gridRef = useRef<HTMLUListElement>(null);
+  const layoutAnimations = useRef<Animation[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -424,6 +427,47 @@ export function ProjectWork() {
       .map(({ preview }) => preview);
   }, [randomSeed, sortMode]);
 
+  const togglePreview = (id: string) => {
+    const grid = gridRef.current;
+    if (!grid || !isMobile || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setExpandedId(current => current === id ? null : id);
+      return;
+    }
+    const tiles = Array.from(grid.querySelectorAll<HTMLElement>(".homepage-card"));
+    const before = new Map(tiles.map(tile => [tile.dataset.projectId, tile.getBoundingClientRect()]));
+    layoutAnimations.current.forEach(animation => animation.cancel());
+    layoutAnimations.current = [];
+    flushSync(() => setExpandedId(current => current === id ? null : id));
+    const tokens = getComputedStyle(document.documentElement);
+    // Production CSS may serialize milliseconds as seconds.
+    const duration = tokens.getPropertyValue("--project-layout-duration").trim();
+    const timing = {
+      duration: parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000),
+      easing: `cubic-bezier(${tokens.getPropertyValue("--project-layout-ease").trim()})`,
+    };
+    tiles.forEach(tile => {
+      const from = before.get(tile.dataset.projectId), to = tile.getBoundingClientRect();
+      if (!from || !to.width || !to.height) return;
+      const dx = from.left - to.left, dy = from.top - to.top;
+      const sx = from.width / to.width, sy = from.height / to.height;
+      if (!dx && !dy && sx === 1 && sy === 1) return;
+      layoutAnimations.current.push(tile.animate([
+        { transformOrigin: "top left", transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+        { transformOrigin: "top left", transform: "none" },
+      ], timing));
+      const label = tile.querySelector<HTMLElement>(".homepage-project-overlay");
+      if (!label) return;
+      const inset = getComputedStyle(label);
+      const left = parseFloat(inset.left), top = parseFloat(inset.top);
+      // Counter-scale the label through the tween so type and corner insets stay steady.
+      const frames = Array.from({ length: 21 }, (_, index) => {
+        const x = sx + (1 - sx) * index / 20, y = sy + (1 - sy) * index / 20;
+        return { transformOrigin: "top left", transform: `translate(${left * (1 / x - 1)}px, ${top * (1 / y - 1)}px) scale(${1 / x}, ${1 / y})` };
+      });
+      layoutAnimations.current.push(label.animate(frames, timing));
+    });
+  };
+
   const displayedPreviews = [...sortedPreviews];
   const expandedIndex = displayedPreviews.findIndex(preview => preview.id === expandedId);
   if (isMobile && mobileColumns === 2 && expandedIndex % 2 === 1) {
@@ -569,11 +613,11 @@ export function ProjectWork() {
         </div>
       </div>
 
-      <ul className="project-grid" style={gridStyle} aria-label="Selected work">
+      <ul ref={gridRef} className="project-grid" style={gridStyle} aria-label="Selected work">
         {displayedPreviews.map((preview) => (
           <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
             expanded={expandedId === preview.id}
-            onToggle={() => setExpandedId(current => current === preview.id ? null : preview.id)} />
+            onToggle={() => togglePreview(preview.id)} />
         ))}
       </ul>
     </section>
