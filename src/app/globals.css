@@ -657,6 +657,7 @@
 .homepage-album { position: relative; z-index: 1; display: block; width: 28px; height: 28px; background: var(--bg-secondary-fill); overflow: hidden; }
 .homepage-album img { object-fit: cover; }
 /* Green while playing; quiet secondary fill with a muted logo once it's "Last listened to". */
+.homepage-brand { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 28px; height: 28px; }
 .homepage-spotify-brand { z-index: 0; background: var(--bg-secondary-fill); transform: translateX(var(--spotify-reveal)); transition: transform var(--motion-duration) var(--motion-ease), background-color var(--hover-duration) var(--hover-ease); }
 .homepage-album-badge.is-playing .homepage-spotify-brand { background: var(--bg-green-fill); }
 /* The logo is a mask so its color comes from tokens. */
@@ -859,3 +860,6 @@
     padding-inline: var(--work-control-mobile-inset);
   }
 }
+
+.album-artwork-layer { position: absolute; inset: 0; }
+.album-artwork-incoming { opacity: 0; }

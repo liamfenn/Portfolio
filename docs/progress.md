@@ -8,6 +8,11 @@ decided, or gets dropped.
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Album-cover transitions (2026-10-21)**
+- Preload new artwork, then blur out and blend colors across the maximum-blur apex before resolving the new cover. Total 320ms, with the image blend in the middle 20%; album-swap tokens define timing, blur, and scale.
+- First cover and reduced motion swap directly after load. Interrupted changes cancel their previous animations; the old image stays visible if the next fails to load.
+- Restored the shared positioning rule used by Spotify's badge, which was inadvertently removed with the avatar's Shop badge styling.
+
 **Mobile toolbar targets (2026-10-21)**
 - Sort and grid controls each fill half the toolbar width, extending tap targets to the edges while keeping labels inset 12px. Both have a 44px minimum tap height; desktop stays unchanged.
 

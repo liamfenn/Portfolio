@@ -37,6 +37,9 @@
   --project-layout-duration: 180ms;
   --project-layout-ease: .2, 0, 0, 1;
   --project-label-delay: 40ms;
+  --album-swap-duration: 320ms;
+  --album-swap-blur: 6px;
+  --album-swap-scale: 1.08;
   --motion-ease: cubic-bezier(.16, 1, .3, 1);
   --focus-ring: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
   --focus-offset: 2px;

@@ -8,6 +8,7 @@ import { useColorScramble } from "@/hooks/use-color-scramble";
 import { useSpotify } from "@/hooks/use-spotify";
 import { trackPositionAt } from "@/lib/track-clock";
 import { InspectableText } from "@/components/design-inspector";
+import { AlbumArtwork } from "@/components/album-artwork";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export function HomepageIdentity() {
@@ -102,7 +103,7 @@ export function HomepageSpotify() {
   return <a className="homepage-spotify text-bodySans hover-surface" href={data?.songUrl ?? "https://open.spotify.com"} target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Spotify"}>
     <span className={`homepage-album-badge homepage-slide-badge${data?.isPlaying ? " is-playing" : ""}`}>
       <span className="homepage-brand homepage-spotify-brand"><span className="homepage-spotify-logo" /></span>
-      <span className="homepage-album">{data?.albumImageUrl && <Image src={data.albumImageUrl} alt="" fill sizes="28px" />}</span>
+      <AlbumArtwork src={data?.albumImageUrl} />
     </span>
     <span className="homepage-track-info">
       <span className={`homepage-listening text-captionSans${data?.isPlaying ? " is-playing" : ""}`}>
