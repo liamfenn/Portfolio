@@ -639,9 +639,7 @@
   gap: var(--project-info-gap);
   text-align: left;
   pointer-events: none;
-  visibility: hidden;
 }
-.homepage-project-overlay.is-visible { visibility: visible; }
 .homepage-project-company { color: var(--text-primary); --inspect-color-token: text-primary; }
 .homepage-project-period { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding) 12px; }
@@ -833,5 +831,6 @@
 }
 
 @media (max-width: 767px) {
+  .homepage-card.is-expanded { grid-column: 1 / -1; }
   .homepage-project-overlay { top: var(--project-info-inset-mobile); left: var(--project-info-inset-mobile); }
 }
