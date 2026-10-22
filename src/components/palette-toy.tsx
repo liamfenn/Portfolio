@@ -8,6 +8,7 @@ import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
 import { InspectableText } from "@/components/design-inspector";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { GlyphGlobe } from "@/components/glyph-globe";
 import type { GlyphMode } from "@/components/glyph-globe";
 
@@ -38,10 +39,9 @@ export function PaletteToy() {
   const modeRef = useRef(mode);
   modeRef.current = mode;
   const [ready, setReady] = useState(false);
-  const [attachedToAvatar, setAttachedToAvatar] = useState(false);
+  const { paletteAtAvatar: attachedToAvatar, paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
   const [avatarHost, setAvatarHost] = useState<HTMLElement | null>(null);
   const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
-  const [labEnabled, setLabEnabled] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<"palette" | "glyphs">("palette");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
@@ -74,7 +74,7 @@ export function PaletteToy() {
       setVotes(saved.votes);
       setCuts(saved.cuts);
       setGlyphs(raw ? saved.glyphs : parsePalettePreferences(legacy).glyphs);
-      setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
+      if (new URLSearchParams(window.location.search).has("palette-lab")) setPaletteLabOpen(true);
       updateMotion();
       setGlobeHost(document.getElementById("glyph-globe-slot"));
       setAvatarHost(document.getElementById("avatar-palette-slot"));
@@ -85,7 +85,7 @@ export function PaletteToy() {
       window.cancelAnimationFrame(frame);
       motionQuery.removeEventListener("change", updateMotion);
     };
-  }, []);
+  }, [setPaletteLabOpen]);
 
   useEffect(() => {
     if (!ready) return;
@@ -241,13 +241,9 @@ export function PaletteToy() {
   </span>;
 
   return <>
-    <button type="button"
-      className={attachedToAvatar ? "footer-palette-credit text-bodySans" : "footer-palette footer-palette-toggle"}
-      aria-label={attachedToAvatar ? "by ABC Dinamo. Move palette strip back to footer" : "Move palette strip beside profile picture"}
-      aria-pressed={attachedToAvatar}
-      onClick={() => { if (avatarHost) setAttachedToAvatar(value => !value); }}>
-      {attachedToAvatar ? <InspectableText>by ABC Dinamo</InspectableText> : strip}
-    </button>
+    {attachedToAvatar
+      ? <span className="footer-palette-credit text-bodySans"><InspectableText>by ABC Dinamo</InspectableText></span>
+      : <span className="footer-palette" aria-hidden="true">{strip}</span>}
     {attachedToAvatar && avatarHost && createPortal(<span className="avatar-palette">{strip}</span>, avatarHost)}
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>

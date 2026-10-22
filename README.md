@@ -44,8 +44,8 @@ previews, never in production. Open a page with `?inspect=off` to turn it off in
 that browser (it's remembered) and `?inspect` to turn it back on. When off,
 `InspectableText` renders plain text.
 
-On a phone, tap the avatar to show or hide the panel (it skips the Shop link
-while the inspector is on), then tap a mode.
+On desktop or mobile, tap the avatar to show or hide the panel (it skips the Shop link
+while the inspector is on), then choose a mode or test control. Palette position and palette-lab access live here; the footer strip and credit are no longer test buttons.
 
 It works on the homepage and the palette lab:
 
@@ -57,7 +57,7 @@ It works on the homepage and the palette lab:
 - **F** previews the page in one typeface: every serif style (bodySerif,
   captionSerif) swaps to its sans counterpart. Press again to
   restore. It works alongside the other modes.
-- **H** (or tapping the avatar on phones) hides or shows the floating panel, even with no mode active.
+- **H** (or tapping the avatar) hides or shows the floating panel, even with no mode active.
 - **Escape** restores content. Switching families starts at that family's first
   view. Shortcuts ignore editable fields and modifier keys.
 

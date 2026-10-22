@@ -8,10 +8,9 @@ decided, or gets dropped.
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Album-cover transitions (2026-10-21)**
-- Preload new artwork, then blur out and blend colors across the maximum-blur apex before resolving the new cover. Total 320ms, with the image blend in the middle 20%; album-swap tokens define timing, blur, and scale.
-- First cover and reduced motion swap directly after load. Interrupted changes cancel their previous animations; the old image stays visible if the next fails to load.
-- Restored the shared positioning rule used by Spotify's badge, which was inadvertently removed with the avatar's Shop badge styling.
+**Album-cover transitions and test controls (2026-10-21)**
+- Replaced blur with an 8 × 8 grid swap: irregular clusters reveal the new artwork over ~200ms, with sparse 32ms glyph-palette flashes. Artwork preloads; reduced motion swaps directly.
+- The avatar opens the inspector/test menu on desktop and mobile in development and previews. Palette position and palette-lab controls now live there; footer strip and “by ABC Dinamo” are no longer buttons. Existing inspector switches remain in the same menu. Normal sort/grid controls and the globe keep their primary interactions.
 
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
@@ -57,9 +56,9 @@ production) is still the August version. Merging is Liam's call.
 - Masks survive re-renders, song changes, and clock ticks, since letters are anchored by character position.
 
 **Strip position test (2026-10-21)**
-- Tap the footer strip to attach it directly to the left edge of the avatar. Vertical strip: 4px wide, three visible swatches filling the avatar's 28px desktop / 24px mobile height (9⅓px / 8px each), streaming downward.
+- Use “Palette by avatar” in the avatar menu to attach the strip directly to the left edge of the avatar. Vertical strip: 4px wide, three visible swatches filling the avatar's 28px desktop / 24px mobile height (9⅓px / 8px each), streaming downward.
 - The attached pair shifts right by the strip width, keeping the strip at the original content padding (12px on mobile).
-- “by ABC Dinamo” replaces the strip in the footer; tap it to restore the original horizontal strip. Default remains the footer. Reduced motion freezes the stream; the glyph palette remains independent.
+- “by ABC Dinamo” replaces the strip in the footer; use the avatar menu to restore the original horizontal strip. Default remains the footer. Reduced motion freezes the stream; the glyph palette remains independent.
 
 **Strip palette (2026-10-21)**
 - Restored the original 18 kept muted colors for the animated footer strip only (`STRIP_PALETTE`). The globe, ring, explosion, scrambles, and intro markers retain the brighter glyph palette. Palette-lab votes continue to tune glyphs without changing the strip.
