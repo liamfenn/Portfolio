@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
-export type DesktopDensity = 2 | 3 | 4 | 5 | 6;
+export type DesktopDensity = 2 | 3 | 4 | 6;
 export type MobileColumns = 1 | 2;
 export type ProjectSortMode = "featured" | "recent" | "random";
 
@@ -14,8 +14,8 @@ export type ProjectSortMode = "featured" | "recent" | "random";
  */
 const WIDE_VIEWPORT_QUERY = "(min-width: 1920px)";
 
-export const NARROW_DENSITIES = [2, 3, 4, 5] as const;
-export const WIDE_DENSITIES = [3, 4, 5, 6] as const;
+export const NARROW_DENSITIES = [2, 3, 4] as const;
+export const WIDE_DENSITIES = [3, 4, 6] as const;
 
 const NARROW_DEFAULT_DENSITY: DesktopDensity = 3;
 const WIDE_DEFAULT_DENSITY: DesktopDensity = 4;

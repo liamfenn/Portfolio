@@ -8,8 +8,11 @@ decided, or gets dropped.
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Project grid update (2026-10-21)**
+- Removed 5 × 5 from both desktop density menus. Added nine blank tiles using the existing Shop placeholders, for 12 total projects.
+
 **The page**
-- Header with avatar and bio, a work grid with sort (Featured / Recent / Random) and density (2–5 columns)
+- Header with avatar and bio, a work grid with sort (Featured / Recent / Random) and density (2–4 columns, plus 6 on wide screens)
   menus, contact links, a now-playing music player (Spotify), and a footer with weather, clock, type credit,
   and the palette strip.
 - Shop project previews with AV1 and H.264 video renditions (see [`media-workflow.md`](media-workflow.md)).
