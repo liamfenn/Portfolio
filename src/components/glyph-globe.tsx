@@ -47,10 +47,11 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
   });
 }
 
-// Sparse bursts return to the inherited text color instead of accumulating across the globe.
+// Short staggered runs pass through nearby glyphs, then return to the inherited text color.
 function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], isHot: () => boolean) {
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
   const active = new Map<HTMLElement, number>();
+  let pending: { glyph: HTMLElement; at: number }[] = [];
   let nextBurst = performance.now() + 1800 + Math.random() * 1200;
   let wasHot = false;
   const timer = window.setInterval(() => {
@@ -60,21 +61,36 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
     }
     if (hot !== wasHot) {
       nextBurst = hot ? now : now + 1800 + Math.random() * 1200;
+      pending = [];
       wasHot = hot;
-      if (!hot) { live.forEach(glyph => { glyph.style.color = ""; }); active.clear(); }
     }
-    if (now < nextBurst || !colors.length) return;
-    // A shuffled pool prevents duplicate picks; even overlapping hot bursts stay below half the glyphs.
-    const available = live.filter(glyph => !active.has(glyph));
-    const limit = Math.floor(live.length * (hot ? 0.45 : 0.15));
-    const count = Math.min(limit - active.size, hot ? 3 + Math.floor(Math.random() * 3) : 2);
-    for (let index = 0; index < count && available.length; index++) {
-      const glyph = available.splice(Math.floor(Math.random() * available.length), 1)[0];
+    if (now >= nextBurst && colors.length && !pending.length) {
+      // A scattered subset ripples from a fresh origin; gaps keep it from reading as a solid band.
+      const origin = live[Math.floor(Math.random() * live.length)]?.getBoundingClientRect();
+      const x = origin ? origin.left + origin.width / 2 : 0, y = origin ? origin.top + origin.height / 2 : 0;
+      const count = Math.min(live.length, hot ? 9 + Math.floor(Math.random() * 5) : 5 + Math.floor(Math.random() * 4));
+      const pool = [...live];
+      const selected = Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      const ordered = selected.map(glyph => {
+        const rect = glyph.getBoundingClientRect();
+        return { glyph, position: Math.hypot(rect.left + rect.width / 2 - x, rect.top + rect.height / 2 - y) + Math.random() * 6 };
+      }).sort((a, b) => a.position - b.position);
+      let at = now;
+      pending = ordered.map(({ glyph }) => {
+        at += hot ? 20 + Math.random() * 25 : 40 + Math.random() * 45;
+        return { glyph, at };
+      });
+      nextBurst = at + (hot ? 100 + Math.random() * 200 : 1400 + Math.random() * 1000);
+    }
+    // Keep a monochrome majority even when the tail of one flicker overlaps the next.
+    const limit = Math.max(1, Math.floor(live.length * (hot ? 0.45 : 0.3)));
+    while (pending.length && pending[0].at <= now) {
+      const { glyph } = pending.shift()!;
+      if (active.size >= limit && !active.has(glyph)) continue;
       glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
-      active.set(glyph, now + 90 + Math.random() * (hot ? 170 : 240));
+      active.set(glyph, now + (hot ? 70 : 90) + Math.random() * 70);
     }
-    nextBurst = now + (hot ? 100 + Math.random() * 140 : 1800 + Math.random() * 1200);
-  }, 50);
+  }, 25);
   return () => {
     window.clearInterval(timer);
     live.forEach(glyph => { glyph.style.color = ""; });

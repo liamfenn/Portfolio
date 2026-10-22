@@ -81,7 +81,7 @@ reruns the quiz locally: each colour is previewed as type and glyphs on white
 (Y/N or arrow keys, Backspace to undo), then a final cut; **Copy settings**
 exports the result to bake in as the new default.
 
-The globe and exit ring use brief random palette flickers on a few characters every 2–3 seconds, returning to black between bursts. Hover or keyboard focus speeds up the spin and increases the flickers, while keeping fewer than half the characters colored.
+The globe and exit ring use short runs of tightly staggered palette flickers rippling through scattered characters from changing origins, returning to black between bursts. Hover or keyboard focus speeds up the spin and increases the flickers, while keeping fewer than half the characters colored.
 
 A 44px globe of orbiting characters sits in the middle of the footer on desktop
 and centered below it on mobile. Tapping it bursts the globe and frees about
