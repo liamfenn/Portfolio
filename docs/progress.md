@@ -8,6 +8,9 @@ decided, or gets dropped.
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Mobile toolbar targets (2026-10-21)**
+- Sort and grid controls each fill half the toolbar width, extending tap targets to the edges while keeping labels inset 12px. Both have a 44px minimum tap height; desktop stays unchanged.
+
 **Project grid update (2026-10-21)**
 - Removed 5 × 5 from both desktop density menus. Added nine blank tiles using the existing Shop placeholders, for 12 total projects.
 
