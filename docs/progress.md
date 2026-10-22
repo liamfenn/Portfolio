@@ -50,6 +50,7 @@ production) is still the August version. Merging is Liam's call.
 
 **Strip position test (2026-10-21)**
 - Tap the footer strip to attach it directly to the left edge of the avatar. Vertical strip: 4px wide, three visible swatches filling the avatar's 28px desktop / 24px mobile height (9⅓px / 8px each), streaming downward.
+- The attached pair shifts right by the strip width, keeping the strip at the original content padding (12px on mobile).
 - “by ABC Dinamo” replaces the strip in the footer; tap it to restore the original horizontal strip. Default remains the footer. Reduced motion freezes the stream; the glyph palette remains independent.
 
 **Strip palette (2026-10-21)**

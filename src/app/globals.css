@@ -847,3 +847,5 @@
 @media (max-width: 767px) {
   .homepage-identity-frame { --avatar-size: 24px; }
 }
+
+.homepage-identity-frame:has(.avatar-palette) { margin-left: var(--avatar-palette-width); }
