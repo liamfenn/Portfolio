@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cubicBezier } from "motion";
-import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
+import { DEFAULT_GLYPHS, STRIP_PALETTE, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
@@ -95,15 +95,14 @@ export function PaletteToy() {
     swarmRef.current?.update(glyphs);
   }, [glyphs]);
 
-  const paletteKey = palette.map(color => color.hex).join(" ");
-  // The globe, ring and swarm use only the colours that read as thin glyphs on white; the strip shows them all.
+  // The globe, ring and swarm keep the brighter palette; the strip uses its original muted colors.
   const glyphPaletteKey = glyphColors(palette).map(color => color.hex).join(" ");
   const paletteRef = useRef(glyphPaletteKey);
   useEffect(() => { paletteRef.current = glyphPaletteKey; setGlyphPalette(glyphPaletteKey.split(" ")); }, [glyphPaletteKey]);
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    const colors = paletteKey.split(" ");
+    const colors = STRIP_PALETTE.map(color => color.hex);
     const swatches = Array.from(track.children) as HTMLElement[];
     let shownStep = -1;
     const paintStep = (step: number) => {
@@ -134,7 +133,7 @@ export function PaletteToy() {
     };
     frame = window.requestAnimationFrame(render);
     return () => window.cancelAnimationFrame(frame);
-  }, [paletteKey, reducedMotion]);
+  }, [reducedMotion]);
 
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
   const toggle = useCallback(() => {
@@ -235,7 +234,7 @@ export function PaletteToy() {
   return <>
     <span className="footer-palette" aria-hidden="true">
       <span ref={trackRef} className="palette-toy-track">
-        {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: palette[index % palette.length].hex }} />)}
+        {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: STRIP_PALETTE[index % STRIP_PALETTE.length].hex }} />)}
       </span>
     </span>
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}

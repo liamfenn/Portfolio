@@ -39,6 +39,9 @@ production) is still the August version. Merging is Liam's call.
   rests first, or starts sideways. A vertical flick or drag from open space scrolls.
 - Masks survive re-renders, song changes, and clock ticks, since letters are anchored by character position.
 
+**Strip palette (2026-10-21)**
+- Restored the original 18 kept muted colors for the animated footer strip only (`STRIP_PALETTE`). The globe, ring, explosion, scrambles, and intro markers retain the brighter glyph palette. Palette-lab votes continue to tune glyphs without changing the strip.
+
 **The palette**
 - 29 colors in hue order, from a 64-color full-spectrum quiz built around Liam's references (risograph
   pinks and reds, periwinkles through amethysts, light aquas and greens, highlighter yellows). See
