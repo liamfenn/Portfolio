@@ -24,8 +24,6 @@
   --project-info-inset-mobile: 12px;
   --project-info-gap: 2px;
   --avatar-palette-width: 4px;
-  --work-control-touch-height: 44px;
-  --work-control-mobile-inset: 12px;
 }
 
 /* Interaction: hover feedback, slide motion, and one focus ring. */

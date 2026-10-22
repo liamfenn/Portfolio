@@ -851,15 +851,5 @@
 
 .homepage-identity-frame:has(.avatar-palette) { margin-left: var(--avatar-palette-width); }
 
-@media (max-width: 767px) {
-  .portfolio-v3 .work-toolbar { padding: 0; }
-  .portfolio-v3 .work-toolbar > .work-density-control { flex: 1 1 0; width: 50%; min-width: 0; }
-  .portfolio-v3 .work-toolbar .work-control {
-    width: 100%;
-    min-height: var(--work-control-touch-height);
-    padding-inline: var(--work-control-mobile-inset);
-  }
-}
-
 .album-artwork-layer { position: absolute; inset: 0; }
 .album-artwork-incoming { opacity: 0; }

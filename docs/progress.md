@@ -14,7 +14,7 @@ production) is still the August version. Merging is Liam's call.
 - Restored the shared positioning rule used by Spotify's badge, which was inadvertently removed with the avatar's Shop badge styling.
 
 **Mobile toolbar targets (2026-10-21)**
-- Sort and grid controls each fill half the toolbar width, extending tap targets to the edges while keeping labels inset 12px. Both have a 44px minimum tap height; desktop stays unchanged.
+- Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
 **Project grid update (2026-10-21)**
 - Removed 5 × 5 from both desktop density menus. Added nine blank tiles using the existing Shop placeholders, for 12 total projects.
