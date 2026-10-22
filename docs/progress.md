@@ -48,6 +48,10 @@ production) is still the August version. Merging is Liam's call.
   rests first, or starts sideways. A vertical flick or drag from open space scrolls.
 - Masks survive re-renders, song changes, and clock ticks, since letters are anchored by character position.
 
+**Strip position test (2026-10-21)**
+- Tap the footer strip to attach it directly to the left edge of the avatar. Vertical strip: 4px wide, three visible swatches filling the avatar's 28px desktop / 24px mobile height (9⅓px / 8px each), streaming downward.
+- “by ABC Dinamo” replaces the strip in the footer; tap it to restore the original horizontal strip. Default remains the footer. Reduced motion freezes the stream; the glyph palette remains independent.
+
 **Strip palette (2026-10-21)**
 - Restored the original 18 kept muted colors for the animated footer strip only (`STRIP_PALETTE`). The globe, ring, explosion, scrambles, and intro markers retain the brighter glyph palette. Palette-lab votes continue to tune glyphs without changing the strip.
 

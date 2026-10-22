@@ -38,6 +38,8 @@ export function PaletteToy() {
   const modeRef = useRef(mode);
   modeRef.current = mode;
   const [ready, setReady] = useState(false);
+  const [attachedToAvatar, setAttachedToAvatar] = useState(false);
+  const [avatarHost, setAvatarHost] = useState<HTMLElement | null>(null);
   const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
   const [labEnabled, setLabEnabled] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
@@ -75,6 +77,7 @@ export function PaletteToy() {
       setLabEnabled(new URLSearchParams(window.location.search).has("palette-lab"));
       updateMotion();
       setGlobeHost(document.getElementById("glyph-globe-slot"));
+      setAvatarHost(document.getElementById("avatar-palette-slot"));
       setReady(true);
     });
     motionQuery.addEventListener("change", updateMotion);
@@ -108,7 +111,7 @@ export function PaletteToy() {
     const paintStep = (step: number) => {
       if (step === shownStep) return;
       shownStep = step;
-      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[(step + index) % colors.length]; });
+      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[((attachedToAvatar ? index - step : step + index) % colors.length + colors.length) % colors.length]; });
     };
     const slideTo = (x: string) => swatches.forEach(swatch => { swatch.style.transform = x; });
     if (reducedMotion) {
@@ -128,12 +131,14 @@ export function PaletteToy() {
       const slide = phase < STRIP_HOLD ? 0 : stripEase((phase - STRIP_HOLD) / (1 - STRIP_HOLD));
       paintStep(step);
       // The track clips, so the swatches move inside it.
-      slideTo(`translateX(${-slide * STRIP_STEP_PX}px)`);
+      slideTo(attachedToAvatar
+        ? `translateY(${(slide - 1) * track.clientHeight / 3}px)`
+        : `translateX(${-slide * STRIP_STEP_PX}px)`);
       frame = window.requestAnimationFrame(render);
     };
     frame = window.requestAnimationFrame(render);
     return () => window.cancelAnimationFrame(frame);
-  }, [reducedMotion]);
+  }, [reducedMotion, attachedToAvatar, avatarHost]);
 
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
   const toggle = useCallback(() => {
@@ -231,12 +236,19 @@ export function PaletteToy() {
     } catch { setCopied(false); }
   };
 
+  const strip = <span ref={trackRef} className="palette-toy-track" aria-hidden="true">
+    {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: STRIP_PALETTE[index % STRIP_PALETTE.length].hex }} />)}
+  </span>;
+
   return <>
-    <span className="footer-palette" aria-hidden="true">
-      <span ref={trackRef} className="palette-toy-track">
-        {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: STRIP_PALETTE[index % STRIP_PALETTE.length].hex }} />)}
-      </span>
-    </span>
+    <button type="button"
+      className={attachedToAvatar ? "footer-palette-credit text-bodySans" : "footer-palette footer-palette-toggle"}
+      aria-label={attachedToAvatar ? "by ABC Dinamo. Move palette strip back to footer" : "Move palette strip beside profile picture"}
+      aria-pressed={attachedToAvatar}
+      onClick={() => { if (avatarHost) setAttachedToAvatar(value => !value); }}>
+      {attachedToAvatar ? <InspectableText>by ABC Dinamo</InspectableText> : strip}
+    </button>
+    {attachedToAvatar && avatarHost && createPortal(<span className="avatar-palette">{strip}</span>, avatarHost)}
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">

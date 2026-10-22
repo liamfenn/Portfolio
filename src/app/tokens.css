@@ -23,6 +23,7 @@
   --project-info-inset: 16px;
   --project-info-inset-mobile: 12px;
   --project-info-gap: 2px;
+  --avatar-palette-width: 4px;
 }
 
 /* Interaction: hover feedback, slide motion, and one focus ring. */
