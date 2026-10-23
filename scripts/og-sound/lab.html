@@ -7,19 +7,19 @@
   /* Layout: the loop on top with its event strip, then one panel per sound in a two-column grid, master and export last. */
   :root {
     --bg: #fbfbfd; --panel: #ffffff; --ink: #14151a; --muted: #6b6e7a; --line: #e4e5ec; --accent: #5343eb;
-    --tick: #8a8d99; --pop: #d63f74; --whoosh: #12946a; --return: #2f74c9; --finish: #b7791f;
+    --tick: #8a8d99; --pop: #d63f74; --whoosh: #12946a; --finish: #b7791f;
     --sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-      --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --return: #74b0ff; --finish: #f0b450; color-scheme: dark;
+      --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-    --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --return: #74b0ff; --finish: #f0b450; color-scheme: dark;
+    --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
   }
   body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--sans); }
   .wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
@@ -30,7 +30,7 @@
   video { width: 100%; max-width: 100%; aspect-ratio: 1200 / 630; display: block; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
   .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
   .meter { font: 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
-  #strip { width: 100%; height: 68px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
+  #strip { width: 100%; height: 60px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
   .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c); vertical-align: 0; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -49,8 +49,6 @@
   .character { display: grid; gap: 6px; }
   .character-name { font: 12px/1.3 var(--mono); color: var(--ink); min-height: 1.3em; }
   .presets { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 4px; }
-  .choices { display: flex; flex-wrap: wrap; gap: 4px; }
-  .choices button { padding: 5px 10px; font-size: 12px; border-radius: 4px; }
   .presets button { padding: 5px 4px; font-size: 11px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 64px; align-items: center; gap: 10px; }
   .row label { font-size: 13px; color: var(--muted); }
@@ -81,7 +79,6 @@
       <span style="--c: var(--tick)">Glitch ticks</span>
       <span style="--c: var(--pop)">Glyph pops (lower: played backwards)</span>
       <span style="--c: var(--whoosh)">Whoosh</span>
-      <span style="--c: var(--return)">Return</span>
       <span style="--c: var(--finish)">Margin bell</span>
       <span style="--c: var(--line)">Held last frame while sounds ring out</span>
     </div>
@@ -114,18 +111,15 @@ const SOUNDS = [
     DB, SEMITONES("pitch", "Pitch"), TIMES,
     ["density", "Bounce pops", 1, 20, 0.5, v => `${v}/s max`],
   ] },
-  { key: "whoosh", name: "Whoosh", note: "the burst", color: "--whoosh", params: [
+  { key: "whoosh", name: "Whoosh", note: "as the letters fly apart", color: "--whoosh", params: [
     DB,
-    ["start", "Start", -800, 600, 10, v => `${v > 0 ? "+" : ""}${v} ms`],
+    ["start", "Timing", -500, 500, 10, v => `${v > 0 ? "+" : ""}${v} ms`],
     ["softness", "Softness", 0.3, 3, 0.05, v => `${v.toFixed(2)}×`],
     ["bass", "Bass", 0, 4, 0.05, v => `${v.toFixed(2)}×`],
     SEMITONES("depth", "Depth"), TIMES,
   ] },
-  { key: "return", name: "Return", note: "letters coming home", color: "--return", params: [
-    ["trigger", "Plays on", RETURN_TRIGGERS], DB, SEMITONES("pitch", "Pitch"), TIMES,
-  ] },
   { key: "finish", name: "Margin bell", note: "after the last tick", color: "--finish", params: [
-    DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], ["body", "Body", 0, 1.5, 0.05, v => `${Math.round(v * 100)}%`], SEMITONES("pitch", "Pitch"), TIMES,
+    DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], SEMITONES("pitch", "Pitch"), TIMES,
   ] },
 ];
 const MASTER = [
@@ -135,7 +129,7 @@ const MASTER = [
   ["duck", "Duck under whoosh", 0, 1, 0.05, v => `${Math.round(v * 100)}%`],
 ];
 // Bumped when the defaults are re-baked from a pasted set, so the lab starts from them rather than older local edits.
-const STORE = "burst-sound-lab-2";
+const STORE = "burst-sound-lab-3";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 let settings = clone(DEFAULTS);
@@ -153,17 +147,6 @@ const effective = () => {
   return out;
 };
 
-/** A pick-one row, for settings that are a choice rather than an amount. */
-function choice(container, group, [key, label, options], onInput) {
-  const row = document.createElement("div");
-  row.className = "row";
-  row.innerHTML = `<label>${label}</label><div class="choices" role="group" aria-label="${label}">${options.map((option, index) => `<button type="button" data-choice="${index}">${option}</button>`).join("")}</div><output></output>`;
-  const buttons = [...row.querySelectorAll("button")];
-  const sync = () => buttons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === Number(settings[group][key]))));
-  buttons.forEach(button => button.addEventListener("click", () => { settings[group][key] = Number(button.dataset.choice); sync(); onInput(); }));
-  container.append(row);
-  return sync;
-}
 function slider(container, group, [key, label, min, max, step, format], onInput) {
   const id = `${group}-${key}`, row = document.createElement("div");
   row.className = "row";
@@ -214,7 +197,7 @@ function buildPanels() {
     panel.querySelector('[data-act="back"]')?.addEventListener("click", () => playOne(sound.key, true));
     panel.dataset.sound = sound.key;
     const syncOn = () => { on.setAttribute("aria-pressed", String(settings[sound.key].on)); on.textContent = settings[sound.key].on ? "On" : "Off"; panel.classList.toggle("off", !settings[sound.key].on); };
-    const sliders = sound.params.map(param => (Array.isArray(param[2]) ? choice : slider)(panel, sound.key, param, changed));
+    const sliders = sound.params.map(param => slider(panel, sound.key, param, changed));
     syncs.push(() => { syncOn(); syncCharacter(); sliders.forEach(sync => sync()); });
     panels.append(panel);
   }
@@ -300,7 +283,7 @@ function drawStrip() {
   const ratio = window.devicePixelRatio || 1, width = strip.clientWidth, height = strip.clientHeight;
   if (strip.width !== width * ratio) { strip.width = width * ratio; strip.height = height * ratio; }
   ink.setTransform(ratio, 0, 0, ratio, 0, 0); ink.clearRect(0, 0, width, height);
-  const palette = colours(), rows = { tick: 0, pop: 1, whoosh: 2.5, return: 3.5, finish: 4.5 }, band = (height - 8) / 5.5;
+  const palette = colours(), rows = { tick: 0, pop: 1, whoosh: 2.5, finish: 3.5 }, band = (height - 8) / 4.5;
   // The tail past the video, where its last frame holds.
   ink.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--line").trim();
   ink.fillRect(SECONDS / total * width, 0, width - SECONDS / total * width, height);

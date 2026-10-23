@@ -1,8 +1,7 @@
 // The og share cuts' sound effects, as one pure module with no imports: scripts/sound-og.mjs renders with it, and the
 // sound lab page (scripts/og-sound/build-lab.mjs) inlines it, so what the lab plays is exactly what gets rendered.
 //
-// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, a sound for the letters coming home, and a
-// margin bell to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
+// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, and a margin bell to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
 // plus adjustments on top. Volumes are in dB against a voice normalised to full scale, so morphing between presets keeps its level.
 
 export const RATE = 48000;
@@ -20,11 +19,11 @@ export const PRESETS = {
     { name: "Static", decay: 10, hp: 0.85, pitchAmt: 0, pitchHz: 3000 },
   ],
   whoosh: [
-    { name: "Sub thump", lowStart: 60, lowPeak: 220, attack: 30, decay: 300, sub: 0.7, subHz: 55, air: 0 },
-    { name: "Deep swell", lowStart: 120, lowPeak: 500, attack: 250, decay: 450, sub: 0.25, subHz: 48, air: 0 },
-    { name: "Soft air", lowStart: 300, lowPeak: 2200, attack: 180, decay: 380, sub: 0, subHz: 48, air: 0.3 },
-    { name: "Breath", lowStart: 500, lowPeak: 3500, attack: 350, decay: 600, sub: 0, subHz: 48, air: 0.6 },
-    { name: "Sub swell", lowStart: 40, lowPeak: 260, attack: 400, decay: 700, sub: 0.9, subHz: 42, air: 0 },
+    // All low and short, with no air: a mellow push as the letters fly apart rather than a gust of wind.
+    { name: "Low puff", lowStart: 60, lowPeak: 240, attack: 110, decay: 220, sub: 0.5, subHz: 46, air: 0 },
+    { name: "Soft thud", lowStart: 50, lowPeak: 160, attack: 40, decay: 260, sub: 0.8, subHz: 52, air: 0 },
+    { name: "Muted swell", lowStart: 80, lowPeak: 380, attack: 180, decay: 300, sub: 0.35, subHz: 44, air: 0 },
+    { name: "Felt drum", lowStart: 70, lowPeak: 200, attack: 15, decay: 180, sub: 0.9, subHz: 60, air: 0 },
   ],
   pop: [
     { name: "Thud", pitch: 180, ratio: 0.6, glideMs: 12, decay: 30, tone: 900, noise: 0 },
@@ -33,32 +32,21 @@ export const PRESETS = {
     { name: "Droplet", pitch: 1200, ratio: 0.6, glideMs: 10, decay: 25, tone: 5000, noise: 0.05 },
     { name: "Tick", pitch: 2500, ratio: 1, glideMs: 10, decay: 4, tone: 8000, noise: 0.6 },
   ],
-  // The letters coming home: from a soft felted tap to a breath drawn in, a swell that ends as it lands.
-  return: [
-    { name: "Felt tap", pitch: 320, attack: 1, decay: 60, noise: 0.1, tone: 1500 },
-    { name: "Soft pluck", pitch: 520, attack: 1, decay: 120, noise: 0, tone: 2500 },
-    { name: "Breath in", pitch: 200, attack: 600, decay: 80, noise: 0.9, tone: 1200 },
-    { name: "Reverse swell", pitch: 140, attack: 900, decay: 60, noise: 0.6, tone: 700 },
-  ],
-  // A typewriter's margin bell: a struck bell, its partials inharmonic like a real one, each dying away faster.
+  // A typewriter's margin bell, as only its body: the low tone under the ding and the hammer's soft thump and click,
+  // without the bright ringing partials. Pitch is the bell's; the tone sounds an octave below it.
   finish: [
-    { name: "Margin bell", pitch: 2350, decay: 900, strike: 0.35, bright: 0.8 },
-    { name: "Soft bell", pitch: 1600, decay: 700, strike: 0.15, bright: 0.45 },
-    { name: "Tiny ding", pitch: 3400, decay: 350, strike: 0.4, bright: 0.9 },
-    { name: "Desk bell", pitch: 1250, decay: 1500, strike: 0.3, bright: 0.7 },
+    { name: "Margin bell", pitch: 2350, decay: 900, strike: 0.35 },
+    { name: "Soft bell", pitch: 1600, decay: 700, strike: 0.15 },
+    { name: "Tiny ding", pitch: 3400, decay: 350, strike: 0.4 },
+    { name: "Desk bell", pitch: 1250, decay: 1500, strike: 0.3 },
   ],
 };
-const BELL = [[1, 1, 1], [2.76, 0.5, 0.6], [5.4, 0.25, 0.35], [8.93, 0.12, 0.2]];
-
-/** Where the return sound plays: on each letter landing, as each turns for home, or once, swelling into the landing. */
-export const RETURN_TRIGGERS = ["Each landing", "Each turn home", "One swell"];
 
 export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
-  whoosh: { on: true, volume: -18, character: 1, length: 1.6, depth: -7, bass: 1.8, softness: 1.6, start: -100 },
-  return: { on: true, volume: -26, character: 0, pitch: 0, length: 1, trigger: 0 },
-  finish: { on: true, volume: -28, character: 2, pitch: 5.5, length: 0.7, delay: 220, body: 0.6 },
+  whoosh: { on: true, volume: -20, character: 0, length: 1, depth: 0, bass: 1, softness: 1, start: 0 },
+  finish: { on: true, volume: -28, character: 2, pitch: 5.5, length: 0.7, delay: 220 },
   master: { volume: 0, room: 0.15, overlap: 2, duck: 0.5 },
 };
 
@@ -128,21 +116,8 @@ function voice(sound, settings, random, reverse = false) {
     const out = new Float32Array(Math.ceil(Math.min(4, decay * 5) * RATE)), click = lowpass();
     for (let i = 0; i < out.length; i++) {
       const t = i / RATE;
-      let ring = 0;
-      for (const [ratio, amount, life] of BELL) ring += Math.sin(2 * Math.PI * f0 * ratio * t) * amount * (ratio === 1 ? 1 : p.bright) * Math.exp(-t / (decay * life));
-      // Body: a partial an octave below that outlasts the ding, and a soft low thump where the hammer lands, which
-      // weight the bell without dulling it.
-      const under = Math.sin(Math.PI * f0 * t) * 0.8 * Math.exp(-t / (decay * 1.2)) + Math.sin(2 * Math.PI * 170 * t) * Math.exp(-t / 0.06);
-      out[i] = (ring + under * s.body) * Math.min(1, t / 0.0005) + click(noise(), 6000) * Math.exp(-t / 0.001) * p.strike * 4;
-    }
-    return out;
-  }
-  if (sound === "return") {
-    const f0 = p.pitch * Math.pow(2, s.pitch / 12) * (1 + (random() - 0.5) * 0.08), attack = p.attack / 1000, decay = p.decay * s.length / 1000;
-    const out = new Float32Array(Math.ceil((attack + decay * 6) * RATE)), tone = lowpass();
-    for (let i = 0; i < out.length; i++) {
-      const t = i / RATE, rise = Math.min(1, t / attack), swell = t < attack ? rise * rise : Math.exp(-(t - attack) / decay);
-      out[i] = tone(Math.sin(2 * Math.PI * f0 * t) * (1 - p.noise) + noise() * p.noise * 1.5, p.tone) * swell;
+      const body = Math.sin(Math.PI * f0 * t) * 0.8 * Math.exp(-t / (decay * 1.2)) + Math.sin(2 * Math.PI * 170 * t) * Math.exp(-t / 0.06);
+      out[i] = body * 1.5 * Math.min(1, t / 0.0005) + click(noise(), 6000) * Math.exp(-t / 0.001) * p.strike * 4;
     }
     return out;
   }
@@ -179,8 +154,9 @@ const CROWD = 0.08;
 /**
  * Which events make a sound, and at what level. Glitch ticks come only from the opening and closing glitches. Pops
  * run the whole time glyphs bounce: one as each extra glyph splits off, one for knocks between pieces (at most
- * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The whoosh starts
- * `start` ms from the first letter popping out of the text, and the margin bell rings `delay` ms after the last tick.
+ * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The whoosh peaks
+ * as the first letter is kicked loose and flies away, moved by `start` ms, and the margin bell rings `delay` ms after
+ * the last tick.
  * Then at most `overlap` sounds start within 80ms, those after the first at half level, and pops under the whoosh's
  * first half-second are ducked by `duck`.
  */
@@ -201,21 +177,15 @@ export function plan(events, settings) {
     }
     kept.push(event); last[event.type] = event;
   }
-  // The letters coming home: their landings or their turns for home, or one swell timed to peak at the first landing.
-  const back = settings.return, attack = blend("return", back.character).attack / 1000;
-  if (back.on) {
-    const trigger = Math.round(back.trigger), lands = sorted.filter(event => event.type === "land");
-    if (trigger === 2 && lands.length) kept.push({ type: "home", time: Math.max(0, lands[0].time - attack), x: 0.5 });
-    else for (const event of sorted.filter(item => item.type === (trigger === 1 ? "return" : "land"))) kept.push({ ...event, type: "home", time: Math.max(0, event.time - attack) });
-    kept.sort((a, b) => a.time - b.time);
-  }
-  const whooshAt = firstRelease + settings.whoosh.start / 1000, placed = [];
+  // Timed so its swell peaks on the first kick, the moment the letters start to fly apart.
+  const firstKick = sorted.find(event => event.type === "kick")?.time ?? Infinity;
+  const whooshAt = firstKick - blend("whoosh", settings.whoosh.character).attack * settings.whoosh.softness / 1000 + settings.whoosh.start / 1000, placed = [];
   for (const event of kept) {
     const crowd = placed.filter(other => event.time - other.time < CROWD).length;
     if (crowd >= settings.master.overlap) continue;
     const under = event.type !== "flick" && event.time >= whooshAt && event.time - whooshAt < 0.5 && settings.whoosh.on ? 1 - settings.master.duck : 1;
     const firm = event.type === "hit" ? 0.55 + 0.45 * Math.min(1, event.strength / 12) : 1;
-    placed.push({ ...event, sound: event.type === "home" ? "return" : SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * under * firm });
+    placed.push({ ...event, sound: SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * under * firm });
   }
   if (settings.whoosh.on && Number.isFinite(whooshAt)) placed.push({ type: "whoosh", sound: "whoosh", time: Math.max(0, whooshAt), x: 0.5, level: 1 });
   const lastTick = [...placed].reverse().find(event => event.sound === "tick");
