@@ -8,6 +8,11 @@ decided, or gets dropped.
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Link preview video (2026-10-22)**
+- og:video and og:image now come from the Figma card (435:198): "Office of Liam Fennell" on white, a few letters glitch, every letter lifts into the real swarm engine, then they fly home and glitch back. 9.7s loop, 1200×630, 60fps, ~250 KB (`public/images/meta/og-office.{mp4,png}`; the PNG is the first frame). New filenames so platforms don't serve the old blank `opengraph.png` from cache.
+- `/og` (dev only) plays the loop in real time. `node scripts/capture-og.mjs http://localhost:3000/og` records it on a virtual clock with seeded randomness, so reruns match; it also writes a 2400×1260 share cut to `out/office-of-liam-fennell.mp4`. Rerun it after palette or swarm changes.
+- Glitched letters settle on glyph-palette colors rather than the Figma card's, which predate the current palette. The card's 48px size is a new token (`--text-og-card`).
+
 **Album-cover transitions and test controls (2026-10-21)**
 - Replaced blur with an 8 × 8 grid swap: irregular clusters reveal the new artwork over ~200ms, with sparse 32ms glyph-palette flashes. Artwork preloads; reduced motion swaps directly.
 - The avatar opens the inspector/test menu on desktop and mobile in development and previews. Palette position and palette-lab controls now live there; footer strip and “by ABC Dinamo” are no longer buttons. Existing inspector switches remain in the same menu. Normal sort/grid controls and the globe keep their primary interactions.

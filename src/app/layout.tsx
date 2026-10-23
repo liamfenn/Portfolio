@@ -21,8 +21,10 @@ const otto = localFont({
   display: "swap",
 });
 
+const SITE = new URL("https://www.fennell.cv");
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.fennell.cv"),
+  metadataBase: SITE,
   title: "Liam Fennell",
   description:
     "Liam Fennell is a designer based in Atlanta, GA, currently designing commerce and discovery experiences for Shop.",
@@ -38,7 +40,20 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/meta/opengraph.png",
+        url: "/images/meta/og-office.png",
+        width: 1200,
+        height: 630,
+        alt: "Office of Liam Fennell",
+      },
+    ],
+    // Recorded from /og with scripts/capture-og.mjs; the image above is its first frame. Unlike images, Next doesn't
+    // resolve video URLs against metadataBase, and crawlers ignore relative ones.
+    videos: [
+      {
+        url: new URL("/images/meta/og-office.mp4", SITE),
+        type: "video/mp4",
+        width: 1200,
+        height: 630,
       },
     ],
   },
@@ -47,7 +62,7 @@ export const metadata: Metadata = {
     title: "Liam Fennell",
     description:
       "Liam Fennell is a designer based in Atlanta, GA, currently designing commerce and discovery experiences for Shop.",
-    images: ["/images/meta/opengraph.png"],
+    images: ["/images/meta/og-office.png"],
   },
 };
 

@@ -15,6 +15,8 @@
   --leading-mobile: 18px;
   --tracking-ui: -.01em;
   --tracking-prose: -.02em;
+  /* The 1200×630 link-preview card (/og), drawn at its own scale rather than the page's. */
+  --text-og-card: 48px;
 
   /* Spacing: an 8px frame around the page, 16px inside each section. */
   --page-frame: 8px;
