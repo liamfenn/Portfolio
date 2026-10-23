@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { NowPlayingResponse } from "@/lib/spotify";
 
 const CACHE_KEY = "spotify-last-track";
-const POLL_INTERVAL = 30000; // 30s = ~2 req/min, well under 180/min limit
+const POLL_INTERVAL = 15000;
 
 // Hardcoded fallback so the widget always has something to show
 const FALLBACK_TRACK: NowPlayingResponse = {
@@ -46,6 +46,7 @@ export function useSpotify() {
   const cachedAtRef = useRef<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const requestInFlight = useRef(false);
 
   // Load cached track on mount for instant display, fall back to hardcoded track
   useEffect(() => {
@@ -63,8 +64,10 @@ export function useSpotify() {
   }, []);
 
   const fetchNowPlaying = useCallback(async () => {
+    if (requestInFlight.current) return;
+    requestInFlight.current = true;
     try {
-      const response = await fetch("/api/spotify/now-playing");
+      const response = await fetch("/api/spotify/now-playing", { cache: "no-store" });
       if (!response.ok) return;
 
       const result = await response.json();
@@ -82,14 +85,22 @@ export function useSpotify() {
     } catch {
       // keep previous data on error
     } finally {
+      requestInFlight.current = false;
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchNowPlaying();
-    intervalRef.current = setInterval(fetchNowPlaying, POLL_INTERVAL);
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") fetchNowPlaying();
+    };
+    intervalRef.current = setInterval(refreshVisible, POLL_INTERVAL);
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
     return () => {
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [fetchNowPlaying]);

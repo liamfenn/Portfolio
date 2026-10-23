@@ -15,6 +15,11 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Spotify freshness (2026-10-22)**
+- A paused current track no longer gets replaced by the last completed track. Empty/paused currently-playing responses are confirmed once after 350ms before falling back to recently played.
+- Client polls visible pages every 15 seconds, refreshes on focus/visibility return, bypasses browser cache, and prevents overlapping requests.
+- Public production API was independently returning isPlaying:false on fresh cache-miss requests; preview is behind Vercel protection. These fixes improve transient handling but cannot guarantee Spotify reports every active device/session. No production merge authorized.
+
 **Toolbar mark feedback (2026-10-22)**
 - Dot and square flash through the glyph palette on the same frames as selection text scrambles, returning to their original fill when the text settles. Re-selecting Random retriggers the effect. Reduced motion skips it.
 - Desktop square is 9px (dot 9.9px); mobile remains 8px (dot 8.8px). Desktop sizing uses the work-glyph-desktop-size token.

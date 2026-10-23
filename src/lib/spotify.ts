@@ -129,40 +129,33 @@ export async function getNowPlaying(): Promise<NowPlayingResponse | null> {
   try {
     const { access_token } = await getAccessToken();
 
-    const response = await fetch(SPOTIFY_NOW_PLAYING_URL, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-      cache: "no-store",
-    });
-
-    if (response.status === 204 || response.status === 202) {
-      return getRecentlyPlayed(access_token);
+    const readCurrent = async () => {
+      const response = await fetch(SPOTIFY_NOW_PLAYING_URL, {
+        headers: { Authorization: `Bearer ${access_token}` },
+        cache: "no-store",
+      });
+      if (response.status === 204 || response.status === 202) return { ok: true, data: null };
+      if (!response.ok) {
+        console.error(`Spotify current playback failed (${response.status})`);
+        return { ok: false, data: null };
+      }
+      return { ok: true, data: await response.json() as SpotifyNowPlaying };
+    };
+    let current = await readCurrent();
+    if (!current.ok) return null;
+    // Device handoffs and track boundaries can briefly report empty/paused playback.
+    if (!current.data?.item || !current.data.is_playing) {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      const retried = await readCurrent();
+      if (retried.ok && retried.data?.item) current = retried;
     }
+    const data = current.data;
+    if (!data?.item) return getRecentlyPlayed(access_token);
 
-    if (response.status === 429 || !response.ok) {
-      return null;
-    }
-
-    const data: SpotifyNowPlaying = await response.json();
-
-    if (!data.item) {
-      return null;
-    }
-
-    if (!data.is_playing) {
-      return (await getRecentlyPlayed(access_token)) ?? {
-        isPlaying: false,
-        title: data.item.name,
-        artist: data.item.artists.map((a) => a.name).join(", "),
-        album: data.item.album.name,
-        albumImageUrl: data.item.album.images[0]?.url || "",
-        songUrl: data.item.external_urls.spotify,
-      };
-    }
+    // A paused current track is more accurate than the last completed track in history.
 
     return {
-      isPlaying: true,
+      isPlaying: data.is_playing,
       progressMs: data.progress_ms,
       durationMs: data.item.duration_ms,
       fetchedAt: new Date().toISOString(),
