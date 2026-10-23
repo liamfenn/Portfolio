@@ -164,6 +164,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
         }
       }
     });
+    // Re-register after dynamic text changes so browsers invalidate the highlight's paint.
+    CSS.highlights.set("glyph-swarm-taken", highlight);
   };
 
   // Every visible character on the page, on screen or not; a random share of them leaves for the swarm.

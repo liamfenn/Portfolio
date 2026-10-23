@@ -552,7 +552,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopSort(option.value)}
                   >
-                    <InspectableText>{option.label}</InspectableText>
+                    <span className="work-option-text"><InspectableText>{option.label}</InspectableText></span>
                   </motion.button>
                 ))}
               </AnimatePresence>
@@ -614,7 +614,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopDensity(density)}
                   >
-                    <InspectableText>{`${density} x ${density}`}</InspectableText>
+                    <span className="work-option-text"><InspectableText>{`${density} x ${density}`}</InspectableText></span>
                   </motion.button>
                 ))}
               </AnimatePresence>

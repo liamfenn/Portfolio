@@ -866,3 +866,8 @@
 .vertical-palette .palette-toy-track { flex-direction: column; height: 100%; }
 .vertical-palette .palette-toy-track i { width: 100%; height: var(--palette-swatch-height); flex: 0 0 var(--palette-swatch-height); }
 .player-palette-slot { position: absolute; right: 0; top: 0; bottom: 0; width: var(--player-palette-width); pointer-events: none; }
+
+/* Explicit text boxes keep custom character highlights paintable inside flex controls (Safari). */
+.work-option-text,
+.homepage-project-company,
+.homepage-project-period { display: block; }
