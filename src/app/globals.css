@@ -101,10 +101,6 @@
   margin: 0;
 }
 
-.portfolio-bio p + p {
-  text-indent: var(--bio-paragraph-indent);
-}
-
 .portfolio-bio strong,
 .portfolio-link-strong,
 .portfolio-contact a {
@@ -586,12 +582,7 @@
 .portfolio-v3 .portfolio-footer { padding: 0 var(--content-padding) var(--content-padding); }
 .portfolio-v3 .portfolio-bio-group { width: var(--intro-text-width); max-width: 100%; }
 .portfolio-v3 .portfolio-bio a { text-decoration: none; }
-.bio-reference {
-  position: static;
-  vertical-align: super;
-  line-height: 0;
-  color: var(--bio-reference-color);
-}
+
 .homepage-slide-badge { position: relative; display: block; width: 56px; height: 28px; }
 .homepage-identity { display: block; width: 28px; height: 28px; flex: 0 0 28px; }
 /*

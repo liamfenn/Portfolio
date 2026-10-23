@@ -32,6 +32,10 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Menu masks and intro (2026-10-23)**
+- Hidden menu options now use individually rendered characters with random opacity masks, independent of browser highlight painting. The selected control still feeds the real swarm, while hover project text retains its working mask-only behavior. Cleanup removes all menu masks.
+- Removed intro paragraph indentation and superscript references. Intro links now use text-primary without underlines; replacement copy pending.
+
 **Transient mask painting (2026-10-23)**
 - Menu labels now have explicit text boxes, avoiding anonymous flex text that Safari cannot paint with custom highlights. Re-register dynamic highlight ranges after updates. Selected control text keeps participating in the actual swarm; menu options and project labels remain mask-only.
 

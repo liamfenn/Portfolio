@@ -57,6 +57,12 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
+function MenuOptionText({ text }: { text: string }) {
+  return <span className="work-option-text"><InspectableText>{Array.from(text).map((character, index) =>
+    <span key={index} data-swarm-menu-char>{character}</span>
+  )}</InspectableText></span>;
+}
+
 function WorkGlyphControl({
   text,
   reserveScrambleWidth = false,
@@ -552,7 +558,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopSort(option.value)}
                   >
-                    <span className="work-option-text"><InspectableText>{option.label}</InspectableText></span>
+                    <MenuOptionText text={option.label} />
                   </motion.button>
                 ))}
               </AnimatePresence>
@@ -614,7 +620,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopDensity(density)}
                   >
-                    <span className="work-option-text"><InspectableText>{`${density} x ${density}`}</InspectableText></span>
+                    <MenuOptionText text={`${density} x ${density}`} />
                   </motion.button>
                 ))}
               </AnimatePresence>

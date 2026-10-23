@@ -3,7 +3,7 @@ import { SPACING, captureStrength, entryPoint, pocketForce, touchIntent, pushImp
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
-const MASK_ONLY = "[role='menu'],.homepage-project-overlay";
+const MASK_ONLY = ".homepage-project-overlay";
 const SKIP = ".homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
@@ -138,8 +138,18 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
 
   // Transient UI loses random letters too, but these ranges never become sources or physics bodies.
+  const maskedMenuChars = new Map<HTMLElement, boolean>();
   const maskedUI = new Map<Element, { choices: Map<number, boolean>; ranges: Range[] }>();
   const refreshUIMasks = () => {
+    // Menu characters use direct opacity masks, independent of custom-highlight paint support.
+    for (const character of maskedMenuChars.keys()) {
+      if (!root.contains(character)) maskedMenuChars.delete(character);
+    }
+    root.querySelectorAll<HTMLElement>("[data-swarm-menu-char]").forEach(character => {
+      if (!character.textContent?.trim()) return;
+      if (!maskedMenuChars.has(character)) maskedMenuChars.set(character, Math.random() < settings.amount);
+      if (maskedMenuChars.get(character)) character.style.opacity = "0";
+    });
     if (!highlight) return;
     for (const [element, mask] of maskedUI) {
       mask.ranges.forEach(range => highlight.delete(range));
@@ -562,7 +572,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (removed) return;
     removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect();
     window.removeEventListener("scroll", onScroll);
-    maskedUI.clear();
+    maskedMenuChars.forEach((_, character) => character.style.removeProperty("opacity"));
+    maskedMenuChars.clear(); maskedUI.clear();
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();
     globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });
