@@ -5,30 +5,31 @@
     "character": 0,
     "length": 1
   },
-  "knock": {
+  "pop": {
     "on": true,
-    "volume": -14,
-    "character": 1.6,
-    "pitch": 0,
-    "length": 1,
-    "brightness": 1,
-    "punch": 1,
-    "density": 7,
-    "variation": 0.15
+    "volume": -15,
+    "character": 1,
+    "pitch": -6,
+    "length": 1.7,
+    "density": 8
   },
   "whoosh": {
     "on": true,
-    "volume": -12,
+    "volume": -18,
     "character": 1,
-    "length": 1,
-    "depth": 0
+    "length": 1.6,
+    "depth": -7,
+    "bass": 1.8,
+    "softness": 1.6,
+    "start": -100
   },
-  "pop": {
+  "finish": {
     "on": true,
-    "volume": -24,
-    "character": 1,
+    "volume": -22,
+    "character": 0,
     "pitch": 0,
-    "length": 1
+    "length": 1,
+    "delay": 160
   },
   "master": {
     "volume": 0,

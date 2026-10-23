@@ -7,19 +7,19 @@
   /* Layout: the loop on top with its event strip, then one panel per sound in a two-column grid, master and export last. */
   :root {
     --bg: #fbfbfd; --panel: #ffffff; --ink: #14151a; --muted: #6b6e7a; --line: #e4e5ec; --accent: #5343eb;
-    --tick: #8a8d99; --knock: #5343eb; --whoosh: #12946a; --pop: #d63f74;
+    --tick: #8a8d99; --pop: #d63f74; --whoosh: #12946a; --finish: #b7791f;
     --sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-      --tick: #a3a6b5; --knock: #8b80ff; --whoosh: #3fcf9b; --pop: #ff7aa6; color-scheme: dark;
+      --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-    --tick: #a3a6b5; --knock: #8b80ff; --whoosh: #3fcf9b; --pop: #ff7aa6; color-scheme: dark;
+    --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
   }
   body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--sans); }
   .wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
@@ -30,7 +30,7 @@
   video { width: 100%; max-width: 100%; aspect-ratio: 1200 / 630; display: block; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
   .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
   .meter { font: 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
-  #strip { width: 100%; height: 44px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
+  #strip { width: 100%; height: 56px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
   .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c); vertical-align: 0; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -77,9 +77,9 @@
     <canvas id="strip" aria-label="Where each sound plays in the loop; click to jump"></canvas>
     <div class="legend">
       <span style="--c: var(--tick)">Glitch ticks</span>
-      <span style="--c: var(--knock)">Knocks</span>
+      <span style="--c: var(--pop)">Glyph pops (lower: played backwards)</span>
       <span style="--c: var(--whoosh)">Whoosh</span>
-      <span style="--c: var(--pop)">Glyph pops</span>
+      <span style="--c: var(--finish)">Margin bell</span>
     </div>
   </section>
 
@@ -101,36 +101,31 @@
 const EVENTS = /*EVENTS*/;
 const SECONDS = /*SECONDS*/;
 
+const DB = ["volume", "Volume", -40, 0, 0.5, v => `${v.toFixed(1)} dB`];
+const SEMITONES = (key, label) => [key, label, -12, 12, 0.5, v => `${v > 0 ? "+" : ""}${v} st`];
+const TIMES = [ "length", "Length", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`];
 const SOUNDS = [
-  { key: "tick", name: "Glitch ticks", note: "opening and closing glitch", color: "--tick", params: [
-    ["volume", "Volume", -40, 0, 0.5, v => `${v.toFixed(1)} dB`],
-    ["length", "Length", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`],
-  ] },
-  { key: "knock", name: "Knocks", note: "pieces hitting each other", color: "--knock", params: [
-    ["volume", "Volume", -40, 0, 0.5, v => `${v.toFixed(1)} dB`],
-    ["pitch", "Pitch", -12, 12, 0.5, v => `${v > 0 ? "+" : ""}${v} st`],
-    ["length", "Length", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`],
-    ["brightness", "Brightness", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`],
-    ["punch", "Punch", 0, 2, 0.05, v => `${v.toFixed(2)}×`],
-    ["density", "How many", 1, 16, 0.5, v => `${v}/s max`],
-    ["variation", "Variation", 0, 0.4, 0.01, v => `±${Math.round(v * 100)}%`],
+  { key: "tick", name: "Glitch ticks", note: "opening and closing glitch", color: "--tick", params: [DB, TIMES] },
+  { key: "pop", name: "Glyph pops", note: "splitting off, bouncing, sucked away", color: "--pop", reverse: true, params: [
+    DB, SEMITONES("pitch", "Pitch"), TIMES,
+    ["density", "Bounce pops", 1, 20, 0.5, v => `${v}/s max`],
   ] },
   { key: "whoosh", name: "Whoosh", note: "the burst", color: "--whoosh", params: [
-    ["volume", "Volume", -40, 0, 0.5, v => `${v.toFixed(1)} dB`],
-    ["depth", "Depth", -12, 12, 0.5, v => `${v > 0 ? "+" : ""}${v} st`],
-    ["length", "Length", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`],
+    DB,
+    ["start", "Start", -800, 600, 10, v => `${v > 0 ? "+" : ""}${v} ms`],
+    ["softness", "Softness", 0.3, 3, 0.05, v => `${v.toFixed(2)}×`],
+    ["bass", "Bass", 0, 4, 0.05, v => `${v.toFixed(2)}×`],
+    SEMITONES("depth", "Depth"), TIMES,
   ] },
-  { key: "pop", name: "Glyph pops", note: "extra glyphs splitting off and vanishing", color: "--pop", params: [
-    ["volume", "Volume", -40, 0, 0.5, v => `${v.toFixed(1)} dB`],
-    ["pitch", "Pitch", -12, 12, 0.5, v => `${v > 0 ? "+" : ""}${v} st`],
-    ["length", "Length", 0.4, 2.5, 0.05, v => `${v.toFixed(2)}×`],
+  { key: "finish", name: "Margin bell", note: "after the last tick", color: "--finish", params: [
+    DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], SEMITONES("pitch", "Pitch"), TIMES,
   ] },
 ];
 const MASTER = [
   ["volume", "Volume", -20, 12, 0.5, v => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`],
   ["room", "Room", 0, 0.5, 0.01, v => `${Math.round(v * 100)}%`],
   ["overlap", "At once", 1, 4, 1, v => `${v} max`],
-  ["duck", "Duck knocks", 0, 1, 0.05, v => `${Math.round(v * 100)}%`],
+  ["duck", "Duck under whoosh", 0, 1, 0.05, v => `${Math.round(v * 100)}%`],
 ];
 const STORE = "burst-sound-lab";
 
@@ -172,7 +167,7 @@ function buildPanels() {
         <h2>${sound.name} <small>${sound.note}</small></h2>
         <button type="button" data-act="on" aria-pressed="true">On</button>
         <button type="button" data-act="solo" aria-pressed="false">Solo</button>
-        <button type="button" data-act="one">Play one</button>
+        <button type="button" data-act="one">Play one</button>${sound.reverse ? '<button type="button" data-act="back">Backwards</button>' : ""}
       </div>
       <div class="character">
         <div class="row"><label for="${sound.key}-character">Character</label><input id="${sound.key}-character" type="range" min="0" max="${presets.length - 1}" step="0.01"><output></output></div>
@@ -197,6 +192,7 @@ function buildPanels() {
       changed();
     });
     panel.querySelector('[data-act="one"]').addEventListener("click", () => playOne(sound.key));
+    panel.querySelector('[data-act="back"]')?.addEventListener("click", () => playOne(sound.key, true));
     panel.dataset.sound = sound.key;
     const syncOn = () => { on.setAttribute("aria-pressed", String(settings[sound.key].on)); on.textContent = settings[sound.key].on ? "On" : "Off"; panel.classList.toggle("off", !settings[sound.key].on); };
     const sliders = sound.params.map(param => slider(panel, sound.key, param, changed));
@@ -265,26 +261,27 @@ function pause() {
 }
 playButton.addEventListener("click", () => (playing ? pause() : play()));
 
-async function playOne(sound) {
+async function playOne(sound, reverse = false) {
   if (!context) await play().then(pause);
   await context.resume();
-  const [left, right] = single(sound, settings, 10), one = context.createBuffer(2, left.length, RATE), node = context.createBufferSource();
+  const [left, right] = single(sound, settings, reverse), one = context.createBuffer(2, left.length, RATE), node = context.createBufferSource();
   one.copyToChannel(left, 0); one.copyToChannel(right, 1);
   node.buffer = one; node.connect(context.destination); node.start();
 }
 
-// The strip: every sound that will play, coloured by kind, taller for louder; the line is where the loop is.
+// The strip: every sound that will play, coloured by kind, taller for louder; backwards pops sit a little lower. The
+// line is where the loop is.
 const strip = document.querySelector("#strip"), ink = strip.getContext("2d");
 const colours = () => Object.fromEntries(SOUNDS.map(sound => [sound.key, getComputedStyle(document.documentElement).getPropertyValue(sound.color).trim()]));
 function drawStrip() {
   const ratio = window.devicePixelRatio || 1, width = strip.clientWidth, height = strip.clientHeight;
   if (strip.width !== width * ratio) { strip.width = width * ratio; strip.height = height * ratio; }
   ink.setTransform(ratio, 0, 0, ratio, 0, 0); ink.clearRect(0, 0, width, height);
-  const palette = colours(), rows = { tick: 0, knock: 1, whoosh: 2, pop: 3 }, band = (height - 8) / 4;
+  const palette = colours(), rows = { tick: 0, pop: 1, whoosh: 2.5, finish: 3.5 }, band = (height - 8) / 4.5;
   for (const event of planned) {
-    const x = event.time / SECONDS * width, y = 4 + rows[event.sound] * band;
+    const x = event.time / SECONDS * width, y = 4 + (rows[event.sound] + (event.reverse ? 0.5 : 0)) * band;
     ink.globalAlpha = 0.35 + 0.65 * event.level; ink.fillStyle = palette[event.sound];
-    ink.fillRect(x, y + band * (1 - event.level) * 0.5, event.sound === "whoosh" ? 3 : 1.5, band * (0.5 + 0.5 * event.level));
+    ink.fillRect(x, y + band * (1 - event.level) * 0.5, event.sound === "whoosh" || event.sound === "finish" ? 3 : 1.5, band * (0.5 + 0.5 * event.level));
   }
   ink.globalAlpha = 1; ink.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
   ink.fillRect(position() / SECONDS * width, 0, 1.5, height);
