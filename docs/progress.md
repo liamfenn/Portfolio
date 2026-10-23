@@ -30,6 +30,9 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Desktop project interaction (2026-10-23)**
+- Mouse clicks no longer keep project labels visible after the pointer leaves: only hover or keyboard-visible focus reveals labels. Mobile tap expansion stays unchanged.
+
 **Desktop density transitions (2026-10-23)**
 - Desktop grid-size selections now share the mobile expansion tween: 180ms ease-out with no spring, steady label type/insets, and interruptible changes. Reduced motion remains instant.
 

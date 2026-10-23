@@ -56,11 +56,12 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
         onClick={() => { if (isMobile) onToggle(); }}
         onPointerEnter={event => { if (event.pointerType !== "touch") { setHovered(true); } }}
         onPointerLeave={() => setHovered(false)}
-        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        onKeyDown={event => { if (event.key === "Escape") { setHovered(false); setFocused(false); if (expanded) onToggle(); } }}>
+        onPointerDown={() => { if (!isMobile) setFocused(false); }}
+        onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
+        onKeyDown={event => { if (event.key === "Escape") { setHovered(false); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
-        <span          id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
+        <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
           <span className="homepage-project-period"><ProjectLabel text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
