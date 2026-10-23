@@ -1,0 +1,39 @@
+{
+  "tick": {
+    "on": true,
+    "volume": -8,
+    "character": 0,
+    "length": 1
+  },
+  "knock": {
+    "on": true,
+    "volume": -14,
+    "character": 1.6,
+    "pitch": 0,
+    "length": 1,
+    "brightness": 1,
+    "punch": 1,
+    "density": 7,
+    "variation": 0.15
+  },
+  "whoosh": {
+    "on": true,
+    "volume": -12,
+    "character": 1,
+    "length": 1,
+    "depth": 0
+  },
+  "pop": {
+    "on": true,
+    "volume": -24,
+    "character": 1,
+    "pitch": 0,
+    "length": 1
+  },
+  "master": {
+    "volume": 0,
+    "room": 0.15,
+    "overlap": 2,
+    "duck": 0.5
+  }
+}
