@@ -377,9 +377,11 @@ export function ProjectWork() {
   };
 
   const selectDesktopDensity = (density: DesktopDensity) => {
-    beginGridLabelTransition();
-    setHasChangedDensity(true);
-    setDesktopDensity(density);
+    animateGridChange(() => {
+      beginGridLabelTransition();
+      setHasChangedDensity(true);
+      setDesktopDensity(density);
+    });
   };
 
   const toggleMobileGrid = () => {
@@ -451,17 +453,17 @@ export function ProjectWork() {
       .map(({ preview }) => preview);
   }, [randomSeed, sortMode]);
 
-  const togglePreview = (id: string) => {
+  const animateGridChange = (update: () => void) => {
     const grid = gridRef.current;
-    if (!grid || !isMobile || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setExpandedId(current => current === id ? null : id);
+    if (!grid || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      update();
       return;
     }
     const tiles = Array.from(grid.querySelectorAll<HTMLElement>(".homepage-card"));
     const before = new Map(tiles.map(tile => [tile.dataset.projectId, tile.getBoundingClientRect()]));
     layoutAnimations.current.forEach(animation => animation.cancel());
     layoutAnimations.current = [];
-    flushSync(() => setExpandedId(current => current === id ? null : id));
+    flushSync(update);
     const tokens = getComputedStyle(document.documentElement);
     // Production CSS may serialize milliseconds as seconds.
     const duration = tokens.getPropertyValue("--project-layout-duration").trim();
@@ -490,6 +492,12 @@ export function ProjectWork() {
       });
       layoutAnimations.current.push(label.animate(frames, timing));
     });
+  };
+
+  const togglePreview = (id: string) => {
+    const update = () => setExpandedId(current => current === id ? null : id);
+    if (isMobile) animateGridChange(update);
+    else update();
   };
 
   const displayedPreviews = [...sortedPreviews];
