@@ -2,18 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
-import { burst, shuffled } from "@/lib/og-burst";
+import { burst } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
 const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fennell", face: "og-card-serif" }];
-/** With ?glitch=six, only these letters glitch, as on the Figma card (435:198). They settle on palette colours rather
- * than the card's, which predate the current palette. */
+/** The letters that glitch before the burst, from the Figma card (435:198). They settle on palette colours rather than
+ * the card's, which predate the current palette. */
 const GLITCHED = new Set([1, 2, 12, 16, 20, 21]);
 /** What the letters pump out: mostly punctuation and symbols, with a few of the globe's letters and figures. */
 const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250");
 /** Matches the swarm's own colour glitch, so the intro reads as the same effect. */
 const FLICKER_MS = 55;
-/** Every letter glitches in before the burst and back after landing, this far apart in a random order. */
+/** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
 const ALL_GLITCH_STAGGER_MS = 25;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
@@ -25,13 +25,11 @@ async function wait(ms: number, signal: AbortSignal) {
 }
 /**
  * Each letter flickers through the palette (now and then its destination), then settles. Letters start on a loose
- * random stagger, or, given `stagger`, that many milliseconds apart in a shuffled order, so the glitch scatters across
- * the name without clumping.
+ * random stagger, or, given `stagger`, that many milliseconds apart in order.
  */
 async function glitch(letters: { element: HTMLElement; to: string }[], signal: AbortSignal, stagger?: number) {
   const start = performance.now(), colors = currentGlyphPalette();
-  const slots = shuffled(letters.map((_, index) => index));
-  const runs = letters.map((letter, index) => ({ ...letter, at: start + (stagger === undefined ? Math.random() * 120 : slots[index] * stagger), until: 0, flickAt: 0 }));
+  const runs = letters.map((letter, index) => ({ ...letter, at: start + (stagger === undefined ? Math.random() * 120 : index * stagger), until: 0, flickAt: 0 }));
   runs.forEach(run => { run.until = run.at + 150 + Math.random() * 200; });
   for (let time = start; runs.some(run => run.until > time); time = await nextFrame()) {
     signal.throwIfAborted();
@@ -48,8 +46,8 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
 declare global { interface Window { __ogLoops?: number } }
 
 /**
- * The link-preview card: the office name glitches into colour letter by letter, then every letter bursts loose to bounce around the
- * card and plays its way back home (see og-burst), and the letters glitch back to black. It loops in real time here; scripts/capture-og.mjs drives the same
+ * The link-preview card: the office name, a few letters glitch, then every letter bursts loose to bounce around the
+ * card and plays its way back home (see og-burst), and the same letters glitch back. It loops in real time here; scripts/capture-og.mjs drives the same
  * loop on a virtual clock to record it frame by frame.
  */
 export function OgCard() {
@@ -60,7 +58,7 @@ export function OgCard() {
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
-    const all = new URLSearchParams(window.location.search).get("glitch") !== "six";
+    const all = new URLSearchParams(window.location.search).get("glitch") === "all";
     const glitched = letters.filter((element, index) => all ? element.textContent?.trim() : GLITCHED.has(index));
     const stagger = all ? ALL_GLITCH_STAGGER_MS : undefined;
     // ?landing=reverse plays the earlier landing, last out first home, instead of word by word, left to right.

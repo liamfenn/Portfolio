@@ -9,7 +9,7 @@
 // --quick records only the 1200×630 frames, for tuning, and encodes nothing.
 // Variants, recorded as share cuts with a suffix and leaving the site's og:video alone:
 //   --reverse      the earlier landing, last out first home (/og?landing=reverse), named -reverse
-//   --six-glitch   only the Figma card's six letters glitch, instead of all of them (/og?glitch=six), named -six-glitch
+//   --all-glitch   every letter glitches in and out, staggered, instead of six (/og?glitch=all), named -all-glitch
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -17,7 +17,7 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
-const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--six-glitch", "glitch=six", "-six-glitch"]]
+const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const PAGE = VARIANTS.length ? `${URL}?${VARIANTS.map(([, query]) => query).join("&")}` : URL;
