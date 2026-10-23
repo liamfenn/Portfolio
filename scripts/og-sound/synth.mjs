@@ -1,7 +1,7 @@
 // The og share cuts' sound effects, as one pure module with no imports: scripts/sound-og.mjs renders with it, and the
 // sound lab page (scripts/og-sound/build-lab.mjs) inlines it, so what the lab plays is exactly what gets rendered.
 //
-// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, and a margin bell to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
+// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, and a soft pluck to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
 // plus adjustments on top. Volumes are in dB against a voice normalised to full scale, so morphing between presets keeps its level.
 
 export const RATE = 48000;
@@ -32,21 +32,20 @@ export const PRESETS = {
     { name: "Droplet", pitch: 1200, ratio: 0.6, glideMs: 10, decay: 25, tone: 5000, noise: 0.05 },
     { name: "Tick", pitch: 2500, ratio: 1, glideMs: 10, decay: 4, tone: 8000, noise: 0.6 },
   ],
-  // A typewriter's margin bell, as only its body: the low tone under the ding and the hammer's soft thump and click,
-  // without the bright ringing partials. Pitch is the bell's; the tone sounds an octave below it.
+  // The finish: a soft plucked string, muffled, with a little click where it is plucked. No bell tone.
   finish: [
-    { name: "Margin bell", pitch: 2350, decay: 900, strike: 0.35 },
-    { name: "Soft bell", pitch: 1600, decay: 700, strike: 0.15 },
-    { name: "Tiny ding", pitch: 3400, decay: 350, strike: 0.4 },
-    { name: "Desk bell", pitch: 1250, decay: 1500, strike: 0.3 },
+    { name: "Soft pluck", pitch: 220, decay: 120, tone: 1800, click: 0.2 },
+    { name: "Felt pluck", pitch: 160, decay: 90, tone: 1100, click: 0.1 },
+    { name: "Wood pluck", pitch: 330, decay: 70, tone: 3000, click: 0.35 },
+    { name: "Low pluck", pitch: 110, decay: 160, tone: 900, click: 0.15 },
   ],
 };
 
 export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
-  whoosh: { on: true, volume: -20, character: 0, length: 1, depth: 0, bass: 1, softness: 1, start: 0 },
-  finish: { on: true, volume: -28, character: 2, pitch: 5.5, length: 0.7, delay: 220 },
+  whoosh: { on: true, volume: -20, character: 0, length: 1, depth: 0, bass: 1, softness: 1, start: -10 },
+  finish: { on: true, volume: -24, character: 0, pitch: 0, length: 1, delay: 220, brightness: 1, click: 1 },
   master: { volume: 0, room: 0.15, overlap: 2, duck: 0.5 },
 };
 
@@ -112,12 +111,16 @@ function voice(sound, settings, random, reverse = false) {
     return out;
   }
   if (sound === "finish") {
-    const f0 = p.pitch * Math.pow(2, s.pitch / 12), decay = p.decay * s.length / 1000;
-    const out = new Float32Array(Math.ceil(Math.min(4, decay * 5) * RATE)), click = lowpass();
-    for (let i = 0; i < out.length; i++) {
-      const t = i / RATE;
-      const body = Math.sin(Math.PI * f0 * t) * 0.8 * Math.exp(-t / (decay * 1.2)) + Math.sin(2 * Math.PI * 170 * t) * Math.exp(-t / 0.06);
-      out[i] = body * 1.5 * Math.min(1, t / 0.0005) + click(noise(), 6000) * Math.exp(-t / 0.001) * p.strike * 4;
+    // Karplus–Strong: a burst of soft noise circulating in a delay line one period long, averaged and damped each
+    // pass, which is what makes it a plucked string rather than a tone. Brightness opens the burst and the output.
+    const f0 = p.pitch * Math.pow(2, s.pitch / 12), decay = p.decay * s.length / 1000, period = Math.max(2, Math.round(RATE / f0));
+    const loss = Math.exp(-period / (RATE * decay)), out = new Float32Array(Math.ceil(decay * 7 * RATE)), line = new Float32Array(period);
+    const burst = lowpass(), tone = lowpass(), click = lowpass();
+    for (let i = 0; i < period; i++) line[i] = burst(noise(), p.tone * s.brightness);
+    for (let i = 0, at = 0, previous = 0; i < out.length; i++, at = (at + 1) % period) {
+      const value = line[at], next = (value + previous) * 0.5 * loss;
+      previous = value; line[at] = next;
+      out[i] = tone(value, p.tone * s.brightness * 1.5) + click(noise(), 4000) * Math.exp(-i / RATE / 0.0012) * p.click * s.click * 2;
     }
     return out;
   }
@@ -154,9 +157,9 @@ const CROWD = 0.08;
 /**
  * Which events make a sound, and at what level. Glitch ticks come only from the opening and closing glitches. Pops
  * run the whole time glyphs bounce: one as each extra glyph splits off, one for knocks between pieces (at most
- * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The whoosh peaks
- * as the first letter is kicked loose and flies away, moved by `start` ms, and the margin bell rings `delay` ms after
- * the last tick.
+ * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The whoosh begins
+ * `start` ms from the first kick, the moment the letters fly apart, and the finishing pluck sounds `delay` ms after the
+ * last tick.
  * Then at most `overlap` sounds start within 80ms, those after the first at half level, and pops under the whoosh's
  * first half-second are ducked by `duck`.
  */
@@ -177,9 +180,8 @@ export function plan(events, settings) {
     }
     kept.push(event); last[event.type] = event;
   }
-  // Timed so its swell peaks on the first kick, the moment the letters start to fly apart.
   const firstKick = sorted.find(event => event.type === "kick")?.time ?? Infinity;
-  const whooshAt = firstKick - blend("whoosh", settings.whoosh.character).attack * settings.whoosh.softness / 1000 + settings.whoosh.start / 1000, placed = [];
+  const whooshAt = firstKick + settings.whoosh.start / 1000, placed = [];
   for (const event of kept) {
     const crowd = placed.filter(other => event.time - other.time < CROWD).length;
     if (crowd >= settings.master.overlap) continue;

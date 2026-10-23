@@ -21,15 +21,17 @@
     "depth": 0,
     "bass": 1,
     "softness": 1,
-    "start": 0
+    "start": -10
   },
   "finish": {
     "on": true,
-    "volume": -28,
-    "character": 2,
-    "pitch": 5.5,
-    "length": 0.7,
-    "delay": 220
+    "volume": -24,
+    "character": 0,
+    "pitch": 0,
+    "length": 1,
+    "delay": 220,
+    "brightness": 1,
+    "click": 1
   },
   "master": {
     "volume": 0,

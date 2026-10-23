@@ -79,7 +79,7 @@
       <span style="--c: var(--tick)">Glitch ticks</span>
       <span style="--c: var(--pop)">Glyph pops (lower: played backwards)</span>
       <span style="--c: var(--whoosh)">Whoosh</span>
-      <span style="--c: var(--finish)">Margin bell</span>
+      <span style="--c: var(--finish)">Finish pluck</span>
       <span style="--c: var(--line)">Held last frame while sounds ring out</span>
     </div>
   </section>
@@ -113,13 +113,15 @@ const SOUNDS = [
   ] },
   { key: "whoosh", name: "Whoosh", note: "as the letters fly apart", color: "--whoosh", params: [
     DB,
-    ["start", "Timing", -500, 500, 10, v => `${v > 0 ? "+" : ""}${v} ms`],
+    ["start", "Start", -500, 500, 10, v => `${v > 0 ? "+" : ""}${v} ms`],
     ["softness", "Softness", 0.3, 3, 0.05, v => `${v.toFixed(2)}×`],
     ["bass", "Bass", 0, 4, 0.05, v => `${v.toFixed(2)}×`],
     SEMITONES("depth", "Depth"), TIMES,
   ] },
-  { key: "finish", name: "Margin bell", note: "after the last tick", color: "--finish", params: [
+  { key: "finish", name: "Finish pluck", note: "after the last tick", color: "--finish", params: [
     DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], SEMITONES("pitch", "Pitch"), TIMES,
+    ["brightness", "Brightness", 0.3, 3, 0.05, v => `${v.toFixed(2)}×`],
+    ["click", "Click", 0, 3, 0.05, v => `${v.toFixed(2)}×`],
   ] },
 ];
 const MASTER = [
@@ -129,7 +131,7 @@ const MASTER = [
   ["duck", "Duck under whoosh", 0, 1, 0.05, v => `${Math.round(v * 100)}%`],
 ];
 // Bumped when the defaults are re-baked from a pasted set, so the lab starts from them rather than older local edits.
-const STORE = "burst-sound-lab-3";
+const STORE = "burst-sound-lab-4";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 let settings = clone(DEFAULTS);
