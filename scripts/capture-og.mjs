@@ -1,5 +1,5 @@
-// Records one loop of the /og card, frame by frame, then encodes the link-preview video, its poster, and a
-// high-resolution share cut. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
+// Records one loop of the /og card, frame by frame, then encodes the link-preview video, its poster, and share cuts:
+// 1.91:1 (the link-preview shape), true 16:9 at 1080p, and square. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
 // so every frame is exactly 1/60s apart however long a screenshot takes, and Math.random is seeded, so a rerun gives
 // the same video.
 //
@@ -63,8 +63,10 @@ if (!QUICK) {
   encode(preview, "public/images/meta/og-office.mp4", 20);
   execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
   encode(await record(1200, 630, 2), "out/office-of-liam-fennell.mp4", 16);
+  // Laid out at the card's 1200px width and scaled up, so the text keeps the card's proportions at 1920×1080.
+  encode(await record(1200, 675, 1.6), "out/office-of-liam-fennell-16x9.mp4", 16);
   const square = await record(1200, 1200, 2);
   encode(square, "out/office-of-liam-fennell-square.mp4", 16);
   execFileSync("cp", [`${square}/00000.png`, "out/office-of-liam-fennell-square.png"]);
-  console.log("Wrote public/images/meta/og-office.{mp4,png} and out/office-of-liam-fennell{,-square}.mp4");
+  console.log("Wrote public/images/meta/og-office.{mp4,png} and out/office-of-liam-fennell{,-16x9,-square}.mp4");
 }

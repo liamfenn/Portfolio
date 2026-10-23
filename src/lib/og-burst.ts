@@ -15,7 +15,7 @@ const BOUNCE = 0.9;
 const CRUISE = 5;
 /** Letters pop out across this window, nearest the centre first, as the swarm does. */
 const RELEASE_SPREAD_MS = 600;
-const LOOSE_MS = 5500;
+const LOOSE_MS = 4000;
 /** Letters turn for home across this window, the swarm's own release spread, last out first home with some jitter. */
 const RETURN_SPREAD_MS = 1400;
 /** A letter still gliding this long gives up on reaching its float exactly and starts home from wherever it is. */
