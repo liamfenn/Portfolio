@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { emergeScale, pumpScale, rewind, shuffled, turnBetween } from "../src/lib/og-burst.ts";
+import { emergeScale, popScale, pumpScale, rewind, shuffled, turnBetween } from "../src/lib/og-burst.ts";
 
 test("a pump squeezes first, springs past full size, and rings out to rest", () => {
   assert.equal(pumpScale(0), 1);
@@ -35,4 +35,11 @@ test("the pumped-character bag holds every character exactly once, leaving the s
   const bag = shuffled(chars);
   assert.deepEqual([...bag].sort(), [...chars].sort());
   assert.deepEqual(chars, Array.from("@,.;:!?&"));
+});
+
+test("a pumped character pops: it swells fast, easing out, then is gone rather than fading", () => {
+  assert.equal(popScale(0), 1);
+  assert.ok(popScale(60) > 1.3);
+  assert.ok(popScale(119) > popScale(60));
+  assert.equal(popScale(120), null);
 });

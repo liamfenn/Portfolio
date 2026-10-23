@@ -15,7 +15,8 @@ const LOOSE_MS = 3000;
 const FLICKER_MS = 55;
 /** A pumped character passes through its parent until it has grown out of it. */
 const EMERGE_MS = 260;
-const DISSOLVE_MS = 380;
+/** On exit, a pumped character swells for this long, glitching, then is simply gone. */
+const POP_MS = 120;
 /** Until it is kicked loose, a letter collides only with the walls. Letters start shoulder to shoulder, so otherwise
  * their pop-outs record nudges from their neighbours, which the way home would replay just as they settle. */
 const WALL = 0x0002;
@@ -33,9 +34,10 @@ interface Piece {
   /** When this piece last pumped, which drives its squeeze and spring. */
   pumpedAt?: number;
   gone?: boolean;
-  /** Only the original letters have a home; pumped characters dissolve. */
+  /** Only the original letters have a home; pumped characters pop. */
   home?: Home;
-  dissolveAt?: number;
+  popAt?: number;
+  popping?: boolean;
 }
 interface Home {
   span: HTMLElement;
@@ -55,6 +57,13 @@ export function pumpScale(ms: number) {
   if (ms <= 0) return 1;
   const t = ms / 1000;
   return 1 - 0.32 * Math.exp(-t * 7) * Math.sin(t * 22);
+}
+
+/** A pumped character's exit: it swells quickly, easing out, then is gone (null) rather than fading. */
+export function popScale(ms: number, duration = POP_MS) {
+  if (ms >= duration) return null;
+  const t = Math.max(0, ms) / duration;
+  return 1 + 0.45 * (1 - Math.pow(1 - t, 3));
 }
 
 /** A pumped character grows out of its parent: from nothing, past full size, ringing in to 1. */
@@ -95,7 +104,7 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
 /**
  * The link-preview card's burst. Each letter pops out and floats like the swarm's entry, then is kicked loose to bounce
  * freely off the card's edges and each other, pumping out new characters as it goes. Then the new characters glitch
- * and dissolve, and every letter plays its pop-out backwards into place. Resolves once the text is whole again.
+ * and pop, and every letter plays its pop-out backwards into place. Resolves once the text is whole again.
  */
 export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[] }) {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
@@ -185,7 +194,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Body.setVelocity(child.body, { x: velocity.x + Math.cos(angle) * speed, y: velocity.y + Math.sin(angle) * speed });
     Body.setAngularVelocity(child.body, (Math.random() - 0.5) * 0.3);
     glitchTo(child, time, random(options.palette()), 200, 200);
-    child.dissolveAt = exitAt + Math.random() * 500;
+    child.popAt = exitAt + Math.random() * 600;
   };
   const remove = (piece: Piece) => { piece.gone = true; piece.element.remove(); Composite.remove(engine.world, piece.body); };
 
@@ -217,7 +226,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
             glitchTo(piece, time, base, 300, 300);
           }
         }
-        if (!home && piece.dissolveAt && time >= piece.dissolveAt && !piece.tint) glitchTo(piece, time, random(options.palette()), DISSOLVE_MS, 0);
+        if (!home && piece.popAt && time >= piece.popAt && !piece.popping) { piece.popping = true; glitchTo(piece, time, random(options.palette()), POP_MS, 0); }
         if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = EVERYTHING;
       }
       while (pending >= STEP) {
@@ -232,7 +241,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         if (piece.gone) continue;
         tintStep(piece, time);
         const home = piece.home;
-        let { x, y } = piece.body.position, angle = piece.body.angle, scale = pumpScale(time - (piece.pumpedAt ?? time)), opacity = 1;
+        let { x, y } = piece.body.position, angle = piece.body.angle, scale = pumpScale(time - (piece.pumpedAt ?? time));
         if (home?.rewind) {
           const { at, duration, offset } = home.rewind, progress = Math.min(1, (time - at) / duration), fade = 1 - smoothstep(Math.min(1, progress * 1.6));
           const sample = rewind(home.path, progress);
@@ -241,15 +250,14 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         }
         if (!home) {
           scale *= emergeScale(time - piece.bornAt);
-          if (piece.dissolveAt && time >= piece.dissolveAt) {
-            const gone = Math.min(1, (time - piece.dissolveAt) / DISSOLVE_MS);
-            if (gone >= 1) { remove(piece); continue; }
-            opacity = 1 - smoothstep(gone); scale *= 1 - 0.5 * gone;
+          if (piece.popAt && time >= piece.popAt) {
+            const swell = popScale(time - piece.popAt);
+            if (swell === null) { remove(piece); continue; }
+            scale *= swell;
           }
         }
         remaining++;
         piece.element.style.transform = `translate(${x - piece.width / 2}px,${y - piece.height / 2}px) rotate(${angle}rad) scale(${scale})`;
-        piece.element.style.opacity = String(opacity);
       }
       if (time > exitAt && !remaining) { cleanup(); resolve(); return; }
       frame = requestAnimationFrame(render);
