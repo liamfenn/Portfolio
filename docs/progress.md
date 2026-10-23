@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Favicon (2026-10-23)**
+- Five tilted burst glyphs (`* # f { g`) scattered on white, in the site's own faces and the stronger half of the glyph palette (contrast ≥ 2.2 on white), spaced so none overlaps or clips. `public/images/meta/favicon-glyphs-{32,180,512}.png`; the old `favicon.png` is no longer referenced.
+- `npx tsx scripts/render-favicon.mjs [seed]` rerenders it (current: seed 1). `--sheet` compares six seeds at 16, 32, and 180px in `out/favicon-sheet.png`. More than five glyphs, or the pale colors, turned to mush at 16–32px.
+
 **Link preview video (2026-10-22)**
 - og:video and og:image come from the Figma card (435:198): "Office of Liam Fennell" on white. A few letters glitch (~0.35s), every letter pops out and floats like the swarm's entry, then is kicked loose to bounce freely off the card's edges and each other, pumping out 1–3 glyphs each (mostly punctuation, drawn from a shuffled bag so none repeats until all have appeared) with a spring squeeze and a glitch. On exit the pumped glyphs pop (a 120ms swell with a glitch, then gone) across 0.6s while each letter slows to a float and plays its recorded pop-out backwards into place, last out first home, glitching back to black on the way. 8s loop, seamless (last frame equals the first). Letters collide only with the walls until they are kicked loose, so the recorded pop-out (and so the rewind home) carries no neighbour nudges.
 - Engine: `src/lib/og-burst.ts` (Matter.js, separate from the site's swarm, which still pulls letters to the cursor). Pure helpers tested in `tests/og-burst.test.mjs`.
