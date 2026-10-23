@@ -12,6 +12,11 @@ const FPS = 60;
 const CUTS = [["og", "out/og-frames-1200x630@2x"], ["9x16", "out/og-frames-675x1200@1.6x"]];
 /** Busy moments thin out: at most one of each sound per this many seconds, keeping the strongest. */
 const SPACING = { flick: 0.05, hit: 0.08, pump: 0.03, pop: 0.03 };
+/** Fewer sounds at once: within this window at most two start, and one that lands right after another plays at this
+ * share of its level. Knocks under the burst's opening whoosh are softened the same way, so the burst is one gesture. */
+const CROWD_MS = 0.08;
+const CROWDED_GAIN = 0.5;
+const UNDER_WHOOSH = 0.5;
 /** Glancing contacts stay silent; only real knocks make a sound. */
 const HIT_THRESHOLD = 4.5;
 /** Integrated loudness: understated, well under social platforms' normalisation targets, with headroom on the peaks. */
@@ -49,13 +54,13 @@ const voices = {
   },
   // The burst: one deep, soft whoosh, a low rumble of noise that opens a little and closes again, over a faint sub.
   kick: () => {
-    const sub = oscillator();
+    const sub = oscillator(), deep = lowpass(380);
     let low = 0;
     return { length: 1.6, gain: 0.32, at: t => {
       const open = Math.min(1, t / 0.25), cutoff = 140 + 520 * open * Math.exp(-Math.max(0, t - 0.25) / 0.5);
       low += (noise() - low) * (1 - Math.exp(-2 * Math.PI * cutoff / RATE));
       const swell = (1 - Math.exp(-t / 0.09)) * Math.exp(-t / 0.45);
-      return (low * 1.6 + sub(48 - 10 * open, t) * 0.25) * swell;
+      return (deep(low) * 2.2 + sub(48 - 10 * open, t) * 0.25) * swell;
     } };
   },
   // A knock between pieces: a low, rubbery pluck with a quick drop into its note, a soft keyboard tick on its front,
@@ -77,11 +82,19 @@ function softPop() {
   return { length: 0.06, gain: 0.03, at: t => muffle(body(from * (0.5 + 0.5 * Math.exp(-t / 0.012)), t) * Math.min(1, t / 0.001) * Math.exp(-t / 0.018)) };
 }
 
-/** Drops events of a type that crowd in on a stronger one, so dense moments read as texture rather than noise. */
+/**
+ * Keeps the score simple: drops events of a type that crowd in on a stronger one, keeps the glitch ticks to the opening
+ * and closing glitches (not the flickers mid-bounce), then lets at most two sounds start close together, the second
+ * quieter. Returns each kept event with the share of its level it plays at.
+ */
 function thin(events) {
+  const sorted = [...events].sort((a, b) => a.time - b.time);
+  const firstRelease = sorted.find(event => event.type === "release")?.time ?? Infinity;
+  const lastLand = sorted.findLast(event => event.type === "land")?.time ?? -Infinity;
   const kept = [], last = {};
-  for (const event of [...events].sort((a, b) => a.time - b.time)) {
+  for (const event of sorted) {
     if (!voices[event.type] || (event.type === "hit" && event.strength < HIT_THRESHOLD)) continue;
+    if (event.type === "flick" && event.time > firstRelease && event.time < lastLand) continue;
     // The burst is one whoosh, at the first letter's kick.
     if (event.type === "kick" && last.kick) continue;
     const gap = SPACING[event.type] ?? 0, previous = last[event.type];
@@ -91,7 +104,15 @@ function thin(events) {
     }
     kept.push(event); last[event.type] = event;
   }
-  return kept;
+  const whoosh = kept.find(event => event.type === "kick"), placed = [];
+  for (const event of kept) {
+    if (event.type === "kick") { placed.push({ ...event, level: 1 }); continue; }
+    const crowd = placed.filter(other => other.type !== "kick" && event.time - other.time < CROWD_MS).length;
+    if (crowd >= 2) continue;
+    const underWhoosh = whoosh && event.type !== "flick" && event.time - whoosh.time < 0.5 ? UNDER_WHOOSH : 1;
+    placed.push({ ...event, level: (crowd ? CROWDED_GAIN : 1) * underWhoosh });
+  }
+  return placed;
 }
 
 /** A small Schroeder room, so the dry synth sits in a space rather than in your ears. */
@@ -120,7 +141,7 @@ function score(events, seconds) {
     const pan = (Math.min(1, Math.max(0, event.x)) - 0.5) * 1.4, angle = (pan + 1) * Math.PI / 4;
     const start = Math.round(event.time * RATE), count = Math.round(voice.length * RATE);
     for (let i = 0; i < count && start + i < length; i++) {
-      const value = voice.at(i / RATE) * voice.gain;
+      const value = voice.at(i / RATE) * voice.gain * event.level;
       left[start + i] += value * Math.cos(angle); right[start + i] += value * Math.sin(angle);
     }
   }
