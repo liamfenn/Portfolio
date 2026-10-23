@@ -54,8 +54,8 @@ export function OgCard() {
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
     const glitched = letters.filter((_, index) => GLITCHED.has(index));
-    // ?landing=reading tries the letters landing word by word, left to right, instead of last out first home.
-    const landing = new URLSearchParams(window.location.search).get("landing") === "reading" ? "reading" : "reverse";
+    // ?landing=reverse plays the earlier landing, last out first home, instead of word by word, left to right.
+    const landing = new URLSearchParams(window.location.search).get("landing") === "reverse" ? "reverse" : "reading";
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       for (;;) {

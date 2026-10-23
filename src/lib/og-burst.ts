@@ -137,7 +137,7 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
  * own schedule and spring. Resolves once the text is whole again, in the colours it started with.
  */
 export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[];
-  /** "reverse" (the default): last out, first home. "reading": each word lands left to right, words overlapping. */
+  /** "reading" (the default): each word lands left to right, words overlapping. "reverse": last out, first home. */
   landing?: "reverse" | "reading" }) {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
   const { signal } = options;
@@ -209,11 +209,12 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Body.setVelocity(piece.body, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.2);
     const kickAt = time + 250 + Math.random() * 450;
-    // Last out, first home: the exit runs the release order backwards, loosely, across a wider window than the entry.
+    // Reversed landings: last out, first home, running the release order backwards, loosely, across a wider window than
+    // the entry. Reading-order landings rework this at the kick.
     const returnAt = exitAt + 400 + (1 - releaseOffset / Math.max(1, lastRelease)) * RETURN_SPREAD_MS * 0.6 + Math.random() * RETURN_SPREAD_MS * 0.4;
     piece.home = { span, releaseAt: time, kickAt, path: [{ ...at, angle: 0 }], nextPumpAt: kickAt + Math.random() * 300,
       pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt,
-      landAt: options.landing === "reading" ? readingLand.get(span) : undefined };
+      landAt: options.landing === "reverse" ? undefined : readingLand.get(span) };
   };
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;

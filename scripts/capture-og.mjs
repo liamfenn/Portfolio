@@ -7,8 +7,8 @@
 //   npm i --no-save playwright-core && npx playwright-core install chromium
 //   node scripts/capture-og.mjs [url] [seed] [--quick]
 // --quick records only the 1200×630 frames, for tuning, and encodes nothing.
-// --reading records the reading-order landing (/og?landing=reading) as share cuts named -reading, leaving the site's
-// og:video alone.
+// --reverse records the earlier landing, last out first home (/og?landing=reverse), as share cuts named -reverse,
+// leaving the site's og:video alone.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -16,8 +16,8 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
-const READING = process.argv.includes("--reading");
-const PAGE = READING ? `${URL}?landing=reading` : URL, SUFFIX = READING ? "-reading" : "";
+const REVERSE = process.argv.includes("--reverse");
+const PAGE = REVERSE ? `${URL}?landing=reverse` : URL, SUFFIX = REVERSE ? "-reverse" : "";
 const FPS = 60;
 const MAX_FRAMES = FPS * 20;
 const FRAMES = "out/og-frames";
@@ -65,7 +65,7 @@ const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error"
 
 const preview = await record(1200, 630, 1);
 if (!QUICK) {
-  if (!READING) {
+  if (!REVERSE) {
     encode(preview, "public/images/meta/og-office.mp4", 20);
     execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
   }
@@ -77,5 +77,5 @@ if (!QUICK) {
     encode(dir, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.mp4`, 16);
     execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.png`]);
   }
-  console.log(`Wrote ${READING ? "" : "public/images/meta/og-office.{mp4,png} and "}${SHARE}/office-of-liam-fennell-{og,9x16,1x1}${SUFFIX}.{mp4,png}`);
+  console.log(`Wrote ${REVERSE ? "" : "public/images/meta/og-office.{mp4,png} and "}${SHARE}/office-of-liam-fennell-{og,9x16,1x1}${SUFFIX}.{mp4,png}`);
 }
