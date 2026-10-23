@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { NowPlayingResponse } from "@/lib/spotify";
 
 const CACHE_KEY = "spotify-last-track";
-const POLL_INTERVAL = 15000;
+const POLL_INTERVAL = 30000;
 
 // Hardcoded fallback so the widget always has something to show
 const FALLBACK_TRACK: NowPlayingResponse = {
@@ -47,6 +47,7 @@ export function useSpotify() {
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const requestInFlight = useRef(false);
+  const lastRequestAt = useRef<number | null>(null);
 
   // Load cached track on mount for instant display, fall back to hardcoded track
   useEffect(() => {
@@ -65,6 +66,9 @@ export function useSpotify() {
 
   const fetchNowPlaying = useCallback(async () => {
     if (requestInFlight.current) return;
+    const now = Date.now();
+    if (lastRequestAt.current !== null && now - lastRequestAt.current < POLL_INTERVAL) return;
+    lastRequestAt.current = now;
     requestInFlight.current = true;
     try {
       const response = await fetch("/api/spotify/now-playing", { cache: "no-store" });

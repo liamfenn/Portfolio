@@ -17,7 +17,7 @@ production) is still the August version. Merging is Liam's call.
 
 **Spotify freshness (2026-10-22)**
 - A paused current track no longer gets replaced by the last completed track. Empty/paused currently-playing responses are confirmed once after 350ms before falling back to recently played.
-- Client polls visible pages every 15 seconds, refreshes on focus/visibility return, bypasses browser cache, and prevents overlapping requests.
+- Client retains the original 30-second polling interval. Focus/visibility refreshes share the same 30-second minimum gap, bypass browser cache, and cannot overlap requests.
 - Public production API was independently returning isPlaying:false on fresh cache-miss requests; preview is behind Vercel protection. These fixes improve transient handling but cannot guarantee Spotify reports every active device/session. No production merge authorized.
 
 **Toolbar mark feedback (2026-10-22)**
