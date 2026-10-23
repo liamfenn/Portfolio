@@ -130,6 +130,7 @@ export function ProjectWork() {
   const layoutAnimations = useRef<Animation[]>([]);
   const [sortSelection, setSortSelection] = useState(0);
   const [gridSelection, setGridSelection] = useState(0);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -648,10 +649,14 @@ export function ProjectWork() {
         </div>
       </div>
 
-      <ul ref={gridRef} className="project-grid" style={gridStyle} aria-label="Selected work">
+      <ul ref={gridRef} className="project-grid" style={gridStyle} aria-label="Selected work"
+        onPointerLeave={() => setHoveredId(null)}>
         {displayedPreviews.map((preview) => (
           <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
             expanded={expandedId === preview.id}
+            hovered={hoveredId === preview.id}
+            onHover={() => setHoveredId(preview.id)}
+            onClearHover={() => setHoveredId(null)}
             onToggle={() => togglePreview(preview.id)} />
         ))}
       </ul>

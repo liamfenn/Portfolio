@@ -27,8 +27,9 @@ function ProjectLabel({ text, visible, delay }: { text: string; visible: boolean
   return <InspectableText text={visible ? text : ""}><span ref={ref}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
+  hovered: boolean; onHover: () => void; onClearHover: () => void;
 }) {
   const reducedMotion = useReducedMotion();
   const [delay, setDelay] = useState(0);
@@ -40,7 +41,6 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
     });
     return () => cancelAnimationFrame(frame);
   }, []);
-  const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const visible = isMobile ? expanded : hovered || focused;
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
@@ -54,11 +54,10 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle }: {
         aria-controls={isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
         onClick={() => { if (isMobile) onToggle(); }}
-        onPointerEnter={event => { if (event.pointerType !== "touch") { setHovered(true); } }}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={event => { if (!isMobile && event.pointerType !== "touch") onHover(); }}
         onPointerDown={() => { if (!isMobile) setFocused(false); }}
         onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
-        onKeyDown={event => { if (event.key === "Escape") { setHovered(false); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
+        onKeyDown={event => { if (event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
