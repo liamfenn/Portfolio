@@ -34,7 +34,7 @@ export function PortfolioFooter() {
     <footer className="portfolio-footer text-bodySans">
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>© 2026</InspectableText></span>
-        <span><InspectableText>Office of Liam Fennell</InspectableText></span>
+        <span><InspectableText>Office of <span className="footer-office-name text-bodySerif">Liam Fennell</span></InspectableText></span>
       </div>
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
@@ -45,14 +45,7 @@ export function PortfolioFooter() {
           , {condition} at {temperature}°F</InspectableText>
         </span>
       </div>
-      <div className="portfolio-footer-row portfolio-footer-bottom">
-        {/* Each name is set in its own face; the 4px gap stands in for the space so it still reads as one line. */}
-        <span className="footer-type-credit">
-          <span className="text-bodySans"><InspectableText>Set in Oracle &amp;</InspectableText></span>
-          <span className="text-bodySerif"><InspectableText>Otto</InspectableText></span>
-        </span>
-        <PaletteToy />
-      </div>
+      <PaletteToy />
       <div id="glyph-globe-slot" className="glyph-globe-row" />
     </footer>
   );

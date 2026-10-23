@@ -133,4 +133,6 @@ Open the printed authorization URL. After approval, the local callback updates
 `SPOTIFY_REFRESH_TOKEN` in `.env.local` without printing it. Rotate the matching
 Production environment variable in Vercel and redeploy the current release.
 
-The animated footer strip uses its original 18 muted colors in `STRIP_PALETTE`, independently of the brighter glyph palette and palette-lab votes.
+The animated palette strip uses its original 18 muted colors in `STRIP_PALETTE`, independently of the brighter glyph palette and palette-lab votes.
+
+The footer is fixed to the Figma desktop/mobile layout. In the avatar menu, **Palette on player** (default) fills the music player’s right edge with five equal-height swatches and replaces its timer. **Palette by avatar** uses three equal-height swatches beside the profile picture and restores the timer. Neither option changes the footer.

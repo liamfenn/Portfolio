@@ -3,22 +3,24 @@
 import { createContext, useContext, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
+export type PalettePosition = "avatar" | "player";
+
 type Experiments = {
-  paletteAtAvatar: boolean;
-  setPaletteAtAvatar: Dispatch<SetStateAction<boolean>>;
+  palettePosition: PalettePosition;
+  setPalettePosition: Dispatch<SetStateAction<PalettePosition>>;
   paletteLabOpen: boolean;
   setPaletteLabOpen: Dispatch<SetStateAction<boolean>>;
 };
 const ExperimentsContext = createContext<Experiments>({
-  paletteAtAvatar: false, setPaletteAtAvatar: () => {},
+  palettePosition: "player", setPalettePosition: () => {},
   paletteLabOpen: false, setPaletteLabOpen: () => {},
 });
 export const usePortfolioExperiments = () => useContext(ExperimentsContext);
 
 export function PortfolioExperiments({ children }: { children: ReactNode }) {
-  const [paletteAtAvatar, setPaletteAtAvatar] = useState(false);
+  const [palettePosition, setPalettePosition] = useState<PalettePosition>("player");
   const [paletteLabOpen, setPaletteLabOpen] = useState(false);
-  return <ExperimentsContext.Provider value={{ paletteAtAvatar, setPaletteAtAvatar, paletteLabOpen, setPaletteLabOpen }}>
+  return <ExperimentsContext.Provider value={{ palettePosition, setPalettePosition, paletteLabOpen, setPaletteLabOpen }}>
     {children}
   </ExperimentsContext.Provider>;
 }

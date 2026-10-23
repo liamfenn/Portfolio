@@ -8,6 +8,7 @@ import { useColorScramble } from "@/hooks/use-color-scramble";
 import { useSpotify } from "@/hooks/use-spotify";
 import { trackPositionAt } from "@/lib/track-clock";
 import { InspectableText } from "@/components/design-inspector";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { AlbumArtwork } from "@/components/album-artwork";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
@@ -51,6 +52,7 @@ function TrackText({ text, scramble }: { text: string; scramble: boolean }) {
 }
 
 export function HomepageSpotify() {
+  const { palettePosition } = usePortfolioExperiments();
   const { data, cachedAt } = useSpotify();
   const reducedMotion = useReducedMotion();
   const title = data?.title ?? null;
@@ -121,9 +123,10 @@ export function HomepageSpotify() {
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>
     </span>
-    <span className="homepage-track-time text-captionSans">
+    {palettePosition !== "player" && <span className="homepage-track-time text-captionSans">
       <span className="homepage-track-time-reserve" aria-hidden="true">{widestDigits(trackTime)}</span>
       <span><InspectableText>{trackTime}</InspectableText></span>
-    </span>
+    </span>}
+    <span id="player-palette-slot" className="player-palette-slot" aria-hidden="true" />
   </a>;
 }

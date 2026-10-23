@@ -17,10 +17,9 @@ const STORAGE_KEY = "portfolio-palette-lab-v2";
 const LEGACY_STORAGE_KEY = "portfolio-palette-lab-v1";
 // The quiz previews each colour as it will be used: thin glyphs on the white page.
 const PREVIEW_GLYPHS = "a&Ro7?g*Q2ks@m0yt%cWb#f5j";
-// The strip holds each color, then slides one swatch left. Position and colors come from the same clock,
+// The strip holds each color, then streams one swatch downward. Position and colors come from the same clock,
 // so a new color and the snap back always land in the same frame.
 const STRIP_SWATCHES = 6;
-const STRIP_STEP_PX = 20;
 const STRIP_PERIOD_MS = 1000;
 const STRIP_HOLD = 0.65;
 const stripEase = cubicBezier(0.16, 1, 0.3, 1);
@@ -39,7 +38,8 @@ export function PaletteToy() {
   const modeRef = useRef(mode);
   modeRef.current = mode;
   const [ready, setReady] = useState(false);
-  const { paletteAtAvatar: attachedToAvatar, paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
+  const { palettePosition, paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
+  const [playerHost, setPlayerHost] = useState<HTMLElement | null>(null);
   const [avatarHost, setAvatarHost] = useState<HTMLElement | null>(null);
   const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
@@ -78,6 +78,7 @@ export function PaletteToy() {
       updateMotion();
       setGlobeHost(document.getElementById("glyph-globe-slot"));
       setAvatarHost(document.getElementById("avatar-palette-slot"));
+      setPlayerHost(document.getElementById("player-palette-slot"));
       setReady(true);
     });
     motionQuery.addEventListener("change", updateMotion);
@@ -107,17 +108,25 @@ export function PaletteToy() {
     if (!track) return;
     const colors = STRIP_PALETTE.map(color => color.hex);
     const swatches = Array.from(track.children) as HTMLElement[];
+    const count = palettePosition === "avatar" ? 3 : 5;
+    let swatchHeight = track.clientHeight / count;
+    const resize = new ResizeObserver(() => {
+      swatchHeight = track.clientHeight / count;
+      track.style.setProperty("--palette-swatch-height", `${swatchHeight}px`);
+    });
+    track.style.setProperty("--palette-swatch-height", `${swatchHeight}px`);
+    resize.observe(track);
     let shownStep = -1;
     const paintStep = (step: number) => {
       if (step === shownStep) return;
       shownStep = step;
-      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[((attachedToAvatar ? index - step : step + index) % colors.length + colors.length) % colors.length]; });
+      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[((index - step) % colors.length + colors.length) % colors.length]; });
     };
     const slideTo = (x: string) => swatches.forEach(swatch => { swatch.style.transform = x; });
     if (reducedMotion) {
       slideTo("");
       paintStep(0);
-      return;
+      return () => resize.disconnect();
     }
     let frame = 0;
     let startedAt: number | null = null;
@@ -131,14 +140,12 @@ export function PaletteToy() {
       const slide = phase < STRIP_HOLD ? 0 : stripEase((phase - STRIP_HOLD) / (1 - STRIP_HOLD));
       paintStep(step);
       // The track clips, so the swatches move inside it.
-      slideTo(attachedToAvatar
-        ? `translateY(${(slide - 1) * track.clientHeight / 3}px)`
-        : `translateX(${-slide * STRIP_STEP_PX}px)`);
+      slideTo(`translateY(${(slide - 1) * swatchHeight}px)`);
       frame = window.requestAnimationFrame(render);
     };
     frame = window.requestAnimationFrame(render);
-    return () => window.cancelAnimationFrame(frame);
-  }, [reducedMotion, attachedToAvatar, avatarHost]);
+    return () => { resize.disconnect(); window.cancelAnimationFrame(frame); };
+  }, [reducedMotion, palettePosition, avatarHost, playerHost]);
 
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
   const toggle = useCallback(() => {
@@ -241,10 +248,8 @@ export function PaletteToy() {
   </span>;
 
   return <>
-    {attachedToAvatar
-      ? <span className="footer-palette-credit text-bodySans"><InspectableText>by ABC Dinamo</InspectableText></span>
-      : <span className="footer-palette" aria-hidden="true">{strip}</span>}
-    {attachedToAvatar && avatarHost && createPortal(<span className="avatar-palette">{strip}</span>, avatarHost)}
+    {palettePosition === "avatar" && avatarHost && createPortal(<span className="vertical-palette avatar-palette">{strip}</span>, avatarHost)}
+    {palettePosition === "player" && playerHost && createPortal(<span className="vertical-palette player-palette">{strip}</span>, playerHost)}
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
