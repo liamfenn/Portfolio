@@ -24,7 +24,7 @@ production) is still the August version. Merging is Liam's call.
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
 **Intro width (2026-10-22)**
-- Desktop intro text is 460px wide via `--intro-text-width`, with no right padding on the intro section. Mobile keeps its full-width layout and existing padding.
+- Desktop intro text is 520px wide via `--intro-text-width`, with no right padding on the intro section. Mobile keeps its full-width layout and existing padding.
 
 **Figma footer and player palette (2026-10-22)**
 - Locked in desktop 435:165 / mobile 436:266: copyright and location blocks left, office/weather right; no type credit or footer palette. Desktop retains the centered live globe; mobile matches the reference without an extra globe row, with serif for the name only.
