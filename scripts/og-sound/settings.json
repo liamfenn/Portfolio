@@ -23,13 +23,22 @@
     "softness": 1.6,
     "start": -100
   },
-  "finish": {
+  "return": {
     "on": true,
-    "volume": -22,
+    "volume": -26,
     "character": 0,
     "pitch": 0,
     "length": 1,
-    "delay": 160
+    "trigger": 0
+  },
+  "finish": {
+    "on": true,
+    "volume": -28,
+    "character": 2,
+    "pitch": 5.5,
+    "length": 0.7,
+    "delay": 220,
+    "body": 0.6
   },
   "master": {
     "volume": 0,

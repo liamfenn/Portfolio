@@ -10,7 +10,7 @@ const here = path => new URL(path, import.meta.url);
 const synth = readFileSync(here("./synth.mjs"), "utf8").replace(/^export /gm, "");
 // Only what the lab reads, rounded: the page carries every event, so this keeps it small.
 const events = JSON.parse(readFileSync(`${FRAMES}/events.json`, "utf8"))
-  .filter(event => ["flick", "release", "kick", "pump", "pop", "hit", "land"].includes(event.type))
+  .filter(event => ["flick", "release", "kick", "pump", "pop", "hit", "return", "land"].includes(event.type))
   .map(({ type, time, x, strength }) => ({ type, time: Math.round(time * 1e4) / 1e4, x: Math.round(x * 1e3) / 1e3, ...(strength ? { strength: Math.round(strength * 100) / 100 } : {}) }));
 const seconds = readdirSync(FRAMES).filter(file => file.endsWith(".png")).length / FPS;
 const page = readFileSync(here("./lab.html"), "utf8")

@@ -7,19 +7,19 @@
   /* Layout: the loop on top with its event strip, then one panel per sound in a two-column grid, master and export last. */
   :root {
     --bg: #fbfbfd; --panel: #ffffff; --ink: #14151a; --muted: #6b6e7a; --line: #e4e5ec; --accent: #5343eb;
-    --tick: #8a8d99; --pop: #d63f74; --whoosh: #12946a; --finish: #b7791f;
+    --tick: #8a8d99; --pop: #d63f74; --whoosh: #12946a; --return: #2f74c9; --finish: #b7791f;
     --sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-      --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
+      --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --return: #74b0ff; --finish: #f0b450; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #101116; --panel: #17181f; --ink: #ecedf3; --muted: #9a9cab; --line: #2a2c37; --accent: #8b80ff;
-    --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --finish: #f0b450; color-scheme: dark;
+    --tick: #a3a6b5; --pop: #ff7aa6; --whoosh: #3fcf9b; --return: #74b0ff; --finish: #f0b450; color-scheme: dark;
   }
   body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--sans); }
   .wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
@@ -30,7 +30,7 @@
   video { width: 100%; max-width: 100%; aspect-ratio: 1200 / 630; display: block; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
   .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
   .meter { font: 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
-  #strip { width: 100%; height: 56px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
+  #strip { width: 100%; height: 68px; display: block; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
   .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c); vertical-align: 0; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -49,6 +49,8 @@
   .character { display: grid; gap: 6px; }
   .character-name { font: 12px/1.3 var(--mono); color: var(--ink); min-height: 1.3em; }
   .presets { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 4px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 4px; }
+  .choices button { padding: 5px 10px; font-size: 12px; border-radius: 4px; }
   .presets button { padding: 5px 4px; font-size: 11px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 64px; align-items: center; gap: 10px; }
   .row label { font-size: 13px; color: var(--muted); }
@@ -68,7 +70,7 @@
   </header>
 
   <section class="stage">
-    <video id="video" src="loop.mp4" muted playsinline loop preload="auto"></video>
+    <video id="video" src="loop.mp4" muted playsinline preload="auto"></video>
     <div class="transport">
       <button class="primary" id="play" type="button">Play with sound</button>
       <span class="meter" id="time">0.00s</span>
@@ -79,7 +81,9 @@
       <span style="--c: var(--tick)">Glitch ticks</span>
       <span style="--c: var(--pop)">Glyph pops (lower: played backwards)</span>
       <span style="--c: var(--whoosh)">Whoosh</span>
+      <span style="--c: var(--return)">Return</span>
       <span style="--c: var(--finish)">Margin bell</span>
+      <span style="--c: var(--line)">Held last frame while sounds ring out</span>
     </div>
   </section>
 
@@ -117,8 +121,11 @@ const SOUNDS = [
     ["bass", "Bass", 0, 4, 0.05, v => `${v.toFixed(2)}×`],
     SEMITONES("depth", "Depth"), TIMES,
   ] },
+  { key: "return", name: "Return", note: "letters coming home", color: "--return", params: [
+    ["trigger", "Plays on", RETURN_TRIGGERS], DB, SEMITONES("pitch", "Pitch"), TIMES,
+  ] },
   { key: "finish", name: "Margin bell", note: "after the last tick", color: "--finish", params: [
-    DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], SEMITONES("pitch", "Pitch"), TIMES,
+    DB, ["delay", "Delay", 0, 800, 10, v => `${v} ms`], ["body", "Body", 0, 1.5, 0.05, v => `${Math.round(v * 100)}%`], SEMITONES("pitch", "Pitch"), TIMES,
   ] },
 ];
 const MASTER = [
@@ -127,7 +134,8 @@ const MASTER = [
   ["overlap", "At once", 1, 4, 1, v => `${v} max`],
   ["duck", "Duck under whoosh", 0, 1, 0.05, v => `${Math.round(v * 100)}%`],
 ];
-const STORE = "burst-sound-lab";
+// Bumped when the defaults are re-baked from a pasted set, so the lab starts from them rather than older local edits.
+const STORE = "burst-sound-lab-2";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 let settings = clone(DEFAULTS);
@@ -145,6 +153,17 @@ const effective = () => {
   return out;
 };
 
+/** A pick-one row, for settings that are a choice rather than an amount. */
+function choice(container, group, [key, label, options], onInput) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<label>${label}</label><div class="choices" role="group" aria-label="${label}">${options.map((option, index) => `<button type="button" data-choice="${index}">${option}</button>`).join("")}</div><output></output>`;
+  const buttons = [...row.querySelectorAll("button")];
+  const sync = () => buttons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === Number(settings[group][key]))));
+  buttons.forEach(button => button.addEventListener("click", () => { settings[group][key] = Number(button.dataset.choice); sync(); onInput(); }));
+  container.append(row);
+  return sync;
+}
 function slider(container, group, [key, label, min, max, step, format], onInput) {
   const id = `${group}-${key}`, row = document.createElement("div");
   row.className = "row";
@@ -195,7 +214,7 @@ function buildPanels() {
     panel.querySelector('[data-act="back"]')?.addEventListener("click", () => playOne(sound.key, true));
     panel.dataset.sound = sound.key;
     const syncOn = () => { on.setAttribute("aria-pressed", String(settings[sound.key].on)); on.textContent = settings[sound.key].on ? "On" : "Off"; panel.classList.toggle("off", !settings[sound.key].on); };
-    const sliders = sound.params.map(param => slider(panel, sound.key, param, changed));
+    const sliders = sound.params.map(param => (Array.isArray(param[2]) ? choice : slider)(panel, sound.key, param, changed));
     syncs.push(() => { syncOn(); syncCharacter(); sliders.forEach(sync => sync()); });
     panels.append(panel);
   }
@@ -206,14 +225,18 @@ function buildPanels() {
 }
 const syncAll = () => syncs.forEach(sync => sync());
 
-// Audio: the mix renders off the page's own synth, then plays as one looping buffer that drives the video.
+// Audio: the mix renders off the page's own synth, then plays as one looping buffer that drives the video. The mix
+// runs past the video (`total` > SECONDS) while sounds ring out, and the video holds its last frame for that tail.
 let context = null, buffer = null, source = null, sourceGain = null, startedAt = 0, playing = false, renderTimer = 0, planned = [];
+let total = SECONDS, parked = 0;
 const video = document.querySelector("#video"), playButton = document.querySelector("#play");
-const position = () => playing && context ? ((context.currentTime - startedAt) % SECONDS + SECONDS) % SECONDS : video.currentTime;
+const LAST_FRAME = SECONDS - 0.001;
+const position = () => playing && context ? ((context.currentTime - startedAt) % total + total) % total : parked;
+const show = at => { video.currentTime = Math.min(at, LAST_FRAME); };
 
 function render() {
   const current = effective(), [left, right] = mix(EVENTS, SECONDS, current);
-  planned = plan(EVENTS, current);
+  planned = plan(EVENTS, current); total = left.length / RATE;
   let sum = 0, peak = 0;
   for (const channel of [left, right]) for (const value of channel) { sum += value * value; peak = Math.max(peak, Math.abs(value)); }
   const rms = Math.sqrt(sum / (left.length * 2)), decibels = value => value > 0 ? (20 * Math.log10(value)).toFixed(1) : "−∞";
@@ -248,15 +271,15 @@ async function play() {
     buffer.copyToChannel(left, 0); buffer.copyToChannel(right, 1);
   }
   await context.resume();
-  playing = true; start(video.currentTime % SECONDS);
-  video.play().catch(() => {});
+  playing = true; start(parked % total);
+  if (parked < LAST_FRAME) video.play().catch(() => {});
   playButton.textContent = "Pause";
 }
 function pause() {
   const at = position();
   playing = false;
   if (source) { source.stop(); source = null; }
-  video.pause(); video.currentTime = at;
+  parked = at; video.pause(); show(at);
   playButton.textContent = "Play with sound";
 }
 playButton.addEventListener("click", () => (playing ? pause() : play()));
@@ -277,29 +300,34 @@ function drawStrip() {
   const ratio = window.devicePixelRatio || 1, width = strip.clientWidth, height = strip.clientHeight;
   if (strip.width !== width * ratio) { strip.width = width * ratio; strip.height = height * ratio; }
   ink.setTransform(ratio, 0, 0, ratio, 0, 0); ink.clearRect(0, 0, width, height);
-  const palette = colours(), rows = { tick: 0, pop: 1, whoosh: 2.5, finish: 3.5 }, band = (height - 8) / 4.5;
+  const palette = colours(), rows = { tick: 0, pop: 1, whoosh: 2.5, return: 3.5, finish: 4.5 }, band = (height - 8) / 5.5;
+  // The tail past the video, where its last frame holds.
+  ink.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--line").trim();
+  ink.fillRect(SECONDS / total * width, 0, width - SECONDS / total * width, height);
   for (const event of planned) {
-    const x = event.time / SECONDS * width, y = 4 + (rows[event.sound] + (event.reverse ? 0.5 : 0)) * band;
+    const x = event.time / total * width, y = 4 + (rows[event.sound] + (event.reverse ? 0.5 : 0)) * band;
     ink.globalAlpha = 0.35 + 0.65 * event.level; ink.fillStyle = palette[event.sound];
     ink.fillRect(x, y + band * (1 - event.level) * 0.5, event.sound === "whoosh" || event.sound === "finish" ? 3 : 1.5, band * (0.5 + 0.5 * event.level));
   }
   ink.globalAlpha = 1; ink.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
-  ink.fillRect(position() / SECONDS * width, 0, 1.5, height);
+  ink.fillRect(position() / total * width, 0, 1.5, height);
 }
 strip.addEventListener("click", event => {
-  const at = (event.offsetX / strip.clientWidth) * SECONDS;
-  video.currentTime = at;
-  if (playing) start(at);
+  const at = (event.offsetX / strip.clientWidth) * total;
+  parked = at; show(at);
+  if (playing) { start(at); if (at < LAST_FRAME) video.play().catch(() => {}); }
   drawStrip();
 });
 
-// The audio is the clock; the video follows it, nudged back if it drifts.
+// The audio is the clock; the video follows it, nudged back if it drifts, and holds its last frame through the tail.
 function tick() {
   const at = position();
-  document.querySelector("#time").textContent = `${at.toFixed(2)}s / ${SECONDS.toFixed(2)}s`;
+  document.querySelector("#time").textContent = `${at.toFixed(2)}s / ${total.toFixed(2)}s`;
   if (playing) {
-    const drift = Math.abs(video.currentTime - at);
-    if (drift > 0.08 && drift < SECONDS - 0.08) video.currentTime = at;
+    if (at < LAST_FRAME) {
+      if (video.paused) video.play().catch(() => {});
+      if (Math.abs(video.currentTime - at) > 0.08) video.currentTime = at;
+    } else if (!video.paused || video.currentTime < LAST_FRAME - 0.05) { video.pause(); show(LAST_FRAME); }
   }
   drawStrip();
   requestAnimationFrame(tick);

@@ -1,14 +1,16 @@
 // The og share cuts' sound effects, as one pure module with no imports: scripts/sound-og.mjs renders with it, and the
 // sound lab page (scripts/og-sound/build-lab.mjs) inlines it, so what the lab plays is exactly what gets rendered.
 //
-// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, and a margin bell to finish. Each has a few
-// presets and a `character` slider that morphs between neighbouring presets, plus adjustments
-// on top. Volumes are in dB against a voice normalised to full scale, so morphing between presets keeps its level.
+// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, a sound for the letters coming home, and a
+// margin bell to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
+// plus adjustments on top. Volumes are in dB against a voice normalised to full scale, so morphing between presets keeps its level.
 
 export const RATE = 48000;
 
 /** Frequencies and times morph on a log scale, so halfway between 200 and 800 Hz is 400, not 500. */
 const LOG = new Set(["pitch", "tone", "lowStart", "lowPeak", "subHz", "pitchHz", "decay", "attack", "glideMs"]);
+/** The audio runs on past the loop's last frame until every sound, and the room after it, has died away. */
+const TAIL_PAD = 0.6;
 
 export const PRESETS = {
   tick: [
@@ -31,6 +33,13 @@ export const PRESETS = {
     { name: "Droplet", pitch: 1200, ratio: 0.6, glideMs: 10, decay: 25, tone: 5000, noise: 0.05 },
     { name: "Tick", pitch: 2500, ratio: 1, glideMs: 10, decay: 4, tone: 8000, noise: 0.6 },
   ],
+  // The letters coming home: from a soft felted tap to a breath drawn in, a swell that ends as it lands.
+  return: [
+    { name: "Felt tap", pitch: 320, attack: 1, decay: 60, noise: 0.1, tone: 1500 },
+    { name: "Soft pluck", pitch: 520, attack: 1, decay: 120, noise: 0, tone: 2500 },
+    { name: "Breath in", pitch: 200, attack: 600, decay: 80, noise: 0.9, tone: 1200 },
+    { name: "Reverse swell", pitch: 140, attack: 900, decay: 60, noise: 0.6, tone: 700 },
+  ],
   // A typewriter's margin bell: a struck bell, its partials inharmonic like a real one, each dying away faster.
   finish: [
     { name: "Margin bell", pitch: 2350, decay: 900, strike: 0.35, bright: 0.8 },
@@ -41,11 +50,15 @@ export const PRESETS = {
 };
 const BELL = [[1, 1, 1], [2.76, 0.5, 0.6], [5.4, 0.25, 0.35], [8.93, 0.12, 0.2]];
 
+/** Where the return sound plays: on each letter landing, as each turns for home, or once, swelling into the landing. */
+export const RETURN_TRIGGERS = ["Each landing", "Each turn home", "One swell"];
+
 export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
   whoosh: { on: true, volume: -18, character: 1, length: 1.6, depth: -7, bass: 1.8, softness: 1.6, start: -100 },
-  finish: { on: true, volume: -22, character: 0, pitch: 0, length: 1, delay: 160 },
+  return: { on: true, volume: -26, character: 0, pitch: 0, length: 1, trigger: 0 },
+  finish: { on: true, volume: -28, character: 2, pitch: 5.5, length: 0.7, delay: 220, body: 0.6 },
   master: { volume: 0, room: 0.15, overlap: 2, duck: 0.5 },
 };
 
@@ -117,7 +130,19 @@ function voice(sound, settings, random, reverse = false) {
       const t = i / RATE;
       let ring = 0;
       for (const [ratio, amount, life] of BELL) ring += Math.sin(2 * Math.PI * f0 * ratio * t) * amount * (ratio === 1 ? 1 : p.bright) * Math.exp(-t / (decay * life));
-      out[i] = ring * Math.min(1, t / 0.0005) + click(noise(), 6000) * Math.exp(-t / 0.001) * p.strike * 4;
+      // Body: a partial an octave below that outlasts the ding, and a soft low thump where the hammer lands, which
+      // weight the bell without dulling it.
+      const under = Math.sin(Math.PI * f0 * t) * 0.8 * Math.exp(-t / (decay * 1.2)) + Math.sin(2 * Math.PI * 170 * t) * Math.exp(-t / 0.06);
+      out[i] = (ring + under * s.body) * Math.min(1, t / 0.0005) + click(noise(), 6000) * Math.exp(-t / 0.001) * p.strike * 4;
+    }
+    return out;
+  }
+  if (sound === "return") {
+    const f0 = p.pitch * Math.pow(2, s.pitch / 12) * (1 + (random() - 0.5) * 0.08), attack = p.attack / 1000, decay = p.decay * s.length / 1000;
+    const out = new Float32Array(Math.ceil((attack + decay * 6) * RATE)), tone = lowpass();
+    for (let i = 0; i < out.length; i++) {
+      const t = i / RATE, rise = Math.min(1, t / attack), swell = t < attack ? rise * rise : Math.exp(-(t - attack) / decay);
+      out[i] = tone(Math.sin(2 * Math.PI * f0 * t) * (1 - p.noise) + noise() * p.noise * 1.5, p.tone) * swell;
     }
     return out;
   }
@@ -176,13 +201,21 @@ export function plan(events, settings) {
     }
     kept.push(event); last[event.type] = event;
   }
+  // The letters coming home: their landings or their turns for home, or one swell timed to peak at the first landing.
+  const back = settings.return, attack = blend("return", back.character).attack / 1000;
+  if (back.on) {
+    const trigger = Math.round(back.trigger), lands = sorted.filter(event => event.type === "land");
+    if (trigger === 2 && lands.length) kept.push({ type: "home", time: Math.max(0, lands[0].time - attack), x: 0.5 });
+    else for (const event of sorted.filter(item => item.type === (trigger === 1 ? "return" : "land"))) kept.push({ ...event, type: "home", time: Math.max(0, event.time - attack) });
+    kept.sort((a, b) => a.time - b.time);
+  }
   const whooshAt = firstRelease + settings.whoosh.start / 1000, placed = [];
   for (const event of kept) {
     const crowd = placed.filter(other => event.time - other.time < CROWD).length;
     if (crowd >= settings.master.overlap) continue;
     const under = event.type !== "flick" && event.time >= whooshAt && event.time - whooshAt < 0.5 && settings.whoosh.on ? 1 - settings.master.duck : 1;
     const firm = event.type === "hit" ? 0.55 + 0.45 * Math.min(1, event.strength / 12) : 1;
-    placed.push({ ...event, sound: SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * under * firm });
+    placed.push({ ...event, sound: event.type === "home" ? "return" : SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * under * firm });
   }
   if (settings.whoosh.on && Number.isFinite(whooshAt)) placed.push({ type: "whoosh", sound: "whoosh", time: Math.max(0, whooshAt), x: 0.5, level: 1 });
   const lastTick = [...placed].reverse().find(event => event.sound === "tick");
@@ -190,14 +223,13 @@ export function plan(events, settings) {
   return placed.sort((a, b) => a.time - b.time);
 }
 
-/** A small Schroeder room, fed the loop twice so the tail of the end wraps into the start. */
-function room(input, delays, length) {
-  const twice = new Float32Array(length * 2); twice.set(input); twice.set(input, length);
-  const out = new Float32Array(twice.length);
+/** A small Schroeder room. */
+function room(input, delays) {
+  const out = new Float32Array(input.length);
   for (const [delay, feedback] of delays) {
     const buffer = new Float32Array(delay);
-    for (let i = 0, at = 0; i < twice.length; i++, at = (at + 1) % delay) {
-      const echo = buffer[at]; buffer[at] = twice[i] + echo * feedback; out[i] += echo / delays.length;
+    for (let i = 0, at = 0; i < input.length; i++, at = (at + 1) % delay) {
+      const echo = buffer[at]; buffer[at] = input[i] + echo * feedback; out[i] += echo / delays.length;
     }
   }
   for (const delay of [347, 113]) {
@@ -206,27 +238,30 @@ function room(input, delays, length) {
       const echo = buffer[at], value = out[i]; buffer[at] = value + echo * 0.5; out[i] = echo - value * 0.5;
     }
   }
-  return out.subarray(length);
+  return out;
 }
 
-/** The whole loop's sound: [left, right] at RATE. Seeded, so the same events and settings give the same audio. */
+/**
+ * The loop's sound: [left, right] at RATE. Seeded, so the same events and settings give the same audio. Nothing wraps
+ * into the start; instead the audio runs past the loop's `seconds` until the last sound and the room have died away,
+ * and the video holds its last frame for that tail.
+ */
 export function mix(events, seconds, settings) {
-  const length = Math.ceil(seconds * RATE), left = new Float32Array(length), right = new Float32Array(length);
   const random = seeded(11), scales = {};
   for (const sound of Object.keys(PRESETS)) scales[sound] = db(settings[sound].volume) * db(settings.master.volume) / reference(sound, settings);
-  for (const event of plan(events, settings)) {
-    const buffer = voice(event.sound, settings, random, event.reverse), gain = scales[event.sound] * event.level;
+  const voices = plan(events, settings).map(event => ({ event, buffer: voice(event.sound, settings, random, event.reverse) }));
+  const end = voices.reduce((latest, { event, buffer }) => Math.max(latest, event.time + buffer.length / RATE), 0);
+  const length = Math.ceil(Math.max(seconds, end + TAIL_PAD) * RATE), left = new Float32Array(length), right = new Float32Array(length);
+  for (const { event, buffer } of voices) {
+    const gain = scales[event.sound] * event.level;
     // Equal-power pan from the event's place across the card, kept off the hard edges.
     const pan = (Math.min(1, Math.max(0, event.x)) - 0.5) * 1.4, angle = (pan + 1) * Math.PI / 4;
     const start = Math.round(event.time * RATE), l = Math.cos(angle) * gain, r = Math.sin(angle) * gain;
-    for (let i = 0; i < buffer.length; i++) {
-      const at = (start + i) % length;
-      left[at] += buffer[i] * l; right[at] += buffer[i] * r;
-    }
+    for (let i = 0; i < buffer.length && start + i < length; i++) { left[start + i] += buffer[i] * l; right[start + i] += buffer[i] * r; }
   }
   if (settings.master.room > 0) {
-    const wetLeft = room(left, [[1557, 0.78], [1617, 0.77], [1491, 0.79], [1422, 0.8]], length);
-    const wetRight = room(right, [[1580, 0.78], [1640, 0.77], [1514, 0.79], [1445, 0.8]], length);
+    const wetLeft = room(left, [[1557, 0.78], [1617, 0.77], [1491, 0.79], [1422, 0.8]]);
+    const wetRight = room(right, [[1580, 0.78], [1640, 0.77], [1514, 0.79], [1445, 0.8]]);
     for (let i = 0; i < length; i++) { left[i] += wetLeft[i] * settings.master.room; right[i] += wetRight[i] * settings.master.room; }
   }
   // tanh is transparent at these levels and only rounds off a peak that would clip.

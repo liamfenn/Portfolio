@@ -4,7 +4,8 @@
 // so rerun that first after changing the animation. Seeded, so a rerun gives the same audio.
 //
 //   node scripts/sound-og.mjs
-// Writes out/share/office-of-liam-fennell-{og,9x16}-sound.mp4 (and the .wav beside each).
+// Writes out/share/office-of-liam-fennell-{og,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
+// loop until the last sound has died away, and the video holds its last frame (the plain name) for that tail.
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { DEFAULTS, RATE, mix } from "./og-sound/synth.mjs";
@@ -33,10 +34,12 @@ for (const [name, frames] of CUTS) {
   const seconds = readdirSync(frames).filter(file => file.endsWith(".png")).length / FPS;
   const base = `out/share/office-of-liam-fennell-${name}`;
   // No loudness normalisation: the levels are the ones chosen by ear in the lab.
-  wav(`${base}-sound.wav`, mix(events, seconds, SETTINGS));
-  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", `${base}.mp4`, "-i", `${base}-sound.wav`, "-map", "0:v", "-map", "1:a",
-    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", `${base}-sound.mp4`]);
+  const audio = mix(events, seconds, SETTINGS), tail = audio[0].length / RATE - seconds;
+  wav(`${base}-sound.wav`, audio);
+  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", `${base}.mp4`, "-i", `${base}-sound.wav`,
+    "-filter_complex", `[0:v]tpad=stop_mode=clone:stop_duration=${tail.toFixed(3)}[v]`, "-map", "[v]", "-map", "1:a",
+    "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", `${base}-sound.mp4`]);
   const report = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", `${base}-sound.wav`, "-af", "ebur128=peak=true", "-f", "null", "-"], { encoding: "utf8" }).stderr;
   const loudness = report.slice(report.lastIndexOf("Summary")).match(/I:\s+(-?[\d.]+) LUFS[\s\S]*?Peak:\s+(-?[\d.inf]+) dBFS/);
-  console.log(`${base}-sound.mp4: ${seconds.toFixed(2)}s, ${loudness?.[1]} LUFS, peak ${loudness?.[2]} dBFS`);
+  console.log(`${base}-sound.mp4: ${seconds.toFixed(2)}s + ${tail.toFixed(2)}s tail, ${loudness?.[1]} LUFS, peak ${loudness?.[2]} dBFS`);
 }
