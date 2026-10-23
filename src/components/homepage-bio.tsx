@@ -45,8 +45,5 @@ export function HomepageBio() {
     <p><InspectableText>
       <strong>Liam Fennell</strong> is a designer based in Atlanta. Currently at <BioLink href="https://shop.app">Shop</BioLink>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
     </InspectableText></p>
-    <p><InspectableText>
-      The work moves between interfaces, identities, and small experiments on the web. An interest in typography, everyday objects, and unexpected details leaves room for things to feel a little playful. This space is a collection of projects, ideas in progress, and <BioLink href="https://cosmos.so/notliam">visual references</BioLink>. For a new project, a collaboration, or a conversation, <BioLink href="mailto:info@fennell.cv">get in touch</BioLink>.
-    </InspectableText></p>
   </div>;
 }

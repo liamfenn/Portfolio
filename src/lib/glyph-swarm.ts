@@ -108,9 +108,11 @@ function indexIn(element: Element, node: Text, offset: number) {
   for (const text of textNodesIn(element)) { if (text === node) return index + offset; index += text.length; }
   return -1;
 }
-function locate(element: Element, index: number) {
+function locate(element: Element, index: number, cache?: Map<Element, Text[]>) {
+  let nodes = cache?.get(element);
+  if (!nodes) { nodes = textNodesIn(element); cache?.set(element, nodes); }
   let start = 0;
-  for (const node of textNodesIn(element)) { if (index < start + node.length) return { node, offset: index - start }; start += node.length; }
+  for (const node of nodes) { if (index < start + node.length) return { node, offset: index - start }; start += node.length; }
   return null;
 }
 const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
@@ -207,10 +209,10 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
   // Re-attaches a letter's mask after its text is re-rendered (hover scrambles, a new song, the clock). Returns the
   // character now at its place, or null when that place is gone.
-  const resolve = (source: Source) => {
+  const resolve = (source: Source, cache?: Map<Element, Text[]>) => {
     for (const { element, index } of source.anchors) {
       if (!element.isConnected || index < 0) continue;
-      const spot = locate(element, index);
+      const spot = locate(element, index, cache);
       if (!spot) break;
       source.node = spot.node; source.offset = spot.offset; source.orphan = false;
       source.range.setStart(spot.node, spot.offset); source.range.setEnd(spot.node, spot.offset + 1);
@@ -438,6 +440,12 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   const fly = (time: number, dt: number) => {
     const elapsed = time - collapseStartedAt, globeCenter = centerOf(globe.getBoundingClientRect());
+    // Read every destination before changing transforms or removing landed letters. Interleaving those
+    // writes with Range measurements forces a layout for each returning character.
+    const homes = new Map<Glyph, ReturnType<typeof homeOf>>();
+    for (const glyph of glyphs) {
+      if (!glyph.landed && (glyph.flight || elapsed >= glyph.departAt)) homes.set(glyph, homeOf(glyph, globeCenter));
+    }
     for (const glyph of glyphs) {
       if (glyph.flight || glyph.landed || elapsed < glyph.departAt) continue;
       const { position, velocity, angle, angularVelocity } = glyph.body;
@@ -453,7 +461,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       remaining++;
       if (!flight) continue;
       if (elapsed > LANDING_TIMEOUT_MS) { land(glyph); remaining--; continue; }
-      const { point: home, settles } = homeOf(glyph, globeCenter);
+      const { point: home, settles } = homes.get(glyph)!;
       if (flight.settle) {
         const t = Math.min(1, (time - flight.settle.at) / flight.settle.duration), ease = 1 - Math.pow(1 - t, 3);
         flight.x = flight.settle.x + (home.x - flight.settle.x) * ease;
@@ -483,17 +491,22 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   // Any re-render of the page's text (a label rewriting itself on hover, a new song, the clock) re-attaches the masks.
   // The observer runs right after the change and before the browser paints, so the original letter never flashes back.
   let morphing = false;
+  const morph = (glyph: Glyph, char: string | null, time: number) => {
+    const source = glyph.source!;
+    if (char === null || !char.trim() || char === glyph.element.textContent) { source.pending = undefined; return; }
+    // Settled text renames the floating letter; a scramble passing through does not.
+    if (source.pending?.char !== char) source.pending = { char, at: time };
+    if (time - source.pending.at >= MORPH_AFTER_MS) { glyph.element.textContent = char; source.pending = undefined; } else morphing = true;
+  };
   const reattach = (time: number) => {
     morphing = false; patchesStale = true;
     refreshUIMasks();
+    // Letters sharing a label also share its text walk; hover scrambles can replace it every frame.
+    const nodes = new Map<Element, Text[]>();
     for (const glyph of glyphs) {
       const source = glyph.source;
       if (!source || glyph.landed || glyph.flight?.settle) continue;
-      const char = resolve(source);
-      if (char === null || !char.trim() || char === glyph.element.textContent) { source.pending = undefined; continue; }
-      // Settled text renames the floating letter; a scramble passing through does not.
-      if (source.pending?.char !== char) source.pending = { char, at: time };
-      if (time - source.pending.at >= MORPH_AFTER_MS) { glyph.element.textContent = char; source.pending = undefined; } else morphing = true;
+      morph(glyph, resolve(source, nodes), time);
     }
   };
   refreshUIMasks();
@@ -541,7 +554,16 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       separate(members, gap);
       Engine.update(engine, STEP); pending -= STEP;
     }
-    if (morphing) reattach(time);
+    if (morphing) {
+      // Anchors and UI masks only need rebuilding after a DOM mutation, not every frame while
+      // waiting for a scramble to settle. Pending characters already have resolved text nodes.
+      morphing = false;
+      for (const glyph of glyphs) {
+        if (glyph.source?.pending && !glyph.landed && !glyph.flight?.settle) {
+          morph(glyph, glyph.source.node.data[glyph.source.offset] ?? null, time);
+        }
+      }
+    }
     if (!loose) fly(time, dt);
     for (const glyph of glyphs) if (glyph.tint && !glyph.landed) tintStep(glyph, time);
     for (const glyph of glyphs) {

@@ -32,6 +32,13 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Swarm performance and intro trim (2026-10-23)**
+- Removed the draft second intro paragraph; kept the original first paragraph while replacement copy is being considered. This reduced the local desktop swarm from 455 to 249 characters.
+- Returning letters now measure all home positions before any letter transforms or removals. This avoids per-character style/layout flushes while preserving live destinations during scrolling and layout changes.
+- Text changes share one text-node lookup per anchor element. Waiting for a stable character no longer rebuilds every source anchor and transient UI mask each animation frame; DOM mutations still reattach masks before paint.
+- Local Chromium with 4× CPU throttling, comparing the same 249-character page before/after batching: return-phase style recalculation fell from ~2.56s to ~0.76s across a 5.5s sample. Synthetic scroll tests still slow down under throttling; this is not a guarantee of device-specific frame rates. No reduction in swarm amount, physics, or motion timing.
+- Verified desktop/mobile dynamic text, scrolling, return cleanup, and reduced motion in the production build; 39 tests, type check, and touched-file lint pass.
+
 **Menu masks and intro (2026-10-23)**
 - Hidden menu options now use individually rendered characters with random opacity masks, independent of browser highlight painting. The selected control still feeds the real swarm, while hover project text retains its working mask-only behavior. Cleanup removes all menu masks.
 - Removed intro paragraph indentation and superscript references. Intro links now use text-primary without underlines; replacement copy pending.
