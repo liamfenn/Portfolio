@@ -9,8 +9,8 @@ test("a pump squeezes first, springs past full size, and rings out to rest", () 
   assert.ok(Math.abs(pumpScale(1500) - 1) < 0.01);
 });
 
-test("a pumped character grows from nothing past full size, then settles", () => {
-  assert.equal(emergeScale(0), 0);
+test("a pumped character splits off under half size, springs past full size, then settles", () => {
+  assert.ok(emergeScale(0) < 0.5 && emergeScale(0) > 0.4);
   assert.ok(emergeScale(175) > 1.1);
   assert.ok(Math.abs(emergeScale(1200) - 1) < 0.01);
 });

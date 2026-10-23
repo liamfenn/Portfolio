@@ -42,7 +42,7 @@ declare global { interface Window { __ogLoops?: number } }
 
 /**
  * The link-preview card: the office name, a few letters glitch, then every letter bursts loose to bounce around the
- * card and plays its way back home (see og-burst). It loops in real time here; scripts/capture-og.mjs drives the same
+ * card and plays its way back home (see og-burst), and the same letters glitch back. It loops in real time here; scripts/capture-og.mjs drives the same
  * loop on a virtual clock to record it frame by frame.
  */
 export function OgCard() {
@@ -62,6 +62,9 @@ export function OgCard() {
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal);
         await wait(150, signal);
         await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS });
+        // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
+        await wait(150, signal);
+        await glitch(glitched.map(element => ({ element, to: "" })), signal);
         await wait(HOLD_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }

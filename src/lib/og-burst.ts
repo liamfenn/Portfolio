@@ -1,20 +1,31 @@
 import type MatterJS from "matter-js";
-import { releaseDelay, smoothstep } from "@/lib/glyph-physics";
+import { releaseDelay, smoothstep, springStep } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 
 const STEP = 1000 / 60;
 /** The swarm's air while letters pop out and float, then almost none once they are kicked loose to bounce. */
 const FLOAT_AIR = 0.035;
 const LOOSE_AIR = 0.006;
-/** Slows everything back to a float before the letters turn for home, mirroring the kick. */
+/** Slows a letter back to a float just before it turns for home, mirroring its kick. */
 const SETTLE_AIR = 0.07;
+const SETTLE_LEAD_MS = 450;
 const BOUNCE = 0.9;
+/** Matter only bounces contacts faster than about 4px a step; slower pieces slide along a wall and park there. Loose
+ * pieces are topped back up toward this speed so they keep ricocheting until it is their turn to settle. */
+const CRUISE = 5;
 /** Letters pop out across this window, nearest the centre first, as the swarm does. */
 const RELEASE_SPREAD_MS = 600;
-const LOOSE_MS = 3000;
+const LOOSE_MS = 5500;
+/** Letters turn for home across this window, the swarm's own release spread, last out first home with some jitter. */
+const RETURN_SPREAD_MS = 1400;
+/** A letter still gliding this long gives up on reaching its float exactly and starts home from wherever it is. */
+const GLIDE_TIMEOUT_MS = 2500;
 const FLICKER_MS = 55;
-/** A pumped character passes through its parent until it has grown out of it. */
-const EMERGE_MS = 260;
+/** A pump: the letter flickers between itself and the character it is about to give off, until its squeeze bottoms out
+ * (see pumpScale) and the new character splits off its edge. */
+const MORPH_MS = 70;
+/** A pumped character passes through its parent for a moment after splitting off, so they don't knock apart. */
+const EMERGE_MS = 160;
 /** On exit, a pumped character swells for this long, glitching, then is simply gone. */
 const POP_MS = 120;
 /** Until it is kicked loose, a letter collides only with the walls. Letters start shoulder to shoulder, so otherwise
@@ -30,9 +41,12 @@ interface Piece {
   width: number;
   height: number;
   bornAt: number;
+  char: string;
   tint?: Tint;
   /** When this piece last pumped, which drives its squeeze and spring. */
   pumpedAt?: number;
+  /** A pump under way: the character it is turning into, briefly, before that character splits off. */
+  morph?: { at: number; char: string; flickAt: number };
   gone?: boolean;
   /** Only the original letters have a home; pumped characters pop. */
   home?: Home;
@@ -48,7 +62,13 @@ interface Home {
   path: Sample[];
   nextPumpAt: number;
   pumpsLeft: number;
+  /** The colour it left with, which it glitches back to on the way home. */
+  color: string;
+  settleAt: number;
   returnAt: number;
+  /** First it glides on its own spring back to where its float ended, keeping the speed it had... */
+  glide?: { at: number; x: number; vx: number; y: number; vy: number; angle: number; spin: number; omega: number; target: number };
+  /** ...then plays its pop-out backwards into its slot. */
   rewind?: { at: number; duration: number; offset: Sample };
 }
 
@@ -66,10 +86,10 @@ export function popScale(ms: number, duration = POP_MS) {
   return 1 + 0.45 * (1 - Math.pow(1 - t, 3));
 }
 
-/** A pumped character grows out of its parent: from nothing, past full size, ringing in to 1. */
+/** A pumped character splits off its parent at under half size, springs past full size, and rings in to 1. */
 export function emergeScale(ms: number) {
   const t = Math.max(0, ms) / 1000;
-  return 1 - Math.exp(-t * 8) * Math.cos(t * 18);
+  return 1 - 0.55 * Math.exp(-t * 8) * Math.cos(t * 18);
 }
 
 /**
@@ -104,7 +124,8 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
 /**
  * The link-preview card's burst. Each letter pops out and floats like the swarm's entry, then is kicked loose to bounce
  * freely off the card's edges and each other, pumping out new characters as it goes. Then the new characters glitch
- * and pop, and every letter plays its pop-out backwards into place. Resolves once the text is whole again.
+ * and pop, and every letter glides back to where its float ended and plays its pop-out backwards into place, each on its
+ * own schedule and spring. Resolves once the text is whole again, in the colours it started with.
  */
 export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[] }) {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
@@ -128,7 +149,6 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     if (!bag.length) bag = shuffled(options.chars);
     return bag.pop()!;
   };
-  const base = getComputedStyle(letters[0]?.parentElement ?? document.body).color;
   const tintStep = (piece: Piece, time: number) => {
     const tint = piece.tint;
     if (!tint || time < tint.start) return;
@@ -147,7 +167,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     element.style.cssText = `width:${size.width}px;height:${size.height}px;font:${font};line-height:${size.height}px;color:${color}`;
     const body = Bodies.rectangle(at.x, at.y, Math.max(2, size.width * 0.9), Math.max(2, size.height * 0.72),
       { restitution: BOUNCE, friction: 0.05, frictionStatic: 0.2, frictionAir: FLOAT_AIR, slop: 0.02 });
-    const piece: Piece = { element, body, width: size.width, height: size.height, bornAt: time };
+    const piece: Piece = { element, body, width: size.width, height: size.height, bornAt: time, char };
     pieces.push(piece); layer.append(element); Composite.add(engine.world, body);
     return piece;
   };
@@ -172,9 +192,10 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Body.setVelocity(piece.body, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.2);
     const kickAt = time + 250 + Math.random() * 450;
-    // Last out, first home: the exit runs the release order backwards.
+    // Last out, first home: the exit runs the release order backwards, loosely, across a wider window than the entry.
+    const returnAt = exitAt + 400 + (1 - releaseOffset / Math.max(1, lastRelease)) * RETURN_SPREAD_MS * 0.6 + Math.random() * RETURN_SPREAD_MS * 0.4;
     piece.home = { span, releaseAt: time, kickAt, path: [{ ...at, angle: 0 }], nextPumpAt: kickAt + Math.random() * 300,
-      pumpsLeft: 1 + Math.floor(Math.random() * 3), returnAt: exitAt + 350 + (lastRelease - releaseOffset) };
+      pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt };
   };
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
@@ -185,49 +206,69 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     glitchTo(piece, time, random(options.palette()), 300, 450);
   };
   const pump = (parent: Piece, time: number) => {
-    parent.pumpedAt = time;
+    parent.pumpedAt = time; parent.morph = { at: time, char: draw(), flickAt: 0 };
     glitchTo(parent, time, random(options.palette()), 120, 120);
+  };
+  // The new character leaves from the parent's edge, already moving out, and the parent recoils a little.
+  const split = (parent: Piece, char: string, time: number) => {
     const { position, velocity } = parent.body, angle = Math.random() * Math.PI * 2, speed = 4 + Math.random() * 4;
-    const child = spawn(draw(), parent, position, parent.element.style.font, random(options.palette()), time);
+    const direction = { x: Math.cos(angle), y: Math.sin(angle) }, reach = parent.height * 0.5;
+    const child = spawn(char, parent, { x: position.x + direction.x * reach, y: position.y + direction.y * reach }, parent.element.style.font, random(options.palette()), time);
+    Body.setVelocity(parent.body, { x: velocity.x - direction.x * 1.2, y: velocity.y - direction.y * 1.2 });
     child.body.frictionAir = LOOSE_AIR;
     child.body.collisionFilter.mask = 0;
-    Body.setVelocity(child.body, { x: velocity.x + Math.cos(angle) * speed, y: velocity.y + Math.sin(angle) * speed });
+    Body.setVelocity(child.body, { x: velocity.x + direction.x * speed, y: velocity.y + direction.y * speed });
     Body.setAngularVelocity(child.body, (Math.random() - 0.5) * 0.3);
     glitchTo(child, time, random(options.palette()), 200, 200);
-    child.popAt = exitAt + Math.random() * 600;
+    child.popAt = exitAt + Math.random() * 900;
   };
   const remove = (piece: Piece) => { piece.gone = true; piece.element.remove(); Composite.remove(engine.world, piece.body); };
 
-  let frame = 0, previous = startedAt, pending = 0, settled = false;
+  const startRewind = (piece: Piece, home: Home, at: Point & { angle: number }, time: number) => {
+    const end = home.path.at(-1)!;
+    home.rewind = { at: time, duration: home.path.length * STEP * 1.6, offset: { x: at.x - end.x, y: at.y - end.y, angle: at.angle - end.angle } };
+  };
+
+  let frame = 0, previous = startedAt, pending = 0;
   return new Promise<void>((resolve, reject) => {
     const cleanup = () => { cancelAnimationFrame(frame); Engine.clear(engine); layer.remove(); letters.forEach(span => { span.style.visibility = ""; }); };
     signal.addEventListener("abort", () => { cleanup(); reject(signal.reason); }, { once: true });
     const render = (time: number) => {
+      const dt = Math.min(64, time - previous) / 1000;
       pending = Math.min(pending + time - previous, STEP * 4); previous = time;
       while (queued < queue.length && queue[queued].at <= time - startedAt) { const { span, rect, at } = queue[queued++]; release(span, rect, at, time); }
-      if (!settled && time >= exitAt) {
-        settled = true;
-        for (const piece of pieces) if (piece.home) piece.body.frictionAir = SETTLE_AIR;
-      }
       for (const piece of pieces) {
         const home = piece.home;
         if (piece.gone) continue;
-        if (home && !home.rewind) {
+        if (home && !home.glide && !home.rewind) {
           if (time >= home.kickAt && !home.kicked) kick(piece, time);
           if (home.pumpsLeft && time >= home.nextPumpAt && time < exitAt - 400) {
-            pump(piece, time); home.pumpsLeft--; home.nextPumpAt = time + 400 + Math.random() * 500;
+            pump(piece, time); home.pumpsLeft--; home.nextPumpAt = time + 500 + Math.random() * 600;
           }
+          if (time >= home.settleAt && home.kicked) piece.body.frictionAir = SETTLE_AIR;
           if (time >= home.returnAt) {
-            // Leaves the physics where it floats, and blends from there onto its recorded pop-out, played backwards.
-            const end = home.path.at(-1)!, { position, angle } = piece.body;
-            const offset = { x: position.x - end.x, y: position.y - end.y, angle: -turnBetween(angle, end.angle) };
-            home.rewind = { at: time, duration: home.path.length * STEP * 1.3 + Math.hypot(offset.x, offset.y) * 0.9, offset };
+            // Leaves the physics where it floats, keeping its speed, and turns the short way toward its float's end.
+            const end = home.path.at(-1)!, { position, velocity, angle, angularVelocity } = piece.body;
+            home.glide = { at: time, x: position.x, vx: velocity.x * 60, y: position.y, vy: velocity.y * 60, angle, spin: angularVelocity * 60,
+              omega: 3 + Math.random() * 3, target: angle + turnBetween(angle, end.angle) };
             Composite.remove(engine.world, piece.body);
-            glitchTo(piece, time, base, 300, 300);
+            glitchTo(piece, time, home.color, 300, 400);
           }
+        }
+        const morph = piece.morph;
+        if (morph && time - morph.at >= MORPH_MS) { piece.element.textContent = piece.char; piece.morph = undefined; split(piece, morph.char, time); }
+        else if (morph && time - morph.flickAt >= FLICKER_MS) {
+          morph.flickAt = time; piece.element.textContent = piece.element.textContent === morph.char ? piece.char : morph.char;
         }
         if (!home && piece.popAt && time >= piece.popAt && !piece.popping) { piece.popping = true; glitchTo(piece, time, random(options.palette()), POP_MS, 0); }
         if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = EVERYTHING;
+      }
+      for (const piece of pieces) {
+        const home = piece.home, loose = home ? home.kicked && time < home.settleAt : !piece.popping;
+        const { velocity } = piece.body, speed = Math.hypot(velocity.x, velocity.y);
+        if (piece.gone || !loose || speed >= CRUISE || speed < 0.01) continue;
+        const boost = Math.min(CRUISE / speed, 1.04);
+        Body.setVelocity(piece.body, { x: velocity.x * boost, y: velocity.y * boost });
       }
       while (pending >= STEP) {
         Engine.update(engine, STEP); pending -= STEP;
@@ -242,11 +283,21 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         tintStep(piece, time);
         const home = piece.home;
         let { x, y } = piece.body.position, angle = piece.body.angle, scale = pumpScale(time - (piece.pumpedAt ?? time));
+        if (home?.glide && !home.rewind) {
+          const glide = home.glide, end = home.path.at(-1)!;
+          const gx = springStep(glide.x, glide.vx, end.x, glide.omega, dt), gy = springStep(glide.y, glide.vy, end.y, glide.omega, dt);
+          const turn = springStep(glide.angle, glide.spin, glide.target, glide.omega * 0.8, dt);
+          Object.assign(glide, { x: gx.position, vx: gx.velocity, y: gy.position, vy: gy.velocity, angle: turn.position, spin: turn.velocity });
+          x = glide.x; y = glide.y; angle = glide.angle;
+          // Close and nearly still, it hands over to the rewind, which starts from rest, so there is no hitch.
+          const arrived = Math.hypot(end.x - x, end.y - y) < 3 && Math.hypot(glide.vx, glide.vy) < 40;
+          if (arrived || time - glide.at > GLIDE_TIMEOUT_MS) startRewind(piece, home, { x, y, angle: angle - (glide.target - end.angle) }, time);
+        }
         if (home?.rewind) {
-          const { at, duration, offset } = home.rewind, progress = Math.min(1, (time - at) / duration), fade = 1 - smoothstep(Math.min(1, progress * 1.6));
-          const sample = rewind(home.path, progress);
-          x = sample.x + offset.x * fade; y = sample.y + offset.y * fade; angle = sample.angle + offset.angle * fade;
-          if (progress >= 1) { remove(piece); home.span.style.visibility = ""; home.span.style.color = ""; continue; }
+          const { at, duration, offset } = home.rewind, progress = Math.min(1, (time - at) / duration), fade = 1 - smoothstep(Math.min(1, progress * 2));
+          const sample = rewind(home.path, progress), spins = home.glide ? home.glide.target - home.path.at(-1)!.angle : 0;
+          x = sample.x + offset.x * fade; y = sample.y + offset.y * fade; angle = sample.angle + spins + offset.angle * fade;
+          if (progress >= 1) { remove(piece); home.span.style.visibility = ""; continue; }
         }
         if (!home) {
           scale *= emergeScale(time - piece.bornAt);
