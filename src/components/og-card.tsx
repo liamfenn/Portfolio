@@ -13,6 +13,8 @@ const GLITCHED = new Set([1, 2, 12, 16, 20, 21]);
 const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250");
 /** Matches the swarm's own colour glitch, so the intro reads as the same effect. */
 const FLICKER_MS = 55;
+/** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
+const ALL_GLITCH_STAGGER_MS = 25;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 
@@ -21,10 +23,13 @@ async function wait(ms: number, signal: AbortSignal) {
   const end = performance.now() + ms;
   while ((await nextFrame()) < end) signal.throwIfAborted();
 }
-/** Each letter flickers through the palette (now and then its destination) on its own short stagger, then settles. */
-async function glitch(letters: { element: HTMLElement; to: string }[], signal: AbortSignal) {
+/**
+ * Each letter flickers through the palette (now and then its destination), then settles. Letters start on a loose
+ * random stagger, or, given `stagger`, that many milliseconds apart in order.
+ */
+async function glitch(letters: { element: HTMLElement; to: string }[], signal: AbortSignal, stagger?: number) {
   const start = performance.now(), colors = currentGlyphPalette();
-  const runs = letters.map(letter => ({ ...letter, at: start + Math.random() * 120, until: 0, flickAt: 0 }));
+  const runs = letters.map((letter, index) => ({ ...letter, at: start + (stagger === undefined ? Math.random() * 120 : index * stagger), until: 0, flickAt: 0 }));
   runs.forEach(run => { run.until = run.at + 150 + Math.random() * 200; });
   for (let time = start; runs.some(run => run.until > time); time = await nextFrame()) {
     signal.throwIfAborted();
@@ -53,7 +58,9 @@ export function OgCard() {
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
-    const glitched = letters.filter((_, index) => GLITCHED.has(index));
+    const all = new URLSearchParams(window.location.search).get("glitch") === "all";
+    const glitched = letters.filter((element, index) => all ? element.textContent?.trim() : GLITCHED.has(index));
+    const stagger = all ? ALL_GLITCH_STAGGER_MS : undefined;
     // ?landing=reverse plays the earlier landing, last out first home, instead of word by word, left to right.
     const landing = new URLSearchParams(window.location.search).get("landing") === "reverse" ? "reverse" : "reading";
     const run = async () => {
@@ -61,12 +68,12 @@ export function OgCard() {
       for (;;) {
         await wait(HOLD_MS, signal);
         const colors = currentGlyphPalette();
-        await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal);
+        await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);
         await wait(150, signal);
         await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
-        await glitch(glitched.map(element => ({ element, to: "" })), signal);
+        await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);
         await wait(HOLD_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }
