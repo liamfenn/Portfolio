@@ -33,6 +33,10 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Returning glyphs while scrolling (2026-10-23)**
+- Return flights now move with their text destinations when the page scrolls or reflows. The spring and final settle preserve their remaining offset from the slot, rather than chasing a moving viewport target.
+- This prevents fast scrolling from keeping intro letters airborne until scrolling stops or the five-second safety timeout restores them. The existing stagger, spring speeds, and landing animation remain unchanged.
+
 **Swarm performance and intro trim (2026-10-23)**
 - Removed the draft second intro paragraph; kept the original first paragraph while replacement copy is being considered. This reduced the local desktop swarm from 455 to 249 characters.
 - Returning letters now measure all home positions before any letter transforms or removals. This avoids per-character style/layout flushes while preserving live destinations during scrolling and layout changes.

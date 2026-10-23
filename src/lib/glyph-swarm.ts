@@ -42,6 +42,7 @@ interface Source {
 }
 interface Flight {
   x: number; y: number; vx: number; vy: number; angle: number; spin: number; omega: number;
+  home: Point;
   /** A page letter homes on a spot just off its slot, still a little tilted, then settles the rest of the way. */
   offset: Point; tilt: number; upright: number;
   settle?: { at: number; duration: number; x: number; y: number; angle: number };
@@ -450,6 +451,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (glyph.flight || glyph.landed || elapsed < glyph.departAt) continue;
       const { position, velocity, angle, angularVelocity } = glyph.body;
       glyph.flight = { x: position.x, y: position.y, vx: velocity.x * 60, vy: velocity.y * 60, angle, spin: angularVelocity * 60,
+        home: homes.get(glyph)!.point,
         omega: 3.5 + Math.random() * 5, offset: { x: (Math.random() - 0.5) * 10, y: -(2 + Math.random() * 8) },
         tilt: (Math.random() - 0.5) * 0.6, upright: Math.round(angle / (Math.PI * 2)) * Math.PI * 2 };
       Composite.remove(engine.world, glyph.body);
@@ -462,6 +464,12 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (!flight) continue;
       if (elapsed > LANDING_TIMEOUT_MS) { land(glyph); remaining--; continue; }
       const { point: home, settles } = homes.get(glyph)!;
+      // Carry the flight with its text when the page moves. The spring closes the remaining
+      // distance to the slot instead of chasing scroll velocity and waiting for scrolling to stop.
+      const dx = home.x - flight.home.x, dy = home.y - flight.home.y;
+      flight.x += dx; flight.y += dy;
+      if (flight.settle) { flight.settle.x += dx; flight.settle.y += dy; }
+      flight.home = home;
       if (flight.settle) {
         const t = Math.min(1, (time - flight.settle.at) / flight.settle.duration), ease = 1 - Math.pow(1 - t, 3);
         flight.x = flight.settle.x + (home.x - flight.settle.x) * ease;
