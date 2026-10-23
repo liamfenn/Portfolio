@@ -1,5 +1,5 @@
-// Records one loop of the /og card, frame by frame, then encodes the link-preview video, its poster, and share cuts:
-// 1.91:1 (the link-preview shape), true 16:9 at 1080p, and square. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
+// Records one loop of the /og card, frame by frame, then encodes the link-preview video, its poster, and share cuts in
+// out/share: 1.91:1 (the link-preview shape), vertical 9:16 at 1080p, and square, each with a still of its first frame. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
 // so every frame is exactly 1/60s apart however long a screenshot takes, and Math.random is seeded, so a rerun gives
 // the same video.
 //
@@ -17,6 +17,7 @@ const QUICK = process.argv.includes("--quick");
 const FPS = 60;
 const MAX_FRAMES = FPS * 20;
 const FRAMES = "out/og-frames";
+const SHARE = "out/share";
 
 const clock = seed => {
   let now = 0, id = 0, queue = [], state = seed >>> 0;
@@ -62,11 +63,13 @@ const preview = await record(1200, 630, 1);
 if (!QUICK) {
   encode(preview, "public/images/meta/og-office.mp4", 20);
   execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
-  encode(await record(1200, 630, 2), "out/office-of-liam-fennell.mp4", 16);
-  // Laid out at the card's 1200px width and scaled up, so the text keeps the card's proportions at 1920×1080.
-  encode(await record(1200, 675, 1.6), "out/office-of-liam-fennell-16x9.mp4", 16);
-  const square = await record(1200, 1200, 2);
-  encode(square, "out/office-of-liam-fennell-square.mp4", 16);
-  execFileSync("cp", [`${square}/00000.png`, "out/office-of-liam-fennell-square.png"]);
-  console.log("Wrote public/images/meta/og-office.{mp4,png} and out/office-of-liam-fennell{,-16x9,-square}.mp4");
+  // Share cuts, each a video and its first frame: the 1.91:1 link-preview shape, 9:16, and 1:1. The 9:16 cut is laid out
+  // at 675×1200 and scaled up to 1080×1920, so the text keeps roughly the card's scale on a phone screen.
+  mkdirSync(SHARE, { recursive: true });
+  for (const [name, width, height, scale] of [["og", 1200, 630, 2], ["9x16", 675, 1200, 1.6], ["1x1", 1200, 1200, 2]]) {
+    const dir = await record(width, height, scale);
+    encode(dir, `${SHARE}/office-of-liam-fennell-${name}.mp4`, 16);
+    execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/office-of-liam-fennell-${name}.png`]);
+  }
+  console.log(`Wrote public/images/meta/og-office.{mp4,png} and ${SHARE}/office-of-liam-fennell-{og,9x16,1x1}.{mp4,png}`);
 }

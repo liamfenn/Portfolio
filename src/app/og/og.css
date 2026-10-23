@@ -1,4 +1,4 @@
-/* The card fills its viewport (1200×630, or 1200×1200 for the square cut), so the viewport edges are the burst's walls. */
+/* The card fills its viewport (1200×630, or the 9:16 and square cuts), so the viewport edges are the burst's walls. */
 .og-card { position: fixed; inset: 0; display: grid; place-items: center; background-color: var(--bg-fill); }
 .og-card-title {
   font-weight: var(--font-weight-regular); font-size: var(--text-og-card); letter-spacing: var(--tracking-ui);
