@@ -10,15 +10,12 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 const RATE = 48000;
 const FPS = 60;
 const CUTS = [["og", "out/og-frames-1200x630@2x"], ["9x16", "out/og-frames-675x1200@1.6x"]];
-/** Landings are tuned by where they land, left to right across a pentatonic octave and a half from A4, so the
- * reading-order landing rises as it reads. */
-const LAND_SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19];
 /** Busy moments thin out: at most one of each sound per this many seconds, keeping the strongest. */
-const SPACING = { flick: 0.05, hit: 0.06, pump: 0.02, pop: 0.015, release: 0.012, kick: 0.01, return: 0.01, land: 0 };
+const SPACING = { flick: 0.05, hit: 0.08, pump: 0.03, pop: 0.03 };
 /** Glancing contacts stay silent; only real knocks make a sound. */
-const HIT_THRESHOLD = 3.5;
-/** Integrated loudness: delicate, under social platforms' normalisation targets, with headroom on the peaks. */
-const LOUDNESS = "I=-18:TP=-1.5:LRA=11";
+const HIT_THRESHOLD = 4.5;
+/** Integrated loudness: understated, well under social platforms' normalisation targets, with headroom on the peaks. */
+const LOUDNESS = "I=-20:TP=-1.5:LRA=11";
 
 let seed = 11;
 const random = () => {
@@ -28,74 +25,65 @@ const random = () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 const noise = () => random() * 2 - 1;
+/** A gentle two-pole low-pass, which is most of what makes these sounds muffled and close rather than bright. */
+const lowpass = cutoff => {
+  const k = 1 - Math.exp(-2 * Math.PI * cutoff / RATE);
+  let a = 0, b = 0;
+  return value => { a += (value - a) * k; b += (a - b) * k; return b; };
+};
+/** A sine whose pitch can move while it plays, keeping its phase continuous. */
+const oscillator = () => {
+  let phase = 0, previous = 0;
+  return (frequency, t) => { phase += 2 * Math.PI * frequency * (t - previous); previous = t; return Math.sin(phase); };
+};
 
-/** A voice is a function of time since its start, in seconds, and lasts `length` seconds. */
+/**
+ * A voice is a function of time since its start, in seconds, and lasts `length` seconds. Only these events make a
+ * sound: the letters leaving their text and coming home are silent.
+ */
 const voices = {
   // A glitch flicker: a dry digital tick, high and very short.
   flick: () => {
     let last = 0;
     return { length: 0.012, gain: 0.022, at: t => { const n = noise(), hp = n - last; last = n; return hp * Math.exp(-t / 0.0025); } };
   },
-  // A letter popping out of the text: a soft blip that drops in pitch.
-  release: () => {
-    const from = 820 + random() * 220, to = from * 0.55;
-    return { length: 0.12, gain: 0.14, at: t => {
-      const f = to + (from - to) * Math.exp(-t / 0.025);
-      return Math.sin(2 * Math.PI * f * t) * Math.min(1, t / 0.002) * Math.exp(-t / 0.04);
-    } };
-  },
-  // The kick loose: an airy swell of filtered noise that opens up as it goes.
-  kick: strength => {
+  // The burst: one deep, soft whoosh, a low rumble of noise that opens a little and closes again, over a faint sub.
+  kick: () => {
+    const sub = oscillator();
     let low = 0;
-    return { length: 0.45, gain: 0.05 * Math.min(1.4, strength / 10), at: t => {
-      const cutoff = 600 + 5000 * Math.min(1, t / 0.18), k = 1 - Math.exp(-2 * Math.PI * cutoff / RATE);
-      low += (noise() - low) * k;
-      return low * Math.min(1, t / 0.03) * Math.exp(-Math.max(0, t - 0.03) / 0.12);
+    return { length: 1.6, gain: 0.32, at: t => {
+      const open = Math.min(1, t / 0.25), cutoff = 140 + 520 * open * Math.exp(-Math.max(0, t - 0.25) / 0.5);
+      low += (noise() - low) * (1 - Math.exp(-2 * Math.PI * cutoff / RATE));
+      const swell = (1 - Math.exp(-t / 0.09)) * Math.exp(-t / 0.45);
+      return (low * 1.6 + sub(48 - 10 * open, t) * 0.25) * swell;
     } };
   },
-  // A collision: a small glassy tap, two inharmonic partials, harder hits brighter and louder.
+  // A knock between pieces: a low, rubbery pluck with a quick drop into its note, a soft keyboard tick on its front,
+  // all muffled, like a key press heard underwater. Harder knocks are a little louder and deeper, never sharper.
   hit: strength => {
-    const f = 1500 + random() * 900 + strength * 40;
-    return { length: 0.15, gain: 0.015 + 0.04 * Math.min(1, strength / 12), at: t =>
-      (Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.035) + 0.4 * Math.sin(2 * Math.PI * f * 2.76 * t) * Math.exp(-t / 0.015)) * Math.min(1, t / 0.0008) };
-  },
-  // A pump: a bubbly bloop that rises as the new glyph splits off.
-  pump: () => {
-    const from = 280 + random() * 80, to = from * (3 + random());
-    let phase = 0, previous = 0;
-    return { length: 0.14, gain: 0.09, at: t => {
-      const f = from * Math.pow(to / from, Math.min(1, t / 0.07));
-      phase += 2 * Math.PI * f * (t - previous); previous = t;
-      return Math.sin(phase) * Math.min(1, t / 0.003) * Math.exp(-t / 0.05);
+    const hard = Math.min(1, strength / 12), note = 260 - 90 * hard + random() * 70, body = oscillator(), muffle = lowpass(1300), tick = lowpass(2400);
+    return { length: 0.14, gain: 0.05 + 0.07 * hard, at: t => {
+      const pitch = note * (1 + 0.9 * Math.exp(-t / 0.006));
+      const pluck = body(pitch, t) * Math.min(1, t / 0.0012) * Math.exp(-t / 0.045);
+      return muffle(pluck + tick(noise()) * Math.exp(-t / 0.002) * 0.6);
     } };
   },
-  // A pumped glyph popping: a crisp click of noise with a short falling ping.
-  pop: () => {
-    const f = 1900 + random() * 500;
-    return { length: 0.08, gain: 0.08, at: t => noise() * Math.exp(-t / 0.0035) * 0.7 + Math.sin(2 * Math.PI * f * (1 - t * 4) * t) * Math.exp(-t / 0.02) };
-  },
-  // A letter turning for home: the kick's swell in reverse, rising in and closing off as it leaves its float.
-  return: () => {
-    let low = 0;
-    return { length: 0.32, gain: 0.035, at: t => {
-      const rise = t / 0.32, cutoff = 400 + 3000 * rise, k = 1 - Math.exp(-2 * Math.PI * cutoff / RATE);
-      low += (noise() - low) * k;
-      return low * Math.pow(rise, 2) * Math.min(1, (0.32 - t) / 0.02);
-    } };
-  },
-  // A letter landing home: a soft marimba-like tap, tuned by where it lands.
-  land: x => {
-    const step = LAND_SCALE[Math.min(LAND_SCALE.length - 1, Math.floor(Math.max(0, x) * LAND_SCALE.length))], f = 440 * Math.pow(2, step / 12);
-    return { length: 0.5, gain: 0.08, at: t =>
-      (Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.16) + 0.25 * Math.sin(2 * Math.PI * f * 4 * t) * Math.exp(-t / 0.03)) * Math.min(1, t / 0.002) };
-  },
+  // An extra glyph splitting off, or popping away: a very quiet, soft pop.
+  pump: () => softPop(),
+  pop: () => softPop(),
 };
+function softPop() {
+  const from = 520 + random() * 160, body = oscillator(), muffle = lowpass(1600);
+  return { length: 0.06, gain: 0.03, at: t => muffle(body(from * (0.5 + 0.5 * Math.exp(-t / 0.012)), t) * Math.min(1, t / 0.001) * Math.exp(-t / 0.018)) };
+}
 
 /** Drops events of a type that crowd in on a stronger one, so dense moments read as texture rather than noise. */
 function thin(events) {
   const kept = [], last = {};
   for (const event of [...events].sort((a, b) => a.time - b.time)) {
-    if (event.type === "hit" && event.strength < HIT_THRESHOLD) continue;
+    if (!voices[event.type] || (event.type === "hit" && event.strength < HIT_THRESHOLD)) continue;
+    // The burst is one whoosh, at the first letter's kick.
+    if (event.type === "kick" && last.kick) continue;
     const gap = SPACING[event.type] ?? 0, previous = last[event.type];
     if (previous && event.time - previous.time < gap) {
       if ((event.strength ?? 0) > (previous.strength ?? 0)) { kept[kept.indexOf(previous)] = event; last[event.type] = event; }
@@ -127,7 +115,7 @@ function room(input, delays) {
 function score(events, seconds) {
   const length = Math.ceil(seconds * RATE), left = new Float32Array(length), right = new Float32Array(length);
   for (const event of thin(events)) {
-    const voice = voices[event.type](event.type === "land" ? event.x : event.strength ?? 0);
+    const voice = voices[event.type](event.strength ?? 0);
     // Equal-power pan from the event's place across the card, kept off the hard edges.
     const pan = (Math.min(1, Math.max(0, event.x)) - 0.5) * 1.4, angle = (pan + 1) * Math.PI / 4;
     const start = Math.round(event.time * RATE), count = Math.round(voice.length * RATE);
