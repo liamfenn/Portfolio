@@ -40,6 +40,8 @@ const WALL = 0x0002;
 const EVERYTHING = 0xffffffff;
 
 interface Sample { x: number; y: number; angle: number }
+/** What happened, where, for scoring the video's sound effects (see scripts/sound-og.mjs). Positions are 0–1 of the card. */
+export interface BurstEvent { type: "flick" | "release" | "kick" | "pump" | "pop" | "hit" | "return" | "land"; time: number; x: number; y: number; strength?: number; order?: number }
 interface Tint { start: number; end: number; to: string; flickAt: number }
 interface Piece {
   element: HTMLSpanElement;
@@ -138,8 +140,8 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
  */
 export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[];
   /** "reading" (the default): each word lands left to right, words overlapping. "reverse": last out, first home. */
-  landing?: "reverse" | "reading" }) {
-  const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
+  landing?: "reverse" | "reading"; onEvent?: (event: BurstEvent) => void }) {
+  const { Bodies, Body, Composite, Engine, Events } = (await import("matter-js")).default;
   const { signal } = options;
   signal.throwIfAborted();
   const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
@@ -149,6 +151,14 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Bodies.rectangle(-t / 2, h / 2, t, h + t * 2), Bodies.rectangle(w + t / 2, h / 2, t, h + t * 2)];
   walls.forEach(wall => { Body.setStatic(wall, true); wall.collisionFilter.category = WALL; });
   Composite.add(engine.world, walls);
+  const emit = (type: BurstEvent["type"], at: Point, extra: Partial<BurstEvent> = {}) =>
+    options.onEvent?.({ type, time: performance.now(), x: at.x / w, y: at.y / h, ...extra });
+  if (options.onEvent) Events.on(engine, "collisionStart", ({ pairs }) => {
+    for (const { bodyA, bodyB, collision } of pairs) {
+      const strength = Math.hypot(bodyA.velocity.x - bodyB.velocity.x, bodyA.velocity.y - bodyB.velocity.y);
+      if (strength > 1.5) emit("hit", collision.supports[0] ?? bodyA.position, { strength });
+    }
+  });
   const layer = document.createElement("div");
   layer.className = "glyph-swarm-layer"; layer.setAttribute("aria-hidden", "true");
   document.body.append(layer);
@@ -167,6 +177,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     if (time - tint.flickAt < FLICKER_MS) return;
     tint.flickAt = time;
     piece.element.style.color = Math.random() < 0.25 ? tint.to : random(options.palette());
+    emit("flick", piece.body.position);
   };
   const glitchTo = (piece: Piece, start: number, to: string, min: number, spread: number) => {
     piece.tint = { start, end: start + min + Math.random() * spread, to, flickAt: 0 };
@@ -215,6 +226,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     piece.home = { span, releaseAt: time, kickAt, path: [{ ...at, angle: 0 }], nextPumpAt: kickAt + Math.random() * 300,
       pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt,
       landAt: options.landing === "reverse" ? undefined : readingLand.get(span) };
+    emit("release", at);
   };
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
@@ -229,6 +241,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Body.setVelocity(piece.body, { x: Math.cos(away) * speed, y: Math.sin(away) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.3);
     glitchTo(piece, time, random(options.palette()), 300, 450);
+    emit("kick", position, { strength: speed });
   };
   const pump = (parent: Piece, time: number) => {
     parent.pumpedAt = time; parent.morph = { at: time, char: draw(), flickAt: 0 };
@@ -246,6 +259,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     Body.setAngularVelocity(child.body, (Math.random() - 0.5) * 0.3);
     glitchTo(child, time, random(options.palette()), 200, 200);
     child.popAt = exitAt + Math.random() * 900;
+    emit("pump", child.body.position);
   };
   const remove = (piece: Piece) => { piece.gone = true; piece.element.remove(); Composite.remove(engine.world, piece.body); };
 
@@ -279,6 +293,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
               omega: 3 + Math.random() * 3, target: angle + turnBetween(angle, end.angle) };
             Composite.remove(engine.world, piece.body);
             glitchTo(piece, time, home.color, 300, 400);
+            emit("return", position);
           }
         }
         const morph = piece.morph;
@@ -286,7 +301,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         else if (morph && time - morph.flickAt >= FLICKER_MS) {
           morph.flickAt = time; piece.element.textContent = piece.element.textContent === morph.char ? piece.char : morph.char;
         }
-        if (!home && piece.popAt && time >= piece.popAt && !piece.popping) { piece.popping = true; glitchTo(piece, time, random(options.palette()), POP_MS, 0); }
+        if (!home && piece.popAt && time >= piece.popAt && !piece.popping) { piece.popping = true; glitchTo(piece, time, random(options.palette()), POP_MS, 0); emit("pop", piece.body.position); }
         if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = EVERYTHING;
       }
       for (const piece of pieces) {
@@ -325,7 +340,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
           const { at, duration, offset } = home.rewind, progress = Math.min(1, (time - at) / duration), fade = 1 - smoothstep(Math.min(1, progress * 2));
           const sample = rewind(home.path, progress), spins = home.glide ? home.glide.target - home.path.at(-1)!.angle : 0;
           x = sample.x + offset.x * fade; y = sample.y + offset.y * fade; angle = sample.angle + spins + offset.angle * fade;
-          if (progress >= 1) { remove(piece); home.span.style.visibility = ""; continue; }
+          if (progress >= 1) { remove(piece); home.span.style.visibility = ""; emit("land", { x, y }); continue; }
         }
         if (!home) {
           scale *= emergeScale(time - piece.bornAt);

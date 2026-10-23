@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
 import { burst } from "@/lib/og-burst";
+import type { BurstEvent } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
 const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fennell", face: "og-card-serif" }];
@@ -28,6 +29,7 @@ async function wait(ms: number, signal: AbortSignal) {
  * random stagger, or, given `stagger`, that many milliseconds apart in order.
  */
 async function glitch(letters: { element: HTMLElement; to: string }[], signal: AbortSignal, stagger?: number) {
+  const onEvent = window.__ogEvents ? recordEvent : undefined;
   const start = performance.now(), colors = currentGlyphPalette();
   const runs = letters.map((letter, index) => ({ ...letter, at: start + (stagger === undefined ? Math.random() * 120 : index * stagger), until: 0, flickAt: 0 }));
   runs.forEach(run => { run.until = run.at + 150 + Math.random() * 200; });
@@ -38,12 +40,18 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
       if (time >= run.until) { run.element.style.color = run.to; continue; }
       run.flickAt = time;
       run.element.style.color = Math.random() < 0.25 ? run.to : colors[Math.floor(Math.random() * colors.length)];
+      if (onEvent) {
+        const box = run.element.getBoundingClientRect();
+        onEvent({ type: "flick", time, x: (box.left + box.width / 2) / window.innerWidth, y: (box.top + box.height / 2) / window.innerHeight });
+      }
     }
   }
   letters.forEach(letter => { letter.element.style.color = letter.to; });
 }
 
-declare global { interface Window { __ogLoops?: number } }
+/** The capture script sets window.__ogEvents to collect what happens, for timing the sound effects. */
+declare global { interface Window { __ogLoops?: number; __ogEvents?: BurstEvent[] } }
+const recordEvent = (event: BurstEvent) => { window.__ogEvents?.push(event); };
 
 /**
  * The link-preview card: the office name, a few letters glitch, then every letter bursts loose to bounce around the
@@ -70,7 +78,7 @@ export function OgCard() {
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);
         await wait(150, signal);
-        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing });
+        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
         await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);

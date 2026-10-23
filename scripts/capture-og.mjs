@@ -11,7 +11,7 @@
 //   --reverse      the earlier landing, last out first home (/og?landing=reverse), named -reverse
 //   --all-glitch   every letter glitches in and out, staggered, instead of six (/og?glitch=all), named -all-glitch
 import { execFileSync } from "node:child_process";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
 
 const URL = process.argv[2] ?? "http://localhost:3000/og";
@@ -36,6 +36,8 @@ const clock = seed => {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
   performance.now = () => now;
+  // Collected for the sound effects (scripts/sound-og.mjs); its presence is what turns the logging on.
+  window.__ogEvents = [];
   window.requestAnimationFrame = callback => { queue.push([++id, callback]); return id; };
   window.cancelAnimationFrame = handle => { queue = queue.filter(([queued]) => queued !== handle); };
   window.__ogAdvance = ms => { now += ms; const due = queue; queue = []; due.forEach(([, callback]) => callback(now)); };
@@ -59,6 +61,9 @@ async function record(width, height, scale) {
     if (await page.evaluate(() => (window.__ogLoops ?? 0) >= 1)) break;
     await page.evaluate(ms => window.__ogAdvance(ms), 1000 / FPS);
   }
+  // One loop's events, in seconds from the first frame, which is at virtual time 0.
+  const events = await page.evaluate(() => window.__ogEvents.map(event => ({ ...event, time: event.time / 1000 })));
+  writeFileSync(`${dir}/events.json`, JSON.stringify(events));
   await browser.close();
   console.log(`${width}×${height}@${scale}x: ${frame + 1} frames, ${((frame + 1) / FPS).toFixed(2)}s`);
   return dir;
