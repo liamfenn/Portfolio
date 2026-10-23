@@ -7,7 +7,7 @@ import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
 
 // A fixed scatter of characters, so server and client render the same globe.
-const GLOBE_CHARS = "a&Ro7?g*Q2ks@m0yt%cWb#f5j".split("");
+export const GLOBE_CHARS = "a&Ro7?g*Q2ks@m0yt%cWb#f5j".split("");
 // When the globe bursts, every other character stays behind as the exit: a flat ring of glyphs around an empty
 // centre, like a stroke, turning slowly clockwise. Positions are fractions of the control's size.
 const RING_INDEX = GLOBE_CHARS.map((_, index) => index).filter(index => index % 2 === 0).slice(0, 12);

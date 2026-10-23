@@ -2,18 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
-import { startSwarm } from "@/lib/glyph-swarm";
-import { DEFAULT_GLYPHS, currentGlyphPalette } from "@/lib/palette-toy";
+import { GLOBE_CHARS } from "@/components/glyph-globe";
+import { burst } from "@/lib/og-burst";
+import { currentGlyphPalette } from "@/lib/palette-toy";
 
 const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fennell", face: "og-card-serif" }];
 /** The letters that glitch before the burst, from the Figma card (435:198). They settle on palette colours rather than
  * the card's, which predate the current palette. */
 const GLITCHED = new Set([1, 2, 12, 16, 20, 21]);
-/** Matches the swarm's own colour glitch, so the intro and outro read as the same effect. */
+/** Matches the swarm's own colour glitch, so the intro reads as the same effect. */
 const FLICKER_MS = 55;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
-const HOLD_MS = 700;
-const SWARM_MS = 3600;
+const HOLD_MS = 600;
 
 const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
 async function wait(ms: number, signal: AbortSignal) {
@@ -23,8 +23,8 @@ async function wait(ms: number, signal: AbortSignal) {
 /** Each letter flickers through the palette (now and then its destination) on its own short stagger, then settles. */
 async function glitch(letters: { element: HTMLElement; to: string }[], signal: AbortSignal) {
   const start = performance.now(), colors = currentGlyphPalette();
-  const runs = letters.map(letter => ({ ...letter, at: start + Math.random() * 250, until: 0, flickAt: 0 }));
-  runs.forEach(run => { run.until = run.at + 300 + Math.random() * 400; });
+  const runs = letters.map(letter => ({ ...letter, at: start + Math.random() * 120, until: 0, flickAt: 0 }));
+  runs.forEach(run => { run.until = run.at + 150 + Math.random() * 200; });
   for (let time = start; runs.some(run => run.until > time); time = await nextFrame()) {
     signal.throwIfAborted();
     for (const run of runs) {
@@ -40,17 +40,16 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
 declare global { interface Window { __ogLoops?: number } }
 
 /**
- * The link-preview card: the office name, a few letters glitch, every letter lifts into the swarm, then they fly home
- * and glitch back. It loops in real time here; scripts/capture-og.mjs drives the same loop on a virtual clock to
- * record it frame by frame.
+ * The link-preview card: the office name, a few letters glitch, then every letter bursts loose to bounce around the
+ * card and plays its way back home (see og-burst). It loops in real time here; scripts/capture-og.mjs drives the same
+ * loop on a virtual clock to record it frame by frame.
  */
 export function OgCard() {
   const title = useRef<HTMLParagraphElement>(null);
-  const origin = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const root = title.current, globe = origin.current;
-    if (!root || !globe || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const root = title.current;
+    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
     const glitched = letters.filter((_, index) => GLITCHED.has(index));
@@ -60,13 +59,8 @@ export function OgCard() {
         await wait(HOLD_MS, signal);
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal);
-        await wait(500, signal);
-        const swarm = await startSwarm(root, globe, { ...DEFAULT_GLYPHS, amount: 1 },
-          { signal, onFinish: () => {}, keepClear: () => null, palette: currentGlyphPalette });
-        await wait(SWARM_MS, signal);
-        await swarm.collapse();
-        await wait(250, signal);
-        await glitch(glitched.map(element => ({ element, to: "" })), signal);
+        await wait(150, signal);
+        await burst(letters, { signal, palette: currentGlyphPalette, chars: GLOBE_CHARS });
         await wait(HOLD_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }
@@ -86,7 +80,6 @@ export function OgCard() {
           ))}
         </p>
       </InspectableText>
-      <div ref={origin} className="og-card-origin" aria-hidden="true" />
     </main>
   );
 }

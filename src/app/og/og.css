@@ -1,4 +1,4 @@
-/* The card fills a 1200×630 viewport exactly, so the swarm's viewport walls are the card's edges. */
+/* The card fills its viewport (1200×630, or 1200×1200 for the square cut), so the viewport edges are the burst's walls. */
 .og-card { position: fixed; inset: 0; display: grid; place-items: center; background-color: var(--bg-fill); }
 .og-card-title {
   font-weight: var(--font-weight-regular); font-size: var(--text-og-card); letter-spacing: var(--tracking-ui);
@@ -6,4 +6,3 @@
 }
 .og-card-sans { font-family: var(--font-oracle); }
 .og-card-serif { font-family: var(--font-otto); }
-.og-card-origin { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }

@@ -9,9 +9,12 @@ The v3 homepage is built and live on the branch preview (see [`workflow.md`](wor
 production) is still the August version. Merging is Liam's call.
 
 **Link preview video (2026-10-22)**
-- og:video and og:image now come from the Figma card (435:198): "Office of Liam Fennell" on white, a few letters glitch, every letter lifts into the real swarm engine, then they fly home and glitch back. 9.7s loop, 1200×630, 60fps, ~250 KB (`public/images/meta/og-office.{mp4,png}`; the PNG is the first frame). New filenames so platforms don't serve the old blank `opengraph.png` from cache.
-- `/og` (dev only) plays the loop in real time. `node scripts/capture-og.mjs http://localhost:3000/og` records it on a virtual clock with seeded randomness, so reruns match; it also writes a 2400×1260 share cut to `out/office-of-liam-fennell.mp4`. Rerun it after palette or swarm changes.
+- og:video and og:image come from the Figma card (435:198): "Office of Liam Fennell" on white. A few letters glitch (~0.35s), every letter pops out and floats like the swarm's entry, then is kicked loose to bounce freely off the card's edges and each other, pumping out 1–3 globe glyphs each with a spring squeeze and a glitch. On exit the pumped glyphs glitch and dissolve while each letter slows to a float and plays its recorded pop-out backwards into place, last out first home, glitching back to black on the way. 8s loop, seamless (last frame equals the first).
+- Engine: `src/lib/og-burst.ts` (Matter.js, separate from the site's swarm, which still pulls letters to the cursor). Pure helpers tested in `tests/og-burst.test.mjs`.
+- Outputs: `public/images/meta/og-office.{mp4,png}` (1200×630, 60fps, ~840 KB; the PNG is the first frame), plus share cuts in `out/`: `office-of-liam-fennell.mp4` (2400×1260) and `office-of-liam-fennell-square.{mp4,png}` (2400×2400). New filenames so platforms don't serve the old blank `opengraph.png` from cache.
+- `/og` (dev only) plays the loop in real time at any viewport size. `node scripts/capture-og.mjs http://localhost:3000/og` records it on a virtual clock with seeded randomness, so reruns match; `--quick` records only the 1200×630 frames for tuning. Rerun it after palette changes.
 - Glitched letters settle on glyph-palette colors rather than the Figma card's, which predate the current palette. The card's 48px size is a new token (`--text-og-card`).
+- Tried: the real swarm, sucking letters into a central cloud and springing them home. Rejected: too little bouncing, and the reset felt clunky.
 
 **Album-cover transitions and test controls (2026-10-21)**
 - Replaced blur with an 8 × 8 grid swap: irregular clusters reveal the new artwork over ~200ms, with sparse 32ms glyph-palette flashes. Artwork preloads; reduced motion swaps directly.

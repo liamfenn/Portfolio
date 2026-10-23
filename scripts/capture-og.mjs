@@ -5,13 +5,15 @@
 //
 // Needs the dev server (npm run dev) and Playwright, which is not a project dependency:
 //   npm i --no-save playwright-core && npx playwright-core install chromium
-//   node scripts/capture-og.mjs [url] [seed]
+//   node scripts/capture-og.mjs [url] [seed] [--quick]
+// --quick records only the 1200×630 frames, for tuning, and encodes nothing.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { chromium } from "playwright-core";
 
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
+const QUICK = process.argv.includes("--quick");
 const FPS = 60;
 const MAX_FRAMES = FPS * 20;
 const FRAMES = "out/og-frames";
@@ -30,11 +32,11 @@ const clock = seed => {
   window.__ogAdvance = ms => { now += ms; const due = queue; queue = []; due.forEach(([, callback]) => callback(now)); };
 };
 
-async function record(scale) {
-  const dir = `${FRAMES}@${scale}x`;
+async function record(width, height, scale) {
+  const dir = `${FRAMES}-${width}x${height}@${scale}x`;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: scale });
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale });
   await page.addInitScript(clock, SEED);
   await page.goto(URL, { waitUntil: "networkidle" });
   // Dev-only overlays (the Next indicator, Agentation) would otherwise sit on top of the card.
@@ -49,16 +51,20 @@ async function record(scale) {
     await page.evaluate(ms => window.__ogAdvance(ms), 1000 / FPS);
   }
   await browser.close();
-  console.log(`${scale}x: ${frame + 1} frames, ${((frame + 1) / FPS).toFixed(2)}s`);
+  console.log(`${width}×${height}@${scale}x: ${frame + 1} frames, ${((frame + 1) / FPS).toFixed(2)}s`);
   return dir;
 }
 
 const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
   "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
 
-const preview = await record(1);
-encode(preview, "public/images/meta/og-office.mp4", 20);
-execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
-const share = await record(2);
-encode(share, "out/office-of-liam-fennell.mp4", 16);
-console.log("Wrote public/images/meta/og-office.{mp4,png} and out/office-of-liam-fennell.mp4");
+const preview = await record(1200, 630, 1);
+if (!QUICK) {
+  encode(preview, "public/images/meta/og-office.mp4", 20);
+  execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
+  encode(await record(1200, 630, 2), "out/office-of-liam-fennell.mp4", 16);
+  const square = await record(1200, 1200, 2);
+  encode(square, "out/office-of-liam-fennell-square.mp4", 16);
+  execFileSync("cp", [`${square}/00000.png`, "out/office-of-liam-fennell-square.png"]);
+  console.log("Wrote public/images/meta/og-office.{mp4,png} and out/office-of-liam-fennell{,-square}.mp4");
+}
