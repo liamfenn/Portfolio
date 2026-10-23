@@ -860,7 +860,7 @@
     margin-top: 0;
     padding: calc(var(--content-padding) + var(--page-frame)) var(--content-padding-mobile) 0;
   }
-  .portfolio-footer .glyph-globe-row { display: none; }
+  .portfolio-footer .glyph-globe-row { display: flex; justify-content: center; }
 }
 .vertical-palette { display: block; width: 100%; height: 100%; }
 .vertical-palette .palette-toy-track { flex-direction: column; height: 100%; }
