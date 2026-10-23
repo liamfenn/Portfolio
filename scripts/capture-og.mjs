@@ -7,6 +7,8 @@
 //   npm i --no-save playwright-core && npx playwright-core install chromium
 //   node scripts/capture-og.mjs [url] [seed] [--quick]
 // --quick records only the 1200×630 frames, for tuning, and encodes nothing.
+// --reading records the reading-order landing (/og?landing=reading) as share cuts named -reading, leaving the site's
+// og:video alone.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -14,6 +16,8 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
+const READING = process.argv.includes("--reading");
+const PAGE = READING ? `${URL}?landing=reading` : URL, SUFFIX = READING ? "-reading" : "";
 const FPS = 60;
 const MAX_FRAMES = FPS * 20;
 const FRAMES = "out/og-frames";
@@ -34,12 +38,12 @@ const clock = seed => {
 };
 
 async function record(width, height, scale) {
-  const dir = `${FRAMES}-${width}x${height}@${scale}x`;
+  const dir = `${FRAMES}${SUFFIX}-${width}x${height}@${scale}x`;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale });
   await page.addInitScript(clock, SEED);
-  await page.goto(URL, { waitUntil: "networkidle" });
+  await page.goto(PAGE, { waitUntil: "networkidle" });
   // Dev-only overlays (the Next indicator, Agentation) would otherwise sit on top of the card.
   await page.addStyleTag({ content: "nextjs-portal, [data-feedback-toolbar] { display: none !important; }" });
   await page.evaluate(() => document.fonts.ready);
@@ -61,15 +65,17 @@ const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error"
 
 const preview = await record(1200, 630, 1);
 if (!QUICK) {
-  encode(preview, "public/images/meta/og-office.mp4", 20);
-  execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
+  if (!READING) {
+    encode(preview, "public/images/meta/og-office.mp4", 20);
+    execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
+  }
   // Share cuts, each a video and its first frame: the 1.91:1 link-preview shape, 9:16, and 1:1. The 9:16 cut is laid out
   // at 675×1200 and scaled up to 1080×1920, so the text keeps roughly the card's scale on a phone screen.
   mkdirSync(SHARE, { recursive: true });
   for (const [name, width, height, scale] of [["og", 1200, 630, 2], ["9x16", 675, 1200, 1.6], ["1x1", 1200, 1200, 2]]) {
     const dir = await record(width, height, scale);
-    encode(dir, `${SHARE}/office-of-liam-fennell-${name}.mp4`, 16);
-    execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/office-of-liam-fennell-${name}.png`]);
+    encode(dir, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.mp4`, 16);
+    execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.png`]);
   }
-  console.log(`Wrote public/images/meta/og-office.{mp4,png} and ${SHARE}/office-of-liam-fennell-{og,9x16,1x1}.{mp4,png}`);
+  console.log(`Wrote ${READING ? "" : "public/images/meta/og-office.{mp4,png} and "}${SHARE}/office-of-liam-fennell-{og,9x16,1x1}${SUFFIX}.{mp4,png}`);
 }

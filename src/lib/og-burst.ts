@@ -20,6 +20,12 @@ const LOOSE_MS = 4000;
 const RETURN_SPREAD_MS = 1400;
 /** A letter still gliding this long gives up on reaching its float exactly and starts home from wherever it is. */
 const GLIDE_TIMEOUT_MS = 2500;
+/** Reading-order landings: each word starts this long after the one before, overlapping it, and its letters land this
+ * far apart, left to right. Letters turn for home early enough to glide back and wait at their float for their turn. */
+const WORD_GAP_MS = 320;
+const LETTER_GAP_MS = 90;
+const LAND_AFTER_MS = 3000;
+const GLIDE_BUDGET_MS = 1800;
 const FLICKER_MS = 55;
 /** A pump: the letter flickers between itself and the character it is about to give off, until its squeeze bottoms out
  * (see pumpScale) and the new character splits off its edge. */
@@ -66,6 +72,9 @@ interface Home {
   color: string;
   settleAt: number;
   returnAt: number;
+  /** In reading order, when this letter starts its rewind, so it lands in its turn whatever its glide did. */
+  rewindAt?: number;
+  landAt?: number;
   /** First it glides on its own spring back to where its float ended, keeping the speed it had... */
   glide?: { at: number; x: number; vx: number; y: number; vy: number; angle: number; spin: number; omega: number; target: number };
   /** ...then plays its pop-out backwards into its slot. */
@@ -127,7 +136,9 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
  * and pop, and every letter glides back to where its float ended and plays its pop-out backwards into place, each on its
  * own schedule and spring. Resolves once the text is whole again, in the colours it started with.
  */
-export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[] }) {
+export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[];
+  /** "reverse" (the default): last out, first home. "reading": each word lands left to right, words overlapping. */
+  landing?: "reverse" | "reading" }) {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
   const { signal } = options;
   signal.throwIfAborted();
@@ -182,6 +193,12 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     .filter(entry => entry.span.textContent?.trim() && entry.rect.width >= 1).sort((a, b) => a.at - b.at);
   const lastRelease = queue.at(-1)?.at ?? 0;
   const exitAt = startedAt + RELEASE_SPREAD_MS + 700 + LOOSE_MS;
+  // Where each letter lands in reading order: its word's start plus its place in the word.
+  const readingLand = new Map<HTMLElement, number>();
+  for (let index = 0, word = 0, place = 0; index < letters.length; index++) {
+    if (!letters[index].textContent?.trim()) { if (place) { word++; place = 0; } continue; }
+    readingLand.set(letters[index], exitAt + LAND_AFTER_MS + word * WORD_GAP_MS + place++ * LETTER_GAP_MS);
+  }
   let queued = 0;
 
   const release = (span: HTMLElement, rect: DOMRect, releaseOffset: number, time: number) => {
@@ -195,12 +212,19 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     // Last out, first home: the exit runs the release order backwards, loosely, across a wider window than the entry.
     const returnAt = exitAt + 400 + (1 - releaseOffset / Math.max(1, lastRelease)) * RETURN_SPREAD_MS * 0.6 + Math.random() * RETURN_SPREAD_MS * 0.4;
     piece.home = { span, releaseAt: time, kickAt, path: [{ ...at, angle: 0 }], nextPumpAt: kickAt + Math.random() * 300,
-      pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt };
+      pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt,
+      landAt: options.landing === "reading" ? readingLand.get(span) : undefined };
   };
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
     const speed = 7 + Math.random() * 6;
-    piece.home!.kicked = true; piece.body.frictionAir = LOOSE_AIR; piece.body.collisionFilter.mask = EVERYTHING;
+    const home = piece.home!;
+    home.kicked = true; piece.body.frictionAir = LOOSE_AIR; piece.body.collisionFilter.mask = EVERYTHING;
+    // Its pop-out is fully recorded now, so the rewind's length is known: work back from its landing to its departure.
+    if (home.landAt) {
+      home.rewindAt = home.landAt - rewindMs(home);
+      home.returnAt = home.rewindAt - GLIDE_BUDGET_MS; home.settleAt = home.returnAt - SETTLE_LEAD_MS;
+    }
     Body.setVelocity(piece.body, { x: Math.cos(away) * speed, y: Math.sin(away) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.3);
     glitchTo(piece, time, random(options.palette()), 300, 450);
@@ -224,9 +248,10 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   };
   const remove = (piece: Piece) => { piece.gone = true; piece.element.remove(); Composite.remove(engine.world, piece.body); };
 
+  const rewindMs = (home: Home) => home.path.length * STEP * 1.6;
   const startRewind = (piece: Piece, home: Home, at: Point & { angle: number }, time: number) => {
     const end = home.path.at(-1)!;
-    home.rewind = { at: time, duration: home.path.length * STEP * 1.6, offset: { x: at.x - end.x, y: at.y - end.y, angle: at.angle - end.angle } };
+    home.rewind = { at: time, duration: rewindMs(home), offset: { x: at.x - end.x, y: at.y - end.y, angle: at.angle - end.angle } };
   };
 
   let frame = 0, previous = startedAt, pending = 0;
@@ -289,9 +314,11 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
           const turn = springStep(glide.angle, glide.spin, glide.target, glide.omega * 0.8, dt);
           Object.assign(glide, { x: gx.position, vx: gx.velocity, y: gy.position, vy: gy.velocity, angle: turn.position, spin: turn.velocity });
           x = glide.x; y = glide.y; angle = glide.angle;
-          // Close and nearly still, it hands over to the rewind, which starts from rest, so there is no hitch.
+          // Close and nearly still, it hands over to the rewind, which starts from rest, so there is no hitch. In reading
+          // order it hovers there until its turn, and if its turn comes first it starts from wherever it is.
           const arrived = Math.hypot(end.x - x, end.y - y) < 3 && Math.hypot(glide.vx, glide.vy) < 40;
-          if (arrived || time - glide.at > GLIDE_TIMEOUT_MS) startRewind(piece, home, { x, y, angle: angle - (glide.target - end.angle) }, time);
+          const ready = home.rewindAt === undefined ? arrived || time - glide.at > GLIDE_TIMEOUT_MS : time >= home.rewindAt;
+          if (ready) startRewind(piece, home, { x, y, angle: angle - (glide.target - end.angle) }, time);
         }
         if (home?.rewind) {
           const { at, duration, offset } = home.rewind, progress = Math.min(1, (time - at) / duration), fade = 1 - smoothstep(Math.min(1, progress * 2));

@@ -54,6 +54,8 @@ export function OgCard() {
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
     const glitched = letters.filter((_, index) => GLITCHED.has(index));
+    // ?landing=reading tries the letters landing word by word, left to right, instead of last out first home.
+    const landing = new URLSearchParams(window.location.search).get("landing") === "reading" ? "reading" : "reverse";
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       for (;;) {
@@ -61,7 +63,7 @@ export function OgCard() {
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal);
         await wait(150, signal);
-        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS });
+        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
         await glitch(glitched.map(element => ({ element, to: "" })), signal);
