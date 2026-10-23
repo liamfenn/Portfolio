@@ -3,7 +3,8 @@ import { SPACING, captureStrength, entryPoint, pocketForce, touchIntent, pushImp
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
-const SKIP = ".glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
+const MASK_ONLY = "[role='menu'],.homepage-project-overlay";
+const SKIP = ".homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
 /**
@@ -97,9 +98,9 @@ function shown(box: HTMLElement | null) {
   return !box || box.checkVisibility({ visibilityProperty: true, opacityProperty: true });
 }
 /** The text nodes inside an element that the swarm can take from, in reading order. */
-function textNodesIn(element: Element) {
+function textNodesIn(element: Element, skip = SKIP) {
   const nodes: Text[] = [], walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) if (!node.parentElement?.closest(SKIP)) nodes.push(node);
+  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) if (!node.parentElement?.closest(skip)) nodes.push(node);
   return nodes;
 }
 function indexIn(element: Element, node: Text, offset: number) {
@@ -135,6 +136,35 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     highlightStyle.textContent = "::highlight(glyph-swarm-taken) { color: transparent; text-shadow: none; }";
     document.head.append(highlightStyle); CSS.highlights.set("glyph-swarm-taken", highlight);
   }
+
+  // Transient UI loses random letters too, but these ranges never become sources or physics bodies.
+  const maskedUI = new Map<Element, { choices: Map<number, boolean>; ranges: Range[] }>();
+  const refreshUIMasks = () => {
+    if (!highlight) return;
+    for (const [element, mask] of maskedUI) {
+      mask.ranges.forEach(range => highlight.delete(range));
+      mask.ranges = [];
+      if (!root.contains(element)) maskedUI.delete(element);
+    }
+    root.querySelectorAll(MASK_ONLY).forEach(element => {
+      let mask = maskedUI.get(element);
+      if (!mask) {
+        mask = { choices: new Map(), ranges: [] };
+        maskedUI.set(element, mask);
+      }
+      let position = 0;
+      for (const node of textNodesIn(element, ".inspectable-label,.sr-only,script,style")) {
+        for (let offset = 0; offset < node.length; offset++, position++) {
+          if (!node.data[offset].trim()) continue;
+          if (!mask.choices.has(position)) mask.choices.set(position, Math.random() < settings.amount);
+          if (!mask.choices.get(position)) continue;
+          const range = document.createRange();
+          range.setStart(node, offset); range.setEnd(node, offset + 1);
+          highlight.add(range); mask.ranges.push(range);
+        }
+      }
+    });
+  };
 
   // Every visible character on the page, on screen or not; a random share of them leaves for the swarm.
   const sources: Source[] = [];
@@ -443,6 +473,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   let morphing = false;
   const reattach = (time: number) => {
     morphing = false; patchesStale = true;
+    refreshUIMasks();
     for (const glyph of glyphs) {
       const source = glyph.source;
       if (!source || glyph.landed || glyph.flight?.settle) continue;
@@ -453,6 +484,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (time - source.pending.at >= MORPH_AFTER_MS) { glyph.element.textContent = char; source.pending = undefined; } else morphing = true;
     }
   };
+  refreshUIMasks();
   const textObserver = new MutationObserver(() => reattach(performance.now()));
   textObserver.observe(root, { subtree: true, childList: true, characterData: true });
 
@@ -528,6 +560,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (removed) return;
     removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect();
     window.removeEventListener("scroll", onScroll);
+    maskedUI.clear();
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();
     globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });

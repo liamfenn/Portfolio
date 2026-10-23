@@ -32,6 +32,9 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Swarm masks for transient labels (2026-10-23)**
+- Sort/grid menu options and project hover labels now lose random characters while the swarm is active, including labels opened after activation. Masks track character positions through scrambles and rerenders; these characters are excluded from source selection and add no floating glyphs. All masks clear on exit/cancel.
+
 **Desktop grid gutters (2026-10-23)**
 - Grid-level hover ownership keeps the last hovered tile’s label active across horizontal/vertical gutters, transfers it on entering another tile, and clears it on leaving the grid. Mobile taps and keyboard focus remain unchanged.
 
