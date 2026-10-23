@@ -127,7 +127,7 @@
 
 .work-toolbar {
   /* Square frame both toolbar marks are sized from. */
-  --work-glyph-size: 10px;
+  --work-glyph-size: var(--work-glyph-desktop-size);
   --work-dot-ratio: 1.1;
   display: flex;
   align-items: center;

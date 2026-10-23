@@ -2,13 +2,14 @@
 
 import { flushSync } from "react-dom";
 import { HomepageCard } from "@/components/homepage-card";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { currentGlyphPalette } from "@/lib/palette-toy";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { InspectableText } from "@/components/design-inspector";
 
@@ -60,26 +61,43 @@ function WorkGlyphControl({
   text,
   reserveScrambleWidth = false,
   variant = "grid",
+  selection = 0,
 }: {
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
+  selection?: number;
 }) {
+  const markRef = useRef<HTMLSpanElement>(null);
+  const previousSelection = useRef(selection);
+  const reducedMotion = useReducedMotion();
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
-  const { ref } = useColorScramble({
+  const { ref, replay } = useColorScramble({
     ...FILTER_SCRAMBLE,
     text,
     playOnMount: false,
     onAnimationFrame: (result) => {
       if (result !== text) {
         setIsScrambling(true);
+        const colors = currentGlyphPalette();
+        if (!reducedMotion && markRef.current && colors.length) {
+          markRef.current.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
       }
     },
     onAnimationEnd: () => {
       setIsScrambling(false);
+      markRef.current?.style.removeProperty("background-color");
     },
   });
+
+  useEffect(() => {
+    if (previousSelection.current === selection) return;
+    previousSelection.current = selection;
+    // Re-selecting Random still counts as a selection, even when the label stays the same.
+    if (!reducedMotion) replay();
+  }, [selection, replay, reducedMotion]);
 
   return (
     <span
@@ -88,9 +106,10 @@ function WorkGlyphControl({
       }`}
     >
       {variant === "sort" ? (
-        <span className="work-control-dot" aria-hidden="true" />
+        <span ref={markRef} className="work-control-dot" aria-hidden="true" />
       ) : (
         <motion.span
+          ref={markRef}
           layout="position"
           className="work-control-square"
           aria-hidden="true"
@@ -109,6 +128,8 @@ export function ProjectWork() {
     useProjectDisplayState();
   const gridRef = useRef<HTMLUListElement>(null);
   const layoutAnimations = useRef<Animation[]>([]);
+  const [sortSelection, setSortSelection] = useState(0);
+  const [gridSelection, setGridSelection] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -167,6 +188,7 @@ export function ProjectWork() {
   }, []);
 
   const beginGridLabelTransition = () => {
+    setGridSelection(value => value + 1);
     if (gridLabelTransitionTimeoutRef.current) {
       clearTimeout(gridLabelTransitionTimeoutRef.current);
     }
@@ -368,6 +390,7 @@ export function ProjectWork() {
   };
 
   const selectDesktopSort = (nextSortMode: (typeof SORT_OPTIONS)[number]["value"]) => {
+    setSortSelection(value => value + 1);
     setHasChangedSort(true);
     // Picking Random reshuffles, including when it is already the active sort.
     if (nextSortMode === "random") {
@@ -381,6 +404,7 @@ export function ProjectWork() {
       return;
     }
 
+    setSortSelection(value => value + 1);
     const currentIndex = SORT_OPTIONS.findIndex((option) => option.value === sortMode);
     const next = SORT_OPTIONS[(currentIndex + 1) % SORT_OPTIONS.length].value;
     if (next === "random") {
@@ -537,6 +561,7 @@ export function ProjectWork() {
             <WorkGlyphControl
               text={sortLabel}
               variant="sort"
+              selection={sortSelection}
             />
           </button>
         </div>
@@ -600,12 +625,14 @@ export function ProjectWork() {
             <span className="work-grid-label-desktop">
               <WorkGlyphControl
                 text={desktopGridLabel}
+                selection={gridSelection}
                 reserveScrambleWidth={isGridLabelTransitioning}
               />
             </span>
             <span className="work-grid-label-mobile">
               <WorkGlyphControl
                 text={mobileGridLabel}
+                selection={gridSelection}
                 reserveScrambleWidth={isGridLabelTransitioning}
               />
             </span>
