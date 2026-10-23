@@ -16,6 +16,10 @@ const FLICKER_MS = 55;
 /** A pumped character passes through its parent until it has grown out of it. */
 const EMERGE_MS = 260;
 const DISSOLVE_MS = 380;
+/** Until it is kicked loose, a letter collides only with the walls. Letters start shoulder to shoulder, so otherwise
+ * their pop-outs record nudges from their neighbours, which the way home would replay just as they settle. */
+const WALL = 0x0002;
+const EVERYTHING = 0xffffffff;
 
 interface Sample { x: number; y: number; angle: number }
 interface Tint { start: number; end: number; to: string; flickAt: number }
@@ -76,6 +80,16 @@ export function turnBetween(from: number, to: number) {
   return turn > Math.PI ? turn - Math.PI * 2 : turn < -Math.PI ? turn + Math.PI * 2 : turn;
 }
 
+/** A Fisher–Yates shuffle into a new array. */
+export function shuffled<T>(items: readonly T[], random = Math.random) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index--) {
+    const pick = Math.floor(random() * (index + 1));
+    [copy[index], copy[pick]] = [copy[pick], copy[index]];
+  }
+  return copy;
+}
+
 const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
 
 /**
@@ -92,13 +106,19 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   const w = window.innerWidth, h = window.innerHeight, t = 400, center = { x: w / 2, y: h / 2 };
   const walls = [Bodies.rectangle(w / 2, -t / 2, w + t * 2, t), Bodies.rectangle(w / 2, h + t / 2, w + t * 2, t),
     Bodies.rectangle(-t / 2, h / 2, t, h + t * 2), Bodies.rectangle(w + t / 2, h / 2, t, h + t * 2)];
-  walls.forEach(wall => Body.setStatic(wall, true));
+  walls.forEach(wall => { Body.setStatic(wall, true); wall.collisionFilter.category = WALL; });
   Composite.add(engine.world, walls);
   const layer = document.createElement("div");
   layer.className = "glyph-swarm-layer"; layer.setAttribute("aria-hidden", "true");
   document.body.append(layer);
 
   const random = (list: readonly string[]) => list[Math.floor(Math.random() * list.length)];
+  // Pumped characters come out of a shuffled bag, so none repeats until every one has had a turn.
+  let bag: string[] = [];
+  const draw = () => {
+    if (!bag.length) bag = shuffled(options.chars);
+    return bag.pop()!;
+  };
   const base = getComputedStyle(letters[0]?.parentElement ?? document.body).color;
   const tintStep = (piece: Piece, time: number) => {
     const tint = piece.tint;
@@ -138,7 +158,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   const release = (span: HTMLElement, rect: DOMRect, releaseOffset: number, time: number) => {
     const style = getComputedStyle(span), at = centerOf(rect);
     const piece = spawn(span.textContent ?? "", rect, at, `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`, style.color, time);
-    span.style.visibility = "hidden";
+    span.style.visibility = "hidden"; piece.body.collisionFilter.mask = WALL;
     const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3, speed = 1.2 + Math.random() * 3;
     Body.setVelocity(piece.body, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.2);
@@ -150,7 +170,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
     const speed = 7 + Math.random() * 6;
-    piece.home!.kicked = true; piece.body.frictionAir = LOOSE_AIR;
+    piece.home!.kicked = true; piece.body.frictionAir = LOOSE_AIR; piece.body.collisionFilter.mask = EVERYTHING;
     Body.setVelocity(piece.body, { x: Math.cos(away) * speed, y: Math.sin(away) * speed });
     Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.3);
     glitchTo(piece, time, random(options.palette()), 300, 450);
@@ -159,7 +179,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     parent.pumpedAt = time;
     glitchTo(parent, time, random(options.palette()), 120, 120);
     const { position, velocity } = parent.body, angle = Math.random() * Math.PI * 2, speed = 4 + Math.random() * 4;
-    const child = spawn(random(options.chars), parent, position, parent.element.style.font, random(options.palette()), time);
+    const child = spawn(draw(), parent, position, parent.element.style.font, random(options.palette()), time);
     child.body.frictionAir = LOOSE_AIR;
     child.body.collisionFilter.mask = 0;
     Body.setVelocity(child.body, { x: velocity.x + Math.cos(angle) * speed, y: velocity.y + Math.sin(angle) * speed });
@@ -198,7 +218,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
           }
         }
         if (!home && piece.dissolveAt && time >= piece.dissolveAt && !piece.tint) glitchTo(piece, time, random(options.palette()), DISSOLVE_MS, 0);
-        if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = 0xffffffff;
+        if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = EVERYTHING;
       }
       while (pending >= STEP) {
         Engine.update(engine, STEP); pending -= STEP;

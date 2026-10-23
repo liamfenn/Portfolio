@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
-import { GLOBE_CHARS } from "@/components/glyph-globe";
 import { burst } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
@@ -10,6 +9,8 @@ const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fenne
 /** The letters that glitch before the burst, from the Figma card (435:198). They settle on palette colours rather than
  * the card's, which predate the current palette. */
 const GLITCHED = new Set([1, 2, 12, 16, 20, 21]);
+/** What the letters pump out: mostly punctuation and symbols, with a few of the globe's letters and figures. */
+const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250");
 /** Matches the swarm's own colour glitch, so the intro reads as the same effect. */
 const FLICKER_MS = 55;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
@@ -60,7 +61,7 @@ export function OgCard() {
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal);
         await wait(150, signal);
-        await burst(letters, { signal, palette: currentGlyphPalette, chars: GLOBE_CHARS });
+        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS });
         await wait(HOLD_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }

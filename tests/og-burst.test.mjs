@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { emergeScale, pumpScale, rewind, turnBetween } from "../src/lib/og-burst.ts";
+import { emergeScale, pumpScale, rewind, shuffled, turnBetween } from "../src/lib/og-burst.ts";
 
 test("a pump squeezes first, springs past full size, and rings out to rest", () => {
   assert.equal(pumpScale(0), 1);
@@ -28,4 +28,11 @@ test("the way home turns the short way, however many times a letter spun", () =>
   assert.ok(Math.abs(turnBetween(0, Math.PI / 2) - Math.PI / 2) < 1e-9);
   assert.ok(Math.abs(turnBetween(Math.PI * 6 + 0.2, 0) + 0.2) < 1e-9);
   assert.ok(Math.abs(turnBetween(0.1, Math.PI * 2 - 0.1) + 0.2) < 1e-9);
+});
+
+test("the pumped-character bag holds every character exactly once, leaving the source alone", () => {
+  const chars = Array.from("@,.;:!?&");
+  const bag = shuffled(chars);
+  assert.deepEqual([...bag].sort(), [...chars].sort());
+  assert.deepEqual(chars, Array.from("@,.;:!?&"));
 });
