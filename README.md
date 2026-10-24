@@ -45,7 +45,7 @@ that browser (it's remembered) and `?inspect` to turn it back on. When off,
 `InspectableText` renders plain text.
 
 On desktop or mobile, tap the avatar to show or hide the panel (it skips the Shop link
-while the inspector is on), then choose a mode or test control. Palette position and palette-lab access live here; the footer strip and credit are no longer test buttons.
+while the inspector is on), then choose a mode or test control. Palette-lab access lives here.
 
 It works on the homepage and the palette lab:
 
@@ -75,8 +75,7 @@ The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
 periwinkles through amethysts, light aquas and greens, highlighter yellows). It
 colours the globe, the exit ring and the swarm's
-colour glitch. Colours under 1.5:1 on white (the yellows) stay in the strip but
-sit out the glyph effects, where they would vanish. `?palette-lab` → **Colors**
+colour glitch. Colours under 1.5:1 on white (the yellows) sit out glyph effects, where they would vanish. `?palette-lab` → **Colors**
 reruns the quiz locally: each colour is previewed as type and glyphs on white
 (Y/N or arrow keys, Backspace to undo), then a final cut; **Copy settings**
 exports the result to bake in as the new default.
@@ -139,6 +138,4 @@ Open the printed authorization URL. After approval, the local callback updates
 `SPOTIFY_REFRESH_TOKEN` in `.env.local` without printing it. Rotate the matching
 Production environment variable in Vercel and redeploy the current release.
 
-The animated palette strip uses its original 18 muted colors in `STRIP_PALETTE`, independently of the brighter glyph palette and palette-lab votes.
-
-The footer is fixed to the Figma desktop/mobile layout. In the avatar menu, **Palette on player** (default) fills the music player’s right edge with five equal-height swatches and replaces its timer. **Palette by avatar** uses three equal-height swatches beside the profile picture and restores the timer. Neither option changes the footer.
+The color strip and its placement controls have been removed. The music player always shows its numeric timer. The globe, swarm, color glitches, and palette lab retain their existing palette.

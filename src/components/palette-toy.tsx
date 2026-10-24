@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { cubicBezier } from "motion";
-import { DEFAULT_GLYPHS, STRIP_PALETTE, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
+import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
@@ -17,13 +16,6 @@ const STORAGE_KEY = "portfolio-palette-lab-v2";
 const LEGACY_STORAGE_KEY = "portfolio-palette-lab-v1";
 // The quiz previews each colour as it will be used: thin glyphs on the white page.
 const PREVIEW_GLYPHS = "a&Ro7?g*Q2ks@m0yt%cWb#f5j";
-// The strip holds each color, then streams one swatch downward. Position and colors come from the same clock,
-// so a new color and the snap back always land in the same frame.
-const STRIP_SWATCHES = 6;
-const STRIP_PERIOD_MS = 1000;
-const STRIP_HOLD = 0.65;
-const stripEase = cubicBezier(0.16, 1, 0.3, 1);
-
 export function PaletteToy() {
   const [votes, setVotes] = useState<PaletteVotes>({});
   // Colours voted Yes and then dropped in the final cut, and the order of votes for undo.
@@ -38,9 +30,7 @@ export function PaletteToy() {
   const modeRef = useRef(mode);
   modeRef.current = mode;
   const [ready, setReady] = useState(false);
-  const { palettePosition, paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
-  const [playerHost, setPlayerHost] = useState<HTMLElement | null>(null);
-  const [avatarHost, setAvatarHost] = useState<HTMLElement | null>(null);
+  const { paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
   const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<"palette" | "glyphs">("palette");
@@ -48,7 +38,6 @@ export function PaletteToy() {
   const [copied, setCopied] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const globeRef = useRef<HTMLButtonElement>(null);
-  const trackRef = useRef<HTMLSpanElement>(null);
   const palette = colorsFromVotes(votes, cuts);
   const unansweredIndex = PALETTE_CANDIDATES.findIndex(color => votes[color.hex] === undefined);
   const quizIndex = reviewIndex ?? unansweredIndex;
@@ -77,8 +66,6 @@ export function PaletteToy() {
       if (new URLSearchParams(window.location.search).has("palette-lab")) setPaletteLabOpen(true);
       updateMotion();
       setGlobeHost(document.getElementById("glyph-globe-slot"));
-      setAvatarHost(document.getElementById("avatar-palette-slot"));
-      setPlayerHost(document.getElementById("player-palette-slot"));
       setReady(true);
     });
     motionQuery.addEventListener("change", updateMotion);
@@ -99,54 +86,10 @@ export function PaletteToy() {
     swarmRef.current?.update(glyphs);
   }, [glyphs]);
 
-  // The globe, ring and swarm keep the brighter palette; the strip uses its original muted colors.
+  // The globe, ring and swarm share the glyph palette.
   const glyphPaletteKey = glyphColors(palette).map(color => color.hex).join(" ");
   const paletteRef = useRef(glyphPaletteKey);
   useEffect(() => { paletteRef.current = glyphPaletteKey; setGlyphPalette(glyphPaletteKey.split(" ")); }, [glyphPaletteKey]);
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const colors = STRIP_PALETTE.map(color => color.hex);
-    const swatches = Array.from(track.children) as HTMLElement[];
-    const count = palettePosition === "avatar" ? 3 : 5;
-    let swatchHeight = track.clientHeight / count;
-    const resize = new ResizeObserver(() => {
-      swatchHeight = track.clientHeight / count;
-      track.style.setProperty("--palette-swatch-height", `${swatchHeight}px`);
-    });
-    track.style.setProperty("--palette-swatch-height", `${swatchHeight}px`);
-    resize.observe(track);
-    let shownStep = -1;
-    const paintStep = (step: number) => {
-      if (step === shownStep) return;
-      shownStep = step;
-      swatches.forEach((swatch, index) => { swatch.style.backgroundColor = colors[((index - step) % colors.length + colors.length) % colors.length]; });
-    };
-    const slideTo = (x: string) => swatches.forEach(swatch => { swatch.style.transform = x; });
-    if (reducedMotion) {
-      slideTo("");
-      paintStep(0);
-      return () => resize.disconnect();
-    }
-    let frame = 0;
-    let startedAt: number | null = null;
-    const render = (time: number) => {
-      // Synced once, on the first frame: each slide begins on a whole second of the device clock, the same
-      // beat the music player's time ticks on. From here it runs on its own.
-      startedAt ??= time - (Date.now() % STRIP_PERIOD_MS) - STRIP_HOLD * STRIP_PERIOD_MS;
-      const elapsed = Math.max(0, time - startedAt);
-      const step = Math.floor(elapsed / STRIP_PERIOD_MS);
-      const phase = (elapsed % STRIP_PERIOD_MS) / STRIP_PERIOD_MS;
-      const slide = phase < STRIP_HOLD ? 0 : stripEase((phase - STRIP_HOLD) / (1 - STRIP_HOLD));
-      paintStep(step);
-      // The track clips, so the swatches move inside it.
-      slideTo(`translateY(${(slide - 1) * swatchHeight}px)`);
-      frame = window.requestAnimationFrame(render);
-    };
-    frame = window.requestAnimationFrame(render);
-    return () => { resize.disconnect(); window.cancelAnimationFrame(frame); };
-  }, [reducedMotion, palettePosition, avatarHost, playerHost]);
-
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
   const toggle = useCallback(() => {
     if (reducedMotion) return;
@@ -243,13 +186,7 @@ export function PaletteToy() {
     } catch { setCopied(false); }
   };
 
-  const strip = <span ref={trackRef} className="palette-toy-track" aria-hidden="true">
-    {Array.from({ length: STRIP_SWATCHES }, (_, index) => <i key={index} style={{ backgroundColor: STRIP_PALETTE[index % STRIP_PALETTE.length].hex }} />)}
-  </span>;
-
   return <>
-    {palettePosition === "avatar" && avatarHost && createPortal(<span className="vertical-palette avatar-palette">{strip}</span>, avatarHost)}
-    {palettePosition === "player" && playerHost && createPortal(<span className="vertical-palette player-palette">{strip}</span>, playerHost)}
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">

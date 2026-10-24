@@ -52,7 +52,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 }
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
-  const { palettePosition, setPalettePosition, paletteLabOpen, setPaletteLabOpen } = usePortfolioExperiments();
+  const { paletteLabOpen, setPaletteLabOpen } = usePortfolioExperiments();
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
@@ -133,8 +133,6 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
-        <button type="button" aria-pressed={palettePosition === "avatar"} onClick={() => setPalettePosition("avatar")}>Palette by avatar</button>
-        <button type="button" aria-pressed={palettePosition === "player"} onClick={() => setPalettePosition("player")}>Palette on player</button>
         <button type="button" aria-pressed={paletteLabOpen} onClick={() => setPaletteLabOpen(value => !value)}>Palette lab</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>

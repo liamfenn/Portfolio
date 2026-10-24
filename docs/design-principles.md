@@ -7,7 +7,7 @@ How the site should look, move, and feel. The exact values live in `src/app/toke
 
 - **Quiet, typographic, mostly black on white.** The page is set in two faces, ABC Oracle (sans) and ABC Otto
   (serif), with gray tiers for hierarchy. Color is reserved for the playful layer and project media.
-- **A playful layer on top.** The palette strip, the globe, the letter swarm, and the color glitches are
+- **A playful layer on top.** The globe, the letter swarm, and the color glitches are
   discoverable delights. They never get in the way of reading or navigating, and they always put the page
   back exactly as it was.
 - **Design system first.** Liam is standardizing the system and audits for stragglers. Consistency beats a
@@ -73,7 +73,7 @@ How the site should look, move, and feel. The exact values live in `src/app/toke
 - **Decorative elements are `aria-hidden`,** and controls have real labels ("Play with the letters", "Put the
   letters back").
 - **Legibility wins over effect.** Thin glyphs on white need contrast. Colors under 1.5:1 (the pale yellows)
-  stay in the strip but sit out the glyph effects.
+  sit out the glyph effects.
 - **Everything resets cleanly.** Exiting restores every letter, mask, color, and the globe. Nothing lingers in
   the DOM.
 
@@ -87,7 +87,6 @@ Liam's taste, distilled from his references (risograph posters, a Bloomberg Busi
   almost-highlighter yellow.
 - **Avoid:** burnt or deep orange, anything too deep or muddy, forest green, bright or deep royal blue, and
   mustard yellow. Also the washed-out pastels of the first palette, which disappear as thin glyphs.
-- **Order:** hue order in the strip. A shuffled order was tried and reverted.
 - The palette lives in `src/lib/palette-toy.ts` (`DEFAULT_HEXES`). Candidates are generated in OKLCH so
   lightness and chroma stay even across hues.
 

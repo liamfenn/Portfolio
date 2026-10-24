@@ -1,32 +1,3 @@
-// The original muted strip palette stays independent of the brighter glyph palette.
-const ORIGINAL_STRIP_COLORS = [
-  { name: "Lilac", hex: "#B9A7E8" },
-  { name: "Dusty rose", hex: "#D7AEC3" },
-  { name: "Powder blue", hex: "#ABCBE1" },
-  { name: "Soft mint", hex: "#B4D8C6" },
-  { name: "Cool gray", hex: "#D7DAE1" },
-  { name: "Orchid", hex: "#C7A2D9" },
-  { name: "Mauve", hex: "#B69CAE" },
-  { name: "Wisteria", hex: "#9D90C8" },
-  { name: "Blush", hex: "#E2C1D4" },
-  { name: "Blue mist", hex: "#C2D9E8" },
-  { name: "Steel blue", hex: "#8AA6BD" },
-  { name: "Periwinkle", hex: "#ACB4DF" },
-  { name: "Grape", hex: "#897895" },
-  { name: "Mushroom", hex: "#BEB7BE" },
-  { name: "Seafoam", hex: "#C6E5DA" },
-  { name: "Faded teal", hex: "#89B5B6" },
-  { name: "Sky", hex: "#90CAE2" },
-  { name: "Pale violet", hex: "#D8CEF1" },
-  { name: "Pink clay", hex: "#C99DB8" },
-  { name: "Silver", hex: "#A3A4AC" },
-] as const;
-
-// The first quiz kept every color except Steel blue and Silver.
-export const STRIP_PALETTE = ORIGINAL_STRIP_COLORS.filter(color =>
-  color.name !== "Steel blue" && color.name !== "Silver",
-);
-
 /**
  * The palette quiz: a full spectrum generated in OKLCH around a reference set (risograph-bright reds, pinks,
  * violets, periwinkles, clear greens and highlighter yellows), every 15° of hue in up to three depths. Burnt

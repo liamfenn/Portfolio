@@ -33,6 +33,11 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Color strip removed (2026-10-23)**
+- Removed the strip from both player and avatar, including its animation loop, portal slots, placement toggles/state, strip-only tokens/styles, and muted strip palette.
+- The music player always renders its existing numeric timer. Glyph colors, globe/party mode, album transitions, and palette-lab controls are unchanged.
+- Validation: build, type check, and 40 tests pass. Touched-file lint also flags the existing render-time `modeRef.current = mode` assignment in `palette-toy.tsx`; the strip removal leaves that behavior unchanged.
+
 **Hover letters join the party (2026-10-23)**
 - Replaced preemptive random masks on hidden dropdown options and project labels. Newly visible labels donate a few actual final characters (up to three per label, with a short random stagger), using the existing pop, capture physics, and palette glitch. Selected sort/grid controls still contribute to the original startup swarm.
 - Donations happen once per project label or menu option for the entire party, using stable identities that survive dropdown remounts and grid moves. Returning to a label preserves the same missing positions without adding letters. Menu options donate on their own first hover/focus; mobile expanded labels follow the same persistent rule. Exit clears all donation state.
