@@ -30,21 +30,6 @@ export interface PortfolioVideoAsset extends PortfolioMediaBase {
 export type PortfolioMediaAsset = PortfolioImageAsset | PortfolioVideoAsset;
 
 export const MEDIA_ASSETS = {
-  shopProductPage: {
-    id: "shop-product-page",
-    kind: "video",
-    src: "/media/shop/preview-01-1600.mp4",
-    poster: "/media/shop/preview-01-poster.webp",
-    alt: "Shop app product page prototype on device",
-    width: 1600,
-    height: 1600,
-    backdrop: "#f2f4f5",
-    renditions: [
-      { width: 800, av1: "/media/shop/preview-01-800.av1.mp4", h264: "/media/shop/preview-01-800.mp4" },
-      { width: 1200, av1: "/media/shop/preview-01-1200.av1.mp4", h264: "/media/shop/preview-01-1200.mp4" },
-      { width: 1600, av1: "/media/shop/preview-01-1600.av1.mp4", h264: "/media/shop/preview-01-1600.mp4" },
-    ],
-  },
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",
