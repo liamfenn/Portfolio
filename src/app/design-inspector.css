@@ -35,7 +35,7 @@
   box-shadow: 0 4px 24px color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 .design-inspector-mode { min-width: 110px; }
-.design-inspector-controls { display: flex; gap: 6px; }
+.design-inspector-controls { display: flex; flex-wrap: wrap; gap: 6px; }
 .design-inspector button {
   display: flex;
   align-items: center;
@@ -68,6 +68,12 @@ html[data-inspector-labels] .palette-quiz-history button > span { width: auto; h
 /* F previews the page in one typeface: every serif style swaps to its sans counterpart. */
 html[data-type-preview="sans"] .text-bodySerif { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
 html[data-type-preview="sans"] .text-captionSerif { font: var(--type-captionSans); letter-spacing: var(--tracking-ui); }
+
+@media (min-width: 768px) {
+  html[data-bottom-space-preview="expanded"] .portfolio-v3 {
+    padding-bottom: calc(var(--page-frame) + var(--content-padding) * 3);
+  }
+}
 
 /* Spacing overlay: grid paper over each padding or gap area, value centered. */
 .spacing-overlay {
@@ -110,4 +116,5 @@ html[data-type-preview="sans"] .text-captionSerif { font: var(--type-captionSans
   .design-inspector { right: 12px; bottom: 12px; flex-wrap: wrap; gap: 6px 8px; padding: 8px; }
   .design-inspector-mode { flex-basis: 100%; min-width: 0; padding-inline: 6px; }
   .design-inspector-controls { flex-wrap: wrap; gap: 2px; }
+  .design-inspector .design-inspector-desktop-control { display: none; }
 }

@@ -58,6 +58,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
   // F swaps every serif text style for its sans counterpart, independent of the inspection mode.
   const [isAllSans, setIsAllSans] = useState(false);
+  const [hasExtraBottomSpace, setHasExtraBottomSpace] = useState(false);
   const toggleAllSans = useCallback(() => setIsAllSans(value => !value), []);
   const isPanelVisible = panel === "shown" || (panel === "auto" && inspection.mode !== "content");
   const togglePanel = useCallback(() => setPanel(isPanelVisible ? "hidden" : "shown"), [isPanelVisible]);
@@ -102,6 +103,13 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
     return () => { delete root.dataset.typePreview; };
   }, [isAllSans]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (hasExtraBottomSpace) root.dataset.bottomSpacePreview = "expanded";
+    else delete root.dataset.bottomSpacePreview;
+    return () => { delete root.dataset.bottomSpacePreview; };
+  }, [hasExtraBottomSpace]);
+
   // The avatar opens the same test menu on desktop and mobile while inspection is enabled.
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
@@ -133,6 +141,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
+        <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
         <button type="button" aria-pressed={paletteLabOpen} onClick={() => setPaletteLabOpen(value => !value)}>Palette lab</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>
