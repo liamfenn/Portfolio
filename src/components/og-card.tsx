@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
-import { burst } from "@/lib/og-burst";
+import { burst, shuffled } from "@/lib/og-burst";
 import { playReel } from "@/lib/og-reel";
 import type { BurstEvent } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
@@ -21,6 +21,8 @@ const ALL_GLITCH_STAGGER_MS = 25;
  * first kick at most. */
 const REEL_GONE_SHARE = 0.5;
 const REEL_AFTER_KICK_MS = 2000;
+/** With ?exit=glitch in the reel, letters glitch out of their places and back in this far apart, in a random order. */
+const PLACE_STAGGER_MS = 40;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 
@@ -55,6 +57,37 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
 }
 
 /** The capture script sets window.__ogEvents to collect what happens, for timing the sound effects. */
+/**
+ * Glitching letters out of, or back into, their places: each in a random order flickers through the palette for
+ * 200–350ms, then is gone ("out") or settles on the text's own colour ("in"). The same transition either way.
+ */
+async function glitchInPlace(letters: HTMLElement[], signal: AbortSignal, mode: "out" | "in") {
+  const start = performance.now(), colors = currentGlyphPalette(), slots = shuffled(letters.map((_, index) => index));
+  const runs = letters.map((element, index) => {
+    const at = start + slots[index] * PLACE_STAGGER_MS;
+    return { element, at, until: at + 200 + Math.random() * 150, flickAt: 0, done: false };
+  });
+  for (let time = start; runs.some(run => !run.done); time = await nextFrame()) {
+    signal.throwIfAborted();
+    for (const run of runs) {
+      if (run.done || time < run.at) continue;
+      if (mode === "in") run.element.style.visibility = "";
+      if (time >= run.until) {
+        run.element.style.color = "";
+        if (mode === "out") run.element.style.visibility = "hidden";
+        run.done = true; continue;
+      }
+      if (time - run.flickAt < FLICKER_MS) continue;
+      run.flickAt = time;
+      run.element.style.color = colors[Math.floor(Math.random() * colors.length)];
+      if (window.__ogEvents) {
+        const box = run.element.getBoundingClientRect();
+        recordEvent({ type: "flick", time, x: (box.left + box.width / 2) / window.innerWidth, y: (box.top + box.height / 2) / window.innerHeight });
+      }
+    }
+  }
+}
+
 declare global { interface Window { __ogLoops?: number; __ogReady?: boolean; __ogEvents?: BurstEvent[] } }
 const recordEvent = (event: BurstEvent) => { window.__ogEvents?.push(event); };
 
@@ -80,11 +113,25 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
     const landing = new URLSearchParams(window.location.search).get("landing") === "reverse" ? "reverse" : "reading";
     // In the reel, ?return=glitch brings the letters back by glitching each in place, instead of floating them home.
     const comeBack = new URLSearchParams(window.location.search).get("return") === "glitch" ? "glitch" : "float";
+    // And ?exit=glitch has them glitch out of their places too, rather than burst, so both sides of the grid match.
+    const glitchBoth = reel && new URLSearchParams(window.location.search).get("exit") === "glitch";
+    const placed = letters.filter(element => element.textContent?.trim());
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
       window.__ogReady = true;
       for (;;) {
+        if (glitchBoth && reelStage) {
+          // The grid slides in once about half the letters have glitched away, and they glitch back as it leaves.
+          await wait(HOLD_MS, signal);
+          const out = glitchInPlace(placed, signal, "out");
+          await wait(placed.length / 2 * PLACE_STAGGER_MS, signal);
+          await Promise.all([out, playReel(reelStage, signal)]);
+          await glitchInPlace(placed, signal, "in");
+          await wait(HOLD_MS, signal);
+          window.__ogLoops = (window.__ogLoops ?? 0) + 1;
+          continue;
+        }
         await wait(HOLD_MS, signal);
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);

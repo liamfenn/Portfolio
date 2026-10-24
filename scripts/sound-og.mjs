@@ -5,7 +5,8 @@
 //
 //   node scripts/sound-og.mjs [--reel]
 // --reel scores the work reel's cuts (office-of-liam-fennell-reel-*) with the glitch ticks only, for now; add
-// --glitch-return for the version where the letters glitch back in place.
+// --glitch-return for the version where the letters glitch back in place, or --glitch-both for the one where they
+// glitch out of their places as well.
 // Writes out/share/office-of-liam-fennell-{16x9,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
 // loop until the last sound has died away, and the video holds its last frame (the plain name) for that tail.
 import { execFileSync, spawnSync } from "node:child_process";
@@ -14,7 +15,7 @@ import { DEFAULTS, RATE, mix } from "./og-sound/synth.mjs";
 
 const FPS = 60;
 const REEL = process.argv.includes("--reel");
-const SUFFIX = process.argv.includes("--glitch-return") ? "-glitch-return" : "";
+const SUFFIX = process.argv.includes("--glitch-return") ? "-glitch-return" : process.argv.includes("--glitch-both") ? "-glitch-both" : "";
 const FRAMES = (REEL ? "out/og-reel-frames" : "out/og-frames") + SUFFIX, NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
 const CUTS = [["16x9", `${FRAMES}-1200x675@1.6x`], ["9x16", `${FRAMES}-675x1200@1.6x`]];
 const saved = JSON.parse(readFileSync(new URL("./og-sound/settings.json", import.meta.url), "utf8"));
