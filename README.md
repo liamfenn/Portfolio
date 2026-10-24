@@ -58,7 +58,8 @@ It works on the homepage and the palette lab:
   captionSerif) swaps to its sans counterpart. Press again to
   restore. It works alongside the other modes.
 - **H** (or tapping the avatar) hides or shows the floating panel, even with no mode active.
-- **Extra bottom space** in the avatar menu previews 72px below the desktop footer instead of 24px.
+- **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
+  (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.
 - **Escape** restores content. Switching families starts at that family's first
   view. Shortcuts ignore editable fields and modifier keys.

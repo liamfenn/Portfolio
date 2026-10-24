@@ -71,7 +71,7 @@ html[data-type-preview="sans"] .text-captionSerif { font: var(--type-captionSans
 
 @media (min-width: 768px) {
   html[data-bottom-space-preview="expanded"] .portfolio-v3 {
-    padding-bottom: calc(var(--page-frame) + var(--content-padding) * 3);
+    padding-bottom: calc(var(--content-padding) * 2);
   }
 }
 
