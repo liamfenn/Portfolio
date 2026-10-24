@@ -11,7 +11,8 @@
 //   --reverse      the earlier landing, last out first home (/og?landing=reverse), named -reverse
 //   --all-glitch   every letter glitches in and out, staggered, instead of six (/og?glitch=all), named -all-glitch
 // --reel records the work reel (/og/reel: letters thrown off the card while the work grid plays) as 16:9 and 9:16 cuts
-// named office-of-liam-fennell-reel-*, also leaving the og:video alone; with --quick, only its 16:9 frames.
+// named office-of-liam-fennell-reel-*, also leaving the og:video alone; with --quick, only its 16:9 frames. Add
+// --glitch-return for the letters glitching back in place rather than floating home (named -glitch-return).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -19,7 +20,7 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
-const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"]]
+const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--glitch-return", "return=glitch", "-glitch-return"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const REEL = process.argv.includes("--reel");

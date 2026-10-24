@@ -4,7 +4,8 @@
 // so rerun that first after changing the animation. Seeded, so a rerun gives the same audio.
 //
 //   node scripts/sound-og.mjs [--reel]
-// --reel scores the work reel's cuts (office-of-liam-fennell-reel-*) with the glitch ticks only, for now.
+// --reel scores the work reel's cuts (office-of-liam-fennell-reel-*) with the glitch ticks only, for now; add
+// --glitch-return for the version where the letters glitch back in place.
 // Writes out/share/office-of-liam-fennell-{16x9,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
 // loop until the last sound has died away, and the video holds its last frame (the plain name) for that tail.
 import { execFileSync, spawnSync } from "node:child_process";
@@ -13,7 +14,8 @@ import { DEFAULTS, RATE, mix } from "./og-sound/synth.mjs";
 
 const FPS = 60;
 const REEL = process.argv.includes("--reel");
-const FRAMES = REEL ? "out/og-reel-frames" : "out/og-frames", NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
+const SUFFIX = process.argv.includes("--glitch-return") ? "-glitch-return" : "";
+const FRAMES = (REEL ? "out/og-reel-frames" : "out/og-frames") + SUFFIX, NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
 const CUTS = [["16x9", `${FRAMES}-1200x675@1.6x`], ["9x16", `${FRAMES}-675x1200@1.6x`]];
 const saved = JSON.parse(readFileSync(new URL("./og-sound/settings.json", import.meta.url), "utf8"));
 const SETTINGS = Object.fromEntries(Object.entries(DEFAULTS).map(([sound, values]) => [sound, { ...values, ...saved[sound] }]));
@@ -36,7 +38,7 @@ function wav(path, [left, right]) {
 for (const [name, frames] of CUTS) {
   const events = JSON.parse(readFileSync(`${frames}/events.json`, "utf8"));
   const seconds = readdirSync(frames).filter(file => file.endsWith(".png")).length / FPS;
-  const base = `out/share/${NAME}-${name}`;
+  const base = `out/share/${NAME}-${name}${SUFFIX}`;
   // No loudness normalisation: the levels are the ones chosen by ear in the lab.
   const audio = mix(events, seconds, SETTINGS), tail = audio[0].length / RATE - seconds;
   wav(`${base}-sound.wav`, audio);

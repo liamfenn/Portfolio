@@ -17,7 +17,9 @@ const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250")
 const FLICKER_MS = 55;
 /** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
 const ALL_GLITCH_STAGGER_MS = 25;
-/** In the reel, the work grid slides in as the last letter leaves the card, or this long after the first kick at most. */
+/** In the reel, the work grid slides in once this share of the letters have left the card, or this long after the
+ * first kick at most. */
+const REEL_GONE_SHARE = 0.75;
 const REEL_AFTER_KICK_MS = 2000;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
@@ -76,6 +78,8 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
     const stagger = all ? ALL_GLITCH_STAGGER_MS : undefined;
     // ?landing=reverse plays the earlier landing, last out first home, instead of word by word, left to right.
     const landing = new URLSearchParams(window.location.search).get("landing") === "reverse" ? "reverse" : "reading";
+    // In the reel, ?return=glitch brings the letters back by glitching each in place, instead of floating them home.
+    const comeBack = new URLSearchParams(window.location.search).get("return") === "glitch" ? "glitch" : "float";
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
@@ -86,8 +90,8 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);
         await wait(150, signal);
         await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined,
-          // The grid slides in as the last letter leaves the card.
-          away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, interlude: () => playReel(reelStage, signal) } : undefined });
+          // The grid slides in as the last letters are leaving the card.
+          away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, goneShare: REEL_GONE_SHARE, comeBack, interlude: () => playReel(reelStage, signal) } : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
         await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);

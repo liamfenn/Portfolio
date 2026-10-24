@@ -19,9 +19,8 @@ const DRIFT_SPEED = 70;
 const TOP_SPEED = 5500;
 /** The ramp's curve: a higher power stays slow for longer, then takes off. */
 const RAMP_POWER = 3;
-/** How far the warp draws the corners in, as a share of the card's width, and how far up the edges it reaches. */
-const WARP = 0.05;
-const WARP_FROM = 0.45;
+/** How far the warp draws the corners in, as a share of the card's width. */
+const WARP = 0.04;
 
 /** A cubic Bézier ease, as CSS's cubic-bezier(x1, y1, x2, y2): solves for the curve's x, returns its y. */
 export function bezier(x1: number, y1: number, x2: number, y2: number, t: number) {
@@ -67,12 +66,13 @@ export function rowTop(row: number, offset: number, layout: ReelLayout, firstTop
   return firstTop + along;
 }
 /**
- * The warp near the edges, for a point at (u, v) across the card (each -1 to 1): how far to draw it toward the
- * middle, as a share of the card's half-width and half-height. Nothing in the middle band; growing smoothly toward
- * the top and bottom, and more toward the sides, so straight edges bend in a soft curve.
+ * The warp, for a point at (u, v) across the card (each -1 to 1): how far to draw it toward the middle, as a share
+ * of the card's half-width and half-height. One smooth curve over the whole height, nothing at the middle and growing
+ * toward the top and bottom, and more toward the sides, so the grid's sides bow in a rounded arc rather than bending
+ * at a corner.
  */
 export function warpAt(u: number, v: number) {
-  const edge = smoothstep((Math.abs(v) - WARP_FROM) / (1 - WARP_FROM));
+  const edge = v * v;
   return { x: u * edge * WARP * 2, y: v * edge * WARP * 0.6 };
 }
 
