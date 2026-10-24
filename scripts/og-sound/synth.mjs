@@ -45,7 +45,7 @@ export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
   // Start is from the first kick (1.717s), so 283 begins the whoosh at 2.00s.
-  whoosh: { on: true, volume: -20, character: 1, length: 1, depth: 0, bass: 1, softness: 1, start: 283 },
+  whoosh: { on: true, volume: -15, character: 3, length: 1, depth: 0, bass: 1, softness: 1, start: 283 },
   finish: { on: true, volume: -26.5, character: 0, pitch: 0, length: 1, delay: 330, brightness: 1 },
   master: { volume: 0, room: 0.15, overlap: 2, duck: 0.5 },
 };

@@ -15,8 +15,8 @@
   },
   "whoosh": {
     "on": true,
-    "volume": -20,
-    "character": 1,
+    "volume": -15,
+    "character": 3,
     "length": 1,
     "depth": 0,
     "bass": 1,
