@@ -33,6 +33,12 @@ production) is still the August version. Merging is Liam's call.
 **Mobile toolbar targets (2026-10-21)**
 - Reverted the half-width mobile tap targets; original control widths and spacing restored. Album-cover transitions remain.
 
+**Hover letters join the party (2026-10-23)**
+- Replaced preemptive random masks on hidden dropdown options and project labels. Newly visible labels donate a few actual final characters (up to three per label, with a short random stagger), using the existing pop, capture physics, and palette glitch. Selected sort/grid controls still contribute to the original startup swarm.
+- Donations happen once per visible label; staying hovered does not keep adding letters. Leaving restores that label immediately; another reveal can donate a new selection within the existing swarm budget. Mobile expanded labels and keyboard-revealed controls also participate.
+- These extra letters have no permanent return slot. Exiting immediately restores their labels and sends their floating copies past the nearest viewport edge. Ordinary page/globe letters retain their existing return animation.
+- Verified real desktop dropdown/tile hovers with the inspector on/off, repeated hover stability, immediate label restoration, offscreen exits (no visible removal), touch expansion, and reduced motion. Added nearest-edge exit coverage to the motion tests.
+
 **Mobile grid/list transitions (2026-10-23)**
 - The mobile 1-column/2-column control now uses the same 180ms layout tween as desktop density changes and mobile project expansion. Label counter-scaling, interrupted transitions, and reduced-motion behavior share the existing implementation.
 

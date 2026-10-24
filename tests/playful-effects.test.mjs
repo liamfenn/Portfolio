@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { captureStrength, closestOnSegment, touchIntent, entryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
+import { captureStrength, closestOnSegment, touchIntent, entryPoint, exitPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, DEFAULT_PALETTE, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -57,6 +57,16 @@ test("off-screen letters enter from the nearest screen edge", () => {
   assert.deepEqual(entryPoint({x:200,y:-500}, 800, 600), {x:200,y:8});
   assert.deepEqual(entryPoint({x:900,y:1400}, 800, 600), {x:792,y:592});
   assert.deepEqual(entryPoint({x:300,y:300}, 800, 600), {x:300,y:300});
+});
+test("hover-only letters exit completely beyond the nearest viewport edge", () => {
+  assert.deepEqual(exitPoint({x:10,y:300}, 800, 600, 30), {x:-30,y:300});
+  assert.deepEqual(exitPoint({x:790,y:300}, 800, 600, 30), {x:830,y:300});
+  assert.deepEqual(exitPoint({x:400,y:10}, 800, 600, 30), {x:400,y:-30});
+  assert.deepEqual(exitPoint({x:400,y:590}, 800, 600, 30), {x:400,y:630});
+  let state = {position: 400, velocity: 0};
+  const target = exitPoint({x:400,y:590}, 800, 600, 30);
+  for (let i = 0; i < 240; i++) state = springStep(state.position, state.velocity, target.y, 3.5, 1 / 60);
+  assert.ok(state.position > 600, "the spring carries the letter offscreen without a return slot");
 });
 test("the exit spring settles on its target without overshooting", () => {
   let state = { position: 0, velocity: 0 }, peak = 0;

@@ -24,7 +24,7 @@ function ProjectLabel({ text, visible, delay }: { text: string; visible: boolean
     ignore: [],
     playOnMount: false,
   });
-  return <InspectableText text={visible ? text : ""}><span ref={ref}>{" ".repeat(text.length)}</span></InspectableText>;
+  return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
 export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover }: {

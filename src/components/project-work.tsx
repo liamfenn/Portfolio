@@ -58,7 +58,7 @@ const DENSITY_VISIBLE = {
 } as const;
 
 function MenuOptionText({ text }: { text: string }) {
-  return <span className="work-option-text"><InspectableText>{Array.from(text).map((character, index) =>
+  return <span className="work-option-text" data-final-text={text}><InspectableText>{Array.from(text).map((character, index) =>
     <span key={index} data-swarm-menu-char>{character}</span>
   )}</InspectableText></span>;
 }

@@ -1,9 +1,9 @@
 import type MatterJS from "matter-js";
-import { SPACING, captureStrength, entryPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, exitPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
-const MASK_ONLY = ".homepage-project-overlay";
+const HOVER_LABELS = ".work-density-menu:not(.is-closing) .work-option-text,.homepage-project-overlay.is-visible [data-swarm-label]";
 const SKIP = ".homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
@@ -47,6 +47,12 @@ interface Flight {
   offset: Point; tilt: number; upright: number;
   settle?: { at: number; duration: number; x: number; y: number; angle: number };
 }
+interface HoverLabel {
+  text: string;
+  slots: Map<number, { at: number; released: boolean }>;
+  ranges: Range[];
+  characters: Set<HTMLElement>;
+}
 interface Glyph {
   element: HTMLSpanElement;
   body: MatterJS.Body;
@@ -58,6 +64,9 @@ interface Glyph {
   wander: number;
   /** For a globe letter, its place in the globe: it flies out of it on entry and back into it on exit. */
   globeChar?: HTMLElement;
+  /** Hover-only letters leave the screen on exit instead of returning to a hidden label. */
+  transient?: boolean;
+  escape?: Point;
   /** Intro timing: each letter floats loose for a while, then its pull fades in over its own ramp. */
   bornAt: number;
   floatMs: number;
@@ -140,47 +149,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     document.head.append(highlightStyle); CSS.highlights.set("glyph-swarm-taken", highlight);
   }
 
-  // Transient UI loses random letters too, but these ranges never become sources or physics bodies.
-  const maskedMenuChars = new Map<HTMLElement, boolean>();
-  const maskedUI = new Map<Element, { choices: Map<number, boolean>; ranges: Range[] }>();
-  const refreshUIMasks = () => {
-    // Menu characters use direct opacity masks, independent of custom-highlight paint support.
-    for (const character of maskedMenuChars.keys()) {
-      if (!root.contains(character)) maskedMenuChars.delete(character);
-    }
-    root.querySelectorAll<HTMLElement>("[data-swarm-menu-char]").forEach(character => {
-      if (!character.textContent?.trim()) return;
-      if (!maskedMenuChars.has(character)) maskedMenuChars.set(character, Math.random() < settings.amount);
-      if (maskedMenuChars.get(character)) character.style.opacity = "0";
-    });
-    if (!highlight) return;
-    for (const [element, mask] of maskedUI) {
-      mask.ranges.forEach(range => highlight.delete(range));
-      mask.ranges = [];
-      if (!root.contains(element)) maskedUI.delete(element);
-    }
-    root.querySelectorAll(MASK_ONLY).forEach(element => {
-      let mask = maskedUI.get(element);
-      if (!mask) {
-        mask = { choices: new Map(), ranges: [] };
-        maskedUI.set(element, mask);
-      }
-      let position = 0;
-      for (const node of textNodesIn(element, ".inspectable-label,.sr-only,script,style")) {
-        for (let offset = 0; offset < node.length; offset++, position++) {
-          if (!node.data[offset].trim()) continue;
-          if (!mask.choices.has(position)) mask.choices.set(position, Math.random() < settings.amount);
-          if (!mask.choices.get(position)) continue;
-          const range = document.createRange();
-          range.setStart(node, offset); range.setEnd(node, offset + 1);
-          highlight.add(range); mask.ranges.push(range);
-        }
-      }
-    });
-    // Re-register after dynamic text changes so browsers invalidate the highlight's paint.
-    CSS.highlights.set("glyph-swarm-taken", highlight);
-  };
-
   // Every visible character on the page, on screen or not; a random share of them leaves for the swarm.
   const sources: Source[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -242,7 +210,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const viewportCenter = () => ({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   const spacing = () => SPACING * settings.spacing;
   // Globe letters count too, so the zone has room for everyone.
-  const radius = () => zoneRadius(count + 22, spacing());
+  const radius = () => zoneRadius(Math.max(count + 22, glyphs.length), spacing());
   // A mouse is still over the globe after the click. A tap has already lifted, so on touch the anchor eases to the centre.
   const anchor = { ...origin };
   let pointer: Point | null = window.matchMedia("(hover: hover)").matches ? { ...origin } : null;
@@ -261,6 +229,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const spawn = (character: string, rect: DOMRect, at: Point, font: string, color: string, velocity: Point, floatMs: number, source?: Source) => {
     const element = document.createElement("span"); element.className = "glyph-swarm-glyph"; element.textContent = character;
     element.style.cssText = `width:${rect.width}px;height:${rect.height}px;font:${font};line-height:${rect.height}px;color:${color}`;
+    element.style.transform = `translate(${at.x - rect.width / 2}px,${at.y - rect.height / 2}px)`;
     const body = Bodies.rectangle(at.x, at.y, Math.max(2, rect.width * 0.9), Math.max(2, rect.height * 0.72),
       { restitution: settings.bounce, friction: 0.05, frictionStatic: 0.2, frictionAir: AIR, slop: 0.02 });
     Body.setVelocity(body, velocity); Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.2);
@@ -311,6 +280,70 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
 
   let phase: "loose" | "collapse" | "done" = "loose", removed = false;
+  const hoverLabels = new Map<HTMLElement, HoverLabel>();
+  let hoverPending = false, hoverCount = 0;
+  const clearLabelMask = (label: HoverLabel) => {
+    label.ranges.forEach(range => highlight?.delete(range)); label.ranges = [];
+    label.characters.forEach(character => character.style.removeProperty("opacity")); label.characters.clear();
+  };
+  const clearHoverLabels = () => {
+    hoverLabels.forEach(clearLabelMask); hoverLabels.clear(); hoverPending = false;
+  };
+  const refreshHoverLabels = () => {
+    if (phase !== "loose") return;
+    const now = performance.now();
+    const visible = new Set(root.querySelectorAll<HTMLElement>(HOVER_LABELS));
+    hoverPending = false;
+    for (const [element, label] of hoverLabels) {
+      clearLabelMask(label);
+      if (!visible.has(element) || element.dataset.finalText !== label.text) hoverLabels.delete(element);
+    }
+    const additions: { character: string; rect: DOMRect; font: string; color: string }[] = [];
+    for (const element of visible) {
+      let label = hoverLabels.get(element);
+      if (!label) {
+        const text = element.dataset.finalText ?? "";
+        const indices = Array.from({ length: text.length }, (_, index) => index).filter(index => text[index].trim());
+        // A few letters per label, always leaving some behind; repeated hovers respect the swarm budget.
+        const take = settings.amount > 0 ? Math.min(3, indices.length - 1, Math.round(indices.length * Math.min(0.3, settings.amount))) : 0;
+        const slots = new Map<number, { at: number; released: boolean }>();
+        for (let index = 0; index < take; index++) {
+          const [position] = indices.splice(Math.floor(Math.random() * indices.length), 1);
+          slots.set(position, { at: now + Math.random() * FLICKER_MS * 4, released: false });
+        }
+        label = { text, slots, ranges: [], characters: new Set() }; hoverLabels.set(element, label);
+      }
+      let position = 0;
+      for (const node of textNodesIn(element, ".inspectable-label,.sr-only,script,style")) {
+        for (let offset = 0; offset < node.length; offset++, position++) {
+          const slot = label.slots.get(position);
+          if (!slot) continue;
+          const range = document.createRange(); range.setStart(node, offset); range.setEnd(node, offset + 1);
+          if (!slot.released) {
+            if (count + 13 + hoverCount >= 520) { label.slots.delete(position); continue; }
+            // The shared reveal effect scrambles text first. Only donate the actual final character.
+            if (now < slot.at || node.data[offset] !== label.text[position]) { hoverPending = true; continue; }
+            const rect = range.getClientRects()[0];
+            if (!rect?.width || !rect.height) { hoverPending = true; continue; }
+            const style = getComputedStyle(node.parentElement!);
+            additions.push({ character: node.data[offset], rect, font: fontOf(style), color: style.color });
+            slot.released = true; hoverCount++;
+          }
+          const character = node.parentElement?.closest<HTMLElement>("[data-swarm-menu-char]");
+          if (character) { character.style.opacity = "0"; label.characters.add(character); }
+          else if (highlight) { highlight.add(range); label.ranges.push(range); }
+        }
+      }
+      if ([...label.slots.values()].some(slot => !slot.released)) hoverPending = true;
+    }
+    for (const addition of additions) {
+      const at = centerOf(addition.rect);
+      const glyph = spawn(addition.character, addition.rect, at, addition.font, addition.color, pop(at), 300 + Math.random() * 500);
+      glyph.transient = true;
+      glyph.tint = { start: glyph.bornAt + glyph.floatMs, end: glyph.bornAt + glyph.floatMs + 300 + Math.random() * 450, to: randomColor(), flickAt: 0 };
+    }
+    if (highlight) CSS.highlights.set("glyph-swarm-taken", highlight);
+  };
   let last: Point | null = null, touchId: number | null = null, penId: number | null = null;
   const push = (from: Point, to: Point) => {
     if (phase !== "loose") return;
@@ -431,6 +464,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   // line is still met exactly. Globe letters, and letters whose place no longer exists, sink into the globe or the end
   // of their line and fade instead of settling.
   const homeOf = (glyph: Glyph, globeCenter: Point): { point: Point; settles: boolean } => {
+    if (glyph.escape) return { point: glyph.escape, settles: false };
     if (glyph.globeChar) return { point: centerOf(glyph.globeChar.getBoundingClientRect()), settles: true };
     const source = glyph.source;
     // A place that is now a space (a different song) has no letter to settle into.
@@ -488,7 +522,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       }
       // Letters with no place to settle shrink and fade as they sink in. A globe letter settles into its spot's
       // depth-shaded opacity, so the spot takes over without a step.
-      const fade = settles || flight.settle ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
+      const fade = glyph.escape || settles || flight.settle ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
       const shade = glyph.globeChar && flight.settle ? 1 + (Number(glyph.globeChar.style.opacity || 1) - 1) * Math.min(1, (time - flight.settle.at) / flight.settle.duration) : fade;
       glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
       glyph.element.style.opacity = String(shade);
@@ -508,7 +542,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   const reattach = (time: number) => {
     morphing = false; patchesStale = true;
-    refreshUIMasks();
+    refreshHoverLabels();
     // Letters sharing a label also share its text walk; hover scrambles can replace it every frame.
     const nodes = new Map<Element, Text[]>();
     for (const glyph of glyphs) {
@@ -517,9 +551,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       morph(glyph, resolve(source, nodes), time);
     }
   };
-  refreshUIMasks();
+  refreshHoverLabels();
   const textObserver = new MutationObserver(() => reattach(performance.now()));
-  textObserver.observe(root, { subtree: true, childList: true, characterData: true });
+  textObserver.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "aria-hidden"] });
 
   const startedAt = performance.now();
   let frame = 0, previousTime = startedAt, pending = 0;
@@ -527,6 +561,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const dt = Math.min(64, time - previousTime) / 1000;
     pending = Math.min(pending + time - previousTime, STEP * 4); previousTime = time;
     const elapsed = time - startedAt, loose = phase === "loose";
+    if (loose && hoverPending) refreshHoverLabels();
     while (loose && queued < queue.length && queue[queued].at <= elapsed) release(queue[queued++].source);
     // The anchor trails the pointer lazily and never quite sits still, so the cloud sways rather than snapping into place.
     const target = pointer ?? viewportCenter();
@@ -602,8 +637,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (removed) return;
     removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect();
     window.removeEventListener("scroll", onScroll);
-    maskedMenuChars.forEach((_, character) => character.style.removeProperty("opacity"));
-    maskedMenuChars.clear(); maskedUI.clear();
+    clearHoverLabels();
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();
     globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });
@@ -621,8 +655,10 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       // Letters not yet released simply stay in their text.
       phase = "collapse"; queued = queue.length; collapseStartedAt = performance.now();
       unlisten(); pointer = null;
+      clearHoverLabels();
       // Each letter loosens with a small nudge, floats free for its own moment, then turns for home.
       for (const glyph of glyphs) {
+        if (glyph.transient) glyph.escape = exitPoint(glyph.body.position, window.innerWidth, window.innerHeight, Math.max(glyph.width, glyph.height) * 2);
         // Globe letters left first on entry, so they come home last, alongside the ring folding back.
         glyph.departAt = glyph.globeChar ? LET_GO_MS * 0.8 + Math.random() * LET_GO_MS * 0.5 : Math.random() * LET_GO_MS;
         // Page letters glitch back to their own colour as they turn for home, well before they land.

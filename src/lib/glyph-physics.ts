@@ -102,6 +102,17 @@ export function entryPoint(point: Point, width: number, height: number, inset = 
   return { x: Math.max(inset, Math.min(width - inset, point.x)), y: Math.max(inset, Math.min(height - inset, point.y)) };
 }
 
+/** A hover-only letter has no permanent slot: send it fully past the nearest viewport edge. */
+export function exitPoint(point: Point, width: number, height: number, margin: number): Point {
+  const edges = [
+    { distance: point.x, point: { x: -margin, y: point.y } },
+    { distance: width - point.x, point: { x: width + margin, y: point.y } },
+    { distance: point.y, point: { x: point.x, y: -margin } },
+    { distance: height - point.y, point: { x: point.x, y: height + margin } },
+  ];
+  return edges.reduce((nearest, edge) => edge.distance < nearest.distance ? edge : nearest).point;
+}
+
 /** One step of a critically damped spring: a smooth glide that keeps the current velocity and never overshoots. */
 export function springStep(position: number, velocity: number, target: number, omega: number, dt: number) {
   const next = velocity + (omega * omega * (target - position) - 2 * omega * velocity) * dt;
