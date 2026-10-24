@@ -116,6 +116,8 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
     // And ?exit=glitch has them glitch out of their places too, rather than burst, so both sides of the grid match.
     const glitchBoth = reel && new URLSearchParams(window.location.search).get("exit") === "glitch";
     const placed = letters.filter(element => element.textContent?.trim());
+    // ?columns=opposite moves the grid's two columns in opposite directions rather than as rows.
+    const reelOptions = { opposite: new URLSearchParams(window.location.search).get("columns") === "opposite" };
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
@@ -126,7 +128,7 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
           await wait(HOLD_MS, signal);
           const out = glitchInPlace(placed, signal, "out");
           await wait(placed.length / 2 * PLACE_STAGGER_MS, signal);
-          await Promise.all([out, playReel(reelStage, signal)]);
+          await Promise.all([out, playReel(reelStage, signal, reelOptions)]);
           await glitchInPlace(placed, signal, "in");
           await wait(HOLD_MS, signal);
           window.__ogLoops = (window.__ogLoops ?? 0) + 1;
@@ -138,7 +140,7 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
         await wait(150, signal);
         await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined,
           // The grid slides in as the last letters are leaving the card.
-          away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, goneShare: REEL_GONE_SHARE, comeBack, interlude: () => playReel(reelStage, signal) } : undefined });
+          away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, goneShare: REEL_GONE_SHARE, comeBack, interlude: () => playReel(reelStage, signal, reelOptions) } : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         // Glitching back in place already ends in black, so it needs no second glitch.
         if (!(reel && comeBack === "glitch")) {

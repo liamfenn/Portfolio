@@ -14,6 +14,7 @@
 // named office-of-liam-fennell-reel-*, also leaving the og:video alone; with --quick, only its 16:9 frames. Add
 // --glitch-return for the letters glitching back in place rather than floating home (named -glitch-return), or
 // --glitch-both for them glitching out of their places as well as back in, instead of bursting (named -glitch-both).
+// --opposite moves the 16:9 grid's two columns in opposite directions (named -opposite), and records 16:9 only.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -21,7 +22,7 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
-const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--glitch-return", "return=glitch", "-glitch-return"], ["--glitch-both", "exit=glitch", "-glitch-both"]]
+const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--glitch-return", "return=glitch", "-glitch-return"], ["--glitch-both", "exit=glitch", "-glitch-both"], ["--opposite", "columns=opposite", "-opposite"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const REEL = process.argv.includes("--reel");
@@ -81,13 +82,15 @@ const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error"
 
 if (REEL) {
   mkdirSync(SHARE, { recursive: true });
-  for (const [name, width, height, scale] of QUICK ? [["16x9", 1200, 675, 1]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {
+  // The 9:16 grid is one column, so opposite columns only exist on 16:9.
+  const OPPOSITE = process.argv.includes("--opposite");
+  for (const [name, width, height, scale] of QUICK || OPPOSITE ? [["16x9", 1200, 675, QUICK ? 1 : 1.6]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {
     const dir = await record(width, height, scale);
     if (QUICK) continue;
     encode(dir, `${SHARE}/${NAME}-${name}${SUFFIX}.mp4`, 16);
     execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/${NAME}-${name}${SUFFIX}.png`]);
   }
-  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-{16x9,9x16}${SUFFIX}.{mp4,png}`);
+  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-${OPPOSITE ? "16x9" : "{16x9,9x16}"}${SUFFIX}.{mp4,png}`);
   process.exit(0);
 }
 const preview = await record(1200, 630, 1);

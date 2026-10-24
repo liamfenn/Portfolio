@@ -101,10 +101,10 @@ const NEARLY_GONE = 0.3;
  * Plays the interlude in `stage` (which fills the card). Resolves once the grid has nearly flown off, so whatever
  * follows can start while its last rows finish leaving; it tidies itself away after.
  */
-export function playReel(stage: HTMLElement, signal: AbortSignal) {
-  return new Promise<void>((resolve, reject) => { run(stage, signal, resolve).then(resolve, reject); });
+export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opposite?: boolean } = {}) {
+  return new Promise<void>((resolve, reject) => { run(stage, signal, resolve, options.opposite ?? false).then(resolve, reject); });
 }
-async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void) {
+async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void, opposite: boolean) {
   const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height), { columns, rows, size, gap } = layout;
   const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2, scale = width * WARP * 4;
   const grid = document.createElement("div"), filterId = "og-reel-filter";
@@ -117,20 +117,25 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
       <feGaussianBlur in="warped" stdDeviation="0 0"/>
     </filter></svg>`);
   const blur = stage.querySelector("feGaussianBlur")!;
-  const elements = Array.from({ length: rows }, () => {
+  // Rows move as one; or, with `opposite`, two columns move apart: the left comes up from below as usual and the right,
+  // its mirror, comes down from above, each carrying its own six projects.
+  const rowLeft = (width - rowWidth) / 2, split = opposite && columns > 1;
+  const sets = split ? [{ left: rowLeft, mirror: false, count: 1 }, { left: rowLeft + size + gap, mirror: true, count: 1 }] : [{ left: rowLeft, mirror: false, count: columns }];
+  const elements = sets.flatMap(({ left, mirror, count }) => Array.from({ length: rows }, (_, row) => {
     const element = document.createElement("div");
     element.className = "og-reel-row";
-    // Placed below the card from the start, so nothing shows before the first frame moves it.
-    element.style.cssText = `left:${(width - rowWidth) / 2}px;width:${rowWidth}px;height:${size}px;gap:${gap}px;transform:translateY(${height}px);visibility:hidden`;
-    for (let column = 0; column < columns; column++) {
+    // Placed off the card from the start, so nothing shows before the first frame moves it.
+    element.style.cssText = `left:${left}px;width:${count * size + (count - 1) * gap}px;height:${size}px;gap:${gap}px;transform:translateY(${mirror ? -size : height}px);visibility:hidden`;
+    for (let column = 0; column < count; column++) {
       const block = document.createElement("div");
       block.className = "og-reel-block";
       block.style.width = `${size}px`;
       element.append(block);
     }
     grid.append(element);
-    return element;
-  });
+    return { element, row, mirror };
+  }));
+  const rowIndexes = Array.from({ length: rows }, (_, row) => row);
   grid.style.filter = `url(#${filterId})`;
   stage.append(grid);
   try {
@@ -142,17 +147,18 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
       const ms = time - start, spinning = ms - ENTER_MS, leaving = (spinning - SPIN_MS) / LEAVE_MS;
       // Sliding in from just below the card, accelerating then settling, before the scroll takes over.
       const enter = (1 - enterEase(ms / ENTER_MS)) * (height - firstTop), offset = scrollOffset(Math.min(spinning, SPIN_MS));
-      if (leaving > 0 && !frozen) frozen = elements.map((_, row) => rowTop(row, offset, layout, firstTop));
+      if (leaving > 0 && !frozen) frozen = rowIndexes.map(row => rowTop(row, offset, layout, firstTop));
       const leave = leaving > 0 ? leaveEase(leaving) * (height + size) : 0;
-      const tops = elements.map((_, row) => frozen ? frozen[row] - leave - scrollOffset(spinning) + offset : rowTop(row, offset, layout, firstTop) + enter);
+      const tops = rowIndexes.map(row => frozen ? frozen[row] - leave - scrollOffset(spinning) + offset : rowTop(row, offset, layout, firstTop) + enter);
       // The blur follows how fast the rows are actually moving, whichever part of the move this is.
       const moved = previousTops.length ? Math.abs(tops[0] - previousTops[0]) / Math.max(1, time - previous) * 1000 : 0;
       const speed = moved > 2 * height ? scrollSpeed(spinning) : moved, intensity = spinning > 0 ? speedIntensity(speed) : 0;
       blur.setAttribute("stdDeviation", `0 ${(Math.min(36, speed / 60 * 0.4) * intensity).toFixed(2)}`);
-      elements.forEach((element, row) => {
+      elements.forEach(({ element, row, mirror }) => {
         const top = tops[row], below = frozen !== null && frozen[row] > height;
         element.style.visibility = below || top > height + 40 || top + size < -40 ? "hidden" : "";
-        element.style.transform = `translateY(${top}px)`;
+        // The mirrored column runs the same move upside down: in from above, scrolling down, out at the bottom.
+        element.style.transform = `translateY(${mirror ? height - top - size : top}px)`;
       });
       previousTops = tops;
       if (!told && frozen && tops.every((top, row) => frozen![row] > height || top + size < height * NEARLY_GONE)) { told = true; nearlyGone(); }
