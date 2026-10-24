@@ -1,16 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PROJECTS, SPIN_MS, bezier, enterEase, leaveEase, reelLayout, rowTop, scrollOffset, scrollSpeed, speedIntensity, warpAt } from "../src/lib/og-reel.ts";
+import { PROJECTS, SPIN_MS, bezier, enterEase, reelLayout, rowTop, scrollOffset, scrollSpeed, speedIntensity, warpAt } from "../src/lib/og-reel.ts";
 
-test("the grid drifts slowly at first, then ramps up from about midway, never pausing", () => {
+test("the grid drifts, ramps up from about midway, then eases off a little without slowing to a drift", () => {
   assert.equal(scrollOffset(0), 0);
   assert.ok(scrollSpeed(SPIN_MS * 0.25) < 200);
-  assert.ok(scrollSpeed(SPIN_MS) > 5000);
-  for (let ms = 100; ms <= SPIN_MS; ms += 100) {
-    assert.ok(scrollSpeed(ms) >= scrollSpeed(ms - 100));
-    assert.ok(scrollOffset(ms) > scrollOffset(ms - 100));
+  const peak = scrollSpeed(SPIN_MS * 0.8);
+  assert.ok(peak > 5000);
+  for (let ms = 100; ms <= SPIN_MS * 0.8; ms += 100) assert.ok(scrollSpeed(ms) >= scrollSpeed(ms - 100));
+  for (let ms = SPIN_MS * 0.8 + 100; ms <= SPIN_MS; ms += 100) assert.ok(scrollSpeed(ms) <= scrollSpeed(ms - 100));
+  assert.ok(scrollSpeed(SPIN_MS) < peak * 0.7 && scrollSpeed(SPIN_MS) > peak * 0.5);
+  assert.equal(scrollSpeed(SPIN_MS + 500), scrollSpeed(SPIN_MS));
+  // The offset is the speed integrated: it never stops moving and matches the speed between samples.
+  for (let ms = 50; ms <= SPIN_MS + 500; ms += 50) {
+    const step = scrollOffset(ms) - scrollOffset(ms - 50), mean = (scrollSpeed(ms) + scrollSpeed(ms - 50)) / 2 * 0.05;
+    assert.ok(step > 0 && Math.abs(step - mean) < Math.max(1, mean * 0.05));
   }
-  assert.ok(scrollSpeed(SPIN_MS / 2) < scrollSpeed(SPIN_MS) / 4);
 });
 
 test("the scroll blurs only once it is moving fast", () => {
@@ -19,11 +24,10 @@ test("the scroll blurs only once it is moving fast", () => {
   assert.equal(speedIntensity(2000), 1);
 });
 
-test("the slide in accelerates, then decelerates; the way out only accelerates", () => {
+test("the slide in accelerates, then decelerates", () => {
   assert.ok(Math.abs(bezier(0.25, 0.1, 0.25, 1, 0)) < 1e-6 && Math.abs(bezier(0.25, 0.1, 0.25, 1, 1) - 1) < 1e-6);
   assert.ok(Math.abs(enterEase(0.5) - 0.5) < 0.01);
   assert.ok(enterEase(0.1) < 0.05 && enterEase(0.9) > 0.95);
-  assert.ok(leaveEase(0.5) < 0.5 && leaveEase(1) > 0.999);
 });
 
 test("twelve projects: six rows of two on a wide card, twelve in one column with 30px margins on a tall one", () => {

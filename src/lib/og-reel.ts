@@ -9,16 +9,20 @@ import { smoothstep } from "@/lib/glyph-physics";
  */
 
 export const PROJECTS = 12;
-/** Slides in from below, drifts, ramps up from about midway, then flies off the top. */
+/** Slides in from below, drifts, ramps up from about midway, eases off a little, then slides off at that speed. */
 export const ENTER_MS = 900;
 export const SPIN_MS = 3600;
 export const LEAVE_MS = 500;
 export const REEL_MS = ENTER_MS + SPIN_MS + LEAVE_MS;
-/** The drift, and the speed the ramp builds to by the end, in px per second. */
+/** The drift, and how much faster the ramp builds by its peak, in px per second. */
 const DRIFT_SPEED = 70;
 const TOP_SPEED = 5500;
 /** The ramp's curve: a higher power stays slow for longer, then takes off. */
-const RAMP_POWER = 3;
+const RAMP_POWER = 3.5;
+/** The ramp peaks this far through the spin, then eases down to this share of its peak, which carries the grid out,
+ * slow enough to see it slide away rather than vanish. */
+const PEAK_AT = 0.8;
+const EASE_TO = 0.6;
 /** How far the warp draws the corners in, as a share of the card's width. */
 const WARP = 0.04;
 
@@ -32,18 +36,24 @@ export function bezier(x1: number, y1: number, x2: number, y2: number, t: number
 }
 /** The slide in: accelerates, then decelerates into place. 0 → 1. */
 export const enterEase = (t: number) => bezier(0.65, 0, 0.35, 1, t);
-/** The way out: the reverse half, accelerating away. 0 → 1. */
-export const leaveEase = (t: number) => bezier(0.55, 0, 1, 0.45, t);
+const PEAK_MS = SPIN_MS * PEAK_AT, PEAK_SPEED = DRIFT_SPEED + TOP_SPEED, END_SPEED = PEAK_SPEED * EASE_TO;
 
-/** How far the grid has scrolled, in px, `ms` after it has slid in. */
-export function scrollOffset(ms: number) {
-  const t = Math.max(0, ms) / 1000, total = SPIN_MS / 1000;
-  return DRIFT_SPEED * t + TOP_SPEED * total / (RAMP_POWER + 1) * Math.pow(t / total, RAMP_POWER + 1);
-}
-/** Its speed then, in px per second. */
+/** The scroll's speed, in px per second, `ms` after the grid has slid in: up the ramp, a smooth ease off, then steady. */
 export function scrollSpeed(ms: number) {
-  const t = Math.max(0, ms) / SPIN_MS;
-  return DRIFT_SPEED + TOP_SPEED * Math.pow(t, RAMP_POWER);
+  const t = Math.max(0, ms);
+  if (t <= PEAK_MS) return DRIFT_SPEED + TOP_SPEED * Math.pow(t / PEAK_MS, RAMP_POWER);
+  if (t <= SPIN_MS) return END_SPEED + (PEAK_SPEED - END_SPEED) * (1 - smoothstep((t - PEAK_MS) / (SPIN_MS - PEAK_MS)));
+  return END_SPEED;
+}
+/** How far the grid has scrolled by then, in px: the speed above, integrated. */
+export function scrollOffset(ms: number) {
+  const t = Math.max(0, ms), ramp = (time: number) => DRIFT_SPEED * time / 1000 + TOP_SPEED * PEAK_MS / 1000 / (RAMP_POWER + 1) * Math.pow(time / PEAK_MS, RAMP_POWER + 1);
+  if (t <= PEAK_MS) return ramp(t);
+  const easing = SPIN_MS - PEAK_MS, ease = (time: number) => {
+    const s = (time - PEAK_MS) / easing;
+    return ramp(PEAK_MS) + END_SPEED * (time - PEAK_MS) / 1000 + (PEAK_SPEED - END_SPEED) * easing / 1000 * (s - (s ** 3 - s ** 4 / 2));
+  };
+  return t <= SPIN_MS ? ease(t) : ease(SPIN_MS) + END_SPEED * (t - SPIN_MS) / 1000;
 }
 /** How strongly the scroll blurs at a speed: none while drifting, fully by 1,500 px/s. */
 export function speedIntensity(speed: number) {
@@ -188,8 +198,8 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
       // Sliding in from just below the card, accelerating then settling, before the scroll takes over.
       const enter = (1 - enterEase(ms / ENTER_MS)) * (height - firstTop), offset = scrollOffset(Math.min(spinning, SPIN_MS));
       if (leaving > 0 && !frozen) frozen = rowIndexes.map(row => rowTop(row, offset, layout, firstTop));
-      const leave = leaving > 0 ? leaveEase(leaving) * (height + size) : 0;
-      const tops = rowIndexes.map(row => frozen ? frozen[row] - leave - scrollOffset(spinning) + offset : rowTop(row, offset, layout, firstTop) + enter);
+      // Once frozen, the rows just carry on at the eased-off speed until they have slid off the card.
+      const tops = rowIndexes.map(row => frozen ? frozen[row] - (scrollOffset(spinning) - offset) : rowTop(row, offset, layout, firstTop) + enter);
       // The blur follows how fast the rows are actually moving, whichever part of the move this is.
       const moved = previousTops.length ? Math.abs(tops[0] - previousTops[0]) / Math.max(1, time - previous) * 1000 : 0;
       const speed = moved > 2 * height ? scrollSpeed(spinning) : moved, intensity = spinning > 0 ? speedIntensity(speed) : 0;
@@ -203,7 +213,8 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
       previousTops = tops;
       tiles?.frame(ms);
       if (!told && frozen && tops.every((top, row) => frozen![row] > height || top + size < height * NEARLY_GONE)) { told = true; nearlyGone(); }
-      if (leaving >= 1) break;
+      if (frozen && tops.every((top, row) => frozen![row] > height || top + size < -40)) break;
+      if (leaving >= 4) break;
     }
   } finally {
     tiles?.stop(); grid.remove(); stage.querySelector(".og-reel-filters")?.remove();
