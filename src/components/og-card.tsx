@@ -50,7 +50,7 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
 }
 
 /** The capture script sets window.__ogEvents to collect what happens, for timing the sound effects. */
-declare global { interface Window { __ogLoops?: number; __ogEvents?: BurstEvent[] } }
+declare global { interface Window { __ogLoops?: number; __ogReady?: boolean; __ogEvents?: BurstEvent[] } }
 const recordEvent = (event: BurstEvent) => { window.__ogEvents?.push(event); };
 
 /**
@@ -73,6 +73,8 @@ export function OgCard() {
     const landing = new URLSearchParams(window.location.search).get("landing") === "reverse" ? "reverse" : "reading";
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
+      // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
+      window.__ogReady = true;
       for (;;) {
         await wait(HOLD_MS, signal);
         const colors = currentGlyphPalette();

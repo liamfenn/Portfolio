@@ -1,5 +1,5 @@
-// Records one loop of the /og card, frame by frame, then encodes the link-preview video, its poster, and share cuts in
-// out/share: 1.91:1 (the link-preview shape), vertical 9:16 at 1080p, and square, each with a still of its first frame. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
+// Records one loop of the /og card, frame by frame, then encodes the link-preview video (1.91:1, only for og:video), its
+// poster, and social share cuts in out/share: 16:9 and 9:16 at 1080p, and square, each with a still of its first frame. The page runs on a virtual clock (requestAnimationFrame and performance.now are replaced),
 // so every frame is exactly 1/60s apart however long a screenshot takes, and Math.random is seeded, so a rerun gives
 // the same video.
 //
@@ -49,12 +49,12 @@ async function record(width, height, scale) {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale });
   await page.addInitScript(clock, SEED);
-  await page.goto(PAGE, { waitUntil: "networkidle" });
+  // Not "networkidle": dev tooling (Agentation retrying its local server) can keep the network busy indefinitely.
+  await page.goto(PAGE, { waitUntil: "load" });
   // Dev-only overlays (the Next indicator, Agentation) would otherwise sit on top of the card.
   await page.addStyleTag({ content: "nextjs-portal, [data-feedback-toolbar] { display: none !important; }" });
-  await page.evaluate(() => document.fonts.ready);
-  // Lets the card finish loading Matter.js on real time before its first virtual frame.
-  await page.waitForTimeout(500);
+  // The card sets this once its fonts and Matter.js have loaded, so the first virtual frame is its first real one.
+  await page.waitForFunction(() => window.__ogReady === true, null, { timeout: 60000 });
   let frame = 0;
   for (; frame < MAX_FRAMES; frame++) {
     await page.screenshot({ path: `${dir}/${String(frame).padStart(5, "0")}.png` });
@@ -78,13 +78,13 @@ if (!QUICK) {
     encode(preview, "public/images/meta/og-office.mp4", 20);
     execFileSync("cp", [`${preview}/00000.png`, "public/images/meta/og-office.png"]);
   }
-  // Share cuts, each a video and its first frame: the 1.91:1 link-preview shape, 9:16, and 1:1. The 9:16 cut is laid out
-  // at 675×1200 and scaled up to 1080×1920, so the text keeps roughly the card's scale on a phone screen.
+  // Social share cuts, each a video and its first frame. The 16:9 and 9:16 cuts are laid out at 1200×675 and 675×1200 and
+  // scaled up to 1080p, so the text keeps roughly the card's scale.
   mkdirSync(SHARE, { recursive: true });
-  for (const [name, width, height, scale] of [["og", 1200, 630, 2], ["9x16", 675, 1200, 1.6], ["1x1", 1200, 1200, 2]]) {
+  for (const [name, width, height, scale] of [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6], ["1x1", 1200, 1200, 2]]) {
     const dir = await record(width, height, scale);
     encode(dir, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.mp4`, 16);
     execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/office-of-liam-fennell-${name}${SUFFIX}.png`]);
   }
-  console.log(`Wrote ${VARIANT ? "" : "public/images/meta/og-office.{mp4,png} and "}${SHARE}/office-of-liam-fennell-{og,9x16,1x1}${SUFFIX}.{mp4,png}`);
+  console.log(`Wrote ${VARIANT ? "" : "public/images/meta/og-office.{mp4,png} and "}${SHARE}/office-of-liam-fennell-{16x9,9x16,1x1}${SUFFIX}.{mp4,png}`);
 }

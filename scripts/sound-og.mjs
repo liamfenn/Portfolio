@@ -1,17 +1,17 @@
-// Scores the og share cuts with sound effects, no music. The sounds and the rules for when they play live in
+// Scores the 16:9 and 9:16 social share cuts with sound effects, no music. The sounds and the rules for when they play live in
 // scripts/og-sound/synth.mjs, shared with the sound lab, and the chosen settings in scripts/og-sound/settings.json
 // (pasted from the lab's Copy settings). Events come from scripts/capture-og.mjs (events.json in each frames folder),
 // so rerun that first after changing the animation. Seeded, so a rerun gives the same audio.
 //
 //   node scripts/sound-og.mjs
-// Writes out/share/office-of-liam-fennell-{og,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
+// Writes out/share/office-of-liam-fennell-{16x9,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
 // loop until the last sound has died away, and the video holds its last frame (the plain name) for that tail.
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { DEFAULTS, RATE, mix } from "./og-sound/synth.mjs";
 
 const FPS = 60;
-const CUTS = [["og", "out/og-frames-1200x630@2x"], ["9x16", "out/og-frames-675x1200@1.6x"]];
+const CUTS = [["16x9", "out/og-frames-1200x675@1.6x"], ["9x16", "out/og-frames-675x1200@1.6x"]];
 const saved = JSON.parse(readFileSync(new URL("./og-sound/settings.json", import.meta.url), "utf8"));
 const SETTINGS = Object.fromEntries(Object.entries(DEFAULTS).map(([sound, values]) => [sound, { ...values, ...saved[sound] }]));
 
