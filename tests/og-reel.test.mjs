@@ -9,7 +9,7 @@ test("the grid drifts, ramps up from about midway, then eases off a little witho
   assert.ok(peak > 5000);
   for (let ms = 100; ms <= SPIN_MS * 0.8; ms += 100) assert.ok(scrollSpeed(ms) >= scrollSpeed(ms - 100));
   for (let ms = SPIN_MS * 0.8 + 100; ms <= SPIN_MS; ms += 100) assert.ok(scrollSpeed(ms) <= scrollSpeed(ms - 100));
-  assert.ok(scrollSpeed(SPIN_MS) < peak * 0.7 && scrollSpeed(SPIN_MS) > peak * 0.5);
+  assert.ok(scrollSpeed(SPIN_MS) < peak * 0.55 && scrollSpeed(SPIN_MS) > peak * 0.35);
   assert.equal(scrollSpeed(SPIN_MS + 500), scrollSpeed(SPIN_MS));
   // The offset is the speed integrated: it never stops moving and matches the speed between samples.
   for (let ms = 50; ms <= SPIN_MS + 500; ms += 50) {

@@ -22,7 +22,7 @@ const RAMP_POWER = 3.5;
 /** The ramp peaks this far through the spin, then eases down to this share of its peak, which carries the grid out,
  * slow enough to see it slide away rather than vanish. */
 const PEAK_AT = 0.8;
-const EASE_TO = 0.6;
+const EASE_TO = 0.45;
 /** How far the warp draws the corners in, as a share of the card's width. */
 const WARP = 0.04;
 

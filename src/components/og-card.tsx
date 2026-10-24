@@ -5,7 +5,6 @@ import { InspectableText } from "@/components/design-inspector";
 import { burst, shuffled } from "@/lib/og-burst";
 import { playReel } from "@/lib/og-reel";
 import { AV1_MIME, mediaUrl } from "@/lib/media-delivery";
-import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import type { BurstEvent } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
@@ -23,6 +22,8 @@ const ALL_GLITCH_STAGGER_MS = 25;
  * first kick at most. */
 const REEL_GONE_SHARE = 0.5;
 const REEL_AFTER_KICK_MS = 2000;
+/** The work shown in the reel's video tiles: the Shop product-page prototype (public/media/shop, from process-video.sh). */
+const REEL_VIDEO = { av1: "/media/shop/preview-01-1600.av1.mp4", h264: "/media/shop/preview-01-1600.mp4" };
 /** With ?exit=glitch in the reel, letters glitch out of their places and back in this far apart, in a random order. */
 const PLACE_STAGGER_MS = 40;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
@@ -121,11 +122,9 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
     const params = new URLSearchParams(window.location.search);
     const glitchBoth = reel && params.get("exit") !== "burst";
     const placed = letters.filter(element => element.textContent?.trim());
-    const work = PROJECT_PREVIEWS.find(project => project.media?.kind === "video")?.media;
-    // The largest rendition, in AV1 where the browser plays it (the capture's Chromium has no H.264).
-    const rung = work?.kind === "video" ? work.renditions.at(-1) : undefined;
-    const workSrc = rung ? (document.createElement("video").canPlayType(AV1_MIME) ? rung.av1 : rung.h264) : work?.src;
-    const reelOptions = { opposite: params.get("columns") !== "rows", video: params.get("tiles") === "video" && workSrc ? mediaUrl(workSrc) : undefined };
+    // In AV1 where the browser plays it (the capture's Chromium has no H.264).
+    const workSrc = document.createElement("video").canPlayType(AV1_MIME) ? REEL_VIDEO.av1 : REEL_VIDEO.h264;
+    const reelOptions = { opposite: params.get("columns") !== "rows", video: params.get("tiles") === "video" ? mediaUrl(workSrc) : undefined };
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
