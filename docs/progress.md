@@ -35,9 +35,9 @@ production) is still the August version. Merging is Liam's call.
 
 **Hover letters join the party (2026-10-23)**
 - Replaced preemptive random masks on hidden dropdown options and project labels. Newly visible labels donate a few actual final characters (up to three per label, with a short random stagger), using the existing pop, capture physics, and palette glitch. Selected sort/grid controls still contribute to the original startup swarm.
-- Donations happen once per visible label; staying hovered does not keep adding letters. Leaving restores that label immediately; another reveal can donate a new selection within the existing swarm budget. Mobile expanded labels and keyboard-revealed controls also participate.
+- Donations happen once per project label or menu option for the entire party, using stable identities that survive dropdown remounts and grid moves. Returning to a label preserves the same missing positions without adding letters. Menu options donate on their own first hover/focus; mobile expanded labels follow the same persistent rule. Exit clears all donation state.
 - These extra letters have no permanent return slot. Exiting immediately restores their labels and sends their floating copies past the nearest viewport edge. Ordinary page/globe letters retain their existing return animation.
-- Verified real desktop dropdown/tile hovers with the inspector on/off, repeated hover stability, immediate label restoration, offscreen exits (no visible removal), touch expansion, and reduced motion. Added nearest-edge exit coverage to the motion tests.
+- Verified real desktop dropdown/tile hovers with the inspector on/off, individual-option activation, persistence across dropdown remounts and tile re-entry, immediate label restoration on exit, offscreen exits (no visible removal), repeated touch expansion, and reduced motion. Added nearest-edge exit coverage to the motion tests.
 
 **Mobile grid/list transitions (2026-10-23)**
 - The mobile 1-column/2-column control now uses the same 180ms layout tween as desktop density changes and mobile project expansion. Label counter-scaling, interrupted transitions, and reduced-motion behavior share the existing implementation.

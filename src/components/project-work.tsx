@@ -57,8 +57,8 @@ const DENSITY_VISIBLE = {
   filter: "blur(0px)",
 } as const;
 
-function MenuOptionText({ text }: { text: string }) {
-  return <span className="work-option-text" data-final-text={text}><InspectableText>{Array.from(text).map((character, index) =>
+function MenuOptionText({ text, labelId }: { text: string; labelId: string }) {
+  return <span className="work-option-text" data-swarm-label-id={labelId} data-final-text={text}><InspectableText>{Array.from(text).map((character, index) =>
     <span key={index} data-swarm-menu-char>{character}</span>
   )}</InspectableText></span>;
 }
@@ -560,7 +560,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopSort(option.value)}
                   >
-                    <MenuOptionText text={option.label} />
+                    <MenuOptionText labelId={`sort:${option.value}`} text={option.label} />
                   </motion.button>
                 ))}
               </AnimatePresence>
@@ -622,7 +622,7 @@ export function ProjectWork() {
                     transition={DENSITY_TRANSITION}
                     onClick={() => selectDesktopDensity(density)}
                   >
-                    <MenuOptionText text={`${density} x ${density}`} />
+                    <MenuOptionText labelId={`density:${density}`} text={`${density} x ${density}`} />
                   </motion.button>
                 ))}
               </AnimatePresence>

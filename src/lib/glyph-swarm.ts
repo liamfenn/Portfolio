@@ -280,7 +280,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   }
 
   let phase: "loose" | "collapse" | "done" = "loose", removed = false;
-  const hoverLabels = new Map<HTMLElement, HoverLabel>();
+  // Stable identities preserve donations when menus unmount and labels hide or move in the grid.
+  const hoverLabels = new Map<string, HoverLabel>();
   let hoverPending = false, hoverCount = 0;
   const clearLabelMask = (label: HoverLabel) => {
     label.ranges.forEach(range => highlight?.delete(range)); label.ranges = [];
@@ -292,26 +293,30 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const refreshHoverLabels = () => {
     if (phase !== "loose") return;
     const now = performance.now();
-    const visible = new Set(root.querySelectorAll<HTMLElement>(HOVER_LABELS));
+    // Retain masks through closing scrambles too; only new donations require an active label.
+    const elements = root.querySelectorAll<HTMLElement>("[data-swarm-label-id]");
     hoverPending = false;
-    for (const [element, label] of hoverLabels) {
-      clearLabelMask(label);
-      if (!visible.has(element) || element.dataset.finalText !== label.text) hoverLabels.delete(element);
-    }
+    hoverLabels.forEach(clearLabelMask);
     const additions: { character: string; rect: DOMRect; font: string; color: string }[] = [];
-    for (const element of visible) {
-      let label = hoverLabels.get(element);
+    for (const element of elements) {
+      const id = element.dataset.swarmLabelId;
+      if (!id) continue;
+      const active = element.matches(HOVER_LABELS);
+      let label = hoverLabels.get(id);
       if (!label) {
+        if (!active) continue;
+        const option = element.closest(".work-density-option");
+        if (option && !option.matches(":hover, :focus-visible")) continue;
         const text = element.dataset.finalText ?? "";
         const indices = Array.from({ length: text.length }, (_, index) => index).filter(index => text[index].trim());
-        // A few letters per label, always leaving some behind; repeated hovers respect the swarm budget.
+        // Choose once per label for this party, always leaving some letters behind.
         const take = settings.amount > 0 ? Math.min(3, indices.length - 1, Math.round(indices.length * Math.min(0.3, settings.amount))) : 0;
         const slots = new Map<number, { at: number; released: boolean }>();
         for (let index = 0; index < take; index++) {
           const [position] = indices.splice(Math.floor(Math.random() * indices.length), 1);
           slots.set(position, { at: now + Math.random() * FLICKER_MS * 4, released: false });
         }
-        label = { text, slots, ranges: [], characters: new Set() }; hoverLabels.set(element, label);
+        label = { text, slots, ranges: [], characters: new Set() }; hoverLabels.set(id, label);
       }
       let position = 0;
       for (const node of textNodesIn(element, ".inspectable-label,.sr-only,script,style")) {
@@ -320,6 +325,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
           if (!slot) continue;
           const range = document.createRange(); range.setStart(node, offset); range.setEnd(node, offset + 1);
           if (!slot.released) {
+            if (!active) continue;
             if (count + 13 + hoverCount >= 520) { label.slots.delete(position); continue; }
             // The shared reveal effect scrambles text first. Only donate the actual final character.
             if (now < slot.at || node.data[offset] !== label.text[position]) { hoverPending = true; continue; }
@@ -334,7 +340,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
           else if (highlight) { highlight.add(range); label.ranges.push(range); }
         }
       }
-      if ([...label.slots.values()].some(slot => !slot.released)) hoverPending = true;
+      if (active && [...label.slots.values()].some(slot => !slot.released)) hoverPending = true;
     }
     for (const addition of additions) {
       const at = centerOf(addition.rect);
@@ -343,6 +349,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       glyph.tint = { start: glyph.bornAt + glyph.floatMs, end: glyph.bornAt + glyph.floatMs + 300 + Math.random() * 450, to: randomColor(), flickAt: 0 };
     }
     if (highlight) CSS.highlights.set("glyph-swarm-taken", highlight);
+  };
+  const onLabelInteraction = (event: Event) => {
+    if ((event.target as Element | null)?.closest?.(".work-density-option")) refreshHoverLabels();
   };
   let last: Point | null = null, touchId: number | null = null, penId: number | null = null;
   const push = (from: Point, to: Point) => {
@@ -411,6 +420,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   window.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
   window.addEventListener("touchend", onTouchEnd, { passive: true }); window.addEventListener("touchcancel", onTouchEnd, { passive: true });
   document.addEventListener("selectstart", preventSelection);
+  root.addEventListener("pointerover", onLabelInteraction);
+  root.addEventListener("focusin", onLabelInteraction);
   let patchesStale = true;
   const onScroll = () => { patchesStale = true; };
   const onResize = () => {
@@ -626,6 +637,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   frame = requestAnimationFrame(render);
 
   const unlisten = () => {
+    root.removeEventListener("pointerover", onLabelInteraction);
+    root.removeEventListener("focusin", onLabelInteraction);
     window.removeEventListener("pointerdown", onDown, true); window.removeEventListener("pointermove", onMove, true);
     window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp);
     document.documentElement.removeEventListener("pointerleave", onLeave);

@@ -10,7 +10,7 @@ import { InspectableText } from "@/components/design-inspector";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
-function ProjectLabel({ text, visible, delay }: { text: string; visible: boolean; delay: number }) {
+function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible: boolean; delay: number; labelId: string }) {
   const [shown, setShown] = useState(visible);
   useEffect(() => {
     const timer = window.setTimeout(() => setShown(visible), delay);
@@ -24,7 +24,7 @@ function ProjectLabel({ text, visible, delay }: { text: string; visible: boolean
     ignore: [],
     playOnMount: false,
   });
-  return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
+  return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
 export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover }: {
@@ -61,8 +61,8 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
-          <span className="homepage-project-company"><ProjectLabel text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
-          <span className="homepage-project-period"><ProjectLabel text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
+          <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
+          <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
       </button>
     </li>

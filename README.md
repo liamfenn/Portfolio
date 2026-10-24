@@ -99,10 +99,11 @@ stay behind as the exit: a flat ring of glyphs around an empty centre, like a
 stroke, turning slowly clockwise. The swarm keeps a small clear pocket around it
 so it always reads.
 
-While the swarm is active, opening sort/grid menus or revealing a project's title and date releases a few
+While the swarm is active, first hovering a sort/grid menu option or revealing a project's title and date releases a few
 more letters into it. These hover-only labels stay intact until revealed, then their letters pop out and
-color-glitch with the same capture motion. Leaving restores the label immediately. On exit, these extra
-copies fly offscreen while labels restore at once; permanent page letters still glide home normally.
+color-glitch with the same capture motion. Each label keeps the same missing characters for that party,
+including across dropdown remounts and repeated mobile taps, without donating more on re-entry. On exit,
+these extra copies fly offscreen while labels restore at once; permanent page letters still glide home normally.
 
 The swarm has no downward gravity. It floats in a loose zone that trails the
 cursor lazily and sways a little. Each letter circles its own spot in the zone and
