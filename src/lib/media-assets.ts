@@ -29,7 +29,24 @@ export interface PortfolioVideoAsset extends PortfolioMediaBase {
 
 export type PortfolioMediaAsset = PortfolioImageAsset | PortfolioVideoAsset;
 
+// Absolute URLs keep this preview available when the deployment has no media base URL configured.
+const SHOP_PRODUCT_PAGE_MEDIA = "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop/preview-01";
+
 export const MEDIA_ASSETS = {
+  shopProductPage: {
+    id: "shop-product-page",
+    kind: "video",
+    src: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.mp4`,
+    poster: `${SHOP_PRODUCT_PAGE_MEDIA}-poster.webp`,
+    alt: "Shop product page interaction prototype",
+    width: 1600,
+    height: 1600,
+    renditions: [
+      { width: 800, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-800.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-800.mp4` },
+      { width: 1200, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-1200.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-1200.mp4` },
+      { width: 1600, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.mp4` },
+    ],
+  },
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",

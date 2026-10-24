@@ -26,7 +26,7 @@ const shop = {
 };
 
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
-  { id: "shop-01", label: "Interactive Baskets", ...shop, media: MEDIA_ASSETS.shoppableBasketsMain },
+  { id: "shop-01", label: "Product Page", ...shop, media: MEDIA_ASSETS.shopProductPage },
   { id: "shop-02", label: "Shop", ...shop },
   { id: "shop-03", label: "Shop", ...shop },
   ...Array.from({ length: 9 }, (_, index) => ({

@@ -21,7 +21,11 @@ production) is still the August version. Merging is Liam's call.
 - Code: `away` mode in `src/lib/og-burst.ts` (for the burst versions), the grid in `src/lib/og-reel.ts` (pure timing tested in `tests/og-reel.test.mjs`), the glitch in and out in `src/components/og-card.tsx`. `node scripts/capture-og.mjs <url> 7 --reel [--video]` writes `out/share/office-of-liam-fennell-reel[-video]-{16x9,9x16}.{mp4,png}` (other versions: `--burst`, `--glitch-return`, `--rows`); `node scripts/sound-og.mjs --reel [--video]` adds the glitch ticks only (other sounds to come once the visuals are settled).
 - Tried: a flat grid that tipped more the faster it went and was sucked into the centre to exit; springy pop-ins; a 3D wheel (its rows tilted back and the gaps between them opened up); a warp only near the edges (bent at a corner); 60px margins on 9:16 (too much space at the sides); accelerating right through the exit (the grid seemed to disappear).
 
-**Project video (2026-10-24, reverted)**
+**Project video replacement (2026-10-24)**
+- Replaced the homepage's basket tile with Liam's supplied Shop product-page clip. Reused the existing 800/1200/1600 AV1/H.264 renditions and poster after comparing frames against the supplied master. This asset uses absolute public Blob URLs so previews can load it even without `NEXT_PUBLIC_MEDIA_BASE_URL`; the old basket assets remain registered.
+- Verified public rendition/poster availability, real desktop/mobile playback from Blob, reduced-motion posters, 46 tests, TypeScript, and touched-file lint.
+
+**Earlier project video attempt (2026-10-24, reverted)**
 - Tried replacing the homepage's one project video (shop-01) with a Shop app product-page prototype (`public/media/shop/preview-01-*`, AV1 and H.264 at 800/1200/1600, uploaded to the Blob store), plus a fallback so deployed builds without `NEXT_PUBLIC_MEDIA_BASE_URL` read the store. It still didn't show on Liam's preview, so both commits are reverted; Liam is redoing it in Codex. The preview-01 files remain in the store, unreferenced. Likely cause worth checking: the variable isn't set for Vercel's Preview environment, so previews ask their own domain for the gitignored media.
 
 **Favicon (2026-10-23)**
