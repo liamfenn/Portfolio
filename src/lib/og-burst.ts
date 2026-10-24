@@ -27,12 +27,12 @@ const LETTER_GAP_MS = 90;
 const LAND_AFTER_MS = 3000;
 const GLIDE_BUDGET_MS = 1800;
 /** Away mode: once the interlude ends, the first letter lands this long after, leaving time to float back in. */
-const AWAY_LAND_MS = 2600;
+const AWAY_LAND_MS = 2200;
 /** Away, the kick is only a nudge outward; each step the letter then speeds up by this much, so it eases out and is
  * flying by the time it leaves the card, rather than crossing it at one speed. */
 const AWAY_ACCEL = 1.045;
 /** Away, returning by glitch: letters reappear in their places this far apart, in a random order, each flickering
- * through the palette for 200–350ms before settling. */
+ * through the palette for 200–350ms before settling on the text's own colour, so the glitch back is all one. */
 const GLITCH_IN_STAGGER_MS = 40;
 const FLICKER_MS = 55;
 /** A pump: the letter flickers between itself and the character it is about to give off, until its squeeze bottoms out
@@ -298,7 +298,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     const { x, y } = piece.body.position, margin = Math.max(piece.width, piece.height) + 20;
     return x < -margin || x > w + margin || y < -margin || y > h + margin;
   };
-  // Returning by glitch: each letter's reappearance, flickering until `until`, then settling on the colour it left with.
+  // Returning by glitch: each letter's reappearance, flickering until `until`, then settling on the text's own colour.
   const reappearing: { span: HTMLElement; at: number; until: number; to: string; flickAt: number }[] = [];
   const comeBack = () => {
     const time = performance.now();
@@ -307,7 +307,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
       const returning = pieces.filter(piece => piece.home && !piece.gone), slots = shuffled(returning.map((_, index) => index));
       returning.forEach((piece, index) => {
         const at = time + slots[index] * GLITCH_IN_STAGGER_MS;
-        reappearing.push({ span: piece.home!.span, at, until: at + 200 + Math.random() * 150, to: piece.home!.color, flickAt: 0 });
+        reappearing.push({ span: piece.home!.span, at, until: at + 200 + Math.random() * 150, to: "", flickAt: 0 });
         remove(piece); emit("land", piece.body.position);
       });
       return;
@@ -394,7 +394,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         remaining++;
         if (time - letter.flickAt < FLICKER_MS) continue;
         letter.flickAt = time;
-        letter.span.style.color = Math.random() < 0.25 ? letter.to : random(options.palette());
+        letter.span.style.color = random(options.palette());
         const box = letter.span.getBoundingClientRect();
         emit("flick", { x: box.left + box.width / 2, y: box.top + box.height / 2 });
       }

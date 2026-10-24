@@ -94,8 +94,17 @@ function warpMap(width: number, height: number, scale: number) {
 
 const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
 
-/** Plays the interlude in `stage` (which fills the card), resolving once the grid has flown off. */
-export async function playReel(stage: HTMLElement, signal: AbortSignal) {
+/** The return starts once every row still on the card is above this share of its height, while the last ones fly off. */
+const NEARLY_GONE = 0.3;
+
+/**
+ * Plays the interlude in `stage` (which fills the card). Resolves once the grid has nearly flown off, so whatever
+ * follows can start while its last rows finish leaving; it tidies itself away after.
+ */
+export function playReel(stage: HTMLElement, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => { run(stage, signal, resolve).then(resolve, reject); });
+}
+async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void) {
   const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height), { columns, rows, size, gap } = layout;
   const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2, scale = width * WARP * 4;
   const grid = document.createElement("div"), filterId = "og-reel-filter";
@@ -127,7 +136,7 @@ export async function playReel(stage: HTMLElement, signal: AbortSignal) {
   try {
     const start = await nextFrame();
     // At the fly-off the rows stop coming round: those on the card carry on up and out, and the rest stay below.
-    let frozen: number[] | null = null, previousTops: number[] = [];
+    let frozen: number[] | null = null, previousTops: number[] = [], told = false;
     for (let time = start, previous = start; ; previous = time, time = await nextFrame()) {
       signal.throwIfAborted();
       const ms = time - start, spinning = ms - ENTER_MS, leaving = (spinning - SPIN_MS) / LEAVE_MS;
@@ -146,6 +155,7 @@ export async function playReel(stage: HTMLElement, signal: AbortSignal) {
         element.style.transform = `translateY(${top}px)`;
       });
       previousTops = tops;
+      if (!told && frozen && tops.every((top, row) => frozen![row] > height || top + size < height * NEARLY_GONE)) { told = true; nearlyGone(); }
       if (leaving >= 1) break;
     }
   } finally {

@@ -19,7 +19,7 @@ const FLICKER_MS = 55;
 const ALL_GLITCH_STAGGER_MS = 25;
 /** In the reel, the work grid slides in once this share of the letters have left the card, or this long after the
  * first kick at most. */
-const REEL_GONE_SHARE = 0.75;
+const REEL_GONE_SHARE = 0.5;
 const REEL_AFTER_KICK_MS = 2000;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
@@ -93,8 +93,11 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
           // The grid slides in as the last letters are leaving the card.
           away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, goneShare: REEL_GONE_SHARE, comeBack, interlude: () => playReel(reelStage, signal) } : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
-        await wait(150, signal);
-        await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);
+        // Glitching back in place already ends in black, so it needs no second glitch.
+        if (!(reel && comeBack === "glitch")) {
+          await wait(150, signal);
+          await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);
+        }
         await wait(HOLD_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }
