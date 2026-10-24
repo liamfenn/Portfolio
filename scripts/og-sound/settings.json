@@ -16,22 +16,21 @@
   "whoosh": {
     "on": true,
     "volume": -20,
-    "character": 0,
+    "character": 1,
     "length": 1,
     "depth": 0,
     "bass": 1,
     "softness": 1,
-    "start": -10
+    "start": 283
   },
   "finish": {
     "on": true,
-    "volume": -24,
+    "volume": -26.5,
     "character": 0,
     "pitch": 0,
     "length": 1,
-    "delay": 220,
-    "brightness": 1,
-    "click": 1
+    "delay": 330,
+    "brightness": 1
   },
   "master": {
     "volume": 0,
