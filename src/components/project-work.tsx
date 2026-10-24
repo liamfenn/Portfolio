@@ -393,8 +393,10 @@ export function ProjectWork() {
 
   const toggleMobileGrid = () => {
     if (isMobile) {
-      beginGridLabelTransition();
-      setMobileColumns((current) => (current === 1 ? 2 : 1));
+      animateGridChange(() => {
+        beginGridLabelTransition();
+        setMobileColumns((current) => (current === 1 ? 2 : 1));
+      });
     }
   };
 
