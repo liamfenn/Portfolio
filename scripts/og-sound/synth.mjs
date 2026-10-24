@@ -38,7 +38,7 @@ export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
   finish: { on: true, volume: -26.5, character: 1, pitch: -5, length: 1.2, delay: 250, brightness: 0.65 },
-  master: { volume: 6, room: 0.15, overlap: 2 },
+  master: { volume: 8, room: 0.15, overlap: 2 },
 };
 
 /** A preset blend: `character` 1.4 is 60% preset 1 and 40% preset 2. */

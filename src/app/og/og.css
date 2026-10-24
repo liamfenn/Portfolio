@@ -6,3 +6,5 @@
 }
 .og-card-sans { font-family: var(--font-oracle); }
 .og-card-serif { font-family: var(--font-otto); }
+/* The favicon card: the globe alone, at whatever size the capture fits it to. */
+.og-favicon .glyph-globe { width: var(--og-favicon-globe, 400px); height: var(--og-favicon-globe, 400px); }

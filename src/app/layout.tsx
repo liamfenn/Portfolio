@@ -28,13 +28,14 @@ export const metadata: Metadata = {
   title: "Liam Fennell",
   description:
     "Liam Fennell is a designer based in Atlanta, GA, currently designing commerce and discovery experiences for Shop.",
+  // The footer globe mid-glitch, captured with scripts/capture-favicon.mjs.
   icons: {
     icon: [
-      { url: "/images/meta/favicon-olf-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/images/meta/favicon-olf-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/meta/favicon-globe-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/meta/favicon-globe-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: { url: "/images/meta/favicon-olf-180.png", sizes: "180x180", type: "image/png" },
-    shortcut: "/images/meta/favicon-olf-32.png",
+    apple: { url: "/images/meta/favicon-globe-180.png", sizes: "180x180", type: "image/png" },
+    shortcut: "/images/meta/favicon-globe-32.png",
   },
   openGraph: {
     title: "Liam Fennell",
