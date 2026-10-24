@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { InspectableText } from "@/components/design-inspector";
 import { burst } from "@/lib/og-burst";
+import { playReel } from "@/lib/og-reel";
 import type { BurstEvent } from "@/lib/og-burst";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
@@ -16,6 +17,8 @@ const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250")
 const FLICKER_MS = 55;
 /** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
 const ALL_GLITCH_STAGGER_MS = 25;
+/** In the reel, how long after the first kick the work grid starts, as the letters are about to leave the card. */
+const REEL_AFTER_KICK_MS = 650;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 
@@ -55,14 +58,16 @@ const recordEvent = (event: BurstEvent) => { window.__ogEvents?.push(event); };
 
 /**
  * The link-preview card: the office name, a few letters glitch, then every letter bursts loose to bounce around the
- * card and plays its way back home (see og-burst), and the same letters glitch back. It loops in real time here; scripts/capture-og.mjs drives the same
- * loop on a virtual clock to record it frame by frame.
+ * card and plays its way back home (see og-burst), and the same letters glitch back. With `reel`, the letters are
+ * thrown off the card instead, and the work grid plays (see og-reel) before they come back. It loops in real time
+ * here; scripts/capture-og.mjs drives the same loop on a virtual clock to record it frame by frame.
  */
-export function OgCard() {
+export function OgCard({ reel = false }: { reel?: boolean }) {
   const title = useRef<HTMLParagraphElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const root = title.current;
+    const root = title.current, reelStage = stage.current;
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const controller = new AbortController(), { signal } = controller;
     const letters = Array.from(root.querySelectorAll<HTMLElement>("[data-letter]"));
@@ -80,7 +85,9 @@ export function OgCard() {
         const colors = currentGlyphPalette();
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);
         await wait(150, signal);
-        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined });
+        await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined,
+          // The grid pops in as the last letters are about to leave the card.
+          away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, interlude: () => playReel(reelStage, signal) } : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
         await glitch(glitched.map(element => ({ element, to: "" })), signal, stagger);
@@ -90,10 +97,11 @@ export function OgCard() {
     };
     run().catch(error => { if (!signal.aborted) throw error; });
     return () => controller.abort();
-  }, []);
+  }, [reel]);
 
   return (
     <main className="og-card">
+      {reel && <div ref={stage} className="og-reel-stage" aria-hidden="true" />}
       <InspectableText>
         <p ref={title} className="og-card-title">
           {WORDS.map(({ text, face }, word) => (

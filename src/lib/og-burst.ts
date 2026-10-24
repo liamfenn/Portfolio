@@ -26,6 +26,8 @@ const WORD_GAP_MS = 320;
 const LETTER_GAP_MS = 90;
 const LAND_AFTER_MS = 3000;
 const GLIDE_BUDGET_MS = 1800;
+/** Away mode: once the interlude ends, the first letter lands this long after, leaving time to float back in. */
+const AWAY_LAND_MS = 2600;
 const FLICKER_MS = 55;
 /** A pump: the letter flickers between itself and the character it is about to give off, until its squeeze bottoms out
  * (see pumpScale) and the new character splits off its edge. */
@@ -66,6 +68,8 @@ interface Home {
   releaseAt: number;
   kickAt: number;
   kicked?: boolean;
+  /** Away: off the card and out of the physics, waiting for the interlude to end. */
+  parked?: boolean;
   /** Its pop-out and float, recorded step by step, so the way home is the same path played backwards. */
   path: Sample[];
   nextPumpAt: number;
@@ -140,7 +144,12 @@ const centerOf = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.to
  */
 export async function burst(letters: HTMLElement[], options: { signal: AbortSignal; palette: () => string[]; chars: readonly string[];
   /** "reading" (the default): each word lands left to right, words overlapping. "reverse": last out, first home. */
-  landing?: "reverse" | "reading"; onEvent?: (event: BurstEvent) => void }) {
+  landing?: "reverse" | "reading"; onEvent?: (event: BurstEvent) => void;
+  /**
+   * Away: no walls and no pumped glyphs. The kick throws the letters off the card, where they wait; `interlude` starts
+   * `afterKickMs` after the first kick, and once it resolves they float back in and land in reading order.
+   */
+  away?: { afterKickMs: number; interlude: () => Promise<void> } }) {
   const { Bodies, Body, Composite, Engine, Events } = (await import("matter-js")).default;
   const { signal } = options;
   signal.throwIfAborted();
@@ -150,7 +159,8 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   const walls = [Bodies.rectangle(w / 2, -t / 2, w + t * 2, t), Bodies.rectangle(w / 2, h + t / 2, w + t * 2, t),
     Bodies.rectangle(-t / 2, h / 2, t, h + t * 2), Bodies.rectangle(w + t / 2, h / 2, t, h + t * 2)];
   walls.forEach(wall => { Body.setStatic(wall, true); wall.collisionFilter.category = WALL; });
-  Composite.add(engine.world, walls);
+  const { away } = options;
+  if (!away) Composite.add(engine.world, walls);
   const emit = (type: BurstEvent["type"], at: Point, extra: Partial<BurstEvent> = {}) =>
     options.onEvent?.({ type, time: performance.now(), x: at.x / w, y: at.y / h, ...extra });
   if (options.onEvent) Events.on(engine, "collisionStart", ({ pairs }) => {
@@ -203,13 +213,17 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     at: releaseDelay(distance(rects[index]), farthest, RELEASE_SPREAD_MS * 0.4) + Math.random() * RELEASE_SPREAD_MS * 0.6 }))
     .filter(entry => entry.span.textContent?.trim() && entry.rect.width >= 1).sort((a, b) => a.at - b.at);
   const lastRelease = queue.at(-1)?.at ?? 0;
-  const exitAt = startedAt + RELEASE_SPREAD_MS + 700 + LOOSE_MS;
+  // Away, the exit waits on the interlude, so it is unknown until then.
+  let exitAt = away ? Infinity : startedAt + RELEASE_SPREAD_MS + 700 + LOOSE_MS;
   // Where each letter lands in reading order: its word's start plus its place in the word.
   const readingLand = new Map<HTMLElement, number>();
-  for (let index = 0, word = 0, place = 0; index < letters.length; index++) {
-    if (!letters[index].textContent?.trim()) { if (place) { word++; place = 0; } continue; }
-    readingLand.set(letters[index], exitAt + LAND_AFTER_MS + word * WORD_GAP_MS + place++ * LETTER_GAP_MS);
-  }
+  const planLandings = (firstLanding: number) => {
+    for (let index = 0, word = 0, place = 0; index < letters.length; index++) {
+      if (!letters[index].textContent?.trim()) { if (place) { word++; place = 0; } continue; }
+      readingLand.set(letters[index], firstLanding + word * WORD_GAP_MS + place++ * LETTER_GAP_MS);
+    }
+  };
+  planLandings(exitAt + LAND_AFTER_MS);
   let queued = 0;
 
   const release = (span: HTMLElement, rect: DOMRect, releaseOffset: number, time: number) => {
@@ -224,13 +238,13 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     // the entry. Reading-order landings rework this at the kick.
     const returnAt = exitAt + 400 + (1 - releaseOffset / Math.max(1, lastRelease)) * RETURN_SPREAD_MS * 0.6 + Math.random() * RETURN_SPREAD_MS * 0.4;
     piece.home = { span, releaseAt: time, kickAt, path: [{ ...at, angle: 0 }], nextPumpAt: kickAt + Math.random() * 300,
-      pumpsLeft: 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt,
+      pumpsLeft: away ? 0 : 2 + Math.floor(Math.random() * 3), color: style.color, settleAt: returnAt - SETTLE_LEAD_MS, returnAt,
       landAt: options.landing === "reverse" ? undefined : readingLand.get(span) };
     emit("release", at);
   };
   const kick = (piece: Piece, time: number) => {
-    const { position } = piece.body, away = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
-    const speed = 7 + Math.random() * 6;
+    const { position } = piece.body, heading = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
+    const speed = away ? 10 + Math.random() * 6 : 7 + Math.random() * 6;
     const home = piece.home!;
     home.kicked = true; piece.body.frictionAir = LOOSE_AIR; piece.body.collisionFilter.mask = EVERYTHING;
     // Its pop-out is fully recorded now, so the rewind's length is known: work back from its landing to its departure.
@@ -238,10 +252,11 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
       home.rewindAt = home.landAt - rewindMs(home);
       home.returnAt = home.rewindAt - GLIDE_BUDGET_MS; home.settleAt = home.returnAt - SETTLE_LEAD_MS;
     }
-    Body.setVelocity(piece.body, { x: Math.cos(away) * speed, y: Math.sin(away) * speed });
-    Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * 0.3);
+    Body.setVelocity(piece.body, { x: Math.cos(heading) * speed, y: Math.sin(heading) * speed });
+    Body.setAngularVelocity(piece.body, (Math.random() - 0.5) * (away ? 0.45 : 0.3));
     glitchTo(piece, time, random(options.palette()), 300, 450);
     emit("kick", position, { strength: speed });
+    firstKick = Math.min(firstKick, time);
   };
   const pump = (parent: Piece, time: number) => {
     parent.pumpedAt = time; parent.morph = { at: time, char: draw(), flickAt: 0 };
@@ -269,6 +284,24 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
     home.rewind = { at: time, duration: rewindMs(home), offset: { x: at.x - end.x, y: at.y - end.y, angle: at.angle - end.angle } };
   };
 
+  // Away: the interlude, and the letters waiting just off the card until it ends.
+  let firstKick = Infinity, interlude: "waiting" | "playing" | "done" = "waiting";
+  const offCard = (piece: Piece) => {
+    const { x, y } = piece.body.position, margin = Math.max(piece.width, piece.height) + 20;
+    return x < -margin || x > w + margin || y < -margin || y > h + margin;
+  };
+  const comeBack = () => {
+    const time = performance.now();
+    exitAt = time; planLandings(time + AWAY_LAND_MS); interlude = "done";
+    for (const piece of pieces) {
+      const home = piece.home;
+      if (!home || home.glide || home.rewind) continue;
+      home.landAt = readingLand.get(home.span) ?? time + AWAY_LAND_MS;
+      home.rewindAt = home.landAt - rewindMs(home);
+      home.returnAt = Math.max(time, home.rewindAt - GLIDE_BUDGET_MS); home.settleAt = home.returnAt;
+    }
+  };
+
   let frame = 0, previous = startedAt, pending = 0;
   return new Promise<void>((resolve, reject) => {
     const cleanup = () => { cancelAnimationFrame(frame); Engine.clear(engine); layer.remove(); letters.forEach(span => { span.style.visibility = ""; }); };
@@ -277,9 +310,18 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
       const dt = Math.min(64, time - previous) / 1000;
       pending = Math.min(pending + time - previous, STEP * 4); previous = time;
       while (queued < queue.length && queue[queued].at <= time - startedAt) { const { span, rect, at } = queue[queued++]; release(span, rect, at, time); }
+      if (away && interlude === "waiting" && time >= firstKick + away.afterKickMs) {
+        interlude = "playing";
+        away.interlude().then(comeBack, reject);
+      }
       for (const piece of pieces) {
         const home = piece.home;
         if (piece.gone) continue;
+        // Away, a letter that has left the card stops there, still, until it is time to come back.
+        if (away && home?.kicked && !home.parked && !home.glide && offCard(piece)) {
+          home.parked = true; Composite.remove(engine.world, piece.body);
+          Body.setVelocity(piece.body, { x: 0, y: 0 }); Body.setAngularVelocity(piece.body, 0);
+        }
         if (home && !home.glide && !home.rewind) {
           if (time >= home.kickAt && !home.kicked) kick(piece, time);
           if (home.pumpsLeft && time >= home.nextPumpAt && time < exitAt - 400) {
@@ -305,7 +347,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         if (!home && time - piece.bornAt >= EMERGE_MS && !piece.body.collisionFilter.mask) piece.body.collisionFilter.mask = EVERYTHING;
       }
       for (const piece of pieces) {
-        const home = piece.home, loose = home ? home.kicked && time < home.settleAt : !piece.popping;
+        const home = piece.home, loose = !away && (home ? home.kicked && time < home.settleAt : !piece.popping);
         const { velocity } = piece.body, speed = Math.hypot(velocity.x, velocity.y);
         if (piece.gone || !loose || speed >= CRUISE || speed < 0.01) continue;
         const boost = Math.min(CRUISE / speed, 1.04);

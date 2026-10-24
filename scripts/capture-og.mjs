@@ -10,6 +10,8 @@
 // Variants, recorded as share cuts with a suffix and leaving the site's og:video alone:
 //   --reverse      the earlier landing, last out first home (/og?landing=reverse), named -reverse
 //   --all-glitch   every letter glitches in and out, staggered, instead of six (/og?glitch=all), named -all-glitch
+// --reel records the work reel (/og/reel: letters thrown off the card while the work grid plays) as 16:9 and 9:16 cuts
+// named office-of-liam-fennell-reel-*, also leaving the og:video alone; with --quick, only its 16:9 frames.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -20,11 +22,14 @@ const QUICK = process.argv.includes("--quick");
 const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
-const PAGE = VARIANTS.length ? `${URL}?${VARIANTS.map(([, query]) => query).join("&")}` : URL;
+const REEL = process.argv.includes("--reel");
+const BASE = REEL ? URL.replace(/\/og\/?$/, "/og/reel") : URL;
+const PAGE = VARIANTS.length ? `${BASE}?${VARIANTS.map(([, query]) => query).join("&")}` : BASE;
 const SUFFIX = VARIANTS.map(([, , suffix]) => suffix).join("");
+const NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
 const FPS = 60;
 const MAX_FRAMES = FPS * 20;
-const FRAMES = "out/og-frames";
+const FRAMES = REEL ? "out/og-reel-frames" : "out/og-frames";
 const SHARE = "out/share";
 
 const clock = seed => {
@@ -72,6 +77,17 @@ async function record(width, height, scale) {
 const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
   "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
 
+if (REEL) {
+  mkdirSync(SHARE, { recursive: true });
+  for (const [name, width, height, scale] of QUICK ? [["16x9", 1200, 675, 1]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {
+    const dir = await record(width, height, scale);
+    if (QUICK) continue;
+    encode(dir, `${SHARE}/${NAME}-${name}${SUFFIX}.mp4`, 16);
+    execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/${NAME}-${name}${SUFFIX}.png`]);
+  }
+  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-{16x9,9x16}${SUFFIX}.{mp4,png}`);
+  process.exit(0);
+}
 const preview = await record(1200, 630, 1);
 if (!QUICK) {
   if (!VARIANT) {
