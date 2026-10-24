@@ -47,7 +47,7 @@ export const DEFAULTS = {
   // Start is from the first kick (1.717s), so 283 begins the whoosh at 2.00s.
   whoosh: { on: true, volume: -15, character: 3, length: 1, depth: 0, bass: 1, softness: 1, start: 283 },
   finish: { on: true, volume: -26.5, character: 0, pitch: 0, length: 1, delay: 330, brightness: 1 },
-  master: { volume: 0, room: 0.15, overlap: 2, duck: 0.5 },
+  master: { volume: 6, room: 0.15, overlap: 2, duck: 0.5 },
 };
 
 /** A preset blend: `character` 1.4 is 60% preset 1 and 40% preset 2. */
