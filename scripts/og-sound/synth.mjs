@@ -1,7 +1,7 @@
 // The og share cuts' sound effects, as one pure module with no imports: scripts/sound-og.mjs renders with it, and the
 // sound lab page (scripts/og-sound/build-lab.mjs) inlines it, so what the lab plays is exactly what gets rendered.
 //
-// Sounds: glitch ticks, pops for the extra glyphs, the burst's whoosh, and a soft pop to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
+// Sounds: glitch ticks, pops for the extra glyphs, and a soft pop to finish. Each has a few presets and a `character` slider that morphs between neighbouring presets,
 // plus adjustments on top. Volumes are in dB against a voice normalised to full scale, so morphing between presets keeps its level.
 
 export const RATE = 48000;
@@ -17,13 +17,6 @@ export const PRESETS = {
     { name: "Soft tick", decay: 4, hp: 0.35, pitchAmt: 0, pitchHz: 3000 },
     { name: "Digital blip", decay: 6, hp: 0.5, pitchAmt: 0.7, pitchHz: 2600 },
     { name: "Static", decay: 10, hp: 0.85, pitchAmt: 0, pitchHz: 3000 },
-  ],
-  whoosh: [
-    // All low and short, with no air: a mellow push as the letters fly apart rather than a gust of wind.
-    { name: "Low puff", lowStart: 60, lowPeak: 240, attack: 110, decay: 220, sub: 0.5, subHz: 46, air: 0 },
-    { name: "Soft thud", lowStart: 50, lowPeak: 160, attack: 40, decay: 260, sub: 0.8, subHz: 52, air: 0 },
-    { name: "Muted swell", lowStart: 80, lowPeak: 380, attack: 180, decay: 300, sub: 0.35, subHz: 44, air: 0 },
-    { name: "Felt drum", lowStart: 70, lowPeak: 200, attack: 15, decay: 180, sub: 0.9, subHz: 60, air: 0 },
   ],
   pop: [
     { name: "Thud", pitch: 180, ratio: 0.6, glideMs: 12, decay: 30, tone: 900, noise: 0 },
@@ -44,10 +37,8 @@ export const PRESETS = {
 export const DEFAULTS = {
   tick: { on: true, volume: -8, character: 0, length: 1 },
   pop: { on: true, volume: -15, character: 1, pitch: -6, length: 1.7, density: 8 },
-  // Start is from the first kick (1.717s), so 283 begins the whoosh at 2.00s.
-  whoosh: { on: true, volume: -15, character: 3, length: 1, depth: 0, bass: 1, softness: 1, start: 283 },
-  finish: { on: true, volume: -26.5, character: 0, pitch: 0, length: 1, delay: 330, brightness: 1 },
-  master: { volume: 6, room: 0.15, overlap: 2, duck: 0.5 },
+  finish: { on: true, volume: -26.5, character: 1, pitch: -5, length: 1.2, delay: 250, brightness: 0.65 },
+  master: { volume: 6, room: 0.15, overlap: 2 },
 };
 
 /** A preset blend: `character` 1.4 is 60% preset 1 and 40% preset 2. */
@@ -97,20 +88,6 @@ function voice(sound, settings, random, reverse = false) {
     }
     return out;
   }
-  if (sound === "whoosh") {
-    // Bass adds sub and, an octave up, its second harmonic, which phone speakers can actually play.
-    const attack = p.attack * s.softness / 1000, decay = p.decay * s.length / 1000, shift = Math.pow(2, s.depth / 12), sub = Math.max(p.sub, 0.25) * s.bass;
-    const out = new Float32Array(Math.ceil((attack + decay * 4) * RATE)), low = lowpass(), air = lowpass();
-    let phase = 0;
-    for (let i = 0; i < out.length; i++) {
-      const t = i / RATE, rise = Math.min(1, t / attack), fall = t < attack ? 1 : Math.exp(-(t - attack) / decay);
-      const cutoff = (p.lowStart + (p.lowPeak - p.lowStart) * rise * fall) * shift;
-      const swell = (t < attack ? rise * rise * (3 - 2 * rise) : 1) * fall;
-      phase += 2 * Math.PI * p.subHz * shift * (1 - 0.2 * rise) / RATE;
-      out[i] = (low(noise(), cutoff) * 2.5 + air(noise(), cutoff * 4) * p.air + (Math.sin(phase) + 0.35 * Math.sin(phase * 2)) * sub) * swell;
-    }
-    return out;
-  }
   if (sound === "finish") {
     const f0 = p.pitch * Math.pow(2, s.pitch / 12), decay = p.decay * s.length / 1000, glide = p.glideMs / 1000;
     const out = new Float32Array(Math.ceil(decay * 7 * RATE)), tone = lowpass();
@@ -155,11 +132,9 @@ const CROWD = 0.08;
 /**
  * Which events make a sound, and at what level. Glitch ticks come only from the opening and closing glitches. Pops
  * run the whole time glyphs bounce: one as each extra glyph splits off, one for knocks between pieces (at most
- * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The whoosh begins
- * `start` ms from the first kick, the moment the letters fly apart, and the finishing pop sounds `delay` ms after the
- * last tick.
- * Then at most `overlap` sounds start within 80ms, those after the first at half level, and pops under the whoosh's
- * first half-second are ducked by `duck`.
+ * `density` a second, firmer knocks louder), and one played backwards as each extra glyph vanishes. The finishing pop
+ * sounds `delay` ms after the last tick. At most `overlap` sounds start within 80ms, those after the first at half
+ * level.
  */
 export function plan(events, settings) {
   const sorted = [...events].sort((a, b) => a.time - b.time);
@@ -178,16 +153,13 @@ export function plan(events, settings) {
     }
     kept.push(event); last[event.type] = event;
   }
-  const firstKick = sorted.find(event => event.type === "kick")?.time ?? Infinity;
-  const whooshAt = firstKick + settings.whoosh.start / 1000, placed = [];
+  const placed = [];
   for (const event of kept) {
     const crowd = placed.filter(other => event.time - other.time < CROWD).length;
     if (crowd >= settings.master.overlap) continue;
-    const under = event.type !== "flick" && event.time >= whooshAt && event.time - whooshAt < 0.5 && settings.whoosh.on ? 1 - settings.master.duck : 1;
     const firm = event.type === "hit" ? 0.55 + 0.45 * Math.min(1, event.strength / 12) : 1;
-    placed.push({ ...event, sound: SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * under * firm });
+    placed.push({ ...event, sound: SOUND_OF[event.type], reverse: event.type === "pop", level: (crowd ? 0.5 : 1) * firm });
   }
-  if (settings.whoosh.on && Number.isFinite(whooshAt)) placed.push({ type: "whoosh", sound: "whoosh", time: Math.max(0, whooshAt), x: 0.5, level: 1 });
   const lastTick = [...placed].reverse().find(event => event.sound === "tick");
   if (settings.finish.on && lastTick) placed.push({ type: "finish", sound: "finish", time: lastTick.time + settings.finish.delay / 1000, x: 0.5, level: 1 });
   return placed.sort((a, b) => a.time - b.time);
