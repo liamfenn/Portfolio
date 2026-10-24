@@ -28,6 +28,9 @@ const LAND_AFTER_MS = 3000;
 const GLIDE_BUDGET_MS = 1800;
 /** Away mode: once the interlude ends, the first letter lands this long after, leaving time to float back in. */
 const AWAY_LAND_MS = 2600;
+/** Away, the kick is only a nudge outward; each step the letter then speeds up by this much, so it eases out and is
+ * flying by the time it leaves the card, rather than crossing it at one speed. */
+const AWAY_ACCEL = 1.045;
 const FLICKER_MS = 55;
 /** A pump: the letter flickers between itself and the character it is about to give off, until its squeeze bottoms out
  * (see pumpScale) and the new character splits off its edge. */
@@ -244,7 +247,7 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   };
   const kick = (piece: Piece, time: number) => {
     const { position } = piece.body, heading = Math.atan2(position.y - center.y, position.x - center.x) + (Math.random() - 0.5) * 1.2;
-    const speed = away ? 10 + Math.random() * 6 : 7 + Math.random() * 6;
+    const speed = away ? 2.5 + Math.random() * 2 : 7 + Math.random() * 6;
     const home = piece.home!;
     home.kicked = true; piece.body.frictionAir = LOOSE_AIR; piece.body.collisionFilter.mask = EVERYTHING;
     // Its pop-out is fully recorded now, so the rewind's length is known: work back from its landing to its departure.
@@ -354,6 +357,11 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
         Body.setVelocity(piece.body, { x: velocity.x * boost, y: velocity.y * boost });
       }
       while (pending >= STEP) {
+        if (away) for (const piece of pieces) {
+          if (!piece.home?.kicked || piece.home.parked || piece.home.glide) continue;
+          const { velocity } = piece.body;
+          Body.setVelocity(piece.body, { x: velocity.x * AWAY_ACCEL, y: velocity.y * AWAY_ACCEL });
+        }
         Engine.update(engine, STEP); pending -= STEP;
         for (const piece of pieces) {
           const home = piece.home;

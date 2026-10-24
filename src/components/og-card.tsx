@@ -18,7 +18,7 @@ const FLICKER_MS = 55;
 /** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
 const ALL_GLITCH_STAGGER_MS = 25;
 /** In the reel, how long after the first kick the work grid starts, as the letters are about to leave the card. */
-const REEL_AFTER_KICK_MS = 650;
+const REEL_AFTER_KICK_MS = 1000;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 
