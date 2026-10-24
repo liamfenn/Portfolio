@@ -51,9 +51,9 @@ export function speedIntensity(speed: number) {
 }
 
 export interface ReelLayout { columns: number; rows: number; size: number; gap: number }
-/** Two columns of the storyboard's 469px blocks on a wide card; one column with 60px side margins on a tall one. */
+/** Two columns of the storyboard's 469px blocks on a wide card; one column with 30px side margins on a tall one. */
 export function reelLayout(width: number, height: number): ReelLayout {
-  return width >= height ? { columns: 2, rows: PROJECTS / 2, size: 469.33, gap: 8 } : { columns: 1, rows: PROJECTS, size: width - 120, gap: 8 };
+  return width >= height ? { columns: 2, rows: PROJECTS / 2, size: 469.33, gap: 8 } : { columns: 1, rows: PROJECTS, size: width - 60, gap: 8 };
 }
 /**
  * Where a row's top sits, scrolled by `offset`, the gap the same down as across. The rows start stacked below the
@@ -101,10 +101,48 @@ const NEARLY_GONE = 0.3;
  * Plays the interlude in `stage` (which fills the card). Resolves once the grid has nearly flown off, so whatever
  * follows can start while its last rows finish leaving; it tidies itself away after.
  */
-export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opposite?: boolean } = {}) {
-  return new Promise<void>((resolve, reject) => { run(stage, signal, resolve, options.opposite ?? false).then(resolve, reject); });
+export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opposite?: boolean; video?: string } = {}) {
+  return new Promise<void>((resolve, reject) => { run(stage, signal, resolve, options).then(resolve, reject); });
 }
-async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void, opposite: boolean) {
+
+declare global { interface Window { __ogSettle?: () => Promise<void> } }
+
+/**
+ * Work in the tiles: one video drawn into every tile's canvas. Playing live it just runs; under the capture's virtual
+ * clock it is held and seeked to each frame's time instead, and `window.__ogSettle` resolves once that frame is drawn.
+ */
+function videoTiles(src: string, canvases: HTMLCanvasElement[]) {
+  // The capture script's event log is how the page knows it is on the virtual clock.
+  const video = document.createElement("video"), capturing = "__ogEvents" in window;
+  Object.assign(video, { src, muted: true, playsInline: true, loop: true, preload: "auto", crossOrigin: "anonymous" });
+  let settled: Promise<void> = Promise.resolve();
+  const draw = () => {
+    if (video.readyState < 2) return;
+    for (const canvas of canvases) {
+      if (canvas.closest<HTMLElement>(".og-reel-row")?.style.visibility === "hidden") continue;
+      canvas.getContext("2d")!.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+  };
+  if (capturing) window.__ogSettle = () => settled; else void video.play().catch(() => {});
+  return {
+    frame(ms: number) {
+      if (!capturing) { draw(); return; }
+      settled = new Promise<void>(resolve => {
+        // A video that never loads or seeks leaves the tile blank rather than stalling the capture.
+        const timeout = window.setTimeout(resolve, 3000);
+        const done = () => { window.clearTimeout(timeout); draw(); resolve(); };
+        const seek = () => {
+          video.addEventListener("seeked", done, { once: true });
+          video.currentTime = (ms / 1000) % video.duration;
+        };
+        if (video.readyState >= 1) seek(); else video.addEventListener("loadedmetadata", seek, { once: true });
+      });
+    },
+    stop() { video.pause(); video.removeAttribute("src"); video.load(); if (capturing) window.__ogSettle = undefined; },
+  };
+}
+
+async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void, { opposite = false, video }: { opposite?: boolean; video?: string }) {
   const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height), { columns, rows, size, gap } = layout;
   const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2, scale = width * WARP * 4;
   const grid = document.createElement("div"), filterId = "og-reel-filter";
@@ -127,9 +165,10 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
     // Placed off the card from the start, so nothing shows before the first frame moves it.
     element.style.cssText = `left:${left}px;width:${count * size + (count - 1) * gap}px;height:${size}px;gap:${gap}px;transform:translateY(${mirror ? -size : height}px);visibility:hidden`;
     for (let column = 0; column < count; column++) {
-      const block = document.createElement("div");
+      const block = document.createElement(video ? "canvas" : "div");
       block.className = "og-reel-block";
       block.style.width = `${size}px`;
+      if (block instanceof HTMLCanvasElement) { block.width = block.height = Math.round(size * (window.devicePixelRatio || 1)); }
       element.append(block);
     }
     grid.append(element);
@@ -138,6 +177,7 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
   const rowIndexes = Array.from({ length: rows }, (_, row) => row);
   grid.style.filter = `url(#${filterId})`;
   stage.append(grid);
+  const tiles = video ? videoTiles(video, [...grid.querySelectorAll("canvas")]) : null;
   try {
     const start = await nextFrame();
     // At the fly-off the rows stop coming round: those on the card carry on up and out, and the rest stay below.
@@ -161,10 +201,11 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
         element.style.transform = `translateY(${mirror ? height - top - size : top}px)`;
       });
       previousTops = tops;
+      tiles?.frame(ms);
       if (!told && frozen && tops.every((top, row) => frozen![row] > height || top + size < height * NEARLY_GONE)) { told = true; nearlyGone(); }
       if (leaving >= 1) break;
     }
   } finally {
-    grid.remove(); stage.querySelector(".og-reel-filters")?.remove();
+    tiles?.stop(); grid.remove(); stage.querySelector(".og-reel-filters")?.remove();
   }
 }

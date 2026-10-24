@@ -10,11 +10,11 @@
 // Variants, recorded as share cuts with a suffix and leaving the site's og:video alone:
 //   --reverse      the earlier landing, last out first home (/og?landing=reverse), named -reverse
 //   --all-glitch   every letter glitches in and out, staggered, instead of six (/og?glitch=all), named -all-glitch
-// --reel records the work reel (/og/reel: letters thrown off the card while the work grid plays) as 16:9 and 9:16 cuts
-// named office-of-liam-fennell-reel-*, also leaving the og:video alone; with --quick, only its 16:9 frames. Add
-// --glitch-return for the letters glitching back in place rather than floating home (named -glitch-return), or
-// --glitch-both for them glitching out of their places as well as back in, instead of bursting (named -glitch-both).
-// --opposite moves the 16:9 grid's two columns in opposite directions (named -opposite), and records 16:9 only.
+// --reel records the work reel (/og/reel: the letters glitch out of their places, the work grid plays, its two columns
+// moving in opposite directions, and they glitch back) as 16:9 and 9:16 cuts named office-of-liam-fennell-reel-*, also
+// leaving the og:video alone; with --quick, only its 16:9 frames. Its other versions: --burst throws the letters off
+// instead (with --glitch-return to glitch them back in place rather than float them home), --rows moves the grid as
+// rows, and --video plays the site's project video in the tiles instead of placeholders.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -22,7 +22,8 @@ import { chromium } from "playwright-core";
 const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
-const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--glitch-return", "return=glitch", "-glitch-return"], ["--glitch-both", "exit=glitch", "-glitch-both"], ["--opposite", "columns=opposite", "-opposite"]]
+const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--burst", "exit=burst", "-burst"],
+  ["--glitch-return", "return=glitch", "-glitch-return"], ["--rows", "columns=rows", "-rows"], ["--video", "tiles=video", "-video"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const REEL = process.argv.includes("--reel");
@@ -68,6 +69,8 @@ async function record(width, height, scale) {
     await page.screenshot({ path: `${dir}/${String(frame).padStart(5, "0")}.png` });
     if (await page.evaluate(() => (window.__ogLoops ?? 0) >= 1)) break;
     await page.evaluate(ms => window.__ogAdvance(ms), 1000 / FPS);
+    // Video tiles seek to each frame's time; this waits until the frame they show is the one for this instant.
+    await page.evaluate(() => window.__ogSettle?.());
   }
   // One loop's events, in seconds from the first frame, which is at virtual time 0.
   const events = await page.evaluate(() => window.__ogEvents.map(event => ({ ...event, time: event.time / 1000 })));
@@ -82,15 +85,13 @@ const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error"
 
 if (REEL) {
   mkdirSync(SHARE, { recursive: true });
-  // The 9:16 grid is one column, so opposite columns only exist on 16:9.
-  const OPPOSITE = process.argv.includes("--opposite");
-  for (const [name, width, height, scale] of QUICK || OPPOSITE ? [["16x9", 1200, 675, QUICK ? 1 : 1.6]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {
+  for (const [name, width, height, scale] of QUICK ? [["16x9", 1200, 675, 1]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {
     const dir = await record(width, height, scale);
     if (QUICK) continue;
     encode(dir, `${SHARE}/${NAME}-${name}${SUFFIX}.mp4`, 16);
     execFileSync("cp", [`${dir}/00000.png`, `${SHARE}/${NAME}-${name}${SUFFIX}.png`]);
   }
-  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-${OPPOSITE ? "16x9" : "{16x9,9x16}"}${SUFFIX}.{mp4,png}`);
+  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-{16x9,9x16}${SUFFIX}.{mp4,png}`);
   process.exit(0);
 }
 const preview = await record(1200, 630, 1);

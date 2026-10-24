@@ -26,9 +26,9 @@ test("the slide in accelerates, then decelerates; the way out only accelerates",
   assert.ok(leaveEase(0.5) < 0.5 && leaveEase(1) > 0.999);
 });
 
-test("twelve projects: six rows of two on a wide card, twelve in one column with 60px margins on a tall one", () => {
+test("twelve projects: six rows of two on a wide card, twelve in one column with 30px margins on a tall one", () => {
   assert.deepEqual(reelLayout(1200, 675), { columns: 2, rows: 6, size: 469.33, gap: 8 });
-  assert.deepEqual(reelLayout(675, 1200), { columns: 1, rows: 12, size: 555, gap: 8 });
+  assert.deepEqual(reelLayout(675, 1200), { columns: 1, rows: 12, size: 615, gap: 8 });
   for (const layout of [reelLayout(1200, 675), reelLayout(675, 1200)]) assert.equal(layout.rows * layout.columns, PROJECTS);
 });
 
