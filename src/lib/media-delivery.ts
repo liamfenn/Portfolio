@@ -1,11 +1,12 @@
 import type { PortfolioVideoAsset, PortfolioVideoRendition } from "@/lib/media-assets";
 
 /**
- * Where encoded media is served from. Empty means the local /public folder,
- * which is what dev and any checkout without blob credentials will use. In
- * production this points at the Vercel Blob store so the bytes stay out of git.
+ * Where encoded media is served from. In dev, the local /public folder. A deployed build reads the Vercel Blob store,
+ * so the bytes stay out of git: NEXT_PUBLIC_MEDIA_BASE_URL when it is set, otherwise the store's own address, since the
+ * media files aren't in the repo and a build without the variable (Vercel previews, for one) would have none to serve.
  */
-const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "").replace(/\/+$/, "");
+const BLOB_STORE_URL = "https://el220fg1tsh8udeh.public.blob.vercel-storage.com";
+const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL || (process.env.NODE_ENV === "production" ? BLOB_STORE_URL : "")).replace(/\/+$/, "");
 
 /** The codec string browsers match against to decide whether they can play AV1. */
 export const AV1_MIME = 'video/mp4; codecs="av01.0.05M.08"';
