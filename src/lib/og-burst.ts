@@ -150,7 +150,8 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
   landing?: "reverse" | "reading"; onEvent?: (event: BurstEvent) => void;
   /**
    * Away: no walls and no pumped glyphs. The kick throws the letters off the card, where they wait; `interlude` starts
-   * `afterKickMs` after the first kick, and once it resolves they float back in and land in reading order.
+   * as the last one leaves (or `afterKickMs` after the first kick, if sooner), and once it resolves they float back in
+   * and land in reading order.
    */
   away?: { afterKickMs: number; interlude: () => Promise<void> } }) {
   const { Bodies, Body, Composite, Engine, Events } = (await import("matter-js")).default;
@@ -313,7 +314,8 @@ export async function burst(letters: HTMLElement[], options: { signal: AbortSign
       const dt = Math.min(64, time - previous) / 1000;
       pending = Math.min(pending + time - previous, STEP * 4); previous = time;
       while (queued < queue.length && queue[queued].at <= time - startedAt) { const { span, rect, at } = queue[queued++]; release(span, rect, at, time); }
-      if (away && interlude === "waiting" && time >= firstKick + away.afterKickMs) {
+      const allAway = queued === queue.length && pieces.every(piece => !piece.home || piece.home.parked);
+      if (away && interlude === "waiting" && Number.isFinite(firstKick) && (allAway || time >= firstKick + away.afterKickMs)) {
         interlude = "playing";
         away.interlude().then(comeBack, reject);
       }

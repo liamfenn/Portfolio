@@ -11,10 +11,10 @@
 /* will-change makes Chrome raster each glyph at its tiny layout size and stretch the bitmap, which blurs a globe
    scaled up this far; without it the glyphs are drawn as sharp text at full size. */
 .og-favicon .glyph-globe-char { will-change: auto; }
-/* The work reel (/og/reel): the wheel plays on a stage that fills the card, under the letters (which ride the swarm
-   layer above it). Perspective turns the rows on its rim away near the top and bottom edges. */
+/* The work reel (/og/reel): the grid plays on a stage that fills the card, under the letters (which ride the swarm
+   layer above it). Its warp and motion blur are an SVG filter on the grid (og-reel.ts). */
 .og-reel-stage { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-.og-reel-grid { position: absolute; inset: 0; perspective: 1600px; perspective-origin: 50% 50%; transform-origin: 50% 50%; }
-.og-reel-row { position: absolute; display: flex; transform-origin: 50% 50%; backface-visibility: hidden; will-change: transform; }
+.og-reel-grid { position: absolute; inset: 0; }
+.og-reel-row { position: absolute; top: 0; display: flex; will-change: transform; }
 .og-reel-block { flex: none; height: 100%; background-color: var(--bg-secondary-fill); transform-origin: 50% 50%; }
 .og-reel-filters { position: absolute; width: 0; height: 0; }

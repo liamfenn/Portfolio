@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PROJECTS, SPIN_MS, appear, reelLayout, rowAngle, scrollOffset, scrollSpeed, speedIntensity, vanish } from "../src/lib/og-reel.ts";
+import { PROJECTS, SPIN_MS, bezier, enterEase, leaveEase, reelLayout, rowTop, scrollOffset, scrollSpeed, speedIntensity, warpAt } from "../src/lib/og-reel.ts";
 
-test("the wheel drifts slowly at first, then ramps up from about midway, never pausing", () => {
+test("the grid drifts slowly at first, then ramps up from about midway, never pausing", () => {
   assert.equal(scrollOffset(0), 0);
   assert.ok(scrollSpeed(SPIN_MS * 0.25) < 200);
   assert.ok(scrollSpeed(SPIN_MS) > 5000);
@@ -10,22 +10,20 @@ test("the wheel drifts slowly at first, then ramps up from about midway, never p
     assert.ok(scrollSpeed(ms) >= scrollSpeed(ms - 100));
     assert.ok(scrollOffset(ms) > scrollOffset(ms - 100));
   }
-  // Most of the speed comes in the second half.
   assert.ok(scrollSpeed(SPIN_MS / 2) < scrollSpeed(SPIN_MS) / 4);
 });
 
-test("the spin blurs only once it is moving fast", () => {
+test("the scroll blurs only once it is moving fast", () => {
   assert.equal(speedIntensity(70), 0);
   assert.ok(speedIntensity(300) < 0.1);
   assert.equal(speedIntensity(2000), 1);
 });
 
-test("the wheel eases in from slightly small and clear, and eases out the same way", () => {
-  assert.deepEqual(appear(0), { scale: 0.92, opacity: 0 });
-  assert.deepEqual(appear(10000), { scale: 1, opacity: 1 });
-  assert.deepEqual(vanish(0), appear(10000));
-  assert.deepEqual(vanish(1), appear(0));
-  assert.ok(appear(100).opacity > 0.4);
+test("the slide in accelerates, then decelerates; the way out only accelerates", () => {
+  assert.ok(Math.abs(bezier(0.25, 0.1, 0.25, 1, 0)) < 1e-6 && Math.abs(bezier(0.25, 0.1, 0.25, 1, 1) - 1) < 1e-6);
+  assert.ok(Math.abs(enterEase(0.5) - 0.5) < 0.01);
+  assert.ok(enterEase(0.1) < 0.05 && enterEase(0.9) > 0.95);
+  assert.ok(leaveEase(0.5) < 0.5 && leaveEase(1) > 0.999);
 });
 
 test("twelve projects: six rows of two on a wide card, twelve in one column with 60px margins on a tall one", () => {
@@ -34,13 +32,19 @@ test("twelve projects: six rows of two on a wide card, twelve in one column with
   for (const layout of [reelLayout(1200, 675), reelLayout(675, 1200)]) assert.equal(layout.rows * layout.columns, PROJECTS);
 });
 
-test("rows sit round the wheel, the first at the front, coming round again after the last", () => {
-  const layout = reelLayout(1200, 675), pitch = layout.size + layout.gap;
-  assert.ok(Math.abs(rowAngle(0, 0, layout)) < 1e-9);
-  assert.ok(Math.abs(rowAngle(1, 0, layout) - Math.PI / 3) < 1e-9);
-  assert.ok(Math.abs(rowAngle(0, pitch * layout.rows, layout)) < 1e-9);
-  for (let offset = 0; offset < 5000; offset += 137) for (let row = 0; row < layout.rows; row++) {
-    const angle = rowAngle(row, offset, layout);
-    assert.ok(angle > -Math.PI - 1e-9 && angle <= Math.PI + 1e-9);
-  }
+test("rows keep the same gap down as across, start below the first, and come round once they leave the top", () => {
+  const layout = reelLayout(1200, 675), pitch = layout.size + layout.gap, first = 103;
+  for (let row = 1; row < layout.rows; row++) assert.ok(Math.abs(rowTop(row, 0, layout, first) - rowTop(row - 1, 0, layout, first) - pitch) < 1e-9);
+  assert.ok(rowTop(layout.rows - 1, 0, layout, first) > first);
+  // Row 0 has scrolled fully off the top: it is now below the last row, a gap after it.
+  const offset = first + pitch + 1;
+  assert.ok(Math.abs(rowTop(0, offset, layout, first) - rowTop(layout.rows - 1, offset, layout, first) - pitch) < 1e-9);
+});
+
+test("the warp leaves the middle alone and draws the top and bottom corners in, more toward the sides", () => {
+  assert.deepEqual(warpAt(0.8, 0), { x: 0, y: 0 });
+  assert.equal(warpAt(0, 1).x, 0);
+  assert.ok(warpAt(1, 1).x > warpAt(0.5, 1).x && warpAt(0.5, 1).x > 0);
+  assert.ok(warpAt(-1, -1).x < 0 && warpAt(-1, -1).y < 0);
+  assert.ok(warpAt(1, 1).x <= 0.1);
 });

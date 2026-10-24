@@ -17,8 +17,8 @@ const PUMP_CHARS = Array.from("@,.;:!?&*#%+=~/()[]{}'\"^_<>§¶°©agRQkWy7250")
 const FLICKER_MS = 55;
 /** With ?glitch=all, every letter glitches instead of the six, this far apart left to right. */
 const ALL_GLITCH_STAGGER_MS = 25;
-/** In the reel, how long after the first kick the work grid starts, as the letters are about to leave the card. */
-const REEL_AFTER_KICK_MS = 1000;
+/** In the reel, the work grid slides in as the last letter leaves the card, or this long after the first kick at most. */
+const REEL_AFTER_KICK_MS = 2000;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 
@@ -86,7 +86,7 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
         await glitch(glitched.map(element => ({ element, to: colors[Math.floor(Math.random() * colors.length)] })), signal, stagger);
         await wait(150, signal);
         await burst(letters, { signal, palette: currentGlyphPalette, chars: PUMP_CHARS, landing, onEvent: window.__ogEvents ? recordEvent : undefined,
-          // The grid pops in as the last letters are about to leave the card.
+          // The grid slides in as the last letter leaves the card.
           away: reel && reelStage ? { afterKickMs: REEL_AFTER_KICK_MS, interlude: () => playReel(reelStage, signal) } : undefined });
         // The intro glitch in reverse: the same letters come home in their glitched colours and flicker back to black.
         await wait(150, signal);
