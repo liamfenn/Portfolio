@@ -5,7 +5,7 @@
 //
 //   node scripts/sound-og.mjs [--reel]
 // --reel scores the work reel's cuts (office-of-liam-fennell-reel-*) with the glitch ticks only, for now. Pass the
-// same version flags as the capture (--burst, --glitch-return, --rows, --video) to score those cuts.
+// same version flags as the capture (--burst, --glitch-return, --rows, --video, --tight) to score those cuts.
 // Writes out/share/office-of-liam-fennell-{16x9,9x16}-sound.mp4 (and the .wav beside each). The audio runs on past the
 // loop until the last sound has died away, and the video holds its last frame (the plain name) for that tail.
 import { execFileSync, spawnSync } from "node:child_process";
@@ -15,7 +15,7 @@ import { DEFAULTS, RATE, mix } from "./og-sound/synth.mjs";
 const FPS = 60;
 const REEL = process.argv.includes("--reel");
 // The same suffixes, in the same order, as the capture's variant flags.
-const SUFFIX = [["--burst", "-burst"], ["--glitch-return", "-glitch-return"], ["--rows", "-rows"], ["--video", "-video"]]
+const SUFFIX = [["--burst", "-burst"], ["--glitch-return", "-glitch-return"], ["--rows", "-rows"], ["--video", "-video"], ["--tight", "-tight"]]
   .filter(([flag]) => process.argv.includes(flag)).map(([, suffix]) => suffix).join("");
 const FRAMES = (REEL ? "out/og-reel-frames" : "out/og-frames") + SUFFIX, NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
 const CUTS = [["16x9", `${FRAMES}-1200x675@1.6x`], ["9x16", `${FRAMES}-675x1200@1.6x`]];

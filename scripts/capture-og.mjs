@@ -14,7 +14,8 @@
 // moving in opposite directions, and they glitch back) as 16:9 and 9:16 cuts named office-of-liam-fennell-reel-*, also
 // leaving the og:video alone; with --quick, only its 16:9 frames. Its other versions: --burst throws the letters off
 // instead (with --glitch-return to glitch them back in place rather than float them home), --rows moves the grid as
-// rows, and --video plays the site's project video in the tiles instead of placeholders.
+// rows, --video plays the Shop product-page prototype in the tiles instead of placeholders, and --tight grows the
+// tiles to 8px from the card's sides.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -23,7 +24,7 @@ const URL = process.argv[2] ?? "http://localhost:3000/og";
 const SEED = Number(process.argv[3] ?? 7);
 const QUICK = process.argv.includes("--quick");
 const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch", "glitch=all", "-all-glitch"], ["--burst", "exit=burst", "-burst"],
-  ["--glitch-return", "return=glitch", "-glitch-return"], ["--rows", "columns=rows", "-rows"], ["--video", "tiles=video", "-video"]]
+  ["--glitch-return", "return=glitch", "-glitch-return"], ["--rows", "columns=rows", "-rows"], ["--video", "tiles=video", "-video"], ["--tight", "margin=8", "-tight"]]
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const REEL = process.argv.includes("--reel");

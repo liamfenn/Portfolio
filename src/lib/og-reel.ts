@@ -61,9 +61,14 @@ export function speedIntensity(speed: number) {
 }
 
 export interface ReelLayout { columns: number; rows: number; size: number; gap: number }
-/** Two columns of the storyboard's 469px blocks on a wide card; one column with 30px side margins on a tall one. */
-export function reelLayout(width: number, height: number): ReelLayout {
-  return width >= height ? { columns: 2, rows: PROJECTS / 2, size: 469.33, gap: 8 } : { columns: 1, rows: PROJECTS, size: width - 60, gap: 8 };
+/**
+ * Two columns of the storyboard's 469px blocks on a wide card; one column with 30px side margins on a tall one. Given a
+ * `margin`, the blocks grow to fill the card's width but for that much at each side instead.
+ */
+export function reelLayout(width: number, height: number, margin?: number): ReelLayout {
+  const gap = 8;
+  if (width >= height) return { columns: 2, rows: PROJECTS / 2, size: margin === undefined ? 469.33 : (width - 2 * margin - gap) / 2, gap };
+  return { columns: 1, rows: PROJECTS, size: width - 2 * (margin ?? 30), gap };
 }
 /**
  * Where a row's top sits, scrolled by `offset`, the gap the same down as across. The rows start stacked below the
@@ -111,7 +116,7 @@ const NEARLY_GONE = 0.3;
  * Plays the interlude in `stage` (which fills the card). Resolves once the grid has nearly flown off, so whatever
  * follows can start while its last rows finish leaving; it tidies itself away after.
  */
-export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opposite?: boolean; video?: string } = {}) {
+export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opposite?: boolean; video?: string; margin?: number } = {}) {
   return new Promise<void>((resolve, reject) => { run(stage, signal, resolve, options).then(resolve, reject); });
 }
 
@@ -152,8 +157,9 @@ function videoTiles(src: string, canvases: HTMLCanvasElement[]) {
   };
 }
 
-async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void, { opposite = false, video }: { opposite?: boolean; video?: string }) {
-  const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height), { columns, rows, size, gap } = layout;
+async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void,
+  { opposite = false, video, margin }: { opposite?: boolean; video?: string; margin?: number }) {
+  const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height, margin), { columns, rows, size, gap } = layout;
   const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2, scale = width * WARP * 4;
   const grid = document.createElement("div"), filterId = "og-reel-filter";
   grid.className = "og-reel-grid";

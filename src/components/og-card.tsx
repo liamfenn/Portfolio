@@ -124,7 +124,9 @@ export function OgCard({ reel = false }: { reel?: boolean }) {
     const placed = letters.filter(element => element.textContent?.trim());
     // In AV1 where the browser plays it (the capture's Chromium has no H.264).
     const workSrc = document.createElement("video").canPlayType(AV1_MIME) ? REEL_VIDEO.av1 : REEL_VIDEO.h264;
-    const reelOptions = { opposite: params.get("columns") !== "rows", video: params.get("tiles") === "video" ? mediaUrl(workSrc) : undefined };
+    // ?margin=8 grows the tiles to fill the card's width but for that many px at each side.
+    const margin = params.has("margin") ? Number(params.get("margin")) : undefined;
+    const reelOptions = { opposite: params.get("columns") !== "rows", video: params.get("tiles") === "video" ? mediaUrl(workSrc) : undefined, margin };
     const run = async () => {
       await Promise.all([document.fonts.ready, import("matter-js")]);
       // The capture script starts its virtual clock only once this is set, rather than guessing at load time.
