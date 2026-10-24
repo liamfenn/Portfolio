@@ -11,7 +11,7 @@ The v3 homepage is built and live on the branch preview (see [`workflow.md`](wor
 production) is still the August version. Merging is Liam's call.
 
 **Favicon (2026-10-23)**
-- The footer globe at rest, mid-glitch (a pink 2 and a green R lit), its glyphs spanning 80% of the square on white: `public/images/meta/favicon-globe-{32,180,192}.png`. Captured from the real component on `/og/favicon` (dev only) by `node scripts/capture-favicon.mjs <url>`, which fits the globe, saves frames while a glitch is under way (3+ glyphs lit; the glitch ripples a few at a time), and writes a choosing sheet to `out/favicon/sheet.png`; `--pick <n>` writes the icons. Current: candidate 10.
+- The footer globe at rest, mid-glitch (a teal @, a pink y, and a violet % lit), its glyphs spanning 80% of the square on white: `public/images/meta/favicon-globe-{32,180,192}.png`. Captured from the real component on `/og/favicon` (dev only) by `node scripts/capture-favicon.mjs <url>`, which fits the globe, saves frames while a glitch is under way (3+ glyphs lit; the glitch ripples a few at a time), and writes a choosing sheet to `out/favicon/sheet.png`; `--pick <n>` writes the icons from a 1024px master (captured at 2×). The favicon card turns off the glyphs' `will-change: transform`, which otherwise makes Chrome raster them at their tiny layout size and stretch the bitmap, so the first capture was blurry.
 - Tried: a seeded scatter of five tilted burst glyphs (commit 824472d), then Liam's "O LF" mark (`favicon-olf-*.png`, still in the repo, no longer referenced).
 
 **Link preview video (2026-10-23)**

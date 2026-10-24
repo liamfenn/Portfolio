@@ -8,3 +8,6 @@
 .og-card-serif { font-family: var(--font-otto); }
 /* The favicon card: the globe alone, at whatever size the capture fits it to. */
 .og-favicon .glyph-globe { width: var(--og-favicon-globe, 400px); height: var(--og-favicon-globe, 400px); }
+/* will-change makes Chrome raster each glyph at its tiny layout size and stretch the bitmap, which blurs a globe
+   scaled up this far; without it the glyphs are drawn as sharp text at full size. */
+.og-favicon .glyph-globe-char { will-change: auto; }

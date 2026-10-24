@@ -5,25 +5,26 @@
 //
 // Needs the dev server and Playwright (see scripts/capture-og.mjs):
 //   node scripts/capture-favicon.mjs [url]            → out/favicon/candidate-*.png and out/favicon/sheet.png
-//   node scripts/capture-favicon.mjs --pick <n>       → public/images/meta/favicon-globe-{32,180,192}.png
+//   node scripts/capture-favicon.mjs --pick <n>       → public/images/meta/favicon-globe-{32,180,192}.png (from a 1024px master)
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 
-const SIZE = 512, FILL = 0.8, DIR = "out/favicon";
+// Laid out at 512px and captured at 2×, so every icon size is scaled down from a 1024px master.
+const SIZE = 512, SCALE = 2, FILL = 0.8, DIR = "out/favicon";
 const ICONS = [32, 180, 192];
 const pick = process.argv.indexOf("--pick");
 
 if (pick > -1) {
   const source = `${DIR}/candidate-${process.argv[pick + 1]}.png`;
   for (const size of ICONS) execFileSync("ffmpeg", ["-y", "-v", "error", "-i", source, "-vf", `scale=${size}:${size}:flags=lanczos`, `public/images/meta/favicon-globe-${size}.png`]);
-  copyFileSync(source, `${DIR}/favicon-globe-512.png`);
+  copyFileSync(source, `${DIR}/favicon-globe-${SIZE * SCALE}.png`);
   console.log(`Wrote public/images/meta/favicon-globe-{${ICONS.join(",")}}.png from ${source}`);
 } else {
   const { chromium } = await import("playwright-core");
   const url = process.argv[2] ?? "http://localhost:3000/og/favicon";
   rmSync(DIR, { recursive: true, force: true }); mkdirSync(DIR, { recursive: true });
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: SIZE, height: SIZE } });
+  const page = await browser.newPage({ viewport: { width: SIZE, height: SIZE }, deviceScaleFactor: SCALE });
   await page.goto(url, { waitUntil: "load" });
   // Dev overlays, and the swarm's exit ring, which shares the globe's spot but only shows while the swarm is out.
   await page.addStyleTag({ content: "nextjs-portal, [data-feedback-toolbar], .glyph-exit { display: none !important; }" });
