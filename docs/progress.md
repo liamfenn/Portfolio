@@ -10,8 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Native media long-press menus**
+- Media tiles now use real links to the original media URL. Ordinary taps still toggle mobile expansion; desktop hover/click behavior is retained, and modified link clicks can open the media. Blank placeholders remain buttons.
+- Removed pointer-event suppression on the video wrapper, disabled tile text selection, and left the browser's touch callout/context-menu event enabled. The video coordinator recognizes both link and button intent targets. The explicit mask for the reported Safari edge artifact remains in place.
+- Browser/iOS controls the menu and preview. Link actions commonly include open/copy/share, with download/image actions where supported; no custom menu items or guaranteed Save Video action. Actual iOS native-callout appearance needs device confirmation.
+
 **Video edge artifact investigation**
-- Liam supplied a phone photo of a thin top/right video edge that disappears in screenshots. The video/poster have no CSS border, outline, or shadow; playback coordination does not modify those properties.
+- Liam reports the explicit-mask change appears to have fixed the artifact on his screen. He supplied a phone photo of a thin top/right video edge that disappears in screenshots. The video/poster have no CSS border, outline, or shadow; playback coordination does not modify those properties.
 - Checked the outer two pixels of the top/right edges in every decoded frame of all three current renditions (800/1200/1600px, 887 frames each): channel values stay between 241 and 245, with no encoded dark line.
 - Added an explicit opaque alpha mask to the media wrapper, in addition to overflow clipping, to constrain independently composited video surfaces. It uses the existing bg-fill token and does not change media geometry, source files, frame rate, layout animation, or playback policy. This is a targeted compositor workaround, not a confirmed diagnosis of the affected Mac/display path.
 - Local production Chromium checks passed at 1441px DPR 1/2 and 390px DPR 2: decoded playback advances, video/wrapper bounds match through grid changes and fractional scrolling, sampled rendered top/right edges remain clean, and reduced-motion poster fallback works. All 51 tests, TypeScript, and the production build pass.

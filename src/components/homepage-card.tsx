@@ -45,26 +45,38 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
   const visible = isMobile ? expanded : hovered || focused;
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   const detailsId = `${preview.id}-details`;
+  const mediaHref = preview.media ? mediaUrl(preview.media.src) : undefined;
+  const Trigger = mediaHref ? "a" : "button";
   return (
     <li data-project-id={preview.id}
       className={`project-preview homepage-card${isMobile && expanded ? " is-expanded" : ""}`} data-company={preview.company}>
-      <button type="button" className="project-preview-link homepage-card-trigger"
+      <Trigger type={mediaHref ? undefined : "button"} href={mediaHref} className="project-preview-link homepage-card-trigger hover-surface"
         aria-label={`${preview.label}, ${preview.company}, ${preview.period}`}
         aria-expanded={isMobile ? expanded : undefined}
         aria-controls={isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
-        onClick={() => { if (isMobile) onToggle(); }}
+        onClick={event => {
+          // Keep normal taps for expansion; the real href gives the browser a native media callout.
+          if (mediaHref) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+          }
+          if (isMobile) onToggle();
+        }}
         onPointerEnter={event => { if (!isMobile && event.pointerType !== "touch") onHover(); }}
         onPointerDown={() => { if (!isMobile) setFocused(false); }}
         onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
-        onKeyDown={event => { if (event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
+        onKeyDown={event => {
+          if (event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); }
+          if (mediaHref && event.key === " ") { event.preventDefault(); event.currentTarget.click(); }
+        }}>
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
-      </button>
+      </Trigger>
     </li>
   );
 }

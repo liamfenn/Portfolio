@@ -339,7 +339,6 @@
   display: block;
   overflow: hidden;
   background: var(--media-backdrop, var(--bg-secondary-fill));
-  pointer-events: none;
   /* Explicitly clip the video compositing surface as well as its DOM box, without resizing the artwork. */
   -webkit-mask-image: linear-gradient(var(--bg-fill), var(--bg-fill));
   mask-image: linear-gradient(var(--bg-fill), var(--bg-fill));
@@ -609,6 +608,7 @@
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--bg-secondary-fill); }
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
 .homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--bg-secondary-fill); color: inherit; cursor: pointer; overflow: visible; }
+.homepage-card-trigger { -webkit-user-select: none; user-select: none; -webkit-touch-callout: default; }
 .homepage-card-trigger:focus-visible { outline: 2px solid var(--bg-purple-fill); outline-offset: -2px; }
 /* Cut only the panel surface so the artwork and the clear gap stay independent. */
 .homepage-spotify { isolation: isolate; cursor: pointer; }

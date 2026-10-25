@@ -84,7 +84,7 @@ class VideoPlayback {
     const intent = () => { entry.failed = false; entry.retries = 0; this.schedule(); };
     video.addEventListener("loadeddata", ready);
     video.addEventListener("error", error);
-    const intentTarget = video.closest("button") ?? video.parentElement!;
+    const intentTarget = video.closest("a, button") ?? video.parentElement!;
     intentTarget.addEventListener("pointerdown", intent);
     return {
       priority: (value: boolean) => {
