@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Menu/footer selection and reference-site research**
+- Disabled text selection on both work-menu containers (selected controls and dropdown options) and the footer. Image-tile native callouts remain enabled; intro text remains selectable.
+- Inspected mariajosemunita.co without changing our media behavior. Cargo renders a normal MP4 video with a separate AVIF/JPEG poster above it. During playback the poster has opacity 0, z-index 2, and pointer-events auto; hit testing still targets that image. This supports a native image callout for the static poster, rather than a capture of the current frame. Actual iOS menu presentation was not tested here.
+- Validation: 51 tests, TypeScript, production build, and diff checks passed. Local browser checks verified the controls, revealed desktop options, and footer are unselectable; intro selection and the uncancelled image-tile context-menu path remain intact. Mobile expansion and globe entry/exit still work.
+
 **Long-press behavior simplified**
 - Removed the custom media menu, hold timers/gesture interception, keyboard menu shortcut, menu-only tokens/styles, and menu-specific swarm exclusion.
 - Project tiles still suppress text selection. Native callouts are disabled for video/blank tiles and globe/exit controls. The Spotify bar also disables text selection; its normal link behavior is retained.
