@@ -13,9 +13,9 @@ import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export function HomepageIdentity() {
   return <span className="homepage-identity-frame">
-    <a className="homepage-identity hover-surface" data-inspector-toggle href="https://shop.app" target="_blank" rel="noreferrer" aria-label="Currently at Shop">
+    <button type="button" className="homepage-identity hover-surface" data-inspector-toggle aria-label="Open design controls">
     <span className="homepage-avatar"><Image src="/images/profile-v2.png" alt="Liam Fennell" width={1536} height={1920} sizes="116px" priority /></span>
-    </a>
+    </button>
   </span>;
 }
 

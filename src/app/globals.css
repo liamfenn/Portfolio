@@ -593,7 +593,7 @@
 .portfolio-v3 .portfolio-bio a { text-decoration: none; }
 
 .homepage-slide-badge { position: relative; display: block; width: 56px; height: 28px; }
-.homepage-identity { display: block; width: 28px; height: 28px; flex: 0 0 28px; }
+.homepage-identity { display: block; width: 28px; height: 28px; flex: 0 0 28px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 /*
  * Hover system, three patterns:
  * - text links and text buttons dim to --hover-dim;

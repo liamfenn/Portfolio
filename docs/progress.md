@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Avatar link removed**
+- Replaced the avatar's Shop link with a button, preserving the inspector menu trigger and existing desktop/mobile dimensions. The new headshot is pending: the chat displays it, but no downloadable attachment or accessible file was provided to this cloud workspace.
+- Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Local browser checks confirmed no outbound link, unchanged 28px/24px dimensions, and working inspector toggles at desktop/mobile widths.
+
 **Menu/footer selection and reference-site research**
 - Disabled text selection on both work-menu containers (selected controls and dropdown options) and the footer. Image-tile native callouts remain enabled; intro text remains selectable.
 - Inspected mariajosemunita.co without changing our media behavior. Cargo renders a normal MP4 video with a separate AVIF/JPEG poster above it. During playback the poster has opacity 0, z-index 2, and pointer-events auto; hit testing still targets that image. This supports a native image callout for the static poster, rather than a capture of the current frame. Actual iOS menu presentation was not tested here.
