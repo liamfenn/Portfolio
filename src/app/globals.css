@@ -340,6 +340,9 @@
   overflow: hidden;
   background: var(--media-backdrop, var(--bg-secondary-fill));
   pointer-events: none;
+  /* Explicitly clip the video compositing surface as well as its DOM box, without resizing the artwork. */
+  -webkit-mask-image: linear-gradient(var(--bg-fill), var(--bg-fill));
+  mask-image: linear-gradient(var(--bg-fill), var(--bg-fill));
 }
 
 .project-preview-poster,

@@ -10,6 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Video edge artifact investigation**
+- Liam supplied a phone photo of a thin top/right video edge that disappears in screenshots. The video/poster have no CSS border, outline, or shadow; playback coordination does not modify those properties.
+- Checked the outer two pixels of the top/right edges in every decoded frame of all three current renditions (800/1200/1600px, 887 frames each): channel values stay between 241 and 245, with no encoded dark line.
+- Added an explicit opaque alpha mask to the media wrapper, in addition to overflow clipping, to constrain independently composited video surfaces. It uses the existing bg-fill token and does not change media geometry, source files, frame rate, layout animation, or playback policy. This is a targeted compositor workaround, not a confirmed diagnosis of the affected Mac/display path.
+- Local production Chromium checks passed at 1441px DPR 1/2 and 390px DPR 2: decoded playback advances, video/wrapper bounds match through grid changes and fractional scrolling, sampled rendered top/right edges remain clean, and reduced-motion poster fallback works. All 51 tests, TypeScript, and the production build pass.
+- The screen-only artifact cannot be reproduced or verified with these headless screenshots. Actual Safari/Mac confirmation remains necessary; do not claim the reported border is definitively fixed based on the local checks.
+
 **Video foundation and source frame rate (2026-10-24)**
 - Rebuilt grid playback around shared visibility/resize observers and a coordinator: two initial load slots, four desktop/two mobile playback slots, intent priority, deferred sources, 15-second idle release, hidden-page cleanup, and bounded failure recovery. Reduced motion and data-saving leave images only. A real poster covers the video until a decoded frame is presented; exact media bounds replace the negative inset and video opacity switch. The old one-time `use-video-rendition` hook (and its known lint issue) is retired as part of the rewrite.
 - `media:import` preserves the master frame rate by default, including 60 and fractional 59.94fps. It generates H.264 rungs and responsive posters, checks complete decode/dimensions/rate/duration/audio, uploads immutable content-versioned files, and atomically writes `src/lib/imported-media.json`. AV1 is an optional export; grid playback establishes H.264 as the baseline. Re-import verified to skip encoding and uploads. See `docs/media-workflow.md` for incoming clips and options.

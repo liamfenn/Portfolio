@@ -42,7 +42,7 @@ The old positional frame-rate/width arguments are rejected. Use named options. A
 - Hidden pages and reduced-motion/data-saving changes release video sources immediately. Cards outside the prepared set pause; sources are released after 15 seconds. Cleanup removes observers, timers, and callbacks when the grid unmounts.
 - Actual element width × device pixel ratio (capped at 2×) selects the smallest adequate rung. Settled resize/expansion can upgrade; an attached video does not downgrade or reload on hover. Upgrades resume the playhead. Source rate is preserved in every rung.
 
-Videos and posters share exact bounds and a single media clipping wrapper, without negative insets, video opacity transitions, or forced GPU promotion. Grid transitions retain their existing outer transforms. Safari compositing artifacts must be verified in actual Safari, including after scroll, resize, expansion, and page backgrounding; a test WebKit browser is additional coverage, not a substitute for current iPhone/macOS Safari.
+Videos and posters share exact bounds and a single media clipping wrapper, without negative insets, video opacity transitions, or forced GPU promotion. An opaque alpha mask on that wrapper explicitly clips the independently composited video surface; it is a workaround for a reported screen-only edge artifact and still needs confirmation on the affected Mac/display. Grid transitions retain their existing outer transforms. Safari compositing artifacts must be verified in actual Safari, including after scroll, resize, expansion, and page backgrounding; a test WebKit browser is additional coverage, not a substitute for current iPhone/macOS Safari.
 
 ## Acceptance and incoming assets
 
