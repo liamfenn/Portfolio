@@ -107,6 +107,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       const bottom = top + (viewport?.height ?? innerHeight);
       topEdge.style.top = `${top}px`;
       bottomEdge.style.top = `calc(${bottom}px - max(var(--project-focus-edge-size), var(--viewport-safe-bottom)))`;
+      bottomEdge.style.height = `calc(max(var(--project-focus-edge-size), var(--viewport-safe-bottom)) + max(0px, var(--project-focus-full-height) - ${bottom}px) + var(--viewport-safe-bottom))`;
     };
     const scheduleEdges = () => { if (!edgeFrame) edgeFrame = requestAnimationFrame(updateEdges); };
     updateEdges();
@@ -198,6 +199,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
+    <div className="project-focus-top-surface" aria-hidden="true" />
     <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />

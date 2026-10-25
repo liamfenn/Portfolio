@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Gray top band and large-viewport background (2026-10-25)**
+- Changed the mobile top sampler and its visible gutter surface to bg-secondary-fill (#f6f8f9). The gutter surface paints above the translucent tint and below the content so it retains the exact requested gray without covering the artwork. Bottom remains bg-fill white.
+- Added the runtime `--project-focus-full-height: 100lvh` alias. Background/blur now extend to the larger of the current root height and large viewport height, plus safe-area coverage. The bottom white plane starts just inside the visible bottom and fills the remaining gap through the large viewport and bottom safe area. Media, Close, and the content scroller keep their existing viewport dimensions.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and development/production desktop/mobile checks passed. With a simulated full height of 900px, visible viewport bottoms of 650/820/802px all retained background coverage through 900px without changing document or content scroll heights. A separate 852px → 1100px background extension likewise kept document/content viewport heights at 852px. Verified both top surfaces use #f6f8f9 and bottom stays white. Safari may still exclude native toolbar pixels from DOM painting; this extends the available web background, not a guarantee of native chrome appearance.
+
 **Visible focus-entry color glitch (2026-10-25)**
 - The short glitch had mostly finished while text was still fading in. Metadata and Close now wait until the 180ms media movement ends, then fade in over 80ms as their glitch begins. This retains the same 260ms overall entry timing while making the color effect visible after the media settles.
 - Tripled the focus-only scramble cycles, retaining the complete-label pass, zero forward seeding, stable replay timer, and single final settle. Closing before the queued effect starts suppresses it. Exit timing and reduced motion are unchanged.

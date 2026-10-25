@@ -108,7 +108,12 @@ try {
         const savedHeight = Object.getOwnPropertyDescriptor(viewport, "height");
         const savedTop = Object.getOwnPropertyDescriptor(viewport, "offsetTop");
         const records = [];
+        const scroller = document.querySelector(".project-focus-scroll");
+        const contentHeight = scroller.scrollHeight;
+        const contentClientHeight = scroller.clientHeight;
+        const documentHeight = document.documentElement.scrollHeight;
         try {
+          document.documentElement.style.setProperty("--project-focus-full-height", "900px");
           for (const [height, top] of [[650, 0], [820, 0], [790, 12]]) {
             Object.defineProperty(viewport, "height", { configurable: true, value: height });
             Object.defineProperty(viewport, "offsetTop", { configurable: true, value: top });
@@ -119,13 +124,19 @@ try {
             records.push({
               top: edges[0].getBoundingClientRect().top,
               bottom: edges[1].getBoundingClientRect().bottom,
-              opaque: edges.every(edge => getComputedStyle(edge).opacity === "1" && getComputedStyle(edge).backgroundColor === "rgb(255, 255, 255)"),
+              bottomTop: edges[1].getBoundingClientRect().top,
+              backdropBottom: document.querySelector(".project-focus-backdrop").getBoundingClientRect().bottom,
+              topSurface: getComputedStyle(document.querySelector(".project-focus-top-surface")).backgroundColor,
+              opaque: edges.every(edge => getComputedStyle(edge).opacity === "1"),
+              colors: edges.map(edge => getComputedStyle(edge).backgroundColor),
+              unchangedScrollArea: scroller.scrollHeight === contentHeight && scroller.clientHeight === contentClientHeight && document.documentElement.scrollHeight === documentHeight,
               noGradient: edges.every(edge => getComputedStyle(edge, "::before").content === "none" && getComputedStyle(edge, "::after").content === "none"),
               directChildren: edges.every(edge => edge.parentElement === document.body),
               behindContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) < Number(getComputedStyle(document.querySelector(".project-focus-root")).zIndex)),
             });
           }
         } finally {
+          document.documentElement.style.removeProperty("--project-focus-full-height");
           if (savedHeight) Object.defineProperty(viewport, "height", savedHeight); else delete viewport.height;
           if (savedTop) Object.defineProperty(viewport, "offsetTop", savedTop); else delete viewport.offsetTop;
           viewport.dispatchEvent(new Event("resize"));
@@ -133,8 +144,10 @@ try {
         }
         return records;
       });
-      assert.deepEqual(viewportEdges.map(edge => [edge.top, edge.bottom]), [[0, 650], [0, 820], [12, 802]]);
+      assert.deepEqual(viewportEdges.map(edge => [edge.top, edge.bottomTop, edge.bottom]), [[0, 638, 900], [0, 808, 900], [12, 790, 900]]);
       assert.ok(viewportEdges.every(edge => edge.opaque && edge.noGradient && edge.directChildren && edge.behindContent));
+      assert.ok(viewportEdges.every(edge => edge.unchangedScrollArea && edge.backdropBottom === 900 && edge.topSurface === "rgb(246, 248, 249)"));
+      assert.ok(viewportEdges.every(edge => edge.colors[0] === "rgb(246, 248, 249)" && edge.colors[1] === "rgb(255, 255, 255)"));
     }
     await page.locator(".project-focus-media-slot").click();
     assert.equal(await dialog.getAttribute("data-phase"), "open");
