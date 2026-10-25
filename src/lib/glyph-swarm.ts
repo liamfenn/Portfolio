@@ -369,7 +369,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       Body.setAngularVelocity(glyph.body, glyph.body.angularVelocity + impulse.x * 0.004);
     }
   };
-  const excluded = (target: EventTarget | null) => (target as Element | null)?.closest?.(".glyph-exit,.palette-lab,.design-inspector,.media-menu,[role='menu']");
+  const excluded = (target: EventTarget | null) => (target as Element | null)?.closest?.(".glyph-exit,.palette-lab,.design-inspector,[role='menu']");
   const steer = (next: Point) => {
     if (last) push(last, next);
     pointer = last = next;

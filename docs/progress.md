@@ -10,12 +10,19 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Long-press behavior simplified**
+- Removed the custom media menu, hold timers/gesture interception, keyboard menu shortcut, menu-only tokens/styles, and menu-specific swarm exclusion.
+- Project tiles still suppress text selection. Native callouts are disabled for video/blank tiles and globe/exit controls. The Spotify bar also disables text selection; its normal link behavior is retained.
+- Image tiles explicitly retain the browser’s default image callout and image hit testing. A media-kind data attribute scopes the exception, and no context-menu handler cancels image actions. Video posters remain inside their non-interactive wrapper and do not receive the image exception.
+- Normal mobile tap expansion, desktop hover, viewport/PiP guards, and the video-edge mask remain in place. The intro and other page copy remain selectable.
+- Verified production mobile holds/taps, no custom dialog or media navigation, globe entry/exit, scoped selection styles, and a server-rendered image fixture whose image receives hit tests and uncancelled context-menu events. Actual iOS menu contents remain browser-controlled. All 51 tests, TypeScript, touched-file lint, and the production build pass.
+
 **Mobile viewport scale guard**
 - After the native-video callout regression, Liam reported a refreshed page rendering at roughly quarter scale with an apparent collapsed PiP tab on the right. Fresh Chromium mobile audits at 375/390/393/430px showed matching layout/document/visual widths, scale 1, and no horizontal overflow, so the screenshot’s native Safari state was not reproduced locally.
 - Exported an explicit device-width viewport with initialScale 1 and minimumScale 1. It defines a zoom-out floor while leaving maximum scale/user scaling unrestricted. Inline project previews opt out of picture-in-picture where the browser supports the flag. This does not forcibly reset a user’s active zoom or close an already-running native player.
-- The in-page hold menu, inline playback, and video-edge mask remain. Actual Safari recovery from the old viewer state still requires Liam’s device confirmation; a fresh tab helps distinguish retained native state from the document layout.
+- Inline playback and the video-edge mask remain. The in-page hold menu was subsequently removed. Actual Safari recovery from the old viewer state still requires Liam’s device confirmation; a fresh tab helps distinguish retained native state from the document layout.
 
-**In-page media menu replaces native video callouts**
+**In-page media menu experiment (removed)**
 - The direct-video-link approach triggered Safari’s fullscreen viewer before showing useful options, and Liam reported the page returning at the wrong zoom. Media tiles are buttons again, native media hit testing/callouts are suppressed, and no viewport or pinch-zoom restrictions are added. The video-edge mask is retained.
 - A stationary touch/pen hold opens a small in-page modal. Movement, pointer cancellation, a second touch, or release cancels the pending hold. The release after a completed hold does not expand the tile; a new ordinary tap still does. Right-click and Shift+F10 also open the menu; Cancel, outside tap, and Escape dismiss it.
 - Copy media link is always available. Where supported, the menu prepares the actual file before the user presses Share / Save, preserving iOS user activation for the native share sheet. Unsupported/failed file preparation falls back to Share link; the browser/OS decides which save targets the share sheet offers. Preparation is canceled on close and does not launch the media viewer.
