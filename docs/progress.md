@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Safari toolbar states and gradient bleed (2026-10-25)**
+- Liam confirmed the previous 5px edge treatment helped with Safari's collapsed controls but left gray bands with the expanded toolbar or sometimes at the top. Its inward white gradients also washed over the media and Close. Removed both gradients and their unused tokens.
+- Replaced pseudo-elements with opaque white fixed strips, at least 12px tall, directly under body and outside the overlay's fading/isolation context. They sit behind all focused-view content and do not animate opacity. The mobile media has a 12px-or-safe-area top gutter so the sampler stays clear of the artwork. The 88% backdrop and 8px blur remain separate absolute layers inside the focus view.
+- Strip positions now follow visualViewport resize/scroll and window resize, covering both expanded and collapsed browser-control geometry. A temporary theme-color hint uses bg-fill and restores the prior hint on close. All listeners, frames, and sampling elements are cleaned up on dismissal.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and development/production desktop/mobile browser checks passed. Simulated visual viewport heights of 650/820px plus a 12px offset confirmed both strips follow the visible edges, remain opaque, have no gradient pseudo-elements, and stay behind content. Reviewed a mobile screenshot; verified Close colors, theme hint restoration, and edge cleanup. Actual Safari chrome tint remains a device-only confirmation.
+
 **Focus handoff timing and settled text (2026-10-25)**
 - Added an 80ms handoff delay: opening media/backdrop move immediately, with metadata and Close beginning their fade/glitch after 80ms. On exit, text fades immediately over 120ms; media and backdrop wait 80ms before the existing 180ms return. Reduced motion skips both delays and transitions. Opening completion now waits for the delayed text as well as the media.
 - Focus text now starts from the complete label and glitches the whole label once, with forward seeding disabled. This avoids streaming names and re-flashing letters that appeared settled. A ref keeps the delayed replay callback current without rearming its timer on rerenders; the timer is canceled on unmount.

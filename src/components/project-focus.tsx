@@ -55,6 +55,8 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
   const rootRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const topEdgeRef = useRef<HTMLDivElement>(null);
+  const bottomEdgeRef = useRef<HTMLDivElement>(null);
   const dismissRef = useRef<() => void>(() => {});
 
   useLayoutEffect(() => {
@@ -65,7 +67,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
     const close = closeRef.current!;
-    const edges = Array.from(root.querySelectorAll<HTMLElement>(".project-focus-edge"));
+    const topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const tokens = getComputedStyle(root);
     const milliseconds = (property: string) => {
@@ -88,9 +90,31 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     body.style.width = "100%";
     body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
-    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root);
+    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge);
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
+
+    // Keep opaque sampling strips at the visible edges as Safari expands/collapses its controls.
+    const viewport = window.visualViewport;
+    let edgeFrame = 0;
+    const updateEdges = () => {
+      edgeFrame = 0;
+      const top = viewport?.offsetTop ?? 0;
+      const bottom = top + (viewport?.height ?? innerHeight);
+      topEdge.style.top = `${top}px`;
+      bottomEdge.style.top = `calc(${bottom}px - max(var(--project-focus-edge-size), var(--viewport-safe-bottom)))`;
+    };
+    const scheduleEdges = () => { if (!edgeFrame) edgeFrame = requestAnimationFrame(updateEdges); };
+    updateEdges();
+    viewport?.addEventListener("resize", scheduleEdges);
+    viewport?.addEventListener("scroll", scheduleEdges);
+    window.addEventListener("resize", scheduleEdges);
+    const previousTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const theme = previousTheme ?? document.createElement("meta");
+    const previousThemeColor = theme.getAttribute("content");
+    theme.name = "theme-color";
+    theme.content = tokens.getPropertyValue("--bg-fill").trim();
+    if (!previousTheme) document.head.appendChild(theme);
 
     // Move the existing media DOM temporarily: the video decoder and playhead survive the transition.
     // Return it to React's original parent before the portal unmounts.
@@ -107,7 +131,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
     const isText = (element: HTMLElement) => element === details || element === close;
     const opening = tweenMedia(origin, slot.getBoundingClientRect());
-    const faded = [blur, backdrop, details, close, ...edges];
+    const faded = [blur, backdrop, details, close];
     animations.push(opening, ...faded.map(element => fade(element, 0, 1, isText(element) ? handoffDelay : 0)));
     void opening.finished.then(() => {
       if (!closing && !disposed) opening.cancel();
@@ -149,6 +173,13 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       animations.forEach(animation => animation.cancel());
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
+      cancelAnimationFrame(edgeFrame);
+      viewport?.removeEventListener("resize", scheduleEdges);
+      viewport?.removeEventListener("scroll", scheduleEdges);
+      window.removeEventListener("resize", scheduleEdges);
+      if (!previousTheme) theme.remove();
+      else if (previousThemeColor === null) theme.removeAttribute("content");
+      else theme.content = previousThemeColor;
       trigger.prepend(media);
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
@@ -157,7 +188,10 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     };
   }, [selection, onClose]);
 
-  return createPortal(<div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
+  return createPortal(<>
+    <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
+    <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
     <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
@@ -167,7 +201,6 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       </div>
     </div>
     <button ref={closeRef} type="button" className="project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>
-    <div className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
-    <div className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
-  </div>, document.body);
+    </div>
+  </>, document.body);
 }

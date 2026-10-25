@@ -75,7 +75,7 @@ try {
     assert.ok(state.sameMedia && state.sameVideo && state.bodyLocked && state.backgroundInert);
     assert.equal(state.width, mobile ? width : 620);
     assert.equal(state.left, mobile ? 0 : (width - 620) / 2);
-    assert.equal(state.top, mobile ? 0 : 24);
+    assert.equal(state.top, mobile ? 12 : 24);
     assert.equal(state.closeBottom, mobile ? 24 : 44);
     assert.equal(state.blur, "blur(8px)");
     assert.equal(state.tintBlur, "none");
@@ -87,6 +87,40 @@ try {
       { name: "Jon Rundle", href: "https://jonrundle.design/" },
     ]);
     assert.equal(state.periodFont, mobile ? "13px" : "14px");
+    if (mobile) {
+      const viewportEdges = await page.evaluate(async () => {
+        const viewport = window.visualViewport;
+        const savedHeight = Object.getOwnPropertyDescriptor(viewport, "height");
+        const savedTop = Object.getOwnPropertyDescriptor(viewport, "offsetTop");
+        const records = [];
+        try {
+          for (const [height, top] of [[650, 0], [820, 0], [790, 12]]) {
+            Object.defineProperty(viewport, "height", { configurable: true, value: height });
+            Object.defineProperty(viewport, "offsetTop", { configurable: true, value: top });
+            viewport.dispatchEvent(new Event("resize"));
+            viewport.dispatchEvent(new Event("scroll"));
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            const edges = [...document.querySelectorAll(".project-focus-edge")];
+            records.push({
+              top: edges[0].getBoundingClientRect().top,
+              bottom: edges[1].getBoundingClientRect().bottom,
+              opaque: edges.every(edge => getComputedStyle(edge).opacity === "1" && getComputedStyle(edge).backgroundColor === "rgb(255, 255, 255)"),
+              noGradient: edges.every(edge => getComputedStyle(edge, "::before").content === "none" && getComputedStyle(edge, "::after").content === "none"),
+              directChildren: edges.every(edge => edge.parentElement === document.body),
+              behindContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) < Number(getComputedStyle(document.querySelector(".project-focus-root")).zIndex)),
+            });
+          }
+        } finally {
+          if (savedHeight) Object.defineProperty(viewport, "height", savedHeight); else delete viewport.height;
+          if (savedTop) Object.defineProperty(viewport, "offsetTop", savedTop); else delete viewport.offsetTop;
+          viewport.dispatchEvent(new Event("resize"));
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
+        return records;
+      });
+      assert.deepEqual(viewportEdges.map(edge => [edge.top, edge.bottom]), [[0, 650], [0, 820], [12, 802]]);
+      assert.ok(viewportEdges.every(edge => edge.opaque && edge.noGradient && edge.directChildren && edge.behindContent));
+    }
     await page.locator(".project-focus-media-slot").click();
     assert.equal(await dialog.getAttribute("data-phase"), "open");
     await page.keyboard.press("Tab");
@@ -120,6 +154,8 @@ try {
     assert.equal(handoff.textDelay, 0);
     assert.equal(handoff.textDuration, 120);
     await dialog.waitFor({ state: "detached" });
+    assert.equal(await page.locator(".project-focus-edge").count(), 0);
+    assert.equal(await page.locator('meta[name="theme-color"]').count(), 0);
     assert.ok(await page.evaluate(() => {
       const source = window.__focusSource;
       return source.trigger.contains(source.media) && source.trigger.contains(source.video) && !document.querySelector("main").inert && document.body.style.position !== "fixed" && document.activeElement === source.trigger && Math.abs(scrollY - source.scroll) < 1;
@@ -140,7 +176,7 @@ try {
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-close") }));
         });
-        assert.equal(timing.length, 7);
+        assert.equal(timing.length, 5);
         assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
         assert.ok(timing.every(animation => animation.delay === (animation.text ? 80 : 0)));
       }
