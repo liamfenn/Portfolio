@@ -38,6 +38,16 @@
   --project-layout-duration: 180ms;
   --project-layout-ease: .2, 0, 0, 1;
   --project-label-delay: 40ms;
+  --project-focus-duration: var(--project-layout-duration);
+  --project-focus-ease: .65, 0, .35, 1;
+  --project-focus-width: 620px;
+  --project-focus-backdrop-opacity: 88%;
+  --project-focus-blur: 8px;
+  --project-focus-top: calc(var(--content-padding) + var(--page-frame));
+  --project-focus-team-gap: calc(var(--content-padding) * 2 + var(--page-frame));
+  --project-focus-close-bottom: 44px;
+  --project-focus-close-bottom-mobile: 24px;
+  --project-focus-hit-size: 44px;
   --album-swap-duration: 200ms;
   --album-glitch-flash-duration: 32ms;
   --motion-ease: cubic-bezier(.16, 1, .3, 1);

@@ -50,7 +50,7 @@ class VideoPlayback {
   });
 
   constructor() {
-    window.addEventListener("scroll", this.onScroll, { passive: true });
+    window.addEventListener("scroll", this.onScroll, { passive: true, capture: true });
     window.addEventListener("resize", this.onScroll, { passive: true });
     document.addEventListener("visibilitychange", this.onPolicy);
     window.addEventListener("pagehide", this.onPageHide);
@@ -234,7 +234,7 @@ class VideoPlayback {
     this.resize.disconnect();
     cancelAnimationFrame(this.frame);
     clearTimeout(this.resizeTimer);
-    window.removeEventListener("scroll", this.onScroll);
+    window.removeEventListener("scroll", this.onScroll, { capture: true });
     window.removeEventListener("resize", this.onScroll);
     document.removeEventListener("visibilitychange", this.onPolicy);
     window.removeEventListener("pagehide", this.onPageHide);

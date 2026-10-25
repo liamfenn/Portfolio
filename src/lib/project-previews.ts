@@ -12,6 +12,7 @@ export interface ProjectPreview {
   featuredOrder: number;
   year: number;
   media?: PortfolioMediaAsset;
+  team?: { name: string; href: string }[];
 }
 
 // Each entry is a homepage tile. Media stays optional until final assets arrive.

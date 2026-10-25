@@ -3,7 +3,7 @@
 import { flushSync } from "react-dom";
 import { HomepageCard } from "@/components/homepage-card";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
@@ -12,6 +12,9 @@ import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { InspectableText } from "@/components/design-inspector";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
+import { ProjectFocus } from "@/components/project-focus";
+import type { ProjectFocusSelection } from "@/components/project-focus";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
@@ -130,6 +133,9 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
+  const { projectFocusEnabled } = usePortfolioExperiments();
+  const [focusSelection, setFocusSelection] = useState<ProjectFocusSelection | null>(null);
+  const closeFocus = useCallback(() => setFocusSelection(null), []);
   const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
     useProjectDisplayState();
   const gridRef = useRef<HTMLUListElement>(null);
@@ -665,9 +671,16 @@ export function ProjectWork() {
             hovered={hoveredId === preview.id}
             onHover={() => setHoveredId(preview.id)}
             onClearHover={() => setHoveredId(null)}
+            focusActive={focusSelection?.preview.id === preview.id}
+            onOpenFocus={projectFocusEnabled ? trigger => {
+              const origin = trigger.getBoundingClientRect();
+              layoutAnimations.current.forEach(animation => animation.finish());
+              setFocusSelection({ preview, trigger, origin });
+            } : undefined}
             onToggle={() => togglePreview(preview.id)} />
         ))}
       </ul>
+      {focusSelection && <ProjectFocus selection={focusSelection} onClose={closeFocus} />}
     </section>
   );
 }

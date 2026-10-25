@@ -1,0 +1,133 @@
+"use client";
+
+import { useLayoutEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { InspectableText } from "@/components/design-inspector";
+import type { ProjectPreview } from "@/lib/project-previews";
+
+export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
+
+export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
+  const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
+  return <div className="project-focus-details text-bodySans">
+    <div className="project-focus-heading">
+      <div className="project-focus-name">
+        <h2 id="project-focus-title"><InspectableText>{preview.company}</InspectableText></h2>
+        <p className="project-focus-description"><InspectableText>{preview.label}</InspectableText></p>
+      </div>
+      <p className="project-focus-period text-captionSans"><InspectableText>{period}</InspectableText></p>
+    </div>
+    {Boolean(preview.team?.length) && <div className="project-focus-team">
+      <h3 className="text-captionSans"><InspectableText>Team</InspectableText></h3>
+      <ul>{preview.team!.map(member => <li key={member.href}>
+        <a href={member.href} target="_blank" rel="noreferrer"><InspectableText>{member.name}</InspectableText></a>
+      </li>)}</ul>
+    </div>}
+  </div>;
+}
+
+export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSelection; onClose: () => void }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const dismissRef = useRef<() => void>(() => {});
+
+  useLayoutEffect(() => {
+    const root = rootRef.current!, slot = slotRef.current!;
+    const { trigger, origin } = selection;
+    const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
+    const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
+    const details = root.querySelector<HTMLElement>(".project-focus-details")!;
+    const close = closeRef.current!;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const tokens = getComputedStyle(root);
+    const duration = tokens.getPropertyValue("--project-focus-duration").trim();
+    const timing = {
+      duration: parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000),
+      easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})`,
+    };
+    const scroll = { x: scrollX, y: scrollY };
+    const body = document.body;
+    const saved = { position: body.style.position, top: body.style.top, left: body.style.left, width: body.style.width, overflow: body.style.overflow, paddingRight: body.style.paddingRight };
+    const scrollbar = innerWidth - document.documentElement.clientWidth;
+    body.style.position = "fixed";
+    body.style.top = `${-scroll.y}px`;
+    body.style.left = `${-scroll.x}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
+    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root);
+    const inert = siblings.map(node => ({ node, previous: node.inert }));
+    inert.forEach(({ node }) => { node.inert = true; });
+
+    // Move the existing media DOM temporarily: the video decoder and playhead survive the transition.
+    // Return it to React's original parent before the portal unmounts.
+    slot.appendChild(media);
+    const animations: Animation[] = [];
+    let closing = false, disposed = false;
+    const tweenMedia = (from: DOMRect, to: DOMRect) => {
+      const bounds = slot.getBoundingClientRect();
+      return media.animate([
+        { transform: `translate(${from.left - bounds.left}px, ${from.top - bounds.top}px) scale(${from.width / bounds.width}, ${from.height / bounds.height})` },
+        { transform: `translate(${to.left - bounds.left}px, ${to.top - bounds.top}px) scale(${to.width / bounds.width}, ${to.height / bounds.height})` },
+      ], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
+    };
+    const fade = (element: HTMLElement, from: number, to: number) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
+    const opening = tweenMedia(origin, slot.getBoundingClientRect());
+    animations.push(opening, ...[backdrop, details, close].map(element => fade(element, 0, 1)));
+    void opening.finished.then(() => {
+      if (!closing && !disposed) { opening.cancel(); root.dataset.phase = "open"; }
+    }).catch(() => {});
+    close.focus({ preventScroll: true });
+
+    dismissRef.current = () => {
+      if (closing || disposed) return;
+      closing = true;
+      root.dataset.phase = "closing";
+      const from = media.getBoundingClientRect();
+      const opacities = [backdrop, details, close].map(element => Number(getComputedStyle(element).opacity));
+      animations.forEach(animation => animation.cancel());
+      const exit = tweenMedia(from, trigger.getBoundingClientRect());
+      animations.push(exit, ...[backdrop, details, close].map((element, index) => fade(element, opacities[index], 0)));
+      void exit.finished.then(() => { if (!disposed) onClose(); }).catch(() => {});
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
+      } else if (event.key === "Tab") {
+        const targets = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+        const first = targets[0], last = targets.at(-1)!;
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first.focus();
+        }
+      }
+    };
+    const onMotionChange = () => { if (motion.matches) animations.forEach(animation => { if (animation.playState !== "idle") animation.finish(); }); };
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    motion.addEventListener("change", onMotionChange);
+    return () => {
+      disposed = true;
+      animations.forEach(animation => animation.cancel());
+      window.removeEventListener("keydown", onKeyDown, { capture: true });
+      motion.removeEventListener("change", onMotionChange);
+      trigger.prepend(media);
+      inert.forEach(({ node, previous }) => { node.inert = previous; });
+      Object.assign(body.style, saved);
+      window.scrollTo(scroll.x, scroll.y);
+      trigger.focus({ preventScroll: true });
+    };
+  }, [selection, onClose]);
+
+  return createPortal(<div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
+    <div className="project-focus-backdrop" />
+    <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
+      <div className="project-focus-panel">
+        <div ref={slotRef} className="project-focus-media-slot" />
+        <ProjectFocusDetails preview={selection.preview} />
+      </div>
+    </div>
+    <button ref={closeRef} type="button" className="project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>
+  </div>, document.body);
+}

@@ -1,0 +1,104 @@
+// Start the dev server (or a production build with NEXT_PUBLIC_VERCEL_ENV=preview).
+// Uses the same optional Playwright setup as the media capture scripts.
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { chromium } from "playwright-core";
+
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
+const origin = process.argv[2] ?? "http://localhost:3100";
+// Optional supported-codec fixture for Chromium builds without H.264 decoding.
+const fixture = process.env.FOCUS_VIDEO_FIXTURE ? await readFile(process.env.FOCUS_VIDEO_FIXTURE) : null;
+try {
+  for (const width of [1440, 393]) {
+    const mobile = width < 768;
+    const context = await browser.newContext({ viewport: { width, height: mobile ? 852 : 1024 }, deviceScaleFactor: 2, isMobile: mobile, hasTouch: mobile });
+    const page = await context.newPage();
+    if (fixture) await page.route(/\.mp4(?:\?|$)/, route => route.fulfill({ status: 200, contentType: "video/webm", body: fixture }));
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.goto(origin, { waitUntil: "domcontentloaded" });
+    await page.locator(".homepage-identity").click();
+    const toggle = page.getByRole("button", { name: "Preview project focus on tap" });
+    await toggle.waitFor();
+    assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+    const blank = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
+    await blank.click();
+    assert.equal(await page.getByRole("dialog").count(), 0);
+    if (mobile) assert.equal(await blank.getAttribute("aria-expanded"), "true");
+    await toggle.click();
+    assert.equal(await toggle.getAttribute("aria-pressed"), "true");
+    const tile = page.locator('[data-project-id="shop-01"] .homepage-card-trigger');
+    await tile.scrollIntoViewIfNeeded();
+    if (fixture) await page.waitForFunction(() => { const video = document.querySelector("video"); return video && !video.paused && video.currentTime > 1; });
+    const videoTime = await tile.locator("video").evaluate(video => video.currentTime);
+    await tile.evaluate(trigger => {
+      window.__focusSource = { trigger, media: trigger.querySelector(".homepage-project-media"), video: trigger.querySelector("video"), scroll: scrollY };
+    });
+    await tile.click();
+    const dialog = page.getByRole("dialog");
+    await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
+    if (fixture) await page.waitForFunction(time => { const video = document.querySelector(".project-focus-root video"); return video && !video.paused && video.currentTime >= time; }, videoTime);
+    const state = await dialog.evaluate(root => {
+      const source = window.__focusSource;
+      const slot = root.querySelector(".project-focus-media-slot").getBoundingClientRect();
+      const close = root.querySelector(".project-focus-close").getBoundingClientRect();
+      const backdrop = getComputedStyle(root.querySelector(".project-focus-backdrop"));
+      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, team: root.querySelector(".project-focus-team"), periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
+    });
+    assert.ok(state.sameMedia && state.sameVideo && state.bodyLocked && state.backgroundInert);
+    assert.equal(state.width, mobile ? width : 620);
+    assert.equal(state.left, mobile ? 0 : (width - 620) / 2);
+    assert.equal(state.top, mobile ? 0 : 24);
+    assert.equal(state.closeBottom, mobile ? 24 : 44);
+    assert.equal(state.blur, "blur(8px)");
+    assert.equal(state.color, "color(srgb 1 1 1 / 0.88)");
+    assert.equal(state.team, null);
+    assert.equal(state.periodFont, mobile ? "13px" : "14px");
+    await page.locator(".project-focus-media-slot").click();
+    assert.equal(await dialog.getAttribute("data-phase"), "open");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
+    await page.keyboard.press("Shift+Tab");
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
+    // Scrolling the content must never move the viewport-anchored close control.
+    await page.locator(".project-focus-scroll").evaluate(node => { node.scrollTop = 200; });
+    assert.equal(await page.locator(".project-focus-close").evaluate(node => innerHeight - node.getBoundingClientRect().bottom), mobile ? 24 : 44);
+    await page.screenshot({ path: `/tmp/project-focus-${width}.png` });
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "detached" });
+    assert.ok(await page.evaluate(() => {
+      const source = window.__focusSource;
+      return source.trigger.contains(source.media) && source.trigger.contains(source.video) && !document.querySelector("main").inert && document.body.style.position !== "fixed" && document.activeElement === source.trigger && Math.abs(scrollY - source.scroll) < 1;
+    }));
+    // Repeated open/close and reduced motion exercise cleanup and the alternate motion policy.
+    for (let index = 0; index < 3; index++) {
+      await page.emulateMedia({ reducedMotion: index === 2 ? "reduce" : "no-preference" });
+      await tile.click();
+      await dialog.waitFor();
+      if (index === 0) {
+        const timing = await dialog.evaluate(root => {
+          const animations = root.getAnimations({ subtree: true });
+          animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
+          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing }));
+        });
+        assert.equal(timing.length, 4);
+        assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
+      }
+      await page.getByRole("button", { name: "Close", exact: true }).click();
+      await dialog.waitFor({ state: "detached" });
+    }
+    await tile.click();
+    await dialog.waitFor();
+    await page.locator(".project-focus-scroll").click({ position: { x: mobile ? width / 2 : 10, y: mobile ? 650 : 400 } });
+    await dialog.waitFor({ state: "detached" });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.locator(".homepage-identity").click();
+    // The inspector was left shown before opening, so this first click hides it.
+    await page.locator(".homepage-identity").click();
+    await toggle.click();
+    assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+    assert.deepEqual(errors, []);
+    console.log(JSON.stringify({ viewportWidth: width, ...state, errors }));
+    await context.close();
+  }
+} finally { await browser.close(); }

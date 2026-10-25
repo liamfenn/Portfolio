@@ -52,7 +52,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 }
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
-  const { paletteLabOpen, setPaletteLabOpen } = usePortfolioExperiments();
+  const { paletteLabOpen, setPaletteLabOpen, projectFocusEnabled, setProjectFocusEnabled } = usePortfolioExperiments();
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
@@ -74,6 +74,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof Element && event.target.closest(".project-focus-root")) return;
       if (event.defaultPrevented || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')) return;
       const key = event.key === "Escape" ? "Escape" : event.key.toLowerCase();
@@ -142,6 +143,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
         <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
+        <button type="button" aria-label="Preview project focus on tap" aria-pressed={projectFocusEnabled} onClick={() => setProjectFocusEnabled(value => !value)}><InspectableText>Project focus</InspectableText></button>
         <button type="button" aria-pressed={paletteLabOpen} onClick={() => setPaletteLabOpen(value => !value)}>Palette lab</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>

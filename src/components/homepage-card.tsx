@@ -27,9 +27,10 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   hovered: boolean; onHover: () => void; onClearHover: () => void;
+  onOpenFocus?: (trigger: HTMLButtonElement) => void; focusActive?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const [delay, setDelay] = useState(0);
@@ -50,16 +51,19 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
       className={`project-preview homepage-card${isMobile && expanded ? " is-expanded" : ""}`} data-company={preview.company}>
       <button type="button" className="project-preview-link homepage-card-trigger hover-surface" data-media-kind={preview.media?.kind ?? "placeholder"}
         aria-label={`${preview.label}, ${preview.company}, ${preview.period}`}
-        aria-expanded={isMobile ? expanded : undefined}
-        aria-controls={isMobile ? detailsId : undefined}
+        aria-haspopup={onOpenFocus ? "dialog" : undefined}
+        aria-expanded={onOpenFocus ? focusActive : isMobile ? expanded : undefined}
+        aria-controls={onOpenFocus ? "project-focus-dialog" : isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
-        onClick={() => { if (isMobile) onToggle(); }}
+        onClick={event => { if (focusActive) return; if (onOpenFocus) onOpenFocus(event.currentTarget); else if (isMobile) onToggle(); }}
         onPointerEnter={event => { if (!isMobile && event.pointerType !== "touch") onHover(); }}
         onPointerDown={() => { if (!isMobile) setFocused(false); }}
         onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
         onKeyDown={event => { if (event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
-        {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible} /> : null}
+        <span className="homepage-project-media">
+        {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible || focusActive} /> : null}
         {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
+        </span>
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>

@@ -58,6 +58,7 @@ It works on the homepage and the palette lab:
   captionSerif) swaps to its sans counterpart. Press again to
   restore. It works alongside the other modes.
 - **H** (or tapping the avatar) hides or shows the floating panel, even with no mode active.
+- **Project focus** in the avatar menu previews a focused project view on tap/click. It starts off on each page load. The media moves into an overlay with a white 88% backdrop and 8px blur; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile viewport bottom and 44px on desktop.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.
@@ -74,6 +75,7 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
+Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Team field is hidden when the array is absent or empty.
 The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
 periwinkles through amethysts, light aquas and greens, highlighter yellows). It
