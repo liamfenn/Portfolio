@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Profile asset cleanup (2026-10-25)**
+- The current photo now lives in `public/images/profile/`: `headshot.png` is the full-resolution source and `headshot-384.webp` is the quality-95 image served directly by the homepage. Both files were moved without re-encoding. Removed all six superseded profile assets, including `public/profile.JPG`; earlier filenames below are historical. Future profile assets belong in this folder.
+- Validation: both moved files match their previous bytes, the new component path resolves, and no runtime references to old profile paths remain. All 51 tests, TypeScript, touched-file lint, and production build passed.
+
 **Latest headshot replacement (2026-10-25)**
 - Swapped in Liam's new 2048px `profile-v3.png` attachment, saved as `public/images/profile-v5.png` to distinguish it from the older repository asset. The homepage uses `profile-v5-384.webp` with the same 384px, quality-95 direct delivery, supplied square framing, and existing display dimensions. New asset URLs avoid stale cached photos.
 - Validation: source checksum matches the attachment, reviewed the generated 384px image (20,646 bytes), and 51 tests, TypeScript, touched-file lint, and production build passed.
