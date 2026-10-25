@@ -14,7 +14,8 @@ import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 export function HomepageIdentity() {
   return <span className="homepage-identity-frame">
     <button type="button" className="homepage-identity hover-surface" data-inspector-toggle aria-label="Open design controls">
-    <span className="homepage-avatar"><Image src="/images/profile-v3.png" alt="Liam Fennell" width={1427} height={1427} sizes="(max-width: 767px) 24px, 28px" priority /></span>
+    {/* Keep detail for high-density screens and pinch zoom instead of optimizing to the tiny display size. */}
+    <span className="homepage-avatar"><Image src="/images/profile-v3-384.webp" alt="Liam Fennell" width={384} height={384} unoptimized priority /></span>
     </button>
   </span>;
 }

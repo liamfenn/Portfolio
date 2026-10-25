@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Avatar image quality (2026-10-25)**
+- The display-sized optimized headshot looked soft when zoomed on a phone. Added a 384px WebP at quality 95 (19,956 bytes), derived from the original PNG, and serve it directly without another optimizer resize/compression pass. This retains more detail for high-density screens and pinch zoom while preserving the existing framing and 28px/24px layout. The original PNG remains the source.
+- Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Production Chromium checks confirmed the full 384px source on desktop DPR 2 and mobile DPR 3, including 4× page zoom; reviewed the zoomed screenshot. Actual Safari rendering remains for device confirmation.
+
 **New profile photo (2026-10-25)**
 - Added Liam's supplied square headshot as `public/images/profile-v3.png` and switched the homepage avatar to it. Removed the old full-body photo's zoom/offset crop so the supplied framing fills the existing 28px desktop / 24px mobile avatar. Responsive image sizes now match those display dimensions.
 - Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Production browser checks at 1440px and 390px confirmed the new optimized image loads square, fills the avatar without offsets, and retains its existing dimensions and button.
