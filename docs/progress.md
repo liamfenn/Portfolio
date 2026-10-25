@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Close hover and mobile grid mark (2026-10-25)**
+- Desktop pointer hover on the focused-view Close button now uses text-primary for its black fill and bg-secondary-fill for its light-gray text, with the existing hover timing. Touch layouts retain their original colors; reduced motion removes the color transition.
+- Disabled Motion layout projection for the mobile grid/list square while retaining desktop position animation and the square's palette flashes. This keeps mobile grid reflows and viewport/scroll changes from animating the mark independently along the vertical axis. The existing grid transition and text scramble remain.
+- Validation: 53 tests, TypeScript, touched-file lint, and the production build passed. Browser checks confirmed desktop hover colors, unchanged mobile colors, and a constant 5px square-to-control vertical offset with no projection transform across repeated list/grid toggles and scrolling. The original Safari-specific vertical motion was not reproduced in local Chromium; actual phone confirmation remains useful.
+
 **Focus text glitch and Safari viewport edges (2026-10-25)**
 - Every focused-view text item now uses the shared color scramble on appearance: company, project title, period, Team, each linked member, and Close. Final-text reserves prevent layout shifts, stable screen-reader text remains available, and reduced motion renders the final copy immediately (also when changed while open).
 - Enabled `viewport-fit=cover`, added safe-area environment aliases, and made html/body backgrounds explicitly white. Body content respects safe areas; focused media/Close also stay clear of system insets. The backdrop and blur extend past those edges. The fixed 88% white tint is now separate from the absolute 8px blur layer, with both fading on the existing 180ms timing. This is a targeted Safari toolbar sampling/coverage workaround, not a confirmed diagnosis or device-verified fix for Liam's screenshot. Related WebKit report: https://bugs.webkit.org/show_bug.cgi?id=319479. Safe-area guidance: https://webkit.org/blog/7929/designing-websites-for-iphone-x/.

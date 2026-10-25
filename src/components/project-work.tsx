@@ -71,11 +71,13 @@ function WorkGlyphControl({
   reserveScrambleWidth = false,
   variant = "grid",
   selection = 0,
+  trackLayout = true,
 }: {
   text: string;
   reserveScrambleWidth?: boolean;
   variant?: "grid" | "sort";
   selection?: number;
+  trackLayout?: boolean;
 }) {
   const markRef = useRef<HTMLSpanElement>(null);
   const previousSelection = useRef(selection);
@@ -119,7 +121,7 @@ function WorkGlyphControl({
       ) : (
         <motion.span
           ref={markRef}
-          layout="position"
+          layout={trackLayout ? "position" : false}
           className="work-control-square"
           aria-hidden="true"
           transition={{ duration: shouldReserveScrambleWidth ? 0.14 : 0.2, ease: [0.65, 0, 0.35, 1] }}
@@ -655,6 +657,7 @@ export function ProjectWork() {
             <span className="work-grid-label-mobile">
               <WorkGlyphControl
                 text={mobileGridLabel}
+                trackLayout={false}
                 selection={gridSelection}
                 reserveScrambleWidth={isGridLabelTransitioning}
               />
