@@ -12,9 +12,7 @@
    scaled up this far; without it the glyphs are drawn as sharp text at full size. */
 .og-favicon .glyph-globe-char { will-change: auto; }
 /* The work reel (/og/reel): the grid plays on a stage that fills the card, under the letters (which ride the swarm
-   layer above it). Its warp and motion blur are an SVG filter on the grid (og-reel.ts). */
+   layer above it). The grid, its warp included, is painted onto one canvas; the motion blur is an SVG filter on it. */
 .og-reel-stage { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-.og-reel-grid { position: absolute; inset: 0; }
-.og-reel-row { position: absolute; top: 0; display: flex; will-change: transform; }
-.og-reel-block { flex: none; height: 100%; background-color: var(--bg-secondary-fill); transform-origin: 50% 50%; }
+.og-reel-grid { position: absolute; inset: 0; width: 100%; height: 100%; }
 .og-reel-filters { position: absolute; width: 0; height: 0; }

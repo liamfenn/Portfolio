@@ -62,13 +62,13 @@ export function speedIntensity(speed: number) {
 
 export interface ReelLayout { columns: number; rows: number; size: number; gap: number }
 /**
- * Two columns of the storyboard's 469px blocks on a wide card; one column with 30px side margins on a tall one. Given a
- * `margin`, the blocks grow to fill the card's width but for that much at each side instead.
+ * Two columns of the storyboard's 469px blocks on a wide card; one column 8px from each side on a tall one, the same as
+ * the gap. Given a `margin`, the blocks grow to fill the card's width but for that much at each side instead.
  */
 export function reelLayout(width: number, height: number, margin?: number): ReelLayout {
   const gap = 8;
   if (width >= height) return { columns: 2, rows: PROJECTS / 2, size: margin === undefined ? 469.33 : (width - 2 * margin - gap) / 2, gap };
-  return { columns: 1, rows: PROJECTS, size: width - 2 * (margin ?? 30), gap };
+  return { columns: 1, rows: PROJECTS, size: width - 2 * (margin ?? 8), gap };
 }
 /**
  * Where a row's top sits, scrolled by `offset`, the gap the same down as across. The rows start stacked below the
@@ -91,22 +91,6 @@ export function warpAt(u: number, v: number) {
   return { x: u * edge * WARP * 2, y: v * edge * WARP * 0.6 };
 }
 
-/** A displacement map for the warp, as a PNG data URL, for SVG's feDisplacementMap with this `scale`. */
-function warpMap(width: number, height: number, scale: number) {
-  const canvas = document.createElement("canvas"), w = Math.round(width / 4), h = Math.round(height / 4);
-  canvas.width = w; canvas.height = h;
-  const ink = canvas.getContext("2d")!, image = ink.createImageData(w, h);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const u = (x + 0.5) / w * 2 - 1, v = (y + 0.5) / h * 2 - 1, { x: dx, y: dy } = warpAt(u, v), at = (y * w + x) * 4;
-    // A point samples from further out, so the picture is drawn in toward the middle.
-    image.data[at] = Math.round(255 * (0.5 + dx * width / 2 / scale));
-    image.data[at + 1] = Math.round(255 * (0.5 + dy * height / 2 / scale));
-    image.data[at + 3] = 255;
-  }
-  ink.putImageData(image, 0, 0);
-  return canvas.toDataURL("image/png");
-}
-
 const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
 
 /** The return starts once every row still on the card is above this share of its height, while the last ones fly off. */
@@ -123,28 +107,24 @@ export function playReel(stage: HTMLElement, signal: AbortSignal, options: { opp
 declare global { interface Window { __ogSettle?: () => Promise<void> } }
 
 /**
- * Work in the tiles: one video drawn into every tile's canvas. Playing live it just runs; under the capture's virtual
+ * The work in the tiles: one video, drawn into every tile. Playing live it just runs; under the capture's virtual
  * clock it is held and seeked to each frame's time instead, and `window.__ogSettle` resolves once that frame is drawn.
  */
-function videoTiles(src: string, canvases: HTMLCanvasElement[]) {
+function workVideo(src: string) {
   // The capture script's event log is how the page knows it is on the virtual clock.
   const video = document.createElement("video"), capturing = "__ogEvents" in window;
   Object.assign(video, { src, muted: true, playsInline: true, loop: true, preload: "auto", crossOrigin: "anonymous" });
   let settled: Promise<void> = Promise.resolve();
-  const draw = () => {
-    if (video.readyState < 2) return;
-    for (const canvas of canvases) {
-      if (canvas.closest<HTMLElement>(".og-reel-row")?.style.visibility === "hidden") continue;
-      canvas.getContext("2d")!.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
-  };
   if (capturing) window.__ogSettle = () => settled; else void video.play().catch(() => {});
   return {
-    frame(ms: number) {
+    video,
+    ready: () => video.readyState >= 2,
+    /** Draws with the video at this point in the reel: straight away live, once the seek lands under the capture. */
+    frame(ms: number, draw: () => void) {
       if (!capturing) { draw(); return; }
       settled = new Promise<void>(resolve => {
-        // A video that never loads or seeks leaves the tile blank rather than stalling the capture.
-        const timeout = window.setTimeout(resolve, 3000);
+        // A video that never loads or seeks leaves the tiles blank rather than stalling the capture.
+        const timeout = window.setTimeout(() => { draw(); resolve(); }, 3000);
         const done = () => { window.clearTimeout(timeout); draw(); resolve(); };
         const seek = () => {
           video.addEventListener("seeked", done, { once: true });
@@ -160,40 +140,45 @@ function videoTiles(src: string, canvases: HTMLCanvasElement[]) {
 async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => void,
   { opposite = false, video, margin }: { opposite?: boolean; video?: string; margin?: number }) {
   const width = stage.clientWidth, height = stage.clientHeight, layout = reelLayout(width, height, margin), { columns, rows, size, gap } = layout;
-  const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2, scale = width * WARP * 4;
-  const grid = document.createElement("div"), filterId = "og-reel-filter";
-  grid.className = "og-reel-grid";
-  // The warp, then a vertical-only blur (which CSS's own blur() can't do), in the grid's own px.
+  const rowWidth = columns * size + (columns - 1) * gap, firstTop = (height - size) / 2;
+  // The grid is painted onto one canvas at the card's full pixel density, rather than laid out and warped by an SVG
+  // displacement filter, which samples without smoothing and at 1x, so tiles came out soft and stair-stepped.
+  const ratio = window.devicePixelRatio || 1, canvas = document.createElement("canvas"), filterId = "og-reel-filter";
+  canvas.className = "og-reel-grid";
+  canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+  const ink = canvas.getContext("2d")!;
+  ink.setTransform(ratio, 0, 0, ratio, 0, 0); ink.imageSmoothingQuality = "high";
+  // A vertical-only blur, which CSS's own blur() can't do, on only while the grid moves fast enough to need it.
   stage.insertAdjacentHTML("beforeend", `<svg class="og-reel-filters" aria-hidden="true">
-    <filter id="${filterId}" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="${height}" color-interpolation-filters="sRGB">
-      <feImage href="${warpMap(width, height, scale)}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none" result="map"/>
-      <feDisplacementMap in="SourceGraphic" in2="map" scale="${scale}" xChannelSelector="R" yChannelSelector="G" result="warped"/>
-      <feGaussianBlur in="warped" stdDeviation="0 0"/>
-    </filter></svg>`);
-  const blur = stage.querySelector("feGaussianBlur")!;
+    <filter id="${filterId}" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter></svg>`);
+  const blur = stage.querySelector("feGaussianBlur")!, fill = getComputedStyle(stage).getPropertyValue("--bg-secondary-fill").trim() || "#f6f8f9";
   // Rows move as one; or, with `opposite`, two columns move apart: the left comes up from below as usual and the right,
   // its mirror, comes down from above, each carrying its own six projects.
   const rowLeft = (width - rowWidth) / 2, split = opposite && columns > 1;
   const sets = split ? [{ left: rowLeft, mirror: false, count: 1 }, { left: rowLeft + size + gap, mirror: true, count: 1 }] : [{ left: rowLeft, mirror: false, count: columns }];
-  const elements = sets.flatMap(({ left, mirror, count }) => Array.from({ length: rows }, (_, row) => {
-    const element = document.createElement("div");
-    element.className = "og-reel-row";
-    // Placed off the card from the start, so nothing shows before the first frame moves it.
-    element.style.cssText = `left:${left}px;width:${count * size + (count - 1) * gap}px;height:${size}px;gap:${gap}px;transform:translateY(${mirror ? -size : height}px);visibility:hidden`;
-    for (let column = 0; column < count; column++) {
-      const block = document.createElement(video ? "canvas" : "div");
-      block.className = "og-reel-block";
-      block.style.width = `${size}px`;
-      if (block instanceof HTMLCanvasElement) { block.width = block.height = Math.round(size * (window.devicePixelRatio || 1)); }
-      element.append(block);
-    }
-    grid.append(element);
-    return { element, row, mirror };
-  }));
   const rowIndexes = Array.from({ length: rows }, (_, row) => row);
-  grid.style.filter = `url(#${filterId})`;
-  stage.append(grid);
-  const tiles = video ? videoTiles(video, [...grid.querySelectorAll("canvas")]) : null;
+  stage.append(canvas);
+  const work = video ? workVideo(video) : null;
+
+  // The warp maps each painted point back to the grid point it shows (as the old displacement map did), and for one
+  // line across the card it is only a squeeze toward the middle, so each tile is painted one pixel row at a time: find
+  // the grid row that line shows, squeeze it, and draw it, with the source smoothed.
+  const strip = 1 / ratio, middle = width / 2;
+  const paint = (tiles: { left: number; top: number }[]) => {
+    ink.clearRect(0, 0, width, height);
+    const source = work?.ready() ? work.video : null;
+    for (let y = 0; y < height; y += strip) {
+      const v = (y + strip / 2) / height * 2 - 1, squeeze = 1 + warpAt(1, v).x, along = y + warpAt(0, v).y * height / 2;
+      for (const { left, top } of tiles) {
+        if (along < top || along >= top + size) continue;
+        const x = middle + (left - middle) / squeeze, w = size / squeeze;
+        if (source) {
+          const sy = (along - top) / size * source.videoHeight;
+          ink.drawImage(source, 0, sy, source.videoWidth, Math.max(1, source.videoHeight / size * strip), x, y, w, strip);
+        } else { ink.fillStyle = fill; ink.fillRect(x, y, w, strip); }
+      }
+    }
+  };
   try {
     const start = await nextFrame();
     // At the fly-off the rows stop coming round: those on the card carry on up and out, and the rest stay below.
@@ -210,19 +195,20 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
       const moved = previousTops.length ? Math.abs(tops[0] - previousTops[0]) / Math.max(1, time - previous) * 1000 : 0;
       const speed = moved > 2 * height ? scrollSpeed(spinning) : moved, intensity = spinning > 0 ? speedIntensity(speed) : 0;
       blur.setAttribute("stdDeviation", `0 ${(Math.min(36, speed / 60 * 0.4) * intensity).toFixed(2)}`);
-      elements.forEach(({ element, row, mirror }) => {
+      canvas.style.filter = intensity > 0.01 ? `url(#${filterId})` : "";
+      // The mirrored column runs the same move upside down: in from above, scrolling down, out at the bottom.
+      const tiles = sets.flatMap(({ left, mirror, count }) => rowIndexes.flatMap(row => {
         const top = tops[row], below = frozen !== null && frozen[row] > height;
-        element.style.visibility = below || top > height + 40 || top + size < -40 ? "hidden" : "";
-        // The mirrored column runs the same move upside down: in from above, scrolling down, out at the bottom.
-        element.style.transform = `translateY(${mirror ? height - top - size : top}px)`;
-      });
+        if (below || top > height + 40 || top + size < -40) return [];
+        return Array.from({ length: count }, (_, column) => ({ left: left + column * (size + gap), top: mirror ? height - top - size : top }));
+      }));
+      if (work) work.frame(ms, () => paint(tiles)); else paint(tiles);
       previousTops = tops;
-      tiles?.frame(ms);
       if (!told && frozen && tops.every((top, row) => frozen![row] > height || top + size < height * NEARLY_GONE)) { told = true; nearlyGone(); }
       if (frozen && tops.every((top, row) => frozen![row] > height || top + size < -40)) break;
       if (leaving >= 4) break;
     }
   } finally {
-    tiles?.stop(); grid.remove(); stage.querySelector(".og-reel-filters")?.remove();
+    work?.stop(); canvas.remove(); stage.querySelector(".og-reel-filters")?.remove();
   }
 }
