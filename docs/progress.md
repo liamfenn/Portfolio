@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Latest headshot replacement (2026-10-25)**
+- Swapped in Liam's new 2048px `profile-v3.png` attachment, saved as `public/images/profile-v5.png` to distinguish it from the older repository asset. The homepage uses `profile-v5-384.webp` with the same 384px, quality-95 direct delivery, supplied square framing, and existing display dimensions. New asset URLs avoid stale cached photos.
+- Validation: source checksum matches the attachment, reviewed the generated 384px image (20,646 bytes), and 51 tests, TypeScript, touched-file lint, and production build passed.
+
 **Headshot background replacement (2026-10-25)**
 - Replaced the avatar with Liam's supplied `Headshot-bg.png`, saved as `public/images/profile-v4.png`. The new `profile-v4-384.webp` uses the same 384px, quality-95 direct delivery, preserving the sharper image setup, supplied framing, and existing desktop/mobile dimensions. New asset paths avoid the previous photo's cache.
 - Validation: source checksum matches the attachment, reviewed the generated 384px image (19,710 bytes), and 51 tests, TypeScript, touched-file lint, and production build passed.
