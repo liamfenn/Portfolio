@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Project focus is the default (2026-10-25)**
+- Project clicks/taps now open the focused view on every page load, including when the developer inspector is disabled. The avatar menu now offers a default-off **Inline project expansion** toggle for the previous behavior: mobile tiles expand in the grid and desktop keeps hover previews.
+- Validation: all 53 tests, TypeScript, touched-file lint, and production build passed. Desktop/mobile browser checks verified the toggle in both directions, a fresh load with the inspector disabled, and the existing focus animations, media continuity, accessibility, dismissal, and reduced-motion behavior.
+
 **Focused text streams like card labels (2026-10-25)**
 - Replaced the whole-label burst with the desktop preview cards' blank-to-text, one-character-at-a-time reveal and shared scramble timing. All focused labels, including Close, stream left to right after the existing 180ms media movement. Kept forward seeding disabled to prevent stray flashes ahead of the reveal and retained final-text layout reserves and accessible copy.
 - Reduced motion still shows final text immediately, and closing before the reveal starts cancels it. Entry/exit geometry, Safari surfaces, and button behavior are unchanged.

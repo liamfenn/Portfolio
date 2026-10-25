@@ -135,7 +135,7 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const { projectFocusEnabled } = usePortfolioExperiments();
+  const { inlineProjectPreviewEnabled } = usePortfolioExperiments();
   const [focusSelection, setFocusSelection] = useState<ProjectFocusSelection | null>(null);
   const closeFocus = useCallback(() => setFocusSelection(null), []);
   const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
@@ -675,7 +675,7 @@ export function ProjectWork() {
             onHover={() => setHoveredId(preview.id)}
             onClearHover={() => setHoveredId(null)}
             focusActive={focusSelection?.preview.id === preview.id}
-            onOpenFocus={projectFocusEnabled ? trigger => {
+            onOpenFocus={!inlineProjectPreviewEnabled ? trigger => {
               const origin = trigger.getBoundingClientRect();
               layoutAnimations.current.forEach(animation => animation.finish());
               setFocusSelection({ preview, trigger, origin });
