@@ -17,11 +17,14 @@ try {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.goto(origin, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     assert.ok((await page.locator('meta[name="viewport"]').getAttribute("content")).includes("viewport-fit=cover"));
     await page.evaluate(() => {
       window.__focusGlitched = new Set();
+      window.__focusShortFrames = new Set();
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
+          if (node.querySelector(".project-focus-glyphs").textContent.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
           if (node.querySelector('.project-focus-glyphs [style*="color"]')) window.__focusGlitched.add(node.dataset.focusText);
         });
       }).observe(document.body, { subtree: true, childList: true });
@@ -48,6 +51,18 @@ try {
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
     assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
+    assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
+    const lateFlashes = await dialog.evaluate(async root => {
+      const changes = [];
+      const observer = new MutationObserver(() => {
+        if (root.querySelector('.project-focus-glyphs [style*="color"]')) changes.push(performance.now());
+      });
+      observer.observe(root, { subtree: true, childList: true });
+      await new Promise(resolve => setTimeout(resolve, 600));
+      observer.disconnect();
+      return changes.length;
+    });
+    assert.equal(lateFlashes, 0);
     if (fixture) await page.waitForFunction(time => { const video = document.querySelector(".project-focus-root video"); return video && !video.paused && video.currentTime >= time; }, videoTime);
     const state = await dialog.evaluate(root => {
       const source = window.__focusSource;
@@ -83,6 +98,27 @@ try {
     assert.equal(await page.locator(".project-focus-close").evaluate(node => innerHeight - node.getBoundingClientRect().bottom), mobile ? 24 : 44);
     await page.screenshot({ path: `/tmp/project-focus-${width}.png` });
     await page.keyboard.press("Escape");
+    const handoff = await dialog.evaluate(root => {
+      const media = root.querySelector(".homepage-project-media");
+      const before = media.getBoundingClientRect();
+      const animations = root.getAnimations({ subtree: true });
+      animations.forEach(animation => { animation.pause(); animation.currentTime = 40; });
+      const held = media.getBoundingClientRect();
+      const details = root.querySelector(".project-focus-details");
+      const textOpacity = Number(getComputedStyle(details).opacity);
+      const mediaTiming = animations.find(animation => animation.effect.target === media).effect.getTiming();
+      const textTiming = animations.find(animation => animation.effect.target === details).effect.getTiming();
+      animations.forEach(animation => { animation.currentTime = 110; });
+      const moving = media.getBoundingClientRect();
+      const laterTextOpacity = Number(getComputedStyle(details).opacity);
+      animations.forEach(animation => animation.play());
+      return { held: Math.abs(before.top - held.top) < 0.1 && Math.abs(before.width - held.width) < 0.1, textOpacity, laterTextOpacity, movesAfterDelay: Math.abs(moving.top - held.top) + Math.abs(moving.width - held.width) > 0.1, mediaDelay: mediaTiming.delay, textDelay: textTiming.delay, textDuration: textTiming.duration };
+    });
+    assert.ok(handoff.held && handoff.movesAfterDelay);
+    assert.ok(handoff.textOpacity > 0 && handoff.textOpacity < 1 && handoff.laterTextOpacity < 0.1);
+    assert.equal(handoff.mediaDelay, 80);
+    assert.equal(handoff.textDelay, 0);
+    assert.equal(handoff.textDuration, 120);
     await dialog.waitFor({ state: "detached" });
     assert.ok(await page.evaluate(() => {
       const source = window.__focusSource;
@@ -102,10 +138,11 @@ try {
         const timing = await dialog.evaluate(root => {
           const animations = root.getAnimations({ subtree: true });
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
-          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing }));
+          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-close") }));
         });
         assert.equal(timing.length, 7);
         assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
+        assert.ok(timing.every(animation => animation.delay === (animation.text ? 80 : 0)));
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
       await dialog.waitFor({ state: "detached" });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
@@ -11,7 +11,15 @@ import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
 
 function FocusGlitch({ text }: { text: string }) {
-  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: true, step: Math.max(1, Math.ceil(text.length / 12)) });
+  // A full-label pass avoids both streaming and seeding a second flash ahead of settled letters.
+  const { ref, replay } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: false, step: Math.max(1, text.length), seed: 0 });
+  const replayRef = useRef(replay);
+  useLayoutEffect(() => { replayRef.current = replay; }, [replay]);
+  useEffect(() => {
+    const value = getComputedStyle(document.documentElement).getPropertyValue("--project-focus-handoff-delay").trim();
+    const timer = window.setTimeout(() => replayRef.current(), parseFloat(value) * (value.endsWith("ms") ? 1 : 1000));
+    return () => window.clearTimeout(timer);
+  }, [text]);
   return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{text}</span>;
 }
 
@@ -60,9 +68,14 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const edges = Array.from(root.querySelectorAll<HTMLElement>(".project-focus-edge"));
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const tokens = getComputedStyle(root);
-    const duration = tokens.getPropertyValue("--project-focus-duration").trim();
+    const milliseconds = (property: string) => {
+      const value = tokens.getPropertyValue(property).trim();
+      return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+    };
+    const handoffDelay = milliseconds("--project-focus-handoff-delay");
+    const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const timing = {
-      duration: parseFloat(duration) * (duration.endsWith("ms") ? 1 : 1000),
+      duration: milliseconds("--project-focus-duration"),
       easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})`,
     };
     const scroll = { x: scrollX, y: scrollY };
@@ -84,19 +97,23 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     slot.appendChild(media);
     const animations: Animation[] = [];
     let closing = false, disposed = false;
-    const tweenMedia = (from: DOMRect, to: DOMRect) => {
+    const tweenMedia = (from: DOMRect, to: DOMRect, delay = 0) => {
       const bounds = slot.getBoundingClientRect();
       return media.animate([
         { transform: `translate(${from.left - bounds.left}px, ${from.top - bounds.top}px) scale(${from.width / bounds.width}, ${from.height / bounds.height})` },
         { transform: `translate(${to.left - bounds.left}px, ${to.top - bounds.top}px) scale(${to.width / bounds.width}, ${to.height / bounds.height})` },
-      ], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
+      ], { ...timing, duration: motion.matches ? 0 : timing.duration, delay: motion.matches ? 0 : delay, fill: "both" });
     };
-    const fade = (element: HTMLElement, from: number, to: number) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
+    const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
+    const isText = (element: HTMLElement) => element === details || element === close;
     const opening = tweenMedia(origin, slot.getBoundingClientRect());
     const faded = [blur, backdrop, details, close, ...edges];
-    animations.push(opening, ...faded.map(element => fade(element, 0, 1)));
+    animations.push(opening, ...faded.map(element => fade(element, 0, 1, isText(element) ? handoffDelay : 0)));
     void opening.finished.then(() => {
-      if (!closing && !disposed) { opening.cancel(); root.dataset.phase = "open"; }
+      if (!closing && !disposed) opening.cancel();
+    }).catch(() => {});
+    void Promise.all(animations.map(animation => animation.finished)).then(() => {
+      if (!closing && !disposed) root.dataset.phase = "open";
     }).catch(() => {});
     close.focus({ preventScroll: true });
 
@@ -107,8 +124,8 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       const from = media.getBoundingClientRect();
       const opacities = faded.map(element => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
-      const exit = tweenMedia(from, trigger.getBoundingClientRect());
-      animations.push(exit, ...faded.map((element, index) => fade(element, opacities[index], 0)));
+      const exit = tweenMedia(from, trigger.getBoundingClientRect(), handoffDelay);
+      animations.push(exit, ...faded.map((element, index) => fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration)));
       void exit.finished.then(() => { if (!disposed) onClose(); }).catch(() => {});
     };
     const onKeyDown = (event: KeyboardEvent) => {

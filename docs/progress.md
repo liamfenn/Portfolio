@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Focus handoff timing and settled text (2026-10-25)**
+- Added an 80ms handoff delay: opening media/backdrop move immediately, with metadata and Close beginning their fade/glitch after 80ms. On exit, text fades immediately over 120ms; media and backdrop wait 80ms before the existing 180ms return. Reduced motion skips both delays and transitions. Opening completion now waits for the delayed text as well as the media.
+- Focus text now starts from the complete label and glitches the whole label once, with forward seeding disabled. This avoids streaming names and re-flashing letters that appeared settled. A ref keeps the delayed replay callback current without rearming its timer on rerenders; the timer is canceled on unmount.
+- Validation: 53 tests, TypeScript, touched-file lint, and the production build passed. Development and production desktop/mobile browser checks verified opening delays, held media while text fades on exit, movement after the delay, no shortened text frames, and no colored mutations during 600ms after settling. Repeated/interrupted exits, reduced motion, media reuse, and focus/scroll restoration passed.
+
 **Close hover and mobile grid mark (2026-10-25)**
 - Desktop pointer hover on the focused-view Close button now uses text-primary for its black fill and bg-secondary-fill for its light-gray text, with the existing hover timing. Touch layouts retain their original colors; reduced motion removes the color transition.
 - Disabled Motion layout projection for the mobile grid/list square while retaining desktop position animation and the square's palette flashes. This keeps mobile grid reflows and viewport/scroll changes from animating the mark independently along the vertical axis. The existing grid transition and text scramble remain.
