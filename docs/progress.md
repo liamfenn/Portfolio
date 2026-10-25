@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Headshot background replacement (2026-10-25)**
+- Replaced the avatar with Liam's supplied `Headshot-bg.png`, saved as `public/images/profile-v4.png`. The new `profile-v4-384.webp` uses the same 384px, quality-95 direct delivery, preserving the sharper image setup, supplied framing, and existing desktop/mobile dimensions. New asset paths avoid the previous photo's cache.
+- Validation: source checksum matches the attachment, reviewed the generated 384px image (19,710 bytes), and 51 tests, TypeScript, touched-file lint, and production build passed.
+
 **Avatar image quality (2026-10-25)**
 - The display-sized optimized headshot looked soft when zoomed on a phone. Added a 384px WebP at quality 95 (19,956 bytes), derived from the original PNG, and serve it directly without another optimizer resize/compression pass. This retains more detail for high-density screens and pinch zoom while preserving the existing framing and 28px/24px layout. The original PNG remains the source.
 - Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Production Chromium checks confirmed the full 384px source on desktop DPR 2 and mobile DPR 3, including 4× page zoom; reviewed the zoomed screenshot. Actual Safari rendering remains for device confirmation.
