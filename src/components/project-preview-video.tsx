@@ -20,7 +20,7 @@ export function ProjectPreviewVideo({ asset, priority = false }: { asset: Portfo
 
   return <span className="project-preview-media" style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
     <video ref={videoRef} className="project-preview-video" aria-label={asset.alt}
-      width={asset.width} height={asset.height} muted loop playsInline preload="none" />
+      width={asset.width} height={asset.height} muted loop playsInline disablePictureInPicture preload="none" />
     {/* The poster covers the video until a decoded frame is presented, including failed autoplay. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img className="project-preview-poster" src={mediaUrl(asset.poster)}

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import { AgentationProvider } from "@/components/agentation-provider";
@@ -22,6 +22,13 @@ const otto = localFont({
 });
 
 const SITE = new URL("https://www.fennell.cv");
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Use the device-width layout as the zoom-out floor without restricting zooming in.
+  minimumScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: SITE,
