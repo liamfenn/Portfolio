@@ -2,25 +2,42 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
 import type { ProjectPreview } from "@/lib/project-previews";
+import { useColorScramble } from "@/hooks/use-color-scramble";
+import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
+
+function FocusGlitch({ text }: { text: string }) {
+  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: true, step: Math.max(1, Math.ceil(text.length / 12)) });
+  return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{text}</span>;
+}
+
+function FocusText({ text }: { text: string }) {
+  const reducedMotion = useReducedMotion();
+  return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>
+    <span className="project-focus-text-reserve" aria-hidden="true">{text}</span>
+    {reducedMotion ? <span className="project-focus-glyphs" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
+    <span className="sr-only">{text}</span>
+  </span></InspectableText>;
+}
 
 export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   return <div className="project-focus-details text-bodySans">
     <div className="project-focus-heading">
       <div className="project-focus-name">
-        <h2 id="project-focus-title"><InspectableText>{preview.company}</InspectableText></h2>
-        <p className="project-focus-description"><InspectableText>{preview.label}</InspectableText></p>
+        <h2 id="project-focus-title"><FocusText text={preview.company} /></h2>
+        <p className="project-focus-description"><FocusText text={preview.label} /></p>
       </div>
-      <p className="project-focus-period text-captionSans"><InspectableText>{period}</InspectableText></p>
+      <p className="project-focus-period text-captionSans"><FocusText text={period} /></p>
     </div>
     {Boolean(preview.team?.length) && <div className="project-focus-team">
-      <h3 className="text-captionSans"><InspectableText>Team</InspectableText></h3>
+      <h3 className="text-captionSans"><FocusText text="Team" /></h3>
       <ul>{preview.team!.map(member => <li key={member.href}>
-        <a href={member.href} target="_blank" rel="noreferrer"><InspectableText>{member.name}</InspectableText></a>
+        <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} /></a>
       </li>)}</ul>
     </div>}
   </div>;
@@ -37,6 +54,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const { trigger, origin } = selection;
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
+    const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
     const close = closeRef.current!;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -74,7 +92,8 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     };
     const fade = (element: HTMLElement, from: number, to: number) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
     const opening = tweenMedia(origin, slot.getBoundingClientRect());
-    animations.push(opening, ...[backdrop, details, close].map(element => fade(element, 0, 1)));
+    const faded = [blur, backdrop, details, close];
+    animations.push(opening, ...faded.map(element => fade(element, 0, 1)));
     void opening.finished.then(() => {
       if (!closing && !disposed) { opening.cancel(); root.dataset.phase = "open"; }
     }).catch(() => {});
@@ -85,10 +104,10 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       closing = true;
       root.dataset.phase = "closing";
       const from = media.getBoundingClientRect();
-      const opacities = [backdrop, details, close].map(element => Number(getComputedStyle(element).opacity));
+      const opacities = faded.map(element => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
       const exit = tweenMedia(from, trigger.getBoundingClientRect());
-      animations.push(exit, ...[backdrop, details, close].map((element, index) => fade(element, opacities[index], 0)));
+      animations.push(exit, ...faded.map((element, index) => fade(element, opacities[index], 0)));
       void exit.finished.then(() => { if (!disposed) onClose(); }).catch(() => {});
     };
     const onKeyDown = (event: KeyboardEvent) => {
@@ -121,13 +140,14 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
   }, [selection, onClose]);
 
   return createPortal(<div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
-    <div className="project-focus-backdrop" />
+    <div className="project-focus-blur" aria-hidden="true" />
+    <div className="project-focus-backdrop" aria-hidden="true" />
     <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
         <ProjectFocusDetails preview={selection.preview} />
       </div>
     </div>
-    <button ref={closeRef} type="button" className="project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>
+    <button ref={closeRef} type="button" className="project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>
   </div>, document.body);
 }

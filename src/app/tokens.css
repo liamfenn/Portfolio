@@ -31,6 +31,10 @@
 
 /* Interaction: hover feedback, slide motion, and one focus ring. */
 :root {
+  --viewport-safe-top: env(safe-area-inset-top, 0px);
+  --viewport-safe-right: env(safe-area-inset-right, 0px);
+  --viewport-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --viewport-safe-left: env(safe-area-inset-left, 0px);
   --hover-dim: .4;
   --hover-duration: 150ms;
   --hover-ease: ease;

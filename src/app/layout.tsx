@@ -28,6 +28,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Use the device-width layout as the zoom-out floor without restricting zooming in.
   minimumScale: 1,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {

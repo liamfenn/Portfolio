@@ -21,7 +21,9 @@ test("project focus renders each supplied team member as their own external link
     { name: "First Person", href: "https://example.com/first" },
     { name: "Second Person", href: "https://example.com/second" },
   ]);
-  assert.match(html, />Team<\/h3>/);
-  assert.match(html, /href="https:\/\/example.com\/first" target="_blank" rel="noreferrer">First Person<\/a>/);
-  assert.match(html, /href="https:\/\/example.com\/second" target="_blank" rel="noreferrer">Second Person<\/a>/);
+  assert.match(html, /class="sr-only">Team<\/span>/);
+  assert.match(html, /href="https:\/\/example.com\/first" target="_blank" rel="noreferrer"/);
+  assert.match(html, /class="sr-only">First Person<\/span>/);
+  assert.match(html, /href="https:\/\/example.com\/second" target="_blank" rel="noreferrer"/);
+  assert.match(html, /class="sr-only">Second Person<\/span>/);
 });

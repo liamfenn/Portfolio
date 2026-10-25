@@ -17,6 +17,15 @@ try {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.goto(origin, { waitUntil: "domcontentloaded" });
+    assert.ok((await page.locator('meta[name="viewport"]').getAttribute("content")).includes("viewport-fit=cover"));
+    await page.evaluate(() => {
+      window.__focusGlitched = new Set();
+      new MutationObserver(() => {
+        document.querySelectorAll(".project-focus-text").forEach(node => {
+          if (node.querySelector('.project-focus-glyphs [style*="color"]')) window.__focusGlitched.add(node.dataset.focusText);
+        });
+      }).observe(document.body, { subtree: true, childList: true });
+    });
     await page.locator(".homepage-identity").click();
     const toggle = page.getByRole("button", { name: "Preview project focus on tap" });
     await toggle.waitFor();
@@ -37,13 +46,16 @@ try {
     await tile.click();
     const dialog = page.getByRole("dialog");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
+    await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
+    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
     if (fixture) await page.waitForFunction(time => { const video = document.querySelector(".project-focus-root video"); return video && !video.paused && video.currentTime >= time; }, videoTime);
     const state = await dialog.evaluate(root => {
       const source = window.__focusSource;
       const slot = root.querySelector(".project-focus-media-slot").getBoundingClientRect();
       const close = root.querySelector(".project-focus-close").getBoundingClientRect();
       const backdrop = getComputedStyle(root.querySelector(".project-focus-backdrop"));
-      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, teamLinks: Array.from(root.querySelectorAll(".project-focus-team a"), link => ({ name: link.textContent, href: link.href })), title: root.querySelector(".project-focus-description").textContent, periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
+      const blur = getComputedStyle(root.querySelector(".project-focus-blur"));
+      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: blur.backdropFilter, tintBlur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, teamLinks: Array.from(root.querySelectorAll(".project-focus-team a"), link => ({ name: link.querySelector("[data-focus-text]").dataset.focusText, href: link.href })), title: root.querySelector(".project-focus-description [data-focus-text]").dataset.focusText, periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
     });
     assert.ok(state.sameMedia && state.sameVideo && state.bodyLocked && state.backgroundInert);
     assert.equal(state.width, mobile ? width : 620);
@@ -51,6 +63,7 @@ try {
     assert.equal(state.top, mobile ? 0 : 24);
     assert.equal(state.closeBottom, mobile ? 24 : 44);
     assert.equal(state.blur, "blur(8px)");
+    assert.equal(state.tintBlur, "none");
     assert.equal(state.color, "color(srgb 1 1 1 / 0.88)");
     assert.equal(state.title, "Product details page");
     assert.deepEqual(state.teamLinks, [
@@ -62,7 +75,7 @@ try {
     await page.locator(".project-focus-media-slot").click();
     assert.equal(await dialog.getAttribute("data-phase"), "open");
     await page.keyboard.press("Tab");
-    assert.equal(await page.evaluate(() => document.activeElement.textContent), "Annabel Lake");
+    assert.equal(await page.evaluate(() => document.activeElement.querySelector("[data-focus-text]")?.dataset.focusText), "Annabel Lake");
     await page.keyboard.press("Shift+Tab");
     assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
     // Scrolling the content must never move the viewport-anchored close control.
@@ -78,15 +91,20 @@ try {
     // Repeated open/close and reduced motion exercise cleanup and the alternate motion policy.
     for (let index = 0; index < 3; index++) {
       await page.emulateMedia({ reducedMotion: index === 2 ? "reduce" : "no-preference" });
+      if (index === 2) await page.evaluate(() => window.__focusGlitched.clear());
       await tile.click();
       await dialog.waitFor();
+      if (index === 2) {
+        await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
+        assert.equal(await page.evaluate(() => window.__focusGlitched.size), 0);
+      }
       if (index === 0) {
         const timing = await dialog.evaluate(root => {
           const animations = root.getAnimations({ subtree: true });
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing }));
         });
-        assert.equal(timing.length, 4);
+        assert.equal(timing.length, 5);
         assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
@@ -96,6 +114,29 @@ try {
     await dialog.waitFor();
     await page.locator(".project-focus-scroll").click({ position: { x: mobile ? width / 2 : 10, y: mobile ? 650 : 400 } });
     await dialog.waitFor({ state: "detached" });
+    if (mobile) {
+      await page.evaluate(() => {
+        document.documentElement.style.setProperty("--viewport-safe-top", "59px");
+        document.documentElement.style.setProperty("--viewport-safe-bottom", "34px");
+      });
+      await blank.click();
+      await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
+      const safe = await dialog.evaluate(root => ({
+        tintTop: root.querySelector(".project-focus-backdrop").getBoundingClientRect().top,
+        tintBottom: root.querySelector(".project-focus-backdrop").getBoundingClientRect().bottom,
+        blurTop: root.querySelector(".project-focus-blur").getBoundingClientRect().top,
+        blurBottom: root.querySelector(".project-focus-blur").getBoundingClientRect().bottom,
+        mediaTop: root.querySelector(".project-focus-media-slot").getBoundingClientRect().top,
+        closeBottom: innerHeight - root.querySelector(".project-focus-close").getBoundingClientRect().bottom,
+      }));
+      assert.deepEqual(safe, { tintTop: -59, tintBottom: 886, blurTop: -59, blurBottom: 886, mediaTop: 59, closeBottom: 58 });
+      await page.getByRole("button", { name: "Close", exact: true }).click();
+      await dialog.waitFor({ state: "detached" });
+      await page.evaluate(() => {
+        document.documentElement.style.removeProperty("--viewport-safe-top");
+        document.documentElement.style.removeProperty("--viewport-safe-bottom");
+      });
+    }
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.locator(".homepage-identity").click();
     // The inspector was left shown before opening, so this first click hides it.
