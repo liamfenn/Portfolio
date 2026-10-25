@@ -104,7 +104,7 @@ try {
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing }));
         });
-        assert.equal(timing.length, 5);
+        assert.equal(timing.length, 7);
         assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();

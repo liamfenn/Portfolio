@@ -57,6 +57,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
     const close = closeRef.current!;
+    const edges = Array.from(root.querySelectorAll<HTMLElement>(".project-focus-edge"));
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const tokens = getComputedStyle(root);
     const duration = tokens.getPropertyValue("--project-focus-duration").trim();
@@ -92,7 +93,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     };
     const fade = (element: HTMLElement, from: number, to: number) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
     const opening = tweenMedia(origin, slot.getBoundingClientRect());
-    const faded = [blur, backdrop, details, close];
+    const faded = [blur, backdrop, details, close, ...edges];
     animations.push(opening, ...faded.map(element => fade(element, 0, 1)));
     void opening.finished.then(() => {
       if (!closing && !disposed) { opening.cancel(); root.dataset.phase = "open"; }
@@ -149,5 +150,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       </div>
     </div>
     <button ref={closeRef} type="button" className="project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>
+    <div className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
+    <div className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
   </div>, document.body);
 }

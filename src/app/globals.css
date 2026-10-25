@@ -744,10 +744,20 @@
 .project-focus-team a { text-decoration: none; }
 .project-focus-close { position: absolute; left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; }
 .project-focus-close::before { content: ""; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100%; height: 100%; min-width: var(--project-focus-hit-size); min-height: var(--project-focus-hit-size); }
+.project-focus-edge { display: none; pointer-events: none; }
 @media (max-width: 767px) {
   .project-focus-scroll { padding: var(--viewport-safe-top) var(--viewport-safe-right) calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--content-padding-mobile) * 2 + var(--viewport-safe-bottom)) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-team-gap: calc(var(--content-padding-mobile) * 2 + var(--page-frame)); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }
   .project-focus-close { bottom: calc(var(--project-focus-close-bottom-mobile) + var(--viewport-safe-bottom)); }
+  /* A small solid strip lets Safari sample white; its inward fade avoids a hard seam. */
+  .project-focus-edge { display: block; }
+  .project-focus-edge::before, .project-focus-edge::after { content: ""; position: fixed; left: 0; right: 0; pointer-events: none; }
+  .project-focus-edge::after { background: var(--bg-fill); }
+  .project-focus-edge-top::after { top: calc(var(--project-focus-edge-visible) - var(--project-focus-edge-size)); height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); }
+  .project-focus-edge-bottom::after { bottom: calc(var(--project-focus-edge-visible) - var(--project-focus-edge-size)); height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); }
+  .project-focus-edge::before { height: var(--project-focus-edge-fade); }
+  .project-focus-edge-top::before { top: var(--project-focus-edge-visible); background: linear-gradient(to bottom, var(--bg-fill), transparent); }
+  .project-focus-edge-bottom::before { bottom: var(--project-focus-edge-visible); background: linear-gradient(to top, var(--bg-fill), transparent); }
 }
 
 
