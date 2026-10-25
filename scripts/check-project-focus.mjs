@@ -22,11 +22,20 @@ try {
     await page.evaluate(() => {
       window.__focusGlitched = new Set();
       window.__focusShortFrames = new Set();
+      window.__focusStreamed = new Set();
+      window.__focusFrontiers = {};
+      window.__focusStreamRegressed = false;
       window.__focusVisibleColors = {};
       window.__focusColorsDuringMediaMove = false;
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
-          if (node.querySelector(".project-focus-glyphs").textContent.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
+          const live = node.querySelector(".project-focus-glyphs").textContent;
+          if (live.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
+          const frontier = live.trimEnd().length;
+          const previous = window.__focusFrontiers[node.dataset.focusText] ?? 0;
+          if (frontier > 0 && frontier < node.dataset.focusText.length) window.__focusStreamed.add(node.dataset.focusText);
+          if (frontier < previous) window.__focusStreamRegressed = true;
+          window.__focusFrontiers[node.dataset.focusText] = frontier;
           if (node.querySelector('.project-focus-glyphs [style*="color"]')) {
             window.__focusGlitched.add(node.dataset.focusText);
             const media = document.querySelector(".project-focus-root .homepage-project-media");
@@ -62,6 +71,8 @@ try {
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
     assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
+    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 8);
+    assert.equal(await page.evaluate(() => window.__focusStreamRegressed), false);
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
     const visibleColors = await page.evaluate(() => Object.values(window.__focusVisibleColors).map(timing => timing.last - timing.first));

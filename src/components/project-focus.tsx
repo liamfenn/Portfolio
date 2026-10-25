@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
@@ -11,19 +11,18 @@ import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
 
 function FocusGlitch({ text }: { text: string }) {
-  // A full-label pass avoids both streaming and seeding a second flash ahead of settled letters.
-  const { ref, replay } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: false, step: Math.max(1, text.length), seed: 0, scramble: FILTER_SCRAMBLE.scramble * 3 });
-  const replayRef = useRef(replay);
-  useLayoutEffect(() => { replayRef.current = replay; }, [replay]);
+  const [revealed, setRevealed] = useState(false);
+  // Match card labels' blank-to-text reveal without seeding stray flashes ahead of the stream.
+  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text: revealed ? text : " ".repeat(text.length), ignore: [], playOnMount: false, seed: 0 });
   useEffect(() => {
     const value = getComputedStyle(document.documentElement).getPropertyValue("--project-focus-duration").trim();
     const timer = window.setTimeout(() => {
       const root = ref.current?.closest(".project-focus-root");
-      if (root && root.getAttribute("data-phase") !== "closing") replayRef.current();
+      if (root && root.getAttribute("data-phase") !== "closing") setRevealed(true);
     }, parseFloat(value) * (value.endsWith("ms") ? 1 : 1000));
     return () => window.clearTimeout(timer);
   }, [text, ref]);
-  return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{text}</span>;
+  return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{" ".repeat(text.length)}</span>;
 }
 
 function FocusText({ text }: { text: string }) {

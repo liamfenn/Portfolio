@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Focused text streams like card labels (2026-10-25)**
+- Replaced the whole-label burst with the desktop preview cards' blank-to-text, one-character-at-a-time reveal and shared scramble timing. All focused labels, including Close, stream left to right after the existing 180ms media movement. Kept forward seeding disabled to prevent stray flashes ahead of the reveal and retained final-text layout reserves and accessible copy.
+- Reduced motion still shows final text immediately, and closing before the reveal starts cancels it. Entry/exit geometry, Safari surfaces, and button behavior are unchanged.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and development/production desktop/mobile browser checks passed. All eight labels produced partial left-to-right reveals with non-decreasing visible frontiers, colored frames after media motion, stable reserved lengths, and no second flash during the post-settle observation.
+
 **Gray top band and large-viewport background (2026-10-25)**
 - Changed the mobile top sampler and its visible gutter surface to bg-secondary-fill (#f6f8f9). The gutter surface paints above the translucent tint and below the content so it retains the exact requested gray without covering the artwork. Bottom remains bg-fill white.
 - Added the runtime `--project-focus-full-height: 100lvh` alias. Background/blur now extend to the larger of the current root height and large viewport height, plus safe-area coverage. The bottom white plane starts just inside the visible bottom and fills the remaining gap through the large viewport and bottom safe area. Media, Close, and the content scroller keep their existing viewport dimensions.
