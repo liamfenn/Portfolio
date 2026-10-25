@@ -10,8 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**New profile photo (2026-10-25)**
+- Added Liam's supplied square headshot as `public/images/profile-v3.png` and switched the homepage avatar to it. Removed the old full-body photo's zoom/offset crop so the supplied framing fills the existing 28px desktop / 24px mobile avatar. Responsive image sizes now match those display dimensions.
+- Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Production browser checks at 1440px and 390px confirmed the new optimized image loads square, fills the avatar without offsets, and retains its existing dimensions and button.
+
 **Avatar link removed**
-- Replaced the avatar's Shop link with a button, preserving the inspector menu trigger and existing desktop/mobile dimensions. The new headshot is pending: the chat displays it, but no downloadable attachment or accessible file was provided to this cloud workspace.
+- Replaced the avatar's Shop link with a button, preserving the inspector menu trigger and existing desktop/mobile dimensions. The new headshot was added on 2026-10-25 (above).
 - Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Local browser checks confirmed no outbound link, unchanged 28px/24px dimensions, and working inspector toggles at desktop/mobile widths.
 
 **Menu/footer selection and reference-site research**

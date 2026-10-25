@@ -716,7 +716,7 @@
 @media (prefers-reduced-motion: reduce) {
   .portfolio-v3 *, .portfolio-v3 *::before, .portfolio-v3 *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
-.homepage-avatar img { position: absolute; width: 411.8%; height: 514.75%; max-width: none; left: -154.13%; top: -32.44%; }
+.homepage-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 
 /* Footer globe: the entry to the letter swarm. Esc takes its place while the swarm is out; tuning stays in ?palette-lab. */
