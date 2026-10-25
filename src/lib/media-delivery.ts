@@ -1,4 +1,5 @@
 import type { PortfolioVideoAsset, PortfolioVideoRendition } from "@/lib/media-assets";
+import { videoRendition } from "./video-policy";
 
 /**
  * Where encoded media is served from. Empty means the local /public folder,
@@ -10,12 +11,6 @@ const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "").replace(/\
 /** The codec string browsers match against to decide whether they can play AV1. */
 export const AV1_MIME = 'video/mp4; codecs="av01.0.05M.08"';
 export const H264_MIME = "video/mp4";
-
-/**
- * Highest DPR worth serving. Motion hides fine detail, so 3x phones get the 2x rendition: a card about 330px wide
- * fetches the 800 rung instead of the 1200, which is roughly half the bytes.
- */
-const MAX_PIXEL_RATIO = 2;
 
 export function mediaUrl(path: string) {
   if (/^(https?:)?\/\//.test(path) || path.startsWith("data:")) {
@@ -33,20 +28,5 @@ export function pickRendition(
   asset: PortfolioVideoAsset,
   displayWidth: number,
 ): PortfolioVideoRendition | null {
-  if (asset.renditions.length === 0) {
-    return null;
-  }
-
-  const ladder = [...asset.renditions].sort((a, b) => a.width - b.width);
-  if (displayWidth <= 0) {
-    return ladder[ladder.length - 1];
-  }
-
-  const pixelRatio = Math.min(
-    typeof window === "undefined" ? 1 : window.devicePixelRatio || 1,
-    MAX_PIXEL_RATIO,
-  );
-  const required = displayWidth * pixelRatio;
-
-  return ladder.find((rendition) => rendition.width >= required) ?? ladder[ladder.length - 1];
+  return videoRendition(asset, displayWidth, typeof window === "undefined" ? 1 : window.devicePixelRatio || 1);
 }

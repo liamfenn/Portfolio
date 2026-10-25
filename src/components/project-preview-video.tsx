@@ -1,93 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import type { PortfolioVideoAsset } from "@/lib/media-assets";
-import { AV1_MIME, H264_MIME, mediaUrl } from "@/lib/media-delivery";
-import { useVideoRendition } from "@/hooks/use-video-rendition";
+import { mediaUrl } from "@/lib/media-delivery";
+import { registerVideo } from "@/lib/video-playback";
 
-export function ProjectPreviewVideo({ asset }: { asset: PortfolioVideoAsset }) {
+export function ProjectPreviewVideo({ asset, priority = false }: { asset: PortfolioVideoAsset; priority?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isFrameReady, setIsFrameReady] = useState(Boolean(asset.poster));
-  const rendition = useVideoRendition(asset, videoRef);
+  const registration = useRef<ReturnType<typeof registerVideo> | null>(null);
 
   useEffect(() => {
-    if (rendition) {
-      videoRef.current?.load();
-    }
-  }, [rendition]);
+    if (!videoRef.current) return;
+    const current = registerVideo(videoRef.current, asset);
+    registration.current = current;
+    return () => { current.dispose(); registration.current = null; };
+  }, [asset]);
+  useEffect(() => { registration.current?.priority(priority); }, [asset, priority]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    // No source yet means play() would reject, so wait for the rendition.
-    if (!video || !rendition) {
-      return;
-    }
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (reduceMotion.matches || connection?.saveData) {
-      video.pause();
-      return;
-    }
-
-    let frameCallback: number | null = null;
-    const markFrameReady = () => {
-      if ("requestVideoFrameCallback" in video) {
-        frameCallback = video.requestVideoFrameCallback(() => setIsFrameReady(true));
-      } else {
-        setIsFrameReady(true);
-      }
-    };
-
-    let isVisible = false;
-    const tryPlay = () => {
-      if (isVisible && video.paused) {
-        void video.play().then(markFrameReady).catch(() => undefined);
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisible = entry.isIntersecting;
-        if (isVisible) {
-          tryPlay();
-        } else {
-          video.pause();
-        }
-      },
-      { rootMargin: "240px 0px", threshold: 0.01 },
-    );
-
-    observer.observe(video);
-    // Retry on canplay: a rejected play() would otherwise leave the tile frozen on
-    // its poster, and the observer does not fire again while visibility holds.
-    video.addEventListener("canplay", tryPlay);
-    return () => {
-      observer.disconnect();
-      video.removeEventListener("canplay", tryPlay);
-      if (frameCallback !== null && "cancelVideoFrameCallback" in video) {
-        video.cancelVideoFrameCallback(frameCallback);
-      }
-    };
-  }, [rendition]);
-
-  return (
-    <video
-      ref={videoRef}
-      className={`project-preview-video${isFrameReady ? " is-frame-ready" : ""}`}
-      poster={mediaUrl(asset.poster)}
-      aria-label={asset.alt}
-      muted
-      loop
-      playsInline
-      preload="metadata"
-    >
-      {rendition ? (
-        <>
-          <source src={mediaUrl(rendition.av1)} type={AV1_MIME} />
-          <source src={mediaUrl(rendition.h264)} type={H264_MIME} />
-        </>
-      ) : null}
-    </video>
-  );
+  return <span className="project-preview-media" style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
+    <video ref={videoRef} className="project-preview-video" aria-label={asset.alt}
+      width={asset.width} height={asset.height} muted loop playsInline preload="none" />
+    {/* The poster covers the video until a decoded frame is presented, including failed autoplay. */}
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img className="project-preview-poster" src={mediaUrl(asset.poster)}
+      srcSet={asset.posters?.map(poster => `${mediaUrl(poster.src)} ${poster.width}w`).join(", ")}
+      sizes="auto, (max-width: 767px) 100vw, 33vw" width={asset.width} height={asset.height}
+      alt="" aria-hidden="true" loading="lazy" decoding="async" />
+  </span>;
 }

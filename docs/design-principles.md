@@ -96,5 +96,5 @@ Liam's taste, distilled from his references (risograph posters, a Bloomberg Busi
   weights in use (everything is weight 400).
 - **Heavy code loads on intent.** Matter.js loads when the globe is hovered, focused, or tapped. Dev tools
   (Agentation, the inspector) never ship work to production.
-- **Video:** a rendition ladder with AV1 first and H.264 fallback, a poster, play only near the viewport,
-  pixel density capped at 2×. See [`media-workflow.md`](media-workflow.md).
+- **Video:** preserve source frame rate (including 60fps), use a responsive H.264 ladder and image posters,
+  defer sources and coordinate visible playback, with pixel density capped at 2×. See [`media-workflow.md`](media-workflow.md).

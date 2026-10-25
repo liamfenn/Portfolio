@@ -142,3 +142,7 @@ Open the printed authorization URL. After approval, the local callback updates
 Production environment variable in Vercel and redeploy the current release.
 
 The color strip and its placement controls have been removed. The music player always shows its numeric timer. The globe, swarm, color glitches, and palette lab retain their existing palette.
+
+## Adding project videos
+
+Keep the original high-quality, tagged SDR master and its frame rate. `npm run media:import -- /path/to/master.mp4 --id project-id --alt "Project interaction prototype"` preserves 60fps sources, generates responsive H.264 and posters, validates and uploads immutable files, and updates the imported registry. Use `--local` for an unpublished check. See [`docs/media-workflow.md`](docs/media-workflow.md) for options, playback limits, and device validation.

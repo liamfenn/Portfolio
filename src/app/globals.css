@@ -333,24 +333,30 @@
   height: 100%;
 }
 
-.project-preview-video {
+.project-preview-media {
   position: absolute;
-  inset: -1px;
+  inset: 0;
   display: block;
-  width: calc(100% + 2px);
-  height: calc(100% + 2px);
-  object-fit: cover;
-  border: 0;
-  outline: 0;
-  background: var(--bg-secondary-fill);
-  box-shadow: none;
-  opacity: 0;
+  overflow: hidden;
+  background: var(--media-backdrop, var(--bg-secondary-fill));
   pointer-events: none;
 }
 
-.project-preview-video.is-frame-ready {
-  opacity: 1;
+.project-preview-poster,
+.project-preview-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+  outline: 0;
+  background: var(--media-backdrop, var(--bg-secondary-fill));
+  box-shadow: none;
 }
+
+.project-preview-video[data-frame-ready="true"] + .project-preview-poster { visibility: hidden; }
 
 /*
  * Safe on the bio again now that it is two real paragraphs: pretty resolves each
@@ -599,7 +605,7 @@
 :where(a, button):focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--bg-secondary-fill); }
 .portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
-.homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--bg-secondary-fill); color: inherit; cursor: pointer; overflow: hidden; }
+.homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--bg-secondary-fill); color: inherit; cursor: pointer; overflow: visible; }
 .homepage-card-trigger:focus-visible { outline: 2px solid var(--bg-purple-fill); outline-offset: -2px; }
 /* Cut only the panel surface so the artwork and the clear gap stay independent. */
 .homepage-spotify { isolation: isolate; cursor: pointer; }

@@ -1,3 +1,5 @@
+import importedMedia from "./imported-media.json";
+
 interface PortfolioMediaBase {
   id: string;
   src: string;
@@ -13,40 +15,30 @@ export interface PortfolioImageAsset extends PortfolioMediaBase {
   blurDataURL?: string;
 }
 
-/** One rung of the encode ladder, in both codecs. Produced by scripts/process-video.sh. */
+/** One rung of the encode ladder. H.264 is the grid baseline; AV1 is an optional export. */
 export interface PortfolioVideoRendition {
   width: number;
-  av1: string;
+  av1?: string;
   h264: string;
 }
 
 export interface PortfolioVideoAsset extends PortfolioMediaBase {
   kind: "video";
   poster: string;
+  posters?: { width: number; src: string }[];
+  frameRate?: number;
+  duration?: number;
   /** Sorted ascending by width. `src` stays the largest H.264 rung as a fallback. */
   renditions: PortfolioVideoRendition[];
 }
 
 export type PortfolioMediaAsset = PortfolioImageAsset | PortfolioVideoAsset;
 
-// Absolute URLs keep this preview available when the deployment has no media base URL configured.
-const SHOP_PRODUCT_PAGE_MEDIA = "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop/preview-01";
+/** Written by media:import only after validated files are available in public storage. */
+export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsset>;
 
 export const MEDIA_ASSETS = {
-  shopProductPage: {
-    id: "shop-product-page",
-    kind: "video",
-    src: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.mp4`,
-    poster: `${SHOP_PRODUCT_PAGE_MEDIA}-poster.webp`,
-    alt: "Shop product page interaction prototype",
-    width: 1600,
-    height: 1600,
-    renditions: [
-      { width: 800, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-800.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-800.mp4` },
-      { width: 1200, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-1200.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-1200.mp4` },
-      { width: 1600, av1: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.av1.mp4`, h264: `${SHOP_PRODUCT_PAGE_MEDIA}-1600.mp4` },
-    ],
-  },
+  shopProductPage: IMPORTED_MEDIA["shop-product-page"],
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",
