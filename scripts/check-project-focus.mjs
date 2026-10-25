@@ -43,7 +43,7 @@ try {
       const slot = root.querySelector(".project-focus-media-slot").getBoundingClientRect();
       const close = root.querySelector(".project-focus-close").getBoundingClientRect();
       const backdrop = getComputedStyle(root.querySelector(".project-focus-backdrop"));
-      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, team: root.querySelector(".project-focus-team"), periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
+      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, teamLinks: Array.from(root.querySelectorAll(".project-focus-team a"), link => ({ name: link.textContent, href: link.href })), title: root.querySelector(".project-focus-description").textContent, periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
     });
     assert.ok(state.sameMedia && state.sameVideo && state.bodyLocked && state.backgroundInert);
     assert.equal(state.width, mobile ? width : 620);
@@ -52,12 +52,17 @@ try {
     assert.equal(state.closeBottom, mobile ? 24 : 44);
     assert.equal(state.blur, "blur(8px)");
     assert.equal(state.color, "color(srgb 1 1 1 / 0.88)");
-    assert.equal(state.team, null);
+    assert.equal(state.title, "Product details page");
+    assert.deepEqual(state.teamLinks, [
+      { name: "Annabel Lake", href: "https://uk.linkedin.com/in/annabellake" },
+      { name: "Luke Dupont", href: "https://www.linkedin.com/in/lukedupont" },
+      { name: "Jon Rundle", href: "https://jonrundle.design/" },
+    ]);
     assert.equal(state.periodFont, mobile ? "13px" : "14px");
     await page.locator(".project-focus-media-slot").click();
     assert.equal(await dialog.getAttribute("data-phase"), "open");
     await page.keyboard.press("Tab");
-    assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), "Annabel Lake");
     await page.keyboard.press("Shift+Tab");
     assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
     // Scrolling the content must never move the viewport-anchored close control.

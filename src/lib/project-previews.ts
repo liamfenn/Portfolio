@@ -17,6 +17,7 @@ export interface ProjectPreview {
 
 // Each entry is a homepage tile. Media stays optional until final assets arrive.
 const shop = {
+  label: "Product details page",
   company: "Shop",
   companyLogo: "/images/icons/shop-swirl.svg",
   companyColor: "var(--bg-purple-fill)",
@@ -24,15 +25,19 @@ const shop = {
   year: 2026,
   quarter: 2,
   featuredOrder: 1,
+  team: [
+    { name: "Annabel Lake", href: "https://uk.linkedin.com/in/annabellake" },
+    { name: "Luke Dupont", href: "https://www.linkedin.com/in/lukedupont" },
+    { name: "Jon Rundle", href: "https://jonrundle.design/" },
+  ],
 };
 
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
-  { id: "shop-01", label: "Product Page", ...shop, media: MEDIA_ASSETS.shopProductPage },
-  { id: "shop-02", label: "Shop", ...shop },
-  { id: "shop-03", label: "Shop", ...shop },
+  { id: "shop-01", ...shop, media: MEDIA_ASSETS.shopProductPage },
+  { id: "shop-02", ...shop },
+  { id: "shop-03", ...shop },
   ...Array.from({ length: 9 }, (_, index) => ({
     id: `shop-${String(index + 4).padStart(2, "0")}`,
-    label: "Shop",
     ...shop,
   })),
 ];
