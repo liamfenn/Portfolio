@@ -10,8 +10,15 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Native media long-press menus**
-- Media tiles now use real links to the original media URL. Ordinary taps still toggle mobile expansion; desktop hover/click behavior is retained, and modified link clicks can open the media. Blank placeholders remain buttons.
+**In-page media menu replaces native video callouts**
+- The direct-video-link approach triggered Safari’s fullscreen viewer before showing useful options, and Liam reported the page returning at the wrong zoom. Media tiles are buttons again, native media hit testing/callouts are suppressed, and no viewport or pinch-zoom restrictions are added. The video-edge mask is retained.
+- A stationary touch/pen hold opens a small in-page modal. Movement, pointer cancellation, a second touch, or release cancels the pending hold. The release after a completed hold does not expand the tile; a new ordinary tap still does. Right-click and Shift+F10 also open the menu; Cancel, outside tap, and Escape dismiss it.
+- Copy media link is always available. Where supported, the menu prepares the actual file before the user presses Share / Save, preserving iOS user activation for the native share sheet. Unsupported/failed file preparation falls back to Share link; the browser/OS decides which save targets the share sheet offers. Preparation is canceled on close and does not launch the media viewer.
+- Added dedicated menu tokens for the 500ms hold, 8px movement cancellation, 320px panel width, and 44px action targets; existing roles did not cover these interactions. Menu text uses captionSans and existing color/spacing tokens.
+- Validation: 51 tests, TypeScript, touched-file lint, and production build passed. Chromium mobile touch emulation verified real held touches, short taps, scroll cancellation, menu dismissal, stable URL/viewport scale, file sharing with fresh user activation, and copying; desktop Shift+F10/Escape passed. Native sharing was mocked in automation; actual iPhone confirmation remains necessary.
+
+**Native media long-press attempt (replaced)**
+- Tried real links to the original media URL. Ordinary taps still toggle mobile expansion; desktop hover/click behavior is retained, and modified link clicks can open the media. Blank placeholders remain buttons.
 - Removed pointer-event suppression on the video wrapper, disabled tile text selection, and left the browser's touch callout/context-menu event enabled. The video coordinator recognizes both link and button intent targets. The explicit mask for the reported Safari edge artifact remains in place.
 - Browser/iOS controls the menu and preview. Link actions commonly include open/copy/share, with download/image actions where supported; no custom menu items or guaranteed Save Video action. Actual iOS native-callout appearance needs device confirmation.
 

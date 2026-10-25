@@ -146,3 +146,5 @@ The color strip and its placement controls have been removed. The music player a
 ## Adding project videos
 
 Keep the original high-quality, tagged SDR master and its frame rate. `npm run media:import -- /path/to/master.mp4 --id project-id --alt "Project interaction prototype"` preserves 60fps sources, generates responsive H.264 and posters, validates and uploads immutable files, and updates the imported registry. Use `--local` for an unpublished check. See [`docs/media-workflow.md`](docs/media-workflow.md) for options, playback limits, and device validation.
+
+On mobile, hold a project tile for media options; normal taps still expand it. The in-page menu offers a media link copy and, when supported, sharing the file through the native share sheet (including the save targets offered by iOS). It does not open the video viewer automatically. Right-click or Shift+F10 also opens the menu.
