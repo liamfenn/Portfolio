@@ -22,10 +22,21 @@ try {
     await page.evaluate(() => {
       window.__focusGlitched = new Set();
       window.__focusShortFrames = new Set();
+      window.__focusVisibleColors = {};
+      window.__focusColorsDuringMediaMove = false;
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
           if (node.querySelector(".project-focus-glyphs").textContent.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
-          if (node.querySelector('.project-focus-glyphs [style*="color"]')) window.__focusGlitched.add(node.dataset.focusText);
+          if (node.querySelector('.project-focus-glyphs [style*="color"]')) {
+            window.__focusGlitched.add(node.dataset.focusText);
+            const media = document.querySelector(".project-focus-root .homepage-project-media");
+            if (media?.getAnimations().some(animation => animation.playState === "running" && animation.currentTime < animation.effect.getTiming().duration)) window.__focusColorsDuringMediaMove = true;
+            const container = node.closest(".project-focus-details, .project-focus-close");
+            if (Number(getComputedStyle(container).opacity) >= 0.75) {
+              const observation = window.__focusVisibleColors[node.dataset.focusText] ??= { first: performance.now(), last: 0 };
+              observation.last = performance.now();
+            }
+          }
         });
       }).observe(document.body, { subtree: true, childList: true });
     });
@@ -52,6 +63,10 @@ try {
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
     assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
+    assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
+    const visibleColors = await page.evaluate(() => Object.values(window.__focusVisibleColors).map(timing => timing.last - timing.first));
+    assert.equal(visibleColors.length, 8);
+    assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
     const lateFlashes = await dialog.evaluate(async root => {
       const changes = [];
       const observer = new MutationObserver(() => {
@@ -177,8 +192,8 @@ try {
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-close") }));
         });
         assert.equal(timing.length, 5);
-        assert.ok(timing.every(animation => animation.duration === 180 && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
-        assert.ok(timing.every(animation => animation.delay === (animation.text ? 80 : 0)));
+        assert.ok(timing.every(animation => animation.duration === (animation.text ? 80 : 180) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
+        assert.ok(timing.every(animation => animation.delay === (animation.text ? 180 : 0)));
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
       await dialog.waitFor({ state: "detached" });

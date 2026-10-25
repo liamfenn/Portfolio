@@ -12,14 +12,17 @@ export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButt
 
 function FocusGlitch({ text }: { text: string }) {
   // A full-label pass avoids both streaming and seeding a second flash ahead of settled letters.
-  const { ref, replay } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: false, step: Math.max(1, text.length), seed: 0 });
+  const { ref, replay } = useColorScramble({ ...FILTER_SCRAMBLE, text, playOnMount: false, step: Math.max(1, text.length), seed: 0, scramble: FILTER_SCRAMBLE.scramble * 3 });
   const replayRef = useRef(replay);
   useLayoutEffect(() => { replayRef.current = replay; }, [replay]);
   useEffect(() => {
-    const value = getComputedStyle(document.documentElement).getPropertyValue("--project-focus-handoff-delay").trim();
-    const timer = window.setTimeout(() => replayRef.current(), parseFloat(value) * (value.endsWith("ms") ? 1 : 1000));
+    const value = getComputedStyle(document.documentElement).getPropertyValue("--project-focus-duration").trim();
+    const timer = window.setTimeout(() => {
+      const root = ref.current?.closest(".project-focus-root");
+      if (root && root.getAttribute("data-phase") !== "closing") replayRef.current();
+    }, parseFloat(value) * (value.endsWith("ms") ? 1 : 1000));
     return () => window.clearTimeout(timer);
-  }, [text]);
+  }, [text, ref]);
   return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{text}</span>;
 }
 
@@ -76,6 +79,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     };
     const handoffDelay = milliseconds("--project-focus-handoff-delay");
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
+    const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const timing = {
       duration: milliseconds("--project-focus-duration"),
       easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})`,
@@ -132,7 +136,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
     const isText = (element: HTMLElement) => element === details || element === close;
     const opening = tweenMedia(origin, slot.getBoundingClientRect());
     const faded = [blur, backdrop, details, close];
-    animations.push(opening, ...faded.map(element => fade(element, 0, 1, isText(element) ? handoffDelay : 0)));
+    animations.push(opening, ...faded.map(element => fade(element, 0, 1, isText(element) ? timing.duration : 0, isText(element) ? textEnterDuration : timing.duration)));
     void opening.finished.then(() => {
       if (!closing && !disposed) opening.cancel();
     }).catch(() => {});

@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Visible focus-entry color glitch (2026-10-25)**
+- The short glitch had mostly finished while text was still fading in. Metadata and Close now wait until the 180ms media movement ends, then fade in over 80ms as their glitch begins. This retains the same 260ms overall entry timing while making the color effect visible after the media settles.
+- Tripled the focus-only scramble cycles, retaining the complete-label pass, zero forward seeding, stable replay timer, and single final settle. Closing before the queued effect starts suppresses it. Exit timing and reduced motion are unchanged.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and development/production desktop/mobile browser checks passed. All eight labels showed color for at least 80ms at 75% or greater container opacity, with no color frames during media movement, no shortened/streaming frames, and no second flash during the post-settle observation.
+
 **Safari toolbar states and gradient bleed (2026-10-25)**
 - Liam confirmed the previous 5px edge treatment helped with Safari's collapsed controls but left gray bands with the expanded toolbar or sometimes at the top. Its inward white gradients also washed over the media and Close. Removed both gradients and their unused tokens.
 - Replaced pseudo-elements with opaque white fixed strips, at least 12px tall, directly under body and outside the overlay's fading/isolation context. They sit behind all focused-view content and do not animate opacity. The mobile media has a 12px-or-safe-area top gutter so the sampler stays clear of the artwork. The 88% backdrop and 8px blur remain separate absolute layers inside the focus view.

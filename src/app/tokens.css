@@ -44,6 +44,7 @@
   --project-label-delay: 40ms;
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-handoff-delay: 80ms;
+  --project-focus-text-enter-duration: var(--project-focus-handoff-delay);
   --project-focus-text-exit-duration: 120ms;
   --project-focus-ease: .65, 0, .35, 1;
   --project-focus-width: 620px;
