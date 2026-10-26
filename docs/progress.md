@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Updated profile photo (2026-10-26)**
+- Replaced the profile photo with Liam's latest `profile-v3.jpg`, keeping the original 2048px JPEG in `public/images/profile/headshot.jpg` and serving a 384px quality-95 WebP directly. The new `headshot-v2-384.webp` URL avoids stale cached photos. Removed the previous source and rendition from the profile folder.
+- Validation: source matches the attachment byte-for-byte, reviewed the generated rendition, and confirmed the production HTML uses the new image URL. All 53 tests, TypeScript, touched-file lint, and production build passed.
+
 **Swarm masks on non-selectable content**
 - The recent user-select:none rules interfere with custom-highlight painting in the Spotify bar, footer, and selected sort/grid controls. While a swarm owns its highlight stylesheet, those containers temporarily use user-select:text; the existing selectstart guard still prevents manual selection throughout entry, floating, and return.
 - Removing the swarm stylesheet restores the normal non-selectable state. Text content, layout, floating-letter counts, hover donations, and return timing are unchanged.

@@ -15,7 +15,7 @@ export function HomepageIdentity() {
   return <span className="homepage-identity-frame">
     <button type="button" className="homepage-identity hover-surface" data-inspector-toggle aria-label="Open design controls">
     {/* Keep detail for high-density screens and pinch zoom instead of optimizing to the tiny display size. */}
-    <span className="homepage-avatar"><Image src="/images/profile/headshot-384.webp" alt="Liam Fennell" width={384} height={384} unoptimized priority /></span>
+    <span className="homepage-avatar"><Image src="/images/profile/headshot-v2-384.webp" alt="Liam Fennell" width={384} height={384} unoptimized priority /></span>
     </button>
   </span>;
 }
