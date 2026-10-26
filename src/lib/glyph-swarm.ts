@@ -145,7 +145,15 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const highlightStyle = document.createElement("style");
   if (highlight) {
     // Next 16's CSS parser rejects this browser-supported pseudo-element in compiled CSS.
-    highlightStyle.textContent = "::highlight(glyph-swarm-taken) { color: transparent; text-shadow: none; }";
+    // Non-selectable text can suppress custom highlights. The selectstart guard below
+    // still blocks manual selection while these containers allow the masks to paint.
+    highlightStyle.textContent = `
+      .homepage-spotify, .work-density-control, .portfolio-footer {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+      ::highlight(glyph-swarm-taken) { color: transparent; text-shadow: none; }
+    `;
     document.head.append(highlightStyle); CSS.highlights.set("glyph-swarm-taken", highlight);
   }
 

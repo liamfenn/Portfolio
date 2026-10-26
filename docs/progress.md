@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Swarm masks on non-selectable content**
+- The recent user-select:none rules interfere with custom-highlight painting in the Spotify bar, footer, and selected sort/grid controls. While a swarm owns its highlight stylesheet, those containers temporarily use user-select:text; the existing selectstart guard still prevents manual selection throughout entry, floating, and return.
+- Removing the swarm stylesheet restores the normal non-selectable state. Text content, layout, floating-letter counts, hover donations, and return timing are unchanged.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and diff checks pass. Development/production Chromium checks at 1440px and 390px verified highlight painting in all four regions, cancellation of manual selection during the swarm, and non-selectable styling/normal intro selection after cleanup. Native Safari rendering still requires device confirmation.
+
 **Project focus is the default (2026-10-25)**
 - Project clicks/taps now open the focused view on every page load, including when the developer inspector is disabled. The avatar menu now offers a default-off **Inline project expansion** toggle for the previous behavior: mobile tiles expand in the grid and desktop keeps hover previews.
 - Validation: all 53 tests, TypeScript, touched-file lint, and production build passed. Desktop/mobile browser checks verified the toggle in both directions, a fresh load with the inspector disabled, and the existing focus animations, media continuity, accessibility, dismissal, and reduced-motion behavior.

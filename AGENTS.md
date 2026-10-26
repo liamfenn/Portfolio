@@ -86,6 +86,9 @@ weather show placeholders. That's fine for most UI work.
   measured there is meaningless. Check motion with frame-independent signals, or on the real preview.
 - **Safari doesn't paint the swarm's text mask (`::highlight`) on text that flexbox has wrapped in anonymous
   boxes.** Don't make text spans `display: flex`. Lay out their containers instead.
+- **`user-select: none` can also suppress custom highlights.** The swarm temporarily overrides it on the
+  footer, Spotify bar, and work controls; its `selectstart` guard still blocks manual selection. Keep those
+  overrides in sync if adding non-selectable containers whose text participates in the swarm.
 - **The swarm masks letters by character position**, not by text node, and re-attaches through a
   MutationObserver. Components that rewrite their text (`use-scramble`, the clock, the track title) stay
   masked. Keep it that way if you touch `glyph-swarm.ts`.
