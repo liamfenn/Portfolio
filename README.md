@@ -39,6 +39,15 @@ Change a named style's `--type-*` bundle to update its family, size, weight,
 and leading together. Email and social links use bodySerif. Project details,
 project dates, and the player's listening status and time use captionSans.
 
+Shared loading surfaces use `Skeleton` and `SkeletonText` in `src/components/skeleton.tsx`.
+Project posters/images, the profile photo, and initial album art show a subtle gray sweep until
+loaded, then retain their real image while a video buffers or new artwork is fetched. Text skeletons
+cover initial track/time/weather gaps; cached track data stays visible during refreshes. Missing project
+assets remain static placeholders. Reduced motion removes the sweep, image failures stop it, and
+no-JavaScript visitors see available images and static fallback copy. Timing, fill roles, and line height
+live in the `--skeleton-*` tokens. Run `node scripts/check-loading-states.mjs [origin]` with the optional
+Playwright browser setup to verify delayed resources, failures, cached images, and no-JS behavior.
+
 The built-in inspector is a debugging tool: on in local development and on
 previews, never in production. Open a page with `?inspect=off` to turn it off in
 that browser (it's remembered) and `?inspect` to turn it back on. When off,

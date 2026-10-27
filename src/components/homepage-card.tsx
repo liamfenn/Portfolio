@@ -9,6 +9,8 @@ import { mediaUrl } from "@/lib/media-delivery";
 import { InspectableText } from "@/components/design-inspector";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { useImageLoading } from "@/hooks/use-image-loading";
+import { Skeleton } from "@/components/skeleton";
 
 function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible: boolean; delay: number; labelId: string }) {
   const [shown, setShown] = useState(visible);
@@ -33,6 +35,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
   onOpenFocus?: (trigger: HTMLButtonElement) => void; focusActive?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
+  const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
   const [delay, setDelay] = useState(0);
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -62,7 +65,11 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         onKeyDown={event => { if (event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
         <span className="homepage-project-media">
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible || focusActive} /> : null}
-        {preview.media?.kind === "image" ? <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} /> : null}
+        {preview.media?.kind === "image" ? <>
+          {pending && <Skeleton />}
+          <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}
+            src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+        </> : null}
         </span>
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>

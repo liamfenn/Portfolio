@@ -88,6 +88,7 @@ export default function RootLayout({
       <body
         className={`${oracle.variable} ${otto.variable} font-sans antialiased`}
       >
+        <noscript><style>{`.skeleton { display: none; } .skeleton-text-reserve { visibility: visible; } .skeleton-text > .sr-only { display: none; }`}</style></noscript>
         <ProjectDisplayProvider>
           {children}
         </ProjectDisplayProvider>

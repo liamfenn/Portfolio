@@ -10,12 +10,21 @@ import { trackPositionAt } from "@/lib/track-clock";
 import { InspectableText } from "@/components/design-inspector";
 import { AlbumArtwork } from "@/components/album-artwork";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { useImageLoading } from "@/hooks/use-image-loading";
+import { Skeleton, SkeletonText } from "@/components/skeleton";
+
+const PROFILE_PHOTO = "/images/profile/headshot-v2-384.webp";
 
 export function HomepageIdentity() {
+  const { attachImage: photoAttachImage, pending: photoPending, failed: photoFailed, onLoad: photoOnLoad, onError: photoOnError } = useImageLoading(PROFILE_PHOTO);
   return <span className="homepage-identity-frame">
     <button type="button" className="homepage-identity hover-surface" data-inspector-toggle aria-label="Open design controls">
     {/* Keep detail for high-density screens and pinch zoom instead of optimizing to the tiny display size. */}
-    <span className="homepage-avatar"><Image src="/images/profile/headshot-v2-384.webp" alt="Liam Fennell" width={384} height={384} unoptimized priority /></span>
+    <span className="homepage-avatar" aria-busy={photoPending}>
+      {photoPending && <Skeleton />}
+      <Image ref={photoAttachImage} onLoad={photoOnLoad} onError={photoOnError} className={photoFailed ? "loading-image-error" : undefined}
+        src={PROFILE_PHOTO} alt="Liam Fennell" width={384} height={384} unoptimized priority />
+    </span>
     </button>
   </span>;
 }
@@ -116,7 +125,7 @@ export function HomepageSpotify() {
       <span ref={trackLine} key={`${data?.title}-${data?.artist}`}
         className={`homepage-track${trackOverflow > 1 ? " is-overflowing" : ""}`}
         style={{ "--identity-song-marquee-offset": `-${trackOverflow}px` } as CSSProperties}>
-        <span ref={trackContent} className="homepage-track-marquee"><span className="homepage-title">{data ? <TrackText text={data.title} scramble={trackChange.scrambleTitle && !reducedMotion} /> : <InspectableText>Loading track…</InspectableText>}</span>{data && <><wbr /><span className="homepage-artist"><TrackText text={data.artist} scramble={trackChange.scrambleArtist && !reducedMotion} /></span></>}</span>
+        <span ref={trackContent} className="homepage-track-marquee"><span className="homepage-title">{data ? <TrackText text={data.title} scramble={trackChange.scrambleTitle && !reducedMotion} /> : <SkeletonText loading label="Loading track"><InspectableText>Loading track…</InspectableText></SkeletonText>}</span>{data && <><wbr /><span className="homepage-artist"><TrackText text={data.artist} scramble={trackChange.scrambleArtist && !reducedMotion} /></span></>}</span>
         <span className="homepage-track-fade homepage-track-fade-left" aria-hidden="true" />
         <span className="homepage-track-fade homepage-track-fade-right" aria-hidden="true" />
       </span>

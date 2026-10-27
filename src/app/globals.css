@@ -361,7 +361,38 @@
   box-shadow: none;
 }
 
+.project-preview-video:not([data-frame-ready="true"]) { visibility: hidden; }
+.project-preview-poster { background: transparent; }
 .project-preview-video[data-frame-ready="true"] + .project-preview-poster { visibility: hidden; }
+
+/* Shared loading surfaces sit behind real media, so cached and no-JS images remain visible. */
+.skeleton {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--skeleton-base);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+  animation: skeleton-sweep var(--skeleton-duration) var(--hover-ease) var(--skeleton-delay) infinite backwards;
+}
+@keyframes skeleton-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+.skeleton-text { position: relative; display: inline-block; vertical-align: baseline; }
+.skeleton-text-reserve { visibility: hidden; }
+.footer-clock.is-pending { visibility: hidden; }
+.skeleton-text > .skeleton { top: 50%; bottom: auto; height: var(--skeleton-line-height); transform: translateY(-50%); }
+img.loading-image-error { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { display: none; animation: none; }
+}
 
 /*
  * Safe on the bio again now that it is two real paragraphs: pretty resolves each
@@ -469,10 +500,6 @@
   align-items: baseline;
   gap: 4px;
   white-space: nowrap;
-}
-
-.footer-clock.is-pending {
-  visibility: hidden;
 }
 
 .footer-palette {
@@ -718,7 +745,7 @@
 @media (prefers-reduced-motion: reduce) {
   .portfolio-v3 *, .portfolio-v3 *::before, .portfolio-v3 *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
-.homepage-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.homepage-avatar img { position: relative; display: block; width: 100%; height: 100%; object-fit: cover; }
 
 .homepage-project-media { position: absolute; inset: 0; display: block; background: var(--bg-secondary-fill); transform-origin: top left; }
 .project-focus-root { position: fixed; inset: 0; z-index: 2200; isolation: isolate; }

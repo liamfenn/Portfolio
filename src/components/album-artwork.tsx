@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
 import { currentGlyphPalette } from "@/lib/palette-toy";
+import { Skeleton } from "@/components/skeleton";
 
 const GRID_SIZE = 8;
 const CELLS = Array.from({ length: GRID_SIZE ** 2 }, (_, index) => ({ x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) }));
@@ -13,17 +14,20 @@ const milliseconds = (value: string) => parseFloat(value) * (value.trim().endsWi
 export function AlbumArtwork({ src }: { src?: string }) {
   const reducedMotion = useReducedMotion();
   const [shown, setShown] = useState(src);
-  const [loaded, setLoaded] = useState<string>();
+  // Retain the completed URL so a later render cannot lose the source for the swap.
+  const [loaded, setLoaded] = useState<{ src: string; url: string }>();
+  const [failedIncoming, setFailedIncoming] = useState<string>();
+  const [hasArtwork, setHasArtwork] = useState(false);
+  const pending = !hasArtwork && (!src || failedIncoming !== src);
   const incoming = useRef<HTMLSpanElement>(null);
-  const image = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (!src || src === shown || loaded !== src) return;
+    if (!src || src === shown || loaded?.src !== src) return;
     if (!shown || reducedMotion) {
       const frame = requestAnimationFrame(() => setShown(src));
       return () => cancelAnimationFrame(frame);
     }
-    const grid = incoming.current, source = image.current?.currentSrc;
+    const grid = incoming.current, source = loaded.url;
     if (!grid || !source) return;
     const tokens = getComputedStyle(document.documentElement);
     const duration = milliseconds(tokens.getPropertyValue("--album-swap-duration"));
@@ -56,9 +60,11 @@ export function AlbumArtwork({ src }: { src?: string }) {
   }, [src, shown, loaded, reducedMotion]);
 
   return <span className="homepage-album" aria-hidden="true">
-    <span className="album-artwork-layer">{shown && <Image src={shown} alt="" fill sizes="28px" />}</span>
+    {pending && <Skeleton />}
+    <span className="album-artwork-layer">{shown && <Image onLoad={() => setHasArtwork(true)} onError={() => setFailedIncoming(shown)}
+      className={shown === failedIncoming ? "loading-image-error" : undefined} src={shown} alt="" fill sizes="28px" />}</span>
     {src && src !== shown && <span key={src}>
-      <span className="album-artwork-preload"><Image ref={image} src={src} alt="" fill sizes="28px" onLoad={() => setLoaded(src)} /></span>
+      <span className="album-artwork-preload"><Image src={src} alt="" fill sizes="28px" onLoad={event => setLoaded({ src, url: event.currentTarget.currentSrc })} onError={() => setFailedIncoming(src)} /></span>
       <span ref={incoming} className="album-artwork-grid" style={{ "--album-grid-size": GRID_SIZE } as CSSProperties}>
         {CELLS.map(({ x, y }, index) => <span className="album-artwork-cell" key={index} style={{ backgroundPosition: `${x / (GRID_SIZE - 1) * 100}% ${y / (GRID_SIZE - 1) * 100}%` }}><span className="album-artwork-flash" /></span>)}
       </span>

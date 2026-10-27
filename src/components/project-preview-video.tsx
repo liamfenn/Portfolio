@@ -5,10 +5,13 @@ import type { CSSProperties } from "react";
 import type { PortfolioVideoAsset } from "@/lib/media-assets";
 import { mediaUrl } from "@/lib/media-delivery";
 import { registerVideo } from "@/lib/video-playback";
+import { useImageLoading } from "@/hooks/use-image-loading";
+import { Skeleton } from "@/components/skeleton";
 
 export function ProjectPreviewVideo({ asset, priority = false }: { asset: PortfolioVideoAsset; priority?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const registration = useRef<ReturnType<typeof registerVideo> | null>(null);
+  const { attachImage: posterAttachImage, pending: posterPending, failed: posterFailed, onLoad: posterOnLoad, onError: posterOnError } = useImageLoading(asset.poster);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -18,12 +21,15 @@ export function ProjectPreviewVideo({ asset, priority = false }: { asset: Portfo
   }, [asset]);
   useEffect(() => { registration.current?.priority(priority); }, [asset, priority]);
 
-  return <span className="project-preview-media" style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
+  return <span className="project-preview-media" aria-busy={posterPending} style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
+    {posterPending && <Skeleton />}
     <video ref={videoRef} className="project-preview-video" aria-label={asset.alt}
+      onLoadedData={posterOnLoad}
       width={asset.width} height={asset.height} muted loop playsInline disablePictureInPicture preload="none" />
     {/* The poster covers the video until a decoded frame is presented, including failed autoplay. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img className="project-preview-poster" src={mediaUrl(asset.poster)}
+    <img ref={posterAttachImage} onLoad={posterOnLoad} onError={posterOnError}
+      className={`project-preview-poster${posterFailed ? " loading-image-error" : ""}`} src={mediaUrl(asset.poster)}
       srcSet={asset.posters?.map(poster => `${mediaUrl(poster.src)} ${poster.width}w`).join(", ")}
       sizes="auto, (max-width: 767px) 100vw, 33vw" width={asset.width} height={asset.height}
       alt="" aria-hidden="true" loading="lazy" decoding="async" />

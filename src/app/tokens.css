@@ -39,6 +39,11 @@
   --hover-duration: 150ms;
   --hover-ease: ease;
   --motion-duration: 300ms;
+  --skeleton-duration: 1600ms;
+  --skeleton-delay: var(--hover-duration);
+  --skeleton-base: var(--bg-secondary-fill);
+  --skeleton-highlight: var(--bg-fill);
+  --skeleton-line-height: .7em;
   --project-layout-duration: 180ms;
   --project-layout-ease: .2, 0, 0, 1;
   --project-label-delay: 40ms;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useWeather } from "@/hooks/use-weather";
 import { PaletteToy } from "@/components/palette-toy";
 import { InspectableText } from "@/components/design-inspector";
+import { SkeletonText } from "@/components/skeleton";
 
 function getNewYorkTime() {
   return new Date().toLocaleTimeString("en-US", {
@@ -15,7 +16,7 @@ function getNewYorkTime() {
 }
 
 export function PortfolioFooter() {
-  const { data } = useWeather();
+  const { data, isLoading } = useWeather();
   const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,10 +40,9 @@ export function PortfolioFooter() {
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
         <span className="footer-weather text-bodySerif">
-          <InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`} aria-hidden={!time}>
-            {time ?? "12:00 PM"}
-          </span>
-          , {condition} at {temperature}°F</InspectableText>
+          <SkeletonText loading={!time} label="Loading local time"><InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`}>{time ?? "12:00 PM"}</span></InspectableText></SkeletonText>
+          <InspectableText>, </InspectableText>
+          <SkeletonText loading={isLoading && !data} label="Loading weather"><InspectableText>{condition} at {temperature}°F</InspectableText></SkeletonText>
         </span>
       </div>
       <PaletteToy />
