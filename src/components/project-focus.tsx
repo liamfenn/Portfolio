@@ -15,40 +15,18 @@ function FocusGlitch({ text }: { text: string }) {
   useEffect(() => {
     const node = ref.current!;
     const root = node.closest(".project-focus-root");
-    const reserve = node.parentElement!.querySelector<HTMLElement>(".project-focus-text-reserve")!;
-    const source = reserve.firstChild!;
     const characters = Array.from(text);
     const choices = characters.map(character => FILTER_SCRAMBLE.range.filter(code => String.fromCharCode(code) !== character));
     const colors = currentGlyphPalette();
     const interval = 1000 / (60 * FILTER_SCRAMBLE.speed);
     const cycles = FILTER_SCRAMBLE.scramble + Math.ceil(FILTER_SCRAMBLE.scramble / 2);
-    let frame = 0, disposed = false;
-    const slots = characters.map(character => {
-      const slot = document.createElement("span");
-      slot.className = "project-focus-character";
-      slot.textContent = " ".repeat(character.length);
-      return slot;
-    });
-    node.replaceChildren(...slots);
-    // Use the final text's exact glyph positions, including kerning and wraps, throughout the stream.
-    const measure = () => {
-      if (disposed) return;
-      const origin = reserve.getBoundingClientRect();
-      const range = document.createRange();
-      let offset = 0, firstTop = 0;
-      slots.forEach((slot, index) => {
-        range.setStart(source, offset);
-        offset += characters[index].length;
-        range.setEnd(source, offset);
-        const bounds = range.getBoundingClientRect();
-        if (index === 0) firstTop = bounds.top;
-        Object.assign(slot.style, { left: `${bounds.left - origin.left}px`, top: `${bounds.top - firstTop}px`, width: `${bounds.width}px` });
-      });
-    };
-    measure();
-    const resize = new ResizeObserver(measure);
-    resize.observe(reserve);
-    void document.fonts.ready.then(measure);
+    let frame = 0, disposed = false, resolved = 0;
+    // Keep resolved letters in one native text run so the font retains its shaping and kerning.
+    const prefix = document.createTextNode("");
+    const active = document.createElement("span");
+    const tail = document.createTextNode(" ".repeat(text.length));
+    node.replaceChildren(prefix, active, tail);
+    node.dataset.reveal = "streaming";
 
     const media = root?.querySelector(".homepage-project-media");
     const opening = media?.getAnimations() ?? [];
@@ -60,27 +38,33 @@ function FocusGlitch({ text }: { text: string }) {
         started ??= now;
         const tick = Math.floor((now - started) / interval);
         if (tick !== previousTick) {
-          slots.forEach((slot, index) => {
-            if (tick < index || slot.dataset.settled === "true") return;
-            const character = characters[index];
-            if (tick >= index + cycles || !character.trim()) {
-              slot.textContent = character;
-              slot.style.removeProperty("color");
-              slot.dataset.settled = "true";
-            } else {
-              // A random match must not look settled for a frame and then glitch again.
-              const range = choices[index];
-              slot.textContent = String.fromCharCode(range[Math.floor(Math.random() * range.length)]) + " ".repeat(character.length - 1);
-              if (colors.length) slot.style.color = colors[(index + tick) % colors.length];
-            }
+          const resolvedCount = Math.min(characters.length, Math.max(0, tick - cycles + 1));
+          while (resolved < resolvedCount) prefix.appendData(characters[resolved++]);
+          const visibleCount = Math.min(characters.length, tick + 1);
+          const glyphs = characters.slice(resolved, visibleCount).map((character, position) => {
+            if (!character.trim()) return document.createTextNode(character);
+            const index = resolved + position;
+            const glyph = document.createElement("span");
+            const range = choices[index];
+            // A random match must not look settled for a frame and then glitch again.
+            glyph.textContent = String.fromCharCode(range[Math.floor(Math.random() * range.length)]) + " ".repeat(character.length - 1);
+            if (colors.length) glyph.style.color = colors[(index + tick) % colors.length];
+            return glyph;
           });
+          active.replaceChildren(...glyphs);
+          tail.data = " ".repeat(characters.slice(visibleCount).join("").length);
+          if (resolved === characters.length) {
+            active.remove();
+            tail.remove();
+            node.dataset.reveal = "settled";
+          }
           previousTick = tick;
         }
         if (tick < characters.length - 1 + cycles) frame = requestAnimationFrame(draw);
       };
       frame = requestAnimationFrame(draw);
     }).catch(() => {});
-    return () => { disposed = true; cancelAnimationFrame(frame); resize.disconnect(); };
+    return () => { disposed = true; cancelAnimationFrame(frame); };
   }, [text]);
   return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{" ".repeat(text.length)}</span>;
 }
@@ -89,7 +73,7 @@ function FocusText({ text }: { text: string }) {
   const reducedMotion = useReducedMotion();
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>
     <span className="project-focus-text-reserve" aria-hidden="true">{text}</span>
-    {reducedMotion ? <span className="project-focus-glyphs" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
+    {reducedMotion ? <span className="project-focus-glyphs" data-reveal="settled" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
     <span className="sr-only">{text}</span>
   </span></InspectableText>;
 }

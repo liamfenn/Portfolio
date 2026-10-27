@@ -28,20 +28,19 @@ try {
       window.__focusVisibleColors = {};
       window.__focusColorsDuringMediaMove = false;
       window.__focusSettledChanges = false;
-      window.__focusSlotDrift = 0;
-      const settled = new WeakMap(), positions = new WeakMap();
+      const settled = new WeakMap(), prefixes = new WeakMap();
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
           const live = node.querySelector(".project-focus-glyphs").textContent;
-          const glyphs = node.querySelector(".project-focus-glyphs"), origin = glyphs.getBoundingClientRect();
-          glyphs.querySelectorAll(".project-focus-character").forEach(slot => {
-            const bounds = slot.getBoundingClientRect(), position = { x: bounds.left - origin.left, y: bounds.top - origin.top };
-            const previous = positions.get(slot);
-            if (previous) window.__focusSlotDrift = Math.max(window.__focusSlotDrift, Math.abs(position.x - previous.x), Math.abs(position.y - previous.y));
-            positions.set(slot, position);
-            if (settled.has(slot) && (slot.textContent !== settled.get(slot) || slot.style.color)) window.__focusSettledChanges = true;
-            if (slot.dataset.settled === "true") settled.set(slot, slot.textContent);
-          });
+          const glyphs = node.querySelector(".project-focus-glyphs");
+          if (glyphs.dataset.reveal) {
+            const prefix = glyphs.firstChild?.textContent ?? "";
+            const previousPrefix = prefixes.get(glyphs) ?? "";
+            if (!prefix.startsWith(previousPrefix)) window.__focusStreamRegressed = true;
+            prefixes.set(glyphs, prefix);
+            if (settled.has(glyphs) && (live !== settled.get(glyphs) || glyphs.children.length)) window.__focusSettledChanges = true;
+            if (glyphs.dataset.reveal === "settled") settled.set(glyphs, live);
+          }
           if (live.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
           const frontier = live.trimEnd().length;
           const previous = window.__focusFrontiers[node.dataset.focusText] ?? 0;
@@ -105,7 +104,32 @@ try {
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
     assert.equal(await page.evaluate(() => window.__focusSettledChanges), false);
-    assert.ok(await page.evaluate(() => window.__focusSlotDrift < 0.5));
+    const typography = await dialog.evaluate(root => [...root.querySelectorAll(".project-focus-text")].map(node => {
+      const glyphs = node.querySelector(".project-focus-glyphs"), reserve = node.querySelector(".project-focus-text-reserve");
+      const singleTextRun = reserve.childNodes.length === 1 && reserve.firstChild.nodeType === Node.TEXT_NODE;
+      const canonicalVisible = getComputedStyle(reserve).visibility === "visible" && getComputedStyle(glyphs).visibility === "hidden";
+      const reference = document.createElement("span");
+      reference.textContent = node.dataset.focusText;
+      reference.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
+      node.appendChild(reference);
+      const style = getComputedStyle(reserve), referenceStyle = getComputedStyle(reference);
+      const sameStyle = ["fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight", "fontFeatureSettings", "fontKerning"].every(key => style[key] === referenceStyle[key]);
+      let maxAdvanceDifference = 0;
+      if (singleTextRun) {
+        const actual = document.createRange(), expected = document.createRange();
+        let actualStart = 0, expectedStart = 0;
+        for (let index = 0; index < node.dataset.focusText.length; index++) {
+          actual.setStart(reserve.firstChild, index); actual.setEnd(reserve.firstChild, index + 1);
+          expected.setStart(reference.firstChild, index); expected.setEnd(reference.firstChild, index + 1);
+          const a = actual.getBoundingClientRect(), b = expected.getBoundingClientRect();
+          if (index === 0) { actualStart = a.left; expectedStart = b.left; }
+          maxAdvanceDifference = Math.max(maxAdvanceDifference, Math.abs((a.left - actualStart) - (b.left - expectedStart)));
+        }
+      }
+      reference.remove();
+      return { text: node.dataset.focusText, singleTextRun, canonicalVisible, sameStyle, maxAdvanceDifference };
+    }));
+    assert.ok(typography.every(item => item.singleTextRun && item.canonicalVisible && item.sameStyle && item.maxAdvanceDifference < 0.1), JSON.stringify(typography));
     const visibleColors = await page.evaluate(() => Object.values(window.__focusVisibleColors).map(timing => timing.last - timing.first));
     assert.equal(visibleColors.length, 8);
     assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
