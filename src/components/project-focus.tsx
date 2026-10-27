@@ -8,7 +8,7 @@ import type { ProjectPreview } from "@/lib/project-previews";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
-export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
+export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean };
 
 function FocusGlitch({ text }: { text: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -217,6 +217,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       void exit.finished.then(() => { if (!disposed) onClose(); }).catch(() => {});
     };
     const onKeyDown = (event: KeyboardEvent) => {
+      root.dataset.input = "keyboard";
       if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
@@ -230,12 +231,16 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
       }
     };
     const onMotionChange = () => { if (motion.matches) animations.forEach(animation => { if (animation.playState !== "idle") animation.finish(); }); };
+    // Reparented media retains its original React event ancestry, so use native capture here.
+    const onPointerDown = () => { root.dataset.input = "pointer"; };
+    root.addEventListener("pointerdown", onPointerDown, { capture: true });
     window.addEventListener("keydown", onKeyDown, { capture: true });
     motion.addEventListener("change", onMotionChange);
     return () => {
       disposed = true;
       animations.forEach(animation => animation.cancel());
       window.removeEventListener("keydown", onKeyDown, { capture: true });
+      root.removeEventListener("pointerdown", onPointerDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
       cancelAnimationFrame(edgeFrame);
       viewport?.removeEventListener("resize", scheduleEdges);
@@ -255,7 +260,7 @@ export function ProjectFocus({ selection, onClose }: { selection: ProjectFocusSe
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
     <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
-    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" tabIndex={-1}>
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-input={selection.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
     <div className="project-focus-top-surface" aria-hidden="true" />

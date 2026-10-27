@@ -775,6 +775,9 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-team a { text-decoration: none; }
 .project-focus-close { position: absolute; left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; transition: color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease); }
 .project-focus-close::before { content: ""; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100%; height: 100%; min-width: var(--project-focus-hit-size); min-height: var(--project-focus-hit-size); }
+/* Safari may treat first programmatic focus as keyboard focus even after a pointer activation. */
+.project-focus-close:focus { outline: none; }
+.project-focus-root[data-input="keyboard"] .project-focus-close:focus { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 @media (min-width: 768px) and (hover: hover) {
   .project-focus-close:hover { background: var(--text-primary); --inspect-color-token: bg-secondary-fill; color: var(--bg-secondary-fill); }
 }

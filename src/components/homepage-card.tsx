@@ -32,7 +32,7 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
 export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   hovered: boolean; onHover: () => void; onClearHover: () => void;
-  onOpenFocus?: (trigger: HTMLButtonElement) => void; focusActive?: boolean;
+  onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -58,7 +58,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         aria-expanded={onOpenFocus ? focusActive : isMobile ? expanded : undefined}
         aria-controls={onOpenFocus ? "project-focus-dialog" : isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
-        onClick={event => { if (focusActive) return; if (onOpenFocus) onOpenFocus(event.currentTarget); else if (isMobile) onToggle(); }}
+        onClick={event => { if (focusActive) return; if (onOpenFocus) onOpenFocus(event.currentTarget, event.detail === 0); else if (isMobile) onToggle(); }}
         onPointerEnter={event => { if (!isMobile && event.pointerType !== "touch") onHover(); }}
         onPointerDown={() => { if (!isMobile) setFocused(false); }}
         onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}

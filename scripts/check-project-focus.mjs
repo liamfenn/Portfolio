@@ -95,6 +95,8 @@ try {
     }, mobile);
     await tile.click();
     const dialog = page.getByRole("dialog");
+    assert.equal(await dialog.getAttribute("data-input"), "pointer");
+    assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
     assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
@@ -197,6 +199,8 @@ try {
     assert.equal(await page.evaluate(() => document.activeElement.querySelector("[data-focus-text]")?.dataset.focusText), "Annabel Lake");
     await page.keyboard.press("Shift+Tab");
     assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
+    assert.equal(await dialog.getAttribute("data-input"), "keyboard");
+    assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "solid");
     // Scrolling the content must never move the viewport-anchored close control.
     await page.locator(".project-focus-scroll").evaluate(node => { node.scrollTop = 200; });
     assert.equal(await page.locator(".project-focus-close").evaluate(node => innerHeight - node.getBoundingClientRect().bottom), mobile ? 24 : 44);
@@ -315,6 +319,8 @@ try {
     await defaultTile.click();
     await page.getByRole("dialog").waitFor();
     const rewards = page.getByRole("dialog");
+    assert.equal(await rewards.getAttribute("data-input"), "pointer");
+    assert.equal(await rewards.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     assert.equal(await rewards.locator('.project-focus-description [data-focus-text]').getAttribute("data-focus-text"), "Rewards card");
     assert.equal(await rewards.locator('.project-focus-period [data-focus-text]').getAttribute("data-focus-text"), "Q4 26");
     assert.deepEqual(await rewards.locator('.project-focus-team a').evaluateAll(links => links.map(link => ({ name: link.querySelector('[data-focus-text]').dataset.focusText, href: link.href }))), [
@@ -327,6 +333,19 @@ try {
     await page.waitForFunction(() => document.querySelector('.project-focus-root .project-preview-poster')?.naturalWidth > 0);
     assert.match(await rewards.locator('.project-preview-poster').getAttribute("src"), /\/media\/shop-rewards-card\//);
     await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("dialog").waitFor({ state: "detached" });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    // Keyboard activation can run before hydration; the image ref's settled state confirms React is ready.
+    await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
+    await defaultTile.focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("dialog").waitFor();
+    assert.equal(await page.getByRole("dialog").getAttribute("data-input"), "keyboard");
+    assert.equal(await page.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "solid");
+    await page.locator(".project-focus-media-slot").click();
+    assert.equal(await page.getByRole("dialog").getAttribute("data-input"), "pointer");
+    assert.equal(await page.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
+    await page.keyboard.press("Escape");
     await page.getByRole("dialog").waitFor({ state: "detached" });
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({ viewportWidth: width, ...state, errors }));

@@ -670,10 +670,10 @@ export function ProjectWork() {
             onHover={() => setHoveredId(preview.id)}
             onClearHover={() => setHoveredId(null)}
             focusActive={focusSelection?.preview.id === preview.id}
-            onOpenFocus={!inlineProjectPreviewEnabled ? trigger => {
+            onOpenFocus={!inlineProjectPreviewEnabled ? (trigger, keyboard) => {
               const origin = trigger.getBoundingClientRect();
               layoutAnimations.current.forEach(animation => animation.finish());
-              setFocusSelection({ preview, trigger, origin });
+              setFocusSelection({ preview, trigger, origin, keyboard });
             } : undefined}
             onToggle={() => togglePreview(preview.id)} />
         ))}

@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Close outline on first pointer open (2026-10-27)**
+- Opening a project now records whether the activation came from a pointer or keyboard/assistive click. Close retains automatic focus and the focus trap, while its outline uses the shared ring token only in keyboard mode. This avoids Safari's first programmatic-focus outline after a click/tap without removing keyboard feedback. Tab/other keys switch to keyboard mode; pointer interaction switches back.
+- Pointer tracking uses a native capture listener because temporarily reparented project media retains its original React event ancestry. The listener is removed on dismissal.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus checks passed. Added assertions for a ring-free pointer open after page navigation, a visible Close ring after Tab/Shift+Tab or a keyboard open after reload, and removal when interacting with the media by pointer. The reload keyboard check waits for hydration before sending Enter. Focus trapping, restoration, and dismissal remain covered. Native Safari still needs device confirmation.
+
 **Stable focus text and grid mark (2026-10-27)**
 - Focused text now has a dedicated, finite left-to-right reveal that shares the card effect's speed and character range. Each glyph keeps the final text's measured position (including kerning and wrapped lines), resolves once, and stays unchanged on later renders. Random glyphs cannot temporarily match the final letter before resolving. This avoids the shared library's per-render drawing restart and proportional-width jitter while retaining the color glitch. The reveal starts after the actual media animation completes, and cancels cleanly on early dismissal/unmount. Reduced motion still displays final copy immediately.
 - Replaced the grid mark's remaining desktop Motion layout projection with a normal span, matching the static mobile mark. Label scrambles and palette flashes remain; body scroll locking/restoration can no longer trigger an independent square projection.
