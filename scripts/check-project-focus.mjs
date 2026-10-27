@@ -27,9 +27,21 @@ try {
       window.__focusStreamRegressed = false;
       window.__focusVisibleColors = {};
       window.__focusColorsDuringMediaMove = false;
+      window.__focusSettledChanges = false;
+      window.__focusSlotDrift = 0;
+      const settled = new WeakMap(), positions = new WeakMap();
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
           const live = node.querySelector(".project-focus-glyphs").textContent;
+          const glyphs = node.querySelector(".project-focus-glyphs"), origin = glyphs.getBoundingClientRect();
+          glyphs.querySelectorAll(".project-focus-character").forEach(slot => {
+            const bounds = slot.getBoundingClientRect(), position = { x: bounds.left - origin.left, y: bounds.top - origin.top };
+            const previous = positions.get(slot);
+            if (previous) window.__focusSlotDrift = Math.max(window.__focusSlotDrift, Math.abs(position.x - previous.x), Math.abs(position.y - previous.y));
+            positions.set(slot, position);
+            if (settled.has(slot) && (slot.textContent !== settled.get(slot) || slot.style.color)) window.__focusSettledChanges = true;
+            if (slot.dataset.settled === "true") settled.set(slot, slot.textContent);
+          });
           if (live.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
           const frontier = live.trimEnd().length;
           const previous = window.__focusFrontiers[node.dataset.focusText] ?? 0;
@@ -71,6 +83,16 @@ try {
     await tile.evaluate(trigger => {
       window.__focusSource = { trigger, media: trigger.querySelector(".homepage-project-media"), video: trigger.querySelector("video"), scroll: scrollY };
     });
+    await page.evaluate(mobile => {
+      window.__focusSquareSamples = [];
+      const square = document.querySelector(`${mobile ? '.work-grid-label-mobile' : '.work-grid-label-desktop'} .work-control-square`);
+      const sample = () => {
+        const bounds = square.getBoundingClientRect(), control = square.closest("button").getBoundingClientRect();
+        window.__focusSquareSamples.push({ x: bounds.left - control.left, y: bounds.top - control.top, transform: getComputedStyle(square).transform });
+        window.__focusSquareFrame = requestAnimationFrame(sample);
+      };
+      sample();
+    }, mobile);
     await tile.click();
     const dialog = page.getByRole("dialog");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
@@ -80,6 +102,8 @@ try {
     assert.equal(await page.evaluate(() => window.__focusStreamRegressed), false);
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
+    assert.equal(await page.evaluate(() => window.__focusSettledChanges), false);
+    assert.ok(await page.evaluate(() => window.__focusSlotDrift < 0.5));
     const visibleColors = await page.evaluate(() => Object.values(window.__focusVisibleColors).map(timing => timing.last - timing.first));
     assert.equal(visibleColors.length, 8);
     assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
@@ -89,6 +113,8 @@ try {
         if (root.querySelector('.project-focus-glyphs [style*="color"]')) changes.push(performance.now());
       });
       observer.observe(root, { subtree: true, childList: true });
+      document.querySelector(".project-grid").dispatchEvent(new PointerEvent("pointerout", { bubbles: true, relatedTarget: document.body }));
+      window.dispatchEvent(new Event("resize"));
       await new Promise(resolve => setTimeout(resolve, 600));
       observer.disconnect();
       return changes.length;
@@ -108,9 +134,9 @@ try {
     assert.equal(state.left, mobile ? 0 : (width - 620) / 2);
     assert.equal(state.top, mobile ? 12 : 24);
     assert.equal(state.closeBottom, mobile ? 24 : 44);
-    assert.equal(state.blur, "blur(8px)");
+    assert.equal(state.blur, "blur(10px)");
     assert.equal(state.tintBlur, "none");
-    assert.equal(state.color, "color(srgb 1 1 1 / 0.88)");
+    assert.equal(state.color, "color(srgb 1 1 1 / 0.92)");
     assert.equal(state.title, "Product details page");
     assert.deepEqual(state.teamLinks, [
       { name: "Annabel Lake", href: "https://uk.linkedin.com/in/annabellake" },
@@ -204,6 +230,15 @@ try {
       const source = window.__focusSource;
       return source.trigger.contains(source.media) && source.trigger.contains(source.video) && !document.querySelector("main").inert && document.body.style.position !== "fixed" && document.activeElement === source.trigger && Math.abs(scrollY - source.scroll) < 1;
     }));
+    const square = await page.evaluate(async () => {
+      await new Promise(resolve => setTimeout(resolve, 250));
+      cancelAnimationFrame(window.__focusSquareFrame);
+      return window.__focusSquareSamples;
+    });
+    assert.ok(square.length > 10);
+    assert.ok(square.every(sample => sample.transform === "none"));
+    assert.ok(Math.max(...square.map(sample => sample.y)) - Math.min(...square.map(sample => sample.y)) < 0.5);
+    assert.ok(Math.max(...square.map(sample => sample.x)) - Math.min(...square.map(sample => sample.x)) < 0.5);
     // Repeated open/close and reduced motion exercise cleanup and the alternate motion policy.
     for (let index = 0; index < 3; index++) {
       await page.emulateMedia({ reducedMotion: index === 2 ? "reduce" : "no-preference" });
@@ -213,6 +248,17 @@ try {
       if (index === 2) {
         await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
         assert.equal(await page.evaluate(() => window.__focusGlitched.size), 0);
+      }
+      if (index === 1) {
+        await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
+        const stable = await dialog.evaluate(async root => {
+          const before = [...root.querySelectorAll(".project-focus-glyphs")].map(node => node.innerHTML);
+          document.querySelector(".project-grid").dispatchEvent(new PointerEvent("pointerout", { bubbles: true, relatedTarget: document.body }));
+          window.dispatchEvent(new Event("resize"));
+          await new Promise(resolve => setTimeout(resolve, 200));
+          return [...root.querySelectorAll(".project-focus-glyphs")].every((node, index) => node.innerHTML === before[index]);
+        });
+        assert.equal(stable, true);
       }
       if (index === 0) {
         const timing = await dialog.evaluate(root => {

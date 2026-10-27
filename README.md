@@ -70,7 +70,7 @@ It works on the homepage and the palette lab:
 - **Skeleton preview** keeps the real loading sweep visible over media and dynamic music/weather text
   even after loading finishes. Switch it off to reveal the current content immediately; it resets off
   on reload. Available in the hidden avatar menu, with reduced-motion preferences respected.
-- Project tap/click opens the focused project view by default. The hidden avatar menu’s **Inline project expansion** toggle restores the earlier behavior for comparison: mobile taps expand tiles in the grid, while desktop retains hover previews. This toggle starts off on each page load. The media moves into an overlay with a white 88% backdrop and 8px blur, and its text color-glitches on entry; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Reduced motion skips the effects.
+- Project tap/click opens the focused project view by default. The hidden avatar menu’s **Inline project expansion** toggle restores the earlier behavior for comparison: mobile taps expand tiles in the grid, while desktop retains hover previews. This toggle starts off on each page load. The media moves into an overlay with a white 92% backdrop and 10px blur, and its text color-glitches on entry; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Reduced motion skips the effects.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.

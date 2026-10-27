@@ -1,27 +1,87 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
 import type { ProjectPreview } from "@/lib/project-previews";
-import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { currentGlyphPalette } from "@/lib/palette-toy";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect };
 
 function FocusGlitch({ text }: { text: string }) {
-  const [revealed, setRevealed] = useState(false);
-  // Match card labels' blank-to-text reveal without seeding stray flashes ahead of the stream.
-  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text: revealed ? text : " ".repeat(text.length), ignore: [], playOnMount: false, seed: 0 });
+  const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    const value = getComputedStyle(document.documentElement).getPropertyValue("--project-focus-duration").trim();
-    const timer = window.setTimeout(() => {
-      const root = ref.current?.closest(".project-focus-root");
-      if (root && root.getAttribute("data-phase") !== "closing") setRevealed(true);
-    }, parseFloat(value) * (value.endsWith("ms") ? 1 : 1000));
-    return () => window.clearTimeout(timer);
-  }, [text, ref]);
+    const node = ref.current!;
+    const root = node.closest(".project-focus-root");
+    const reserve = node.parentElement!.querySelector<HTMLElement>(".project-focus-text-reserve")!;
+    const source = reserve.firstChild!;
+    const characters = Array.from(text);
+    const choices = characters.map(character => FILTER_SCRAMBLE.range.filter(code => String.fromCharCode(code) !== character));
+    const colors = currentGlyphPalette();
+    const interval = 1000 / (60 * FILTER_SCRAMBLE.speed);
+    const cycles = FILTER_SCRAMBLE.scramble + Math.ceil(FILTER_SCRAMBLE.scramble / 2);
+    let frame = 0, disposed = false;
+    const slots = characters.map(character => {
+      const slot = document.createElement("span");
+      slot.className = "project-focus-character";
+      slot.textContent = " ".repeat(character.length);
+      return slot;
+    });
+    node.replaceChildren(...slots);
+    // Use the final text's exact glyph positions, including kerning and wraps, throughout the stream.
+    const measure = () => {
+      if (disposed) return;
+      const origin = reserve.getBoundingClientRect();
+      const range = document.createRange();
+      let offset = 0, firstTop = 0;
+      slots.forEach((slot, index) => {
+        range.setStart(source, offset);
+        offset += characters[index].length;
+        range.setEnd(source, offset);
+        const bounds = range.getBoundingClientRect();
+        if (index === 0) firstTop = bounds.top;
+        Object.assign(slot.style, { left: `${bounds.left - origin.left}px`, top: `${bounds.top - firstTop}px`, width: `${bounds.width}px` });
+      });
+    };
+    measure();
+    const resize = new ResizeObserver(measure);
+    resize.observe(reserve);
+    void document.fonts.ready.then(measure);
+
+    const media = root?.querySelector(".homepage-project-media");
+    const opening = media?.getAnimations() ?? [];
+    // Tie the reveal to the real media handoff instead of racing its animation with a timer.
+    void Promise.all(opening.map(animation => animation.finished)).then(() => {
+      if (disposed || !root || root.getAttribute("data-phase") === "closing") return;
+      let started: number | undefined, previousTick = -1;
+      const draw = (now: number) => {
+        started ??= now;
+        const tick = Math.floor((now - started) / interval);
+        if (tick !== previousTick) {
+          slots.forEach((slot, index) => {
+            if (tick < index || slot.dataset.settled === "true") return;
+            const character = characters[index];
+            if (tick >= index + cycles || !character.trim()) {
+              slot.textContent = character;
+              slot.style.removeProperty("color");
+              slot.dataset.settled = "true";
+            } else {
+              // A random match must not look settled for a frame and then glitch again.
+              const range = choices[index];
+              slot.textContent = String.fromCharCode(range[Math.floor(Math.random() * range.length)]) + " ".repeat(character.length - 1);
+              if (colors.length) slot.style.color = colors[(index + tick) % colors.length];
+            }
+          });
+          previousTick = tick;
+        }
+        if (tick < characters.length - 1 + cycles) frame = requestAnimationFrame(draw);
+      };
+      frame = requestAnimationFrame(draw);
+    }).catch(() => {});
+    return () => { disposed = true; cancelAnimationFrame(frame); resize.disconnect(); };
+  }, [text]);
   return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{" ".repeat(text.length)}</span>;
 }
 

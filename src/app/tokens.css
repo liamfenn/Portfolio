@@ -53,8 +53,8 @@
   --project-focus-text-exit-duration: 120ms;
   --project-focus-ease: .65, 0, .35, 1;
   --project-focus-width: 620px;
-  --project-focus-backdrop-opacity: 88%;
-  --project-focus-blur: 8px;
+  --project-focus-backdrop-opacity: 92%;
+  --project-focus-blur: 10px;
   --project-focus-top: calc(var(--content-padding) + var(--page-frame));
   --project-focus-team-gap: calc(var(--content-padding) * 2 + var(--page-frame));
   --project-focus-close-bottom: 44px;

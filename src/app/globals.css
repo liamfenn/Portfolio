@@ -763,6 +763,8 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-name h2 { font: inherit; }
 .project-focus-text { position: relative; display: inline-grid; vertical-align: top; }
 .project-focus-glyphs { position: absolute; inset: 0; overflow: hidden; }
+.project-focus-character { position: absolute; display: block; overflow: hidden; white-space: pre; }
+.project-focus-character[data-settled="true"] { overflow: visible; }
 .project-focus-text-reserve { visibility: hidden; }
 .project-focus-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--project-focus-top); }
 .project-focus-name, .project-focus-team, .project-focus-team ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--project-info-gap); }
