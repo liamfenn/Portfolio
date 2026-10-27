@@ -39,6 +39,7 @@ export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsse
 
 export const MEDIA_ASSETS = {
   shopProductPage: IMPORTED_MEDIA["shop-product-page"],
+  shopRewardsCard: IMPORTED_MEDIA["shop-rewards-card"],
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",

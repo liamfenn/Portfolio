@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Rewards card project (2026-10-27)**
+- The second Featured tile now uses Liam's `shop-card.MP4`, titled **Rewards card**, Shop, Q4 26. Team is Julian Kelly, Max Kaplun, and Ben Parker, each linked to the supplied X account. Recent sorting uses Q4 2026; the remaining placeholders and first project retain their existing content.
+- Imported the 2160px square, 27.1-second SDR master through the versioned media workflow, preserving 60fps in validated 800/1200/1600px H.264 renditions (about 1.08/2.00/3.03 MB). Uploaded all renditions and responsive posters to Blob. The poster uses the visible card at 10 seconds because the opening frame is empty. Generated files remain outside Git; the registry stores immutable public URLs.
+- Validation: 53 tests, TypeScript, touched-file lint, production build, full decode checks, and CDN byte-range delivery passed. Desktop/mobile focus checks verified Featured position, video identity, title/date, all three team links, real poster loading, and reduced-motion poster-only delivery. Reviewed both focused layouts. Browser motion checks use the supported-codec fixture because this Chromium cannot decode H.264; actual device playback remains to be reviewed. Corrected the browser assertion to measure visible text/media overlap rather than hidden glyph updates just before the fade, after two failures exposed that timing-sensitive check.
+
 **Updated profile photo (2026-10-26)**
 - Replaced the profile photo with Liam's latest `profile-v3.jpg`, keeping the original 2048px JPEG in `public/images/profile/headshot.jpg` and serving a 384px quality-95 WebP directly. The new `headshot-v2-384.webp` URL avoids stale cached photos. Removed the previous source and rendition from the profile folder.
 - Validation: source matches the attachment byte-for-byte, reviewed the generated rendition, and confirmed the production HTML uses the new image URL. All 53 tests, TypeScript, touched-file lint, and production build passed.

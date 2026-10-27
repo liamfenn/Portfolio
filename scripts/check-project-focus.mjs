@@ -39,9 +39,10 @@ try {
           if (node.querySelector('.project-focus-glyphs [style*="color"]')) {
             window.__focusGlitched.add(node.dataset.focusText);
             const media = document.querySelector(".project-focus-root .homepage-project-media");
-            if (media?.getAnimations().some(animation => animation.playState === "running" && animation.currentTime < animation.effect.getTiming().duration)) window.__focusColorsDuringMediaMove = true;
             const container = node.closest(".project-focus-details, .project-focus-close");
             if (Number(getComputedStyle(container).opacity) >= 0.75) {
+              // A timer may update hidden glyphs before the animation's next frame; check visible overlap.
+              if (media?.getAnimations().some(animation => animation.playState === "running" && animation.currentTime < animation.effect.getTiming().duration)) window.__focusColorsDuringMediaMove = true;
               const observation = window.__focusVisibleColors[node.dataset.focusText] ??= { first: performance.now(), last: 0 };
               observation.last = performance.now();
             }
@@ -53,7 +54,7 @@ try {
     const toggle = page.getByRole("button", { name: "Preview inline project expansion" });
     await toggle.waitFor();
     assert.equal(await toggle.getAttribute("aria-pressed"), "false");
-    const blank = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
+    const blank = page.locator('[data-project-id="shop-03"] .homepage-card-trigger');
     assert.equal(await blank.getAttribute("aria-haspopup"), "dialog");
     await toggle.click();
     assert.equal(await toggle.getAttribute("aria-pressed"), "true");
@@ -263,9 +264,22 @@ try {
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode === undefined);
     const defaultTile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
     await defaultTile.waitFor();
+    assert.equal(await page.locator('.project-grid > li').nth(1).getAttribute("data-project-id"), "shop-02");
     assert.equal(await defaultTile.getAttribute("aria-haspopup"), "dialog");
     await defaultTile.click();
     await page.getByRole("dialog").waitFor();
+    const rewards = page.getByRole("dialog");
+    assert.equal(await rewards.locator('.project-focus-description [data-focus-text]').getAttribute("data-focus-text"), "Rewards card");
+    assert.equal(await rewards.locator('.project-focus-period [data-focus-text]').getAttribute("data-focus-text"), "Q4 26");
+    assert.deepEqual(await rewards.locator('.project-focus-team a').evaluateAll(links => links.map(link => ({ name: link.querySelector('[data-focus-text]').dataset.focusText, href: link.href }))), [
+      { name: "Julian Kelly", href: "https://x.com/julianfkelly" },
+      { name: "Max Kaplun", href: "https://x.com/maxkaplun" },
+      { name: "Ben Parker", href: "https://x.com/benjamintparker" },
+    ]);
+    assert.equal(await rewards.locator('video').count(), 1);
+    assert.equal(await rewards.locator('video').getAttribute("aria-label"), "Shop Rewards card interaction prototype");
+    await page.waitForFunction(() => document.querySelector('.project-focus-root .project-preview-poster')?.naturalWidth > 0);
+    assert.match(await rewards.locator('.project-preview-poster').getAttribute("src"), /\/media\/shop-rewards-card\//);
     await page.getByRole("button", { name: "Close", exact: true }).click();
     await page.getByRole("dialog").waitFor({ state: "detached" });
     assert.deepEqual(errors, []);

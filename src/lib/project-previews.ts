@@ -34,7 +34,18 @@ const shop = {
 
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
   { id: "shop-01", ...shop, media: MEDIA_ASSETS.shopProductPage },
-  { id: "shop-02", ...shop },
+  {
+    id: "shop-02", ...shop,
+    label: "Rewards card",
+    period: "Q4 2026",
+    quarter: 4,
+    media: MEDIA_ASSETS.shopRewardsCard,
+    team: [
+      { name: "Julian Kelly", href: "https://x.com/julianfkelly" },
+      { name: "Max Kaplun", href: "https://x.com/maxkaplun" },
+      { name: "Ben Parker", href: "https://x.com/benjamintparker" },
+    ],
+  },
   { id: "shop-03", ...shop },
   ...Array.from({ length: 9 }, (_, index) => ({
     id: `shop-${String(index + 4).padStart(2, "0")}`,
