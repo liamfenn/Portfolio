@@ -66,7 +66,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         <span className="homepage-project-media">
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible || focusActive} /> : null}
         {preview.media?.kind === "image" ? <>
-          {pending && <Skeleton />}
+          <Skeleton active={pending} />
           <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}
             src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
         </> : null}

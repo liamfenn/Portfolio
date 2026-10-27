@@ -60,8 +60,9 @@ try {
     console.log(width, "delayed media/weather, cached data, artwork refresh, stable geometry passed");
     await context.close();
   }
-  for (const mode of ["failed", "reduced-motion", "no-js", "before-hydration"]) {
-    const context = await browser.newContext({ viewport: { width: 393, height: 852 }, javaScriptEnabled: mode !== "no-js", reducedMotion: mode === "reduced-motion" ? "reduce" : "no-preference" });
+  for (const mode of ["failed", "reduced-motion", "no-js", "before-hydration", "preview-mobile", "preview-desktop"]) {
+    const preview = mode.startsWith("preview-");
+    const context = await browser.newContext({ viewport: { width: mode === "preview-desktop" ? 1440 : 393, height: 852 }, javaScriptEnabled: mode !== "no-js", reducedMotion: mode === "reduced-motion" ? "reduce" : "no-preference" });
     const page = await context.newPage();
     let releaseImages, releaseScripts;
     const images = new Promise(resolve => { releaseImages = resolve; });
@@ -88,7 +89,8 @@ try {
       }
       return route.continue();
     });
-    await page.goto(`${origin}/?inspect=off`, { waitUntil: mode === "before-hydration" ? "commit" : "domcontentloaded" });
+    await page.goto(`${origin}/?inspect=${preview ? "" : "off"}`, { waitUntil: mode === "before-hydration" ? "commit" : "domcontentloaded" });
+    if (preview) await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     if (mode === "reduced-motion") {
       await page.waitForFunction(() => document.querySelector(".homepage-avatar .skeleton"));
       assert.equal(await page.locator(".homepage-avatar .skeleton").evaluate(node => getComputedStyle(node, "::after").display), "none");
@@ -108,6 +110,38 @@ try {
       await page.waitForFunction(() => !document.querySelector(".homepage-avatar .skeleton, .homepage-album .skeleton, .project-preview-media > .skeleton, .footer-weather .skeleton"));
       if (mode === "failed")
         assert.equal(await page.locator("img.loading-image-error:visible").count(), 0);
+    }
+    if (preview) {
+      await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
+      await page.locator(".homepage-identity").click();
+      const toggle = page.getByRole("button", { name: "Preview skeleton loading states" });
+      assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+      const source = await page.locator('[data-project-id="shop-02"] video').elementHandle();
+      await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-pressed"), "true");
+      assert.equal(await page.locator(".project-preview-media > .skeleton.is-preview").count(), 2);
+      assert.equal(await page.locator(".homepage-avatar .skeleton.is-preview").count(), 1);
+      assert.equal(await page.locator(".homepage-album .skeleton.is-preview").count(), 1);
+      assert.ok(await page.locator(".homepage-track .skeleton.is-preview").count() > 0);
+      assert.equal(await page.locator(".footer-weather .skeleton.is-preview").count(), 2);
+      assert.equal(await page.locator(".project-preview-media > .skeleton.is-preview").first().evaluate(node => getComputedStyle(node).zIndex), "1");
+      await page.locator(".homepage-identity").click();
+      await page.locator('[data-project-id="shop-02"] .homepage-card-trigger').click();
+      await page.getByRole("dialog").waitFor();
+      assert.equal(await page.getByRole("dialog").locator(".skeleton.is-preview").count(), 1);
+      await page.keyboard.press("Escape");
+      await page.getByRole("dialog").waitFor({ state: "detached" });
+      await page.locator(".homepage-identity").click();
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      assert.equal(await page.locator(".homepage-avatar .skeleton").evaluate(node => getComputedStyle(node, "::after").display), "none");
+      await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+      assert.equal(await page.locator(".skeleton.is-preview").count(), 0);
+      assert.ok(await source.evaluate(node => node === document.querySelector('[data-project-id="shop-02"] video')));
+      await toggle.click();
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
+      assert.equal(await page.locator(".skeleton.is-preview").count(), 0);
     }
     if (mode === "no-js" || mode === "reduced-motion")
       assert.equal(videoRequests, 0);

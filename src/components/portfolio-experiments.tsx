@@ -8,17 +8,21 @@ type Experiments = {
   setPaletteLabOpen: Dispatch<SetStateAction<boolean>>;
   inlineProjectPreviewEnabled: boolean;
   setInlineProjectPreviewEnabled: Dispatch<SetStateAction<boolean>>;
+  skeletonPreviewEnabled: boolean;
+  setSkeletonPreviewEnabled: Dispatch<SetStateAction<boolean>>;
 };
 const ExperimentsContext = createContext<Experiments>({
   paletteLabOpen: false, setPaletteLabOpen: () => {},
   inlineProjectPreviewEnabled: false, setInlineProjectPreviewEnabled: () => {},
+  skeletonPreviewEnabled: false, setSkeletonPreviewEnabled: () => {},
 });
 export const usePortfolioExperiments = () => useContext(ExperimentsContext);
 
 export function PortfolioExperiments({ children }: { children: ReactNode }) {
   const [paletteLabOpen, setPaletteLabOpen] = useState(false);
   const [inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled] = useState(false);
-  return <ExperimentsContext.Provider value={{ paletteLabOpen, setPaletteLabOpen, inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled }}>
+  const [skeletonPreviewEnabled, setSkeletonPreviewEnabled] = useState(false);
+  return <ExperimentsContext.Provider value={{ paletteLabOpen, setPaletteLabOpen, inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled, skeletonPreviewEnabled, setSkeletonPreviewEnabled }}>
     {children}
   </ExperimentsContext.Provider>;
 }

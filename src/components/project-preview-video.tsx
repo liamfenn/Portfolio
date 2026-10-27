@@ -22,7 +22,7 @@ export function ProjectPreviewVideo({ asset, priority = false }: { asset: Portfo
   useEffect(() => { registration.current?.priority(priority); }, [asset, priority]);
 
   return <span className="project-preview-media" aria-busy={posterPending} style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
-    {posterPending && <Skeleton />}
+    <Skeleton active={posterPending} />
     <video ref={videoRef} className="project-preview-video" aria-label={asset.alt}
       onLoadedData={posterOnLoad}
       width={asset.width} height={asset.height} muted loop playsInline disablePictureInPicture preload="none" />

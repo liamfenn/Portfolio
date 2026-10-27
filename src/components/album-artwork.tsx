@@ -60,7 +60,7 @@ export function AlbumArtwork({ src }: { src?: string }) {
   }, [src, shown, loaded, reducedMotion]);
 
   return <span className="homepage-album" aria-hidden="true">
-    {pending && <Skeleton />}
+    <Skeleton active={pending} />
     <span className="album-artwork-layer">{shown && <Image onLoad={() => setHasArtwork(true)} onError={() => setFailedIncoming(shown)}
       className={shown === failedIncoming ? "loading-image-error" : undefined} src={shown} alt="" fill sizes="28px" />}</span>
     {src && src !== shown && <span key={src}>

@@ -381,11 +381,13 @@
   background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
   animation: skeleton-sweep var(--skeleton-duration) var(--hover-ease) var(--skeleton-delay) infinite backwards;
 }
+.skeleton.is-preview { z-index: 1; }
 @keyframes skeleton-sweep {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
 .skeleton-text { position: relative; display: inline-block; vertical-align: baseline; }
+.skeleton-text[aria-busy="false"] { display: inline; }
 .skeleton-text-reserve { visibility: hidden; }
 .footer-clock.is-pending { visibility: hidden; }
 .skeleton-text > .skeleton { top: 50%; bottom: auto; height: var(--skeleton-line-height); transform: translateY(-50%); }
