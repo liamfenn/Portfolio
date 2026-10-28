@@ -28,12 +28,16 @@ try {
       window.__focusVisibleColors = {};
       window.__focusColorsDuringMediaMove = false;
       window.__focusSettledChanges = false;
+      window.__focusPaintedCopyChanged = false;
       const settled = new WeakMap(), prefixes = new WeakMap();
+      const paintedNodes = new WeakMap();
       new MutationObserver(() => {
         document.querySelectorAll(".project-focus-text").forEach(node => {
           const live = node.querySelector(".project-focus-glyphs").textContent;
           const glyphs = node.querySelector(".project-focus-glyphs");
           if (glyphs.dataset.reveal) {
+            if (paintedNodes.has(glyphs) && paintedNodes.get(glyphs) !== glyphs.firstChild) window.__focusPaintedCopyChanged = true;
+            paintedNodes.set(glyphs, glyphs.firstChild);
             const prefix = glyphs.firstChild?.textContent ?? "";
             const previousPrefix = prefixes.get(glyphs) ?? "";
             if (!prefix.startsWith(previousPrefix)) window.__focusStreamRegressed = true;
@@ -104,22 +108,23 @@ try {
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
     assert.equal(await page.evaluate(() => window.__focusSettledChanges), false);
+    assert.equal(await page.evaluate(() => window.__focusPaintedCopyChanged), false);
     const typography = await dialog.evaluate(root => [...root.querySelectorAll(".project-focus-text")].map(node => {
       const glyphs = node.querySelector(".project-focus-glyphs"), reserve = node.querySelector(".project-focus-text-reserve");
-      const singleTextRun = reserve.childNodes.length === 1 && reserve.firstChild.nodeType === Node.TEXT_NODE;
-      const canonicalVisible = getComputedStyle(reserve).visibility === "visible" && getComputedStyle(glyphs).visibility === "hidden";
+      const singleTextRun = glyphs.childNodes.length === 1 && glyphs.firstChild.nodeType === Node.TEXT_NODE;
+      const canonicalVisible = getComputedStyle(reserve).visibility === "hidden" && getComputedStyle(glyphs).visibility === "visible";
       const reference = document.createElement("span");
       reference.textContent = node.dataset.focusText;
       reference.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
       node.appendChild(reference);
-      const style = getComputedStyle(reserve), referenceStyle = getComputedStyle(reference);
+      const style = getComputedStyle(glyphs), referenceStyle = getComputedStyle(reference);
       const sameStyle = ["fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight", "fontFeatureSettings", "fontKerning"].every(key => style[key] === referenceStyle[key]);
       let maxAdvanceDifference = 0;
       if (singleTextRun) {
         const actual = document.createRange(), expected = document.createRange();
         let actualStart = 0, expectedStart = 0;
         for (let index = 0; index < node.dataset.focusText.length; index++) {
-          actual.setStart(reserve.firstChild, index); actual.setEnd(reserve.firstChild, index + 1);
+          actual.setStart(glyphs.firstChild, index); actual.setEnd(glyphs.firstChild, index + 1);
           expected.setStart(reference.firstChild, index); expected.setEnd(reference.firstChild, index + 1);
           const a = actual.getBoundingClientRect(), b = expected.getBoundingClientRect();
           if (index === 0) { actualStart = a.left; expectedStart = b.left; }
@@ -194,13 +199,13 @@ try {
               bottom: edges[1].getBoundingClientRect().bottom,
               bottomTop: edges[1].getBoundingClientRect().top,
               backdropBottom: document.querySelector(".project-focus-backdrop").getBoundingClientRect().bottom,
-              topSurface: getComputedStyle(document.querySelector(".project-focus-top-surface")).backgroundColor,
               opaque: edges.every(edge => getComputedStyle(edge).opacity === "1"),
               colors: edges.map(edge => getComputedStyle(edge).backgroundColor),
               unchangedScrollArea: scroller.scrollHeight === contentHeight && scroller.clientHeight === contentClientHeight && document.documentElement.scrollHeight === documentHeight,
               noGradient: edges.every(edge => getComputedStyle(edge, "::before").content === "none" && getComputedStyle(edge, "::after").content === "none"),
               directChildren: edges.every(edge => edge.parentElement === document.body),
-              behindContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) < Number(getComputedStyle(document.querySelector(".project-focus-root")).zIndex)),
+              aboveContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) > Number(getComputedStyle(document.querySelector(".project-focus-root")).zIndex)),
+              nativeEdges: edges.every(edge => edge.getAttribute("style") === null),
             });
           }
         } finally {
@@ -212,9 +217,9 @@ try {
         }
         return records;
       });
-      assert.deepEqual(viewportEdges.map(edge => [edge.top, edge.bottomTop, edge.bottom]), [[0, 638, 900], [0, 808, 900], [12, 790, 900]]);
-      assert.ok(viewportEdges.every(edge => edge.opaque && edge.noGradient && edge.directChildren && edge.behindContent));
-      assert.ok(viewportEdges.every(edge => edge.unchangedScrollArea && edge.backdropBottom === 900 && edge.topSurface === "rgb(246, 248, 249)"));
+      assert.deepEqual(viewportEdges.map(edge => [edge.top, edge.bottomTop, edge.bottom]), Array(3).fill([0, 840, 852]));
+      assert.ok(viewportEdges.every(edge => edge.opaque && edge.noGradient && edge.directChildren && edge.aboveContent && edge.nativeEdges));
+      assert.ok(viewportEdges.every(edge => edge.unchangedScrollArea && edge.backdropBottom === 900));
       assert.ok(viewportEdges.every(edge => edge.colors[0] === "rgb(246, 248, 249)" && edge.colors[1] === "rgb(255, 255, 255)"));
     }
     await page.locator(".project-focus-media-slot").click();
@@ -296,7 +301,7 @@ try {
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-controls, .project-focus-summary"), summary: animation.effect.target.matches(".project-focus-summary") }));
         });
-        assert.equal(timing.length, 6);
+        assert.equal(timing.length, 7);
         assert.ok(timing.every(animation => (animation.summary ? animation.duration > 500 && animation.duration < 700 : animation.duration === (animation.text ? 80 : 180)) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
         assert.ok(timing.every(animation => animation.delay === (animation.text ? 180 : 0)));
       }

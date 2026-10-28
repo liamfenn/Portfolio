@@ -348,7 +348,8 @@
 }
 
 .project-preview-poster,
-.project-preview-video {
+.project-preview-video,
+.project-preview-handoff {
   position: absolute;
   inset: 0;
   display: block;
@@ -762,11 +763,9 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-details :where(h2, h3, p, ul) { margin: 0; padding: 0; list-style: none; }
 .project-focus-name h2 { font: inherit; }
 .project-focus-text { position: relative; display: inline-grid; vertical-align: top; }
+/* The revealed text stays in the same native text node after settling; never swap painted copies. */
 .project-focus-glyphs { position: absolute; inset: 0; overflow: hidden; }
 .project-focus-text-reserve { visibility: hidden; }
-/* Once the temporary glitch ends, paint the untouched native copy in its normal flow. */
-.project-focus-text:has(> .project-focus-glyphs[data-reveal="settled"]) > .project-focus-text-reserve { visibility: visible; }
-.project-focus-glyphs[data-reveal="settled"] { visibility: hidden; }
 .project-focus-heading { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--project-focus-top); }
 .project-focus-name, .project-focus-team, .project-focus-team ul, .project-focus-tech, .project-focus-tech ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--project-info-gap); }
 .project-focus-description, .project-focus-summary, .project-focus-team a, .project-focus-tech li { --inspect-color-token: text-secondary; color: var(--text-secondary); }
@@ -775,7 +774,7 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-summary { width: 100%; max-width: var(--project-focus-description-width); }
 .project-focus-credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
 .project-focus-team a { text-decoration: none; }
-.project-focus-controls { position: absolute; left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
+.project-focus-controls { position: absolute; z-index: 1; left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
 .project-focus-action { position: relative; display: grid; place-items: center; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; transition: color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease); }
 .project-focus-step { width: var(--project-focus-navigation-width); --inspect-color-token: text-secondary; color: var(--text-secondary); }
 .project-focus-action::before { content: ""; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100%; height: 100%; min-width: var(--project-focus-hit-size); min-height: var(--project-focus-hit-size); }
@@ -788,22 +787,21 @@ img.loading-image-error { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .project-focus-action { transition: none; }
 }
-.project-focus-edge { display: none; position: fixed; left: 0; right: 0; z-index: 2199; background: var(--bg-fill); pointer-events: none; }
-.project-focus-top-surface { display: none; pointer-events: none; }
-/* Diagnostic samplers stay above the overlay and use native fixed edges, without viewport JS. */
-.safari-edge-test { display: none; position: fixed; left: 0; right: 0; z-index: 2201; pointer-events: none; }
+/* Opaque samplers stay above the overlay at native fixed edges in every Safari toolbar layout. */
+.project-focus-edge, .safari-edge-test { display: none; position: fixed; left: 0; right: 0; z-index: 2201; pointer-events: none; }
+.project-focus-bottom-fade { display: none; pointer-events: none; }
 @media (max-width: 767px) {
-  .safari-edge-test { display: block; }
-  .safari-edge-test-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); background: var(--bg-green-fill); }
-  .safari-edge-test-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); background: var(--bg-purple-fill); }
+  .project-focus-edge, .safari-edge-test { display: block; }
+  .project-focus-edge-top, .safari-edge-test-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); }
+  .project-focus-edge-bottom, .safari-edge-test-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); }
+  .project-focus-edge-top { background: var(--bg-secondary-fill); }
+  .project-focus-edge-bottom { background: var(--bg-fill); }
+  .safari-edge-test-top { background: var(--bg-green-fill); }
+  .safari-edge-test-bottom { background: var(--bg-purple-fill); }
+  .project-focus-bottom-fade { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--project-focus-hit-size) + max(var(--project-focus-edge-size), var(--viewport-safe-bottom))); background: linear-gradient(to top, var(--bg-fill) max(var(--project-focus-edge-size), var(--viewport-safe-bottom)), transparent); }
   .project-focus-scroll { padding: max(var(--project-focus-edge-size), var(--viewport-safe-top)) var(--viewport-safe-right) calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--content-padding-mobile) * 2 + var(--viewport-safe-bottom)) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-section-gap: calc(var(--content-padding) * 2); --project-focus-description-width: var(--project-focus-description-width-mobile); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }
   .project-focus-controls { bottom: calc(var(--project-focus-close-bottom-mobile) + var(--viewport-safe-bottom)); }
-  /* Opaque edge samplers sit behind the focus content, without gradients or fading ancestors. */
-  .project-focus-edge { display: block; }
-  .project-focus-edge-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); background: var(--bg-secondary-fill); }
-  .project-focus-edge-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); }
-  .project-focus-top-surface { display: block; position: absolute; top: 0; left: 0; right: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); background: var(--bg-secondary-fill); }
 }
 
 

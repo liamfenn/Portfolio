@@ -8,6 +8,7 @@ import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { currentGlyphPalette } from "@/lib/palette-toy";
+import { preserveVideoFrame } from "@/lib/video-playback";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -32,7 +33,7 @@ function FocusGlitch({ text }: { text: string }) {
     const media = root?.querySelector(".homepage-project-media");
     const opening = media?.getAnimations() ?? [];
     // Tie the reveal to the real media handoff instead of racing its animation with a timer.
-    void Promise.all(opening.map(animation => animation.finished)).then(() => {
+    void Promise.all([...opening.map(animation => animation.finished), document.fonts.ready]).then(() => {
       if (disposed || !root || root.getAttribute("data-phase") === "closing") return;
       let started: number | undefined, previousTick = -1;
       const draw = (now: number) => {
@@ -147,21 +148,6 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 
-    const viewport = window.visualViewport;
-    let edgeFrame = 0;
-    const updateEdges = () => {
-      edgeFrame = 0;
-      const top = viewport?.offsetTop ?? 0;
-      const bottom = top + (viewport?.height ?? innerHeight);
-      topEdge.style.top = `${top}px`;
-      bottomEdge.style.top = `calc(${bottom}px - max(var(--project-focus-edge-size), var(--viewport-safe-bottom)))`;
-      bottomEdge.style.height = `calc(max(var(--project-focus-edge-size), var(--viewport-safe-bottom)) + max(0px, var(--project-focus-full-height) - ${bottom}px) + var(--viewport-safe-bottom))`;
-    };
-    const scheduleEdges = () => { if (!edgeFrame) edgeFrame = requestAnimationFrame(updateEdges); };
-    updateEdges();
-    viewport?.addEventListener("resize", scheduleEdges);
-    viewport?.addEventListener("scroll", scheduleEdges);
-    window.addEventListener("resize", scheduleEdges);
     const previousTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     const theme = previousTheme ?? document.createElement("meta");
     const previousThemeColor = theme.getAttribute("content");
@@ -201,10 +187,6 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       root.removeEventListener("pointerdown", onPointerDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
-      cancelAnimationFrame(edgeFrame);
-      viewport?.removeEventListener("resize", scheduleEdges);
-      viewport?.removeEventListener("scroll", scheduleEdges);
-      window.removeEventListener("resize", scheduleEdges);
       if (!previousTheme) theme.remove();
       else if (previousThemeColor === null) theme.removeAttribute("content");
       else theme.content = previousThemeColor;
@@ -221,6 +203,7 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
     const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
+    const bottomFade = root.querySelector<HTMLElement>(".project-focus-bottom-fade")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
     const summary = root.querySelector<HTMLElement>(".project-focus-summary");
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -254,9 +237,9 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     const isText = (element: HTMLElement) => element === details || element === controls || element === summary;
     const bounds = slot.getBoundingClientRect();
     const opening = tweenMedia(navigation ? bounds : origin, bounds);
-    const faded = [blur, backdrop, details, controls, ...(summary ? [summary] : [])];
+    const faded = [blur, backdrop, bottomFade, details, controls, ...(summary ? [summary] : [])];
     animations.push(opening, ...faded.map(element => {
-      if (navigation && (element === blur || element === backdrop || element === controls)) return fade(element, 1, 1, 0, 0);
+      if (navigation && (element === blur || element === backdrop || element === bottomFade || element === controls)) return fade(element, 1, 1, 0, 0);
       return fade(element, 0, 1, isText(element) ? timing.duration : 0, element === summary ? descriptionDuration : isText(element) ? textEnterDuration : timing.duration);
     }));
     if (navigation) animations.push(fade(media, 0, 1));
@@ -280,6 +263,8 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     return () => {
       disposed = true;
       animations.forEach(animation => animation.cancel());
+      const video = media.querySelector("video");
+      if (video) preserveVideoFrame(video);
       trigger.prepend(media);
       if (animationsRef.current === animations) animationsRef.current = [];
     };
@@ -295,13 +280,13 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
-    <div className="project-focus-top-surface" aria-hidden="true" />
     <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
         <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} />
       </div>
     </div>
+    <div className="project-focus-bottom-fade" aria-hidden="true" />
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
       <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><FocusText text="P" /></button>
       <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>

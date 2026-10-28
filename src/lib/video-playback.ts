@@ -20,6 +20,10 @@ type Entry = {
   frame?: number;
   timer?: ReturnType<typeof setTimeout>;
   release?: ReturnType<typeof setTimeout>;
+  cover?: HTMLCanvasElement;
+  coverFrame?: number;
+  coverPaint?: number;
+  coverTimer?: ReturnType<typeof setTimeout>;
 };
 type Connection = EventTarget & { saveData?: boolean };
 
@@ -104,6 +108,38 @@ class VideoPlayback {
         else this.schedule();
       },
     };
+  }
+
+  preserveFrame(video: HTMLVideoElement) {
+    const entry = this.entries.get(video);
+    if (!entry || video.dataset.frameReady !== "true" || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
+    this.clearCover(entry);
+    const cover = document.createElement("canvas");
+    cover.width = video.videoWidth;
+    cover.height = video.videoHeight;
+    const context = cover.getContext("2d");
+    if (!context) return;
+    try { context.drawImage(video, 0, 0); } catch { return; }
+    cover.className = "project-preview-handoff";
+    cover.setAttribute("aria-hidden", "true");
+    video.parentElement!.appendChild(cover);
+    entry.cover = cover;
+    // Keep the last real frame over Safari's video surface while it changes compositing parents.
+    const presented = () => {
+      entry.coverFrame = undefined;
+      entry.coverPaint = requestAnimationFrame(() => this.clearCover(entry));
+    };
+    if ("requestVideoFrameCallback" in video) entry.coverFrame = video.requestVideoFrameCallback(presented);
+    else entry.coverPaint = requestAnimationFrame(presented);
+    entry.coverTimer = setTimeout(() => this.clearCover(entry), VIDEO_POLICY.loadTimeout);
+  }
+
+  private clearCover(entry: Entry) {
+    if (entry.coverFrame !== undefined) entry.video.cancelVideoFrameCallback(entry.coverFrame);
+    if (entry.coverPaint !== undefined) cancelAnimationFrame(entry.coverPaint);
+    clearTimeout(entry.coverTimer);
+    entry.cover?.remove();
+    entry.cover = entry.coverFrame = entry.coverPaint = entry.coverTimer = undefined;
   }
 
   private measure(entry: Entry) {
@@ -192,6 +228,8 @@ class VideoPlayback {
       // Autoplay denial is a poster state, rather than an endless play/reject loop.
       entry.failed = true;
       this.pause(entry);
+      this.clearCover(entry);
+      delete entry.video.dataset.frameReady;
       entry.video.dataset.playback = "blocked";
       this.schedule();
     });
@@ -201,13 +239,15 @@ class VideoPlayback {
     entry.video.pause();
     if (entry.frame !== undefined) entry.video.cancelVideoFrameCallback(entry.frame);
     entry.frame = undefined;
-    delete entry.video.dataset.frameReady;
+    // Pausing retains a decoded frame; only a source release should expose the poster again.
     if (entry.ready && !entry.failed) entry.video.dataset.playback = "paused";
   }
 
   private release(entry: Entry) {
+    this.clearCover(entry);
     entry.generation++;
     this.pause(entry);
+    delete entry.video.dataset.frameReady;
     clearTimeout(entry.timer);
     clearTimeout(entry.release);
     entry.timer = entry.release = undefined;
@@ -250,4 +290,8 @@ let coordinator: VideoPlayback | undefined;
 export function registerVideo(video: HTMLVideoElement, asset: PortfolioVideoAsset) {
   coordinator ??= new VideoPlayback();
   return coordinator.register(video, asset);
+}
+
+export function preserveVideoFrame(video: HTMLVideoElement) {
+  coordinator?.preserveFrame(video);
 }
