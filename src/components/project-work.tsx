@@ -529,6 +529,7 @@ export function ProjectWork() {
     const trigger = gridRef.current?.querySelector<HTMLButtonElement>(`[data-project-id="${preview.id}"] .homepage-card-trigger`);
     if (trigger) setFocusSelection({ preview, trigger, origin: trigger.getBoundingClientRect(), keyboard, navigation: true });
   };
+  const focusIndex = focusSelection ? displayedPreviews.findIndex(preview => preview.id === focusSelection.preview.id) : -1;
 
   return (
     <section className="portfolio-work" aria-label="Work" onPointerMoveCapture={handleWorkPointerMove}>
@@ -686,7 +687,7 @@ export function ProjectWork() {
             onToggle={() => togglePreview(preview.id)} />
         ))}
       </ul>
-      {focusSelection && <ProjectFocus selection={focusSelection} onClose={closeFocus} onNavigate={navigateFocus} position={displayedPreviews.findIndex(preview => preview.id === focusSelection.preview.id) + 1} total={displayedPreviews.length} />}
+      {focusSelection && <ProjectFocus selection={focusSelection} neighbors={{ previous: displayedPreviews[(focusIndex - 1 + displayedPreviews.length) % displayedPreviews.length], next: displayedPreviews[(focusIndex + 1) % displayedPreviews.length] }} onClose={closeFocus} onNavigate={navigateFocus} position={focusIndex + 1} total={displayedPreviews.length} />}
     </section>
   );
 }

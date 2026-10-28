@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
@@ -9,6 +10,8 @@ import type { ProjectPreview } from "@/lib/project-previews";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 import { preserveVideoFrame } from "@/lib/video-playback";
+import { mediaUrl } from "@/lib/media-delivery";
+import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -31,7 +34,7 @@ function FocusGlitch({ text }: { text: string }) {
     node.dataset.reveal = "streaming";
 
     const media = root?.querySelector(".homepage-project-media");
-    const opening = media?.getAnimations() ?? [];
+    const opening = [...(media?.getAnimations() ?? []), ...(root?.querySelector(".project-focus-scroll")?.getAnimations() ?? [])];
     // Tie the reveal to the real media handoff instead of racing its animation with a timer.
     void Promise.all([...opening.map(animation => animation.finished), document.fonts.ready]).then(() => {
       if (disposed || !root || root.getAttribute("data-phase") === "closing") return;
@@ -71,65 +74,56 @@ function FocusGlitch({ text }: { text: string }) {
   return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{" ".repeat(text.length)}</span>;
 }
 
-function FocusText({ text }: { text: string }) {
+function FocusText({ text, reveal = true }: { text: string; reveal?: boolean }) {
   const reducedMotion = useReducedMotion();
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>
     <span className="project-focus-text-reserve" aria-hidden="true">{text}</span>
-    {reducedMotion ? <span className="project-focus-glyphs" data-reveal="settled" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
+    {reducedMotion || !reveal ? <span className="project-focus-glyphs" data-reveal="settled" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
     <span className="sr-only">{text}</span>
   </span></InspectableText>;
 }
 
-export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
+export function ProjectFocusDetails({ preview, reveal = true, titleId = "project-focus-title" }: { preview: ProjectPreview; reveal?: boolean; titleId?: string }) {
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   return <div className="project-focus-details text-bodySans">
     <div className="project-focus-heading">
       <div className="project-focus-name">
-        <h2 id="project-focus-title"><FocusText text={preview.company} /></h2>
-        <p className="project-focus-description"><FocusText text={preview.label} /></p>
+        <h2 id={titleId || undefined}><FocusText text={preview.company} reveal={reveal} /></h2>
+        <p className="project-focus-description"><FocusText text={preview.label} reveal={reveal} /></p>
       </div>
-      <p className="project-focus-period text-captionSans"><FocusText text={period} /></p>
+      <p className="project-focus-period text-captionSans"><FocusText text={period} reveal={reveal} /></p>
     </div>
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
     {Boolean(preview.team?.length || preview.tech?.length) && <div className="project-focus-credits">
       {Boolean(preview.team?.length) && <div className="project-focus-team">
-        <h3 className="text-captionSans"><FocusText text="Contributors" /></h3>
+        <h3 className="text-captionSans"><FocusText text="Contributors" reveal={reveal} /></h3>
         <ul>{preview.team!.map(member => <li key={member.href}>
-          <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} /></a>
+          <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} reveal={reveal} /></a>
         </li>)}</ul>
       </div>}
       {Boolean(preview.tech?.length) && <div className="project-focus-tech">
-        <h3 className="text-captionSans"><FocusText text="Tech" /></h3>
-        <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} /></li>)}</ul>
+        <h3 className="text-captionSans"><FocusText text="Tech" reveal={reveal} /></h3>
+        <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} reveal={reveal} /></li>)}</ul>
       </div>}
     </div>}
   </div>;
 }
 
-export function ProjectFocus({ selection, onClose, onNavigate, position, total }: { selection: ProjectFocusSelection; onClose: () => void; onNavigate: (direction: -1 | 1, keyboard: boolean) => void; position: number; total: number }) {
+export function ProjectFocus({ selection, neighbors, onClose, onNavigate, position, total }: { selection: ProjectFocusSelection; neighbors: { previous: ProjectPreview; next: ProjectPreview }; onClose: () => void; onNavigate: (direction: -1 | 1, keyboard: boolean) => void; position: number; total: number }) {
   const { safariEdgeTestEnabled } = usePortfolioExperiments();
   const rootRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
+  const pagesRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const topEdgeRef = useRef<HTMLDivElement>(null);
   const bottomEdgeRef = useRef<HTMLDivElement>(null);
   const dismissRef = useRef<() => void>(() => {});
-  const navigationRef = useRef(onNavigate);
   const initialSelection = useRef(selection);
-
-  useLayoutEffect(() => { navigationRef.current = onNavigate; }, [onNavigate]);
+  const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total });
 
   const animationsRef = useRef<Animation[]>([]);
-
-  const navigate = useCallback((direction: -1 | 1, keyboard: boolean) => {
-    const root = rootRef.current;
-    if (!root || root.dataset.phase === "closing") return;
-    root.dataset.input = keyboard ? "keyboard" : "pointer";
-    // Safari leaves clicked buttons unfocused; don't leave Close as the active control.
-    controlsRef.current!.querySelector<HTMLButtonElement>(direction === -1 ? ".project-focus-step:first-child" : ".project-focus-step:last-child")!.focus({ preventScroll: true });
-    navigationRef.current(direction, keyboard);
-  }, []);
 
   // Keep the page locked for the entire focus session, including project-to-project navigation.
   useLayoutEffect(() => {
@@ -166,7 +160,7 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
-        const targets = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+        const targets = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(node => !node.closest("[inert]"));
         const first = targets[0], last = targets.at(-1)!;
         if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
           event.preventDefault(); last.focus();
@@ -236,19 +230,20 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
     const isText = (element: HTMLElement) => element === details || element === controls || element === summary;
     const bounds = slot.getBoundingClientRect();
-    const opening = tweenMedia(navigation ? bounds : origin, bounds);
+    const pageAnimations = navigation ? animatePage(motion.matches) : null;
+    const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
     const faded = [blur, backdrop, bottomFade, details, controls, ...(summary ? [summary] : [])];
-    animations.push(opening, ...faded.map(element => {
-      if (navigation && (element === blur || element === backdrop || element === bottomFade || element === controls)) return fade(element, 1, 1, 0, 0);
+    animations.push(...(pageAnimations ?? [opening]), ...faded.map(element => {
+      if (navigation) return fade(element, 1, 1, 0, 0);
       return fade(element, 0, 1, isText(element) ? timing.duration : 0, element === summary ? descriptionDuration : isText(element) ? textEnterDuration : timing.duration);
     }));
-    if (navigation) animations.push(fade(media, 0, 1));
     void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
     void Promise.all(animations.map(animation => animation.finished)).then(() => { if (!closing && !disposed) root.dataset.phase = "open"; }).catch(() => {});
     if (!root.contains(document.activeElement)) closeRef.current!.focus({ preventScroll: true });
 
     dismissRef.current = () => {
       if (closing || disposed) return;
+      cancelPaging();
       closing = true;
       root.dataset.phase = "closing";
       const from = media.getBoundingClientRect();
@@ -263,12 +258,17 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     return () => {
       disposed = true;
       animations.forEach(animation => animation.cancel());
-      const video = media.querySelector("video");
-      if (video) preserveVideoFrame(video);
-      trigger.prepend(media);
+      if (!retainsMedia(media)) {
+        const video = media.querySelector("video");
+        if (video) preserveVideoFrame(video);
+        trigger.prepend(media);
+      }
       if (animationsRef.current === animations) animationsRef.current = [];
     };
-  }, [selection, onClose]);
+  }, [selection, onClose, animatePage, retainsMedia, cancelPaging]);
+
+  const neighbor = neighborDirection === -1 ? neighbors.previous : neighbors.next;
+  const poster = neighbor.media?.kind === "video" ? neighbor.media.poster : neighbor.media?.src;
 
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
@@ -280,11 +280,24 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
-    <div className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
+    <div ref={pagesRef} className="project-focus-pages">
+    <div ref={scrollRef} className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
-        <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} />
+        <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} reveal={!selection.navigation} />
       </div>
+    </div>
+    {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>
+      <div className="project-focus-panel">
+        <div className="project-focus-media-slot"><span className="homepage-project-media">
+          {poster && <span className="project-preview-media" style={{ "--media-backdrop": neighbor.media?.backdrop } as CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="project-preview-poster" src={mediaUrl(poster)} alt="" />
+          </span>}
+        </span></div>
+        <ProjectFocusDetails preview={neighbor} reveal={false} titleId="" />
+      </div>
+    </div>}
     </div>
     <div className="project-focus-bottom-fade" aria-hidden="true" />
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">

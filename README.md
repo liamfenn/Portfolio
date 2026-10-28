@@ -106,6 +106,12 @@ N or Right Arrow goes to the next. The buttons and keyboard shortcuts loop throu
 order, including Recent and Random sorting. Alt/Ctrl/Command shortcuts are left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
+Mobile focus also supports horizontal swipes: left advances and right goes back, with the next project
+following the drag. Short/canceled drags snap back; vertical scrolling, pinch zoom, and edge gestures
+remain available. Buttons and keys use the same directional whole-page slide on desktop and mobile.
+Paging uses the shared 300ms motion duration and focus easing, shortened for the remaining swipe
+distance. The backdrop, Safari edge strips, bottom fade, and controls stay fixed. Text streams on initial
+open and stays fully readable during page changes. Reduced motion switches pages without sliding.
 The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
 periwinkles through amethysts, light aquas and greens, highlighter yellows). It
