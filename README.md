@@ -70,6 +70,11 @@ It works on the homepage and the palette lab:
 - **Skeleton preview** keeps the real loading sweep visible over media and dynamic music/weather text
   even after loading finishes. Switch it off to reveal the current content immediately; it resets off
   on reload. Available in the hidden avatar menu, with reduced-motion preferences respected.
+- **Safari edge test** adds opaque green top and purple bottom strips above mobile project focus,
+  using native fixed edges without viewport-positioning JavaScript. On iOS 27.2 with Bottom tabs,
+  compare the colors behind Safari's controls with the visible strips before/after scrolling and
+  expanding/collapsing the toolbar. This tests color selection, not a confirmed fix. The strips appear
+  only while focused view is open; turn the toggle off for the baseline. It resets off on reload.
 - Project tap/click opens the focused project view by default. The hidden avatar menu’s **Inline project expansion** toggle restores the earlier behavior for comparison: mobile taps expand tiles in the grid, while desktop retains hover previews. This toggle starts off on each page load. The media moves into an overlay with a white 92% backdrop and 10px blur, and its text color-glitches on entry; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Reduced motion skips the effects.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).

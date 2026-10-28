@@ -52,7 +52,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 }
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
-  const { paletteLabOpen, setPaletteLabOpen, inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled, skeletonPreviewEnabled, setSkeletonPreviewEnabled } = usePortfolioExperiments();
+  const { paletteLabOpen, setPaletteLabOpen, inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled } = usePortfolioExperiments();
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
@@ -145,6 +145,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
         <button type="button" aria-label="Preview inline project expansion" aria-pressed={inlineProjectPreviewEnabled} onClick={() => setInlineProjectPreviewEnabled(value => !value)}><InspectableText>Inline project expansion</InspectableText></button>
         <button type="button" aria-label="Preview skeleton loading states" aria-pressed={skeletonPreviewEnabled} onClick={() => setSkeletonPreviewEnabled(value => !value)}><InspectableText>Skeleton preview</InspectableText></button>
+        <button type="button" aria-label="Test Safari edge colors" aria-pressed={safariEdgeTestEnabled} onClick={() => setSafariEdgeTestEnabled(value => !value)}><InspectableText>Safari edge test</InspectableText></button>
         <button type="button" aria-pressed={paletteLabOpen} onClick={() => setPaletteLabOpen(value => !value)}>Palette lab</button>
         <button type="button" aria-label="Hide design inspector panel" onClick={togglePanel}><kbd>H</kbd> Hide</button>
         <button type="button" aria-label="Reset design inspector" onClick={() => cycle("Escape")}><kbd>esc</kbd></button>

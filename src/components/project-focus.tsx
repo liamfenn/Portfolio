@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { currentGlyphPalette } from "@/lib/palette-toy";
@@ -105,6 +106,7 @@ export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
 }
 
 export function ProjectFocus({ selection, onClose, onNavigate, position, total }: { selection: ProjectFocusSelection; onClose: () => void; onNavigate: (direction: -1 | 1, keyboard: boolean) => void; position: number; total: number }) {
+  const { safariEdgeTestEnabled } = usePortfolioExperiments();
   const rootRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -141,7 +143,7 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     body.style.width = "100%";
     body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
-    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge);
+    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 
@@ -286,6 +288,10 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
     <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
+    {safariEdgeTestEnabled && <>
+      <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
+      <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
+    </>}
     <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />

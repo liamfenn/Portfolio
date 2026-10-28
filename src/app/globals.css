@@ -790,7 +790,12 @@ img.loading-image-error { visibility: hidden; }
 }
 .project-focus-edge { display: none; position: fixed; left: 0; right: 0; z-index: 2199; background: var(--bg-fill); pointer-events: none; }
 .project-focus-top-surface { display: none; pointer-events: none; }
+/* Diagnostic samplers stay above the overlay and use native fixed edges, without viewport JS. */
+.safari-edge-test { display: none; position: fixed; left: 0; right: 0; z-index: 2201; pointer-events: none; }
 @media (max-width: 767px) {
+  .safari-edge-test { display: block; }
+  .safari-edge-test-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); background: var(--bg-green-fill); }
+  .safari-edge-test-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); background: var(--bg-purple-fill); }
   .project-focus-scroll { padding: max(var(--project-focus-edge-size), var(--viewport-safe-top)) var(--viewport-safe-right) calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--content-padding-mobile) * 2 + var(--viewport-safe-bottom)) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-section-gap: calc(var(--content-padding) * 2); --project-focus-description-width: var(--project-focus-description-width-mobile); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }
   .project-focus-controls { bottom: calc(var(--project-focus-close-bottom-mobile) + var(--viewport-safe-bottom)); }
