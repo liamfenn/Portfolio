@@ -12,6 +12,8 @@ export interface ProjectPreview {
   featuredOrder: number;
   year: number;
   media?: PortfolioMediaAsset;
+  description?: string;
+  tech?: string[];
   team?: { name: string; href: string }[];
 }
 
@@ -25,6 +27,8 @@ const shop = {
   year: 2026,
   quarter: 2,
   featuredOrder: 1,
+  description: "Experiential campaign centered around social graph of personalized baskets with real products selected from the canvas. Each card is generated on device, dynamic layout and physics every time.",
+  tech: ["Swift", "UIKit", "Metal"],
   team: [
     { name: "Annabel Lake", href: "https://uk.linkedin.com/in/annabellake" },
     { name: "Luke Dupont", href: "https://www.linkedin.com/in/lukedupont" },

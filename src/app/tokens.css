@@ -56,7 +56,11 @@
   --project-focus-backdrop-opacity: 92%;
   --project-focus-blur: 10px;
   --project-focus-top: calc(var(--content-padding) + var(--page-frame));
-  --project-focus-team-gap: calc(var(--content-padding) * 2 + var(--page-frame));
+  --project-focus-section-gap: 36px;
+  --project-focus-description-width: 500px;
+  --project-focus-description-width-mobile: 361px;
+  --project-focus-navigation-width: 35px;
+  --project-focus-controls-gap: calc(var(--project-info-gap) * 2);
   --project-focus-close-bottom: 44px;
   --project-focus-close-bottom-mobile: 24px;
   --project-focus-hit-size: 44px;

@@ -50,7 +50,7 @@ try {
           if (node.querySelector('.project-focus-glyphs [style*="color"]')) {
             window.__focusGlitched.add(node.dataset.focusText);
             const media = document.querySelector(".project-focus-root .homepage-project-media");
-            const container = node.closest(".project-focus-details, .project-focus-close");
+            const container = node.closest(".project-focus-details, .project-focus-controls, .project-focus-summary");
             if (Number(getComputedStyle(container).opacity) >= 0.75) {
               // A timer may update hidden glyphs before the animation's next frame; check visible overlap.
               if (media?.getAnimations().some(animation => animation.playState === "running" && animation.currentTime < animation.effect.getTiming().duration)) window.__focusColorsDuringMediaMove = true;
@@ -98,8 +98,8 @@ try {
     assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
-    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 8);
-    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 8);
+    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 14);
+    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 12);
     assert.equal(await page.evaluate(() => window.__focusStreamRegressed), false);
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
@@ -130,8 +130,8 @@ try {
       return { text: node.dataset.focusText, singleTextRun, canonicalVisible, sameStyle, maxAdvanceDifference };
     }));
     assert.ok(typography.every(item => item.singleTextRun && item.canonicalVisible && item.sameStyle && item.maxAdvanceDifference < 0.1), JSON.stringify(typography));
-    const visibleColors = await page.evaluate(() => Object.values(window.__focusVisibleColors).map(timing => timing.last - timing.first));
-    assert.equal(visibleColors.length, 8);
+    const visibleColors = await page.evaluate(() => Object.entries(window.__focusVisibleColors).filter(([text]) => text.length > 1).map(([, timing]) => timing.last - timing.first));
+    assert.equal(visibleColors.length, 12);
     assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
     const lateFlashes = await dialog.evaluate(async root => {
       const changes = [];
@@ -222,6 +222,8 @@ try {
     await page.keyboard.press("Tab");
     assert.equal(await page.evaluate(() => document.activeElement.querySelector("[data-focus-text]")?.dataset.focusText), "Annabel Lake");
     await page.keyboard.press("Shift+Tab");
+    assert.equal(await page.evaluate(() => document.activeElement.getAttribute("aria-label")), "Next project");
+    await page.keyboard.press("Shift+Tab");
     assert.equal(await page.evaluate(() => document.activeElement.classList.contains("project-focus-close")), true);
     assert.equal(await dialog.getAttribute("data-input"), "keyboard");
     assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "solid");
@@ -292,10 +294,10 @@ try {
         const timing = await dialog.evaluate(root => {
           const animations = root.getAnimations({ subtree: true });
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
-          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-close") }));
+          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-controls, .project-focus-summary"), summary: animation.effect.target.matches(".project-focus-summary") }));
         });
-        assert.equal(timing.length, 5);
-        assert.ok(timing.every(animation => animation.duration === (animation.text ? 80 : 180) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
+        assert.equal(timing.length, 6);
+        assert.ok(timing.every(animation => (animation.summary ? animation.duration > 500 && animation.duration < 700 : animation.duration === (animation.text ? 80 : 180)) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
         assert.ok(timing.every(animation => animation.delay === (animation.text ? 180 : 0)));
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
@@ -303,7 +305,7 @@ try {
     }
     await tile.click();
     await dialog.waitFor();
-    await page.locator(".project-focus-scroll").click({ position: { x: mobile ? width / 2 : 10, y: mobile ? 650 : 400 } });
+    await page.locator(".project-focus-scroll").click({ position: { x: mobile ? 5 : 10, y: mobile ? 840 : 400 } });
     await dialog.waitFor({ state: "detached" });
     if (mobile) {
       await page.evaluate(() => {

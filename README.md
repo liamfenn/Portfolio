@@ -87,7 +87,16 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
-Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Team field is hidden when the array is absent or empty.
+Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
+The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif and fades
+in alongside the streamed metadata; it never scrambles. Linked credits appear under **Contributors**,
+beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
+and Swift/UIKit/Metal stack until their final content is ready.
+
+The fixed **P / Close / N** strip works on desktop and mobile. P and N (buttons or unmodified keyboard
+keys) loop through the grid's displayed order, including Recent and Random sorting. Navigation retains
+the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
+the current project to screen readers. Closing restores the original page position and opener focus.
 The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,
 periwinkles through amethysts, light aquas and greens, highlighter yellows). It
