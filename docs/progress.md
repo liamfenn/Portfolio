@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**New Rewards card master (2026-10-27)**
+- Replaced Rewards card media with Liam's new `/Users/liamfennell/Downloads/shop-card.MP4` (source SHA-256 `3e99a5a118c90b971736587e0d4f651276b048f31d3a8f8755e3877452cb4822`). Preserved the tagged SDR 2160px master's 60fps and 27.1-second duration, generating immutable 800/1200/1600px H.264 files under `089ee713120b1620` (1.07/1.98/3.00 MB). Regenerated all responsive posters at the existing 10-second selection.
+- Validation: every rendition passed full decode checks; all six CDN hashes match the local report, and byte-range delivery returns 206. WebKit desktop/mobile checks confirmed actual new-source playback, the same video node across focus entry/exit, correct Rewards card content, and poster-only reduced motion. Reviewed the source contact sheet, poster, and focus screenshots. All 58 tests, TypeScript, registry-consumer lint, and production build passed.
+
 **Persistent wheel hit targets (2026-10-27)**
 - Liam still reproduced the desktop stationary-pointer failure after the window-listener change. That change only addressed bubbling of delivered events; the original media could still leave the overlay and become inert, and keyed details were still replaced on each project.
 - Desktop focused media now lets its persistent media slot receive pointer hit testing. Project details update in place instead of remounting per project, retaining the title/description target nodes. Mobile media hit testing and native touch paging are unchanged, as are the 120ms entry delay, fade, stagger, and wheel momentum guard.
