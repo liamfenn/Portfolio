@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Desktop horizontal scroll paging (2026-10-27)**
+- Horizontal trackpad/wheel gestures now use the existing focused-project page transition on desktop, including both loop boundaries and displayed project order. Shift+wheel also pages. Horizontal intent uses the existing swipe axis rule and page-frame threshold; pixel, line, and page wheel units are normalized.
+- Each wheel stream commits at most one project, including momentum after the animation completes. A new wheel-idle role aliases the existing 300ms motion duration. Vertical gestures, modifier/pinch zoom, and mobile touch paging keep their native/existing behavior. The root listener is removed on dismissal and gesture state resets on resize.
+- Validation: all 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile paging browser checks passed. Trusted wheel checks cover jitter, both directions and loop boundaries, continuous momentum beyond animation completion, vertical scrolling, and reduced motion; synthetic checks cover modified/diagonal gestures, Shift+wheel, and line/page units. Existing mobile swipe, media retention, fixed controls, and interrupted-close cleanup checks also passed.
+
 **Staggered focus fades and immediate controls (2026-10-27)**
 - Removed the focus-only streamed color glitch and its duplicate text layers. Every text row, including the description, now shares a 600ms opacity fade with the existing focus easing after the media handoff. Rows enter top to bottom at 40ms intervals; aligned rows across the two columns enter together. The existing focus text-enter token now defines the shared duration, and a new stagger role aliases the existing project-label delay.
 - P, Close, and N render immediately with no entrance animation. Paging keeps plain text fully visible, reduced motion skips entry motion, and early dismissal preserves partial row opacity before the existing exit fade.

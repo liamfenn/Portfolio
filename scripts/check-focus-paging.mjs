@@ -91,6 +91,59 @@ try {
       await swipe(1); await settled(ids[1]);
       assert.equal(await dialog.evaluate(root => root.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length), 0);
       await page.emulateMedia({ reducedMotion: "no-preference" });
+    } else {
+      await page.mouse.move(width / 2, 500);
+      await page.mouse.wheel(0, 200);
+      await page.waitForFunction(() => document.querySelector(".project-focus-scroll").scrollTop > 0);
+      assert.equal(await dialog.getAttribute("data-focus-project"), ids[0]);
+      const idle = await dialog.evaluate(root => {
+        const value = getComputedStyle(root).getPropertyValue("--project-focus-wheel-idle").trim();
+        return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+      });
+      const newGesture = () => page.waitForTimeout(idle + 60);
+      await newGesture();
+      // Small horizontal jitter stays on the current project, then a deliberate delta commits it.
+      for (let index = 0; index < 3; index++) await page.mouse.wheel(2, 0);
+      assert.equal(await dialog.getAttribute("data-focus-project"), ids[0]);
+      await page.mouse.wheel(100, 1);
+      // Keep delivering momentum beyond the 300ms page animation: the gesture still advances only once.
+      for (let index = 0; index < 8; index++) {
+        await page.mouse.wheel(60, 0);
+        await page.waitForTimeout(80);
+      }
+      await settled(ids[1]);
+      assert.equal(await dialog.locator(".project-focus-scroll").evaluate(node => node.scrollTop), 0);
+      await newGesture(); await page.mouse.wheel(-100, 0); await settled(ids[0]);
+      await newGesture(); await page.mouse.wheel(-100, 0); await settled(ids.at(-1));
+      await newGesture(); await page.mouse.wheel(100, 0); await settled(ids[0]);
+      await newGesture();
+      const ignored = await dialog.evaluate(root => {
+        const pinch = new WheelEvent("wheel", { deltaX: 200, ctrlKey: true, bubbles: true, cancelable: true });
+        root.dispatchEvent(pinch);
+        const diagonal = new WheelEvent("wheel", { deltaX: 30, deltaY: 100, bubbles: true, cancelable: true });
+        root.dispatchEvent(diagonal);
+        return !pinch.defaultPrevented && !diagonal.defaultPrevented;
+      });
+      assert.ok(ignored);
+      await settled(ids[0]);
+      for (const [delta, expected] of [
+        [{ deltaX: 2, deltaMode: 1 }, ids[1]],
+        [{ deltaX: -1, deltaMode: 2 }, ids[0]],
+        [{ deltaY: 100, shiftKey: true }, ids[1]],
+      ]) {
+        await newGesture();
+        assert.equal(await dialog.evaluate((root, delta) => {
+          const event = new WheelEvent("wheel", { ...delta, bubbles: true, cancelable: true });
+          root.dispatchEvent(event);
+          return event.defaultPrevented;
+        }, delta), true);
+        await settled(expected);
+      }
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await newGesture(); await page.mouse.wheel(-100, 0); await settled(ids[0]);
+      assert.equal(await dialog.evaluate(root => root.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length), 0);
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      assert.deepEqual(await dialog.locator(".project-focus-controls").boundingBox(), controlBounds);
     }
     await next.click();
     await page.getByRole("button", { name: "Close", exact: true }).click();
@@ -98,7 +151,7 @@ try {
     assert.equal(await page.locator("[data-paging-outgoing], [data-paging-neighbor]").count(), 0);
     assert.ok(await page.evaluate(() => window.__pagingMedia.every(({ trigger, media }) => trigger.contains(media)) && !document.querySelector("main").inert && document.body.style.position !== "fixed"));
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ width, paging: "directional paired motion, retained media, static controls, swipe tracking/wrap/cancel/vertical scroll, reduced motion and interruption cleanup passed" }));
+    console.log(JSON.stringify({ width, paging: "directional paired motion, retained media, static controls, desktop wheel direction/wrap/momentum/axis/units, swipe tracking/wrap/cancel/vertical scroll, reduced motion and interruption cleanup passed" }));
     await page.close();
   }
 } finally { await browser.close(); }

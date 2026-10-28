@@ -122,6 +122,31 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
         if (snapAnimations.current === animations) { snapAnimations.current = []; setNeighborDirection(null); }
       }).catch(() => {});
     };
+    let wheelGesture: { x: number; y: number; time: number; axis: ReturnType<typeof pagingIntent>; committed: boolean } | null = null;
+    const wheel = (event: WheelEvent) => {
+      if (mobile.matches || event.ctrlKey || event.metaKey || event.altKey || current.current.total < 2 || root.dataset.phase === "closing") return;
+      const tokens = getComputedStyle(root);
+      const idle = milliseconds(tokens, "--project-focus-wheel-idle");
+      const threshold = parseFloat(tokens.getPropertyValue("--page-frame"));
+      if (!wheelGesture || event.timeStamp - wheelGesture.time > idle) wheelGesture = { x: 0, y: 0, time: event.timeStamp, axis: "pending", committed: false };
+      const moving = wheelGesture;
+      moving.time = event.timeStamp;
+      const line = parseFloat(tokens.getPropertyValue("--type-body-leading"));
+      const scaleX = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? line : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? scroller.clientWidth : 1;
+      const scaleY = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? line : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? scroller.clientHeight : 1;
+      const shiftWheel = event.shiftKey && event.deltaX === 0;
+      const x = (shiftWheel ? event.deltaY : event.deltaX) * scaleX;
+      const y = shiftWheel ? 0 : event.deltaY * scaleY;
+      moving.x += x;
+      moving.y += y;
+      if (moving.axis === "pending") moving.axis = pagingIntent(moving.x, moving.y, threshold);
+      // Consume even the small lead-in deltas so horizontal gestures cannot trigger browser history.
+      if (moving.axis === "horizontal" || (moving.axis === "pending" && Math.abs(x) > Math.abs(y) * 1.2)) event.preventDefault();
+      if (moving.axis !== "horizontal" || moving.committed || Math.abs(moving.x) < threshold * 3) return;
+      // Latch until the wheel stream goes quiet, including momentum after the page transition ends.
+      moving.committed = true;
+      if (!page.current) navigate(moving.x > 0 ? 1 : -1, false);
+    };
     const pointerStart = (event: PointerEvent) => {
       suppressClick.current = false;
       if (!event.isPrimary) { reset(); return; }
@@ -163,7 +188,8 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     const click = (event: MouseEvent) => {
       if (suppressClick.current && event.detail !== 0) { suppressClick.current = false; event.preventDefault(); event.stopImmediatePropagation(); }
     };
-    const resize = () => cancelPaging();
+    const resize = () => { wheelGesture = null; cancelPaging(); };
+    root.addEventListener("wheel", wheel, { passive: false });
     root.addEventListener("pointerdown", allowPointer, { capture: true });
     scroller.addEventListener("pointerdown", pointerStart);
     scroller.addEventListener("pointermove", pointerMove, { passive: false });
@@ -172,6 +198,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     window.addEventListener("click", click, { capture: true });
     window.addEventListener("resize", resize);
     return () => {
+      root.removeEventListener("wheel", wheel);
       root.removeEventListener("pointerdown", allowPointer, { capture: true });
       scroller.removeEventListener("pointerdown", pointerStart);
       scroller.removeEventListener("pointermove", pointerMove);
