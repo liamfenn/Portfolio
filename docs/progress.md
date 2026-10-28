@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Shortcut navigation without control outlines (2026-10-27)**
+- P/N and Left/Right Arrow now use a separate shortcut input mode, keeping focus on the active navigation control without drawing its outline. Tab/Shift+Tab and Enter/Space button activation retain the shared keyboard ring. Pointer and swipe navigation remain outline-free; paging behavior and focus restoration are unchanged.
+- Validation: 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile navigation checks passed. Expanded the browser checks to verify ring-free shortcuts, restoration via Tab/Shift+Tab, visible feedback after Enter/Space activation, and switching back to a shortcut from keyboard focus.
+
 **Swipe and button project paging (2026-10-27)**
 - Added mobile horizontal swipe navigation: left advances and right returns, following the current grid order and wrapping at both ends. A neighboring poster/details page follows the finger. Horizontal intent locks after the existing page-frame slop; short/canceled gestures snap back. Vertical scrolling, pinch zoom, links/buttons, and the outer screen-edge gesture area are left to their native interactions. A captured swipe click cannot accidentally dismiss or reopen a tile.
 - P/N buttons and P/N/arrow keys now animate the outgoing and incoming media/details together on desktop and mobile. Added a paging duration role aliased to the existing 300ms motion token, with the existing focus easing; release/snap-back timing scales to remaining travel with the existing handoff minimum. Opening/closing retain their existing media FLIP timing. Backdrop, edge samplers, bottom fade, navigation strip, body lock, and original opener remain stable throughout. New pages start at the top; initial-entry text still streams/fades, while paging text stays fully readable rather than restarting the glitch.

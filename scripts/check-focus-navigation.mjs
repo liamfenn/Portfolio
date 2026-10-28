@@ -77,10 +77,10 @@ try {
     });
     const previous = page.getByRole("button", { name: "Previous project" });
     const next = page.getByRole("button", { name: "Next project" });
-    const checkNavigationFocus = async (control, keyboard) => {
+    const checkNavigationFocus = async (control, shortcut) => {
       assert.equal(await control.evaluate(node => document.activeElement === node), true);
-      assert.equal(await dialog.getAttribute("data-input"), keyboard ? "keyboard" : "pointer");
-      assert.equal(await control.evaluate(node => getComputedStyle(node).outlineStyle), keyboard ? "solid" : "none");
+      assert.equal(await dialog.getAttribute("data-input"), shortcut ? "shortcut" : "pointer");
+      assert.equal(await control.evaluate(node => getComputedStyle(node).outlineStyle), "none");
       assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     };
     // Simulate Safari's lack of native button focus on pointer clicks.
@@ -130,6 +130,26 @@ try {
     await page.keyboard.press("ArrowRight");
     await settled(ids[1]);
     await page.keyboard.press("ArrowLeft");
+    await settled(ids[0]);
+    await checkNavigationFocus(previous, true);
+    // Tab navigation and explicit button activation still show the normal focus indicator.
+    await page.keyboard.press("Tab");
+    assert.equal(await dialog.getAttribute("data-input"), "keyboard");
+    assert.equal(await dialog.locator(".project-focus-close").evaluate(node => document.activeElement === node && getComputedStyle(node).outlineStyle === "solid"), true);
+    await page.keyboard.press("Shift+Tab");
+    assert.equal(await previous.evaluate(node => document.activeElement === node && getComputedStyle(node).outlineStyle === "solid"), true);
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
+    await settled(ids[1]);
+    assert.equal(await next.evaluate(node => document.activeElement === node && getComputedStyle(node).outlineStyle === "solid"), true);
+    await page.keyboard.press("Space");
+    await settled(ids[2]);
+    assert.equal(await next.evaluate(node => document.activeElement === node && getComputedStyle(node).outlineStyle === "solid"), true);
+    await page.keyboard.press("p");
+    await settled(ids[1]);
+    await checkNavigationFocus(previous, true);
+    await page.keyboard.press("p");
     await settled(ids[0]);
     // Fast consecutive changes must cancel old reveals without returning the page to its unlocked state.
     for (let index = 1; index <= 4; index++) {

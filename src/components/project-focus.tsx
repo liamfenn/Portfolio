@@ -156,7 +156,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const next = key === "n" || key === "arrowright";
       if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || next) && root.dataset.phase !== "closing") {
         event.preventDefault(); event.stopImmediatePropagation();
-        navigate(previous ? -1 : 1, true);
+        navigate(previous ? -1 : 1, true, true);
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {

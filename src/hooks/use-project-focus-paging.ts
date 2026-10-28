@@ -50,13 +50,13 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
   }, [rootRef, scrollRef]);
   const cancelPaging = useCallback(() => { finishPaging(); setNeighborDirection(null); }, [finishPaging]);
 
-  const navigate = useCallback((direction: Direction, keyboard: boolean) => {
+  const navigate = useCallback((direction: Direction, keyboard: boolean, shortcut = false) => {
     const root = rootRef.current, scroller = scrollRef.current;
     if (!root || !scroller || root.dataset.phase === "closing" || current.current.total < 2) return;
     const offset = gesture.current?.offset ?? 0;
     finishPaging();
     setNeighborDirection(null);
-    root.dataset.input = keyboard ? "keyboard" : "pointer";
+    root.dataset.input = shortcut ? "shortcut" : keyboard ? "keyboard" : "pointer";
     controlsRef.current!.querySelector<HTMLButtonElement>(direction === -1 ? ".project-focus-step:first-child" : ".project-focus-step:last-child")!.focus({ preventScroll: true });
     const media = scroller.querySelector<HTMLElement>(".homepage-project-media")!;
     // Copy metadata separately so the outgoing page never duplicates a media element.

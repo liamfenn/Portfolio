@@ -102,8 +102,10 @@ Video returns to the grid with its last decoded frame covering the compositing h
 frame is presented. Normal pauses keep that frame; source release/error restores the poster.
 
 The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
-N or Right Arrow goes to the next. The buttons and keyboard shortcuts loop through the grid's displayed
-order, including Recent and Random sorting. Alt/Ctrl/Command shortcuts are left to the browser. Navigation retains
+N or Right Arrow goes to the next. Buttons and shortcuts loop through the displayed grid order, including
+Recent and Random sorting. Letter/arrow shortcuts keep control focus without an outline; Tab navigation
+and Enter/Space button activation retain the normal focus indicator. Alt/Ctrl/Command shortcuts are
+left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
 Mobile focus also supports horizontal swipes: left advances and right goes back, with the next project
