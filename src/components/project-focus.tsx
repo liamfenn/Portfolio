@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
@@ -119,6 +119,15 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
 
   const animationsRef = useRef<Animation[]>([]);
 
+  const navigate = useCallback((direction: -1 | 1, keyboard: boolean) => {
+    const root = rootRef.current;
+    if (!root || root.dataset.phase === "closing") return;
+    root.dataset.input = keyboard ? "keyboard" : "pointer";
+    // Safari leaves clicked buttons unfocused; don't leave Close as the active control.
+    controlsRef.current!.querySelector<HTMLButtonElement>(direction === -1 ? ".project-focus-step:first-child" : ".project-focus-step:last-child")!.focus({ preventScroll: true });
+    navigationRef.current(direction, keyboard);
+  }, []);
+
   // Keep the page locked for the entire focus session, including project-to-project navigation.
   useLayoutEffect(() => {
     const root = rootRef.current!, topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
@@ -165,7 +174,7 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
       const next = key === "n" || key === "arrowright";
       if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || next) && root.dataset.phase !== "closing") {
         event.preventDefault(); event.stopImmediatePropagation();
-        navigationRef.current(previous ? -1 : 1, true);
+        navigate(previous ? -1 : 1, true);
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
@@ -202,7 +211,7 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
       window.scrollTo(scroll.x, scroll.y);
       opener.focus({ preventScroll: true });
     };
-  }, []);
+  }, [navigate]);
 
   useLayoutEffect(() => {
     const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!;
@@ -274,14 +283,10 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     };
   }, [selection, onClose]);
 
-  const navigate = (direction: -1 | 1, keyboard: boolean) => {
-    if (rootRef.current?.dataset.phase !== "closing") onNavigate(direction, keyboard);
-  };
-
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
     <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
-    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={selection.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
     <div className="project-focus-top-surface" aria-hidden="true" />

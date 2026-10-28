@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Navigation control focus (2026-10-27)**
+- P/N clicks and navigation shortcuts now explicitly focus the corresponding navigation control instead of leaving Close active. Pointer navigation suppresses action outlines; keyboard navigation retains the shared ring on P/N. Input-mode handlers own the active mode throughout the focus session rather than letting project renders rewrite it.
+- Validation: 55 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus and navigation browser checks passed. Added assertions for pointer outlines, keyboard rings on the correct control, keyboard-to-pointer changes, and clicks with native mouse focus suppressed to exercise Safari-style behavior.
+
 **Focus keyboard navigation (2026-10-27)**
 - Added Left Arrow alongside P for previous project and Right Arrow alongside N for next. All four keys use the same wrapping displayed-grid navigation while focused view is open. Alt/Ctrl/Command combinations retain browser behavior; accessible shortcut metadata lists both alternatives.
 - Validation: 55 tests, TypeScript, touched-file lint, production build, and desktop/mobile navigation browser checks passed, including arrow-key wrap boundaries and modified-key exclusions.

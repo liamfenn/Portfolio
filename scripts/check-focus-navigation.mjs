@@ -77,6 +77,17 @@ try {
     });
     const previous = page.getByRole("button", { name: "Previous project" });
     const next = page.getByRole("button", { name: "Next project" });
+    const checkNavigationFocus = async (control, keyboard) => {
+      assert.equal(await control.evaluate(node => document.activeElement === node), true);
+      assert.equal(await dialog.getAttribute("data-input"), keyboard ? "keyboard" : "pointer");
+      assert.equal(await control.evaluate(node => getComputedStyle(node).outlineStyle), keyboard ? "solid" : "none");
+      assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
+    };
+    // Simulate Safari's lack of native button focus on pointer clicks.
+    await dialog.locator(".project-focus-controls").evaluate(controls => {
+      window.__suppressButtonFocus = event => event.preventDefault();
+      controls.addEventListener("mousedown", window.__suppressButtonFocus);
+    });
     const checkSession = async id => {
       assert.ok(await dialog.evaluate((root, id) => {
         const session = window.__focusSession, source = window.__projectSources[id];
@@ -88,26 +99,34 @@ try {
     await previous.click();
     await settled(ids.at(-1));
     await checkSession(ids.at(-1));
+    await checkNavigationFocus(previous, false);
     assert.ok(await page.evaluate(id => window.__projectSources[id].trigger.contains(window.__projectSources[id].media), ids[0]));
     await next.click();
     await settled(ids[0]);
     await checkSession(ids[0]);
+    await checkNavigationFocus(next, false);
     await next.click();
     await settled(ids[1]);
     await checkSession(ids[1]);
+    await checkNavigationFocus(next, false);
     assert.equal(await dialog.locator('.project-focus-description [data-focus-text]').getAttribute("data-focus-text"), "Rewards card");
+    await dialog.locator(".project-focus-close").focus();
     await page.keyboard.press("p");
     await settled(ids[0]);
+    await checkNavigationFocus(previous, true);
     await page.keyboard.press("p");
     await settled(ids.at(-1));
     await page.keyboard.press("n");
     await settled(ids[0]);
+    await checkNavigationFocus(next, true);
     assert.equal(await previous.getAttribute("aria-keyshortcuts"), "P ArrowLeft");
     assert.equal(await next.getAttribute("aria-keyshortcuts"), "N ArrowRight");
     await page.keyboard.press("ArrowLeft");
     await settled(ids.at(-1));
+    await checkNavigationFocus(previous, true);
     await page.keyboard.press("ArrowRight");
     await settled(ids[0]);
+    await checkNavigationFocus(next, true);
     await page.keyboard.press("ArrowRight");
     await settled(ids[1]);
     await page.keyboard.press("ArrowLeft");
@@ -116,6 +135,7 @@ try {
     for (let index = 1; index <= 4; index++) {
       await next.click();
       await page.waitForFunction(id => document.querySelector(".project-focus-root")?.dataset.focusProject === id, ids[index]);
+      await checkNavigationFocus(next, false);
     }
     for (let index = 3; index >= 0; index--) {
       await previous.click();
@@ -123,6 +143,7 @@ try {
     }
     await settled(ids[0]);
     await checkSession(ids[0]);
+    await dialog.locator(".project-focus-controls").evaluate(controls => controls.removeEventListener("mousedown", window.__suppressButtonFocus));
     assert.ok(await page.evaluate(id => Object.entries(window.__projectSources).every(([key, source]) => key === id || source.trigger.contains(source.media)), ids[0]));
     for (const [key, modifier] of [["n", "ctrlKey"], ["ArrowLeft", "altKey"], ["ArrowRight", "metaKey"]]) {
       const unhandled = await page.evaluate(({ key, modifier }) => document.querySelector(".project-focus-root").dispatchEvent(new KeyboardEvent("keydown", { key, [modifier]: true, bubbles: true, cancelable: true })), { key, modifier });
