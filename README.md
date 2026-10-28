@@ -97,7 +97,8 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
 The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif. All focus
 text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
-the same height enter together. P, Close, and N are visible immediately with no intro animation.
+the same height enter together. Exit reverses the row order at twice the speed: 300ms fades and a 20ms
+bottom-to-top stagger, derived from the entry timings. P, Close, and N are visible immediately with no intro animation.
 Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
@@ -107,7 +108,7 @@ only after a fresh presented frame and two paint opportunities. A fixed landing 
 overlay unmounts and covers the return through the existing 80ms handoff interval. The same video's clock
 pauses while covered, with one fresh capture at the destination before resuming at reveal. This avoids
 hidden playback advancing ahead of the picture, without another video or a continuous canvas drawing loop. Focus text is removed
-from the DOM after its 120ms exit fade, with its layout height retained. The removal paints before the
+from the DOM after every staggered exit fade finishes, with its layout height retained. The removal paints before the
 180ms asset return begins; scrolling locks during this sequence so the return geometry stays fixed. Normal pauses keep that frame; source release/error restores the poster.
 
 The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;

@@ -144,10 +144,11 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const value = tokens.getPropertyValue(property).trim();
       return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
     };
-    const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const textEnterDelay = milliseconds("--project-focus-text-enter-delay");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const textStagger = milliseconds("--project-focus-text-stagger");
+    const textExitDuration = textEnterDuration / 2;
+    const textExitStagger = textStagger / 2;
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
@@ -196,13 +197,16 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const opacity = Number(getComputedStyle(media).opacity);
       const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
       const textElements = [details, controls];
-      const textOpacities = textElements.map(element => Number(getComputedStyle(element).opacity));
+      const controlsOpacity = Number(getComputedStyle(controls).opacity);
       // Preserve partially revealed rows when closing before their entrance finishes.
       const rowOpacities = textRows.map(({ element }) => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
       backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      const textExit = textElements.map((element, index) => fade(element, textOpacities[index], 0, 0, textExitDuration));
+      const textExit = [
+        ...textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration)),
+        fade(controls, controlsOpacity, 0, 0, textExitDuration),
+      ];
       animations.push(...textExit);
       void Promise.all(textExit.map(animation => animation.finished)).then(() => {
         if (disposed) return;

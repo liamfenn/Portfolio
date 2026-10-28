@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Reverse-staggered focus content exit (2026-10-28)**
+- Focus rows now fade out bottom to top with the same easing as entry, at twice the speed: 300ms per fade and 20ms stagger, derived from the existing 600ms/40ms tokens. Aligned rows leave together, partially entered rows continue from their current opacity, and reduced motion remains immediate. Removed the obsolete independent 120ms exit token.
+- The existing completion chain waits for every row before removing text, painting that removal, and starting the card return. Layout height, scroll lock, video clock hold, landing guard, and fresh-frame reveal stay intact; no dependencies or extra media work were added.
+- Validation: 59 tests, TypeScript, touched-file lint, and production build passed. Updated Chromium desktop/mobile focus checks assert reverse row order, 300ms/20ms timing, gradual opacity, stationary media during text exit, text removal before collapse, interrupted entry, and reduced motion. WebKit exit-order checks pass after paging/scrolling across video/placeholder cards and a wide grid; real-video rapid exit/reentry checks retain the same video/source with zero added loads.
+
 **Keep the video clock aligned with the focus safety image (2026-10-28)**
 - Liam confirmed the Safari flicker and desktop text fixes, then noticed a small video jump on rapid focus exits. A real-video WebKit regression measured about 0.367 seconds of hidden playback advancing behind the frozen closing image before this fix.
 - Kept the original video and existing canvases. Closing pauses the video clock; at landing, a fresh presented frame refreshes the canvases once, then the clock pauses through the remaining paint guard and resumes at reveal. Pending guards rearm when reopening before cleanup. No extra video/decoder, source load, dependency, or continuous canvas drawing loop; playback limits and resolution-upgrade policy remain unchanged.

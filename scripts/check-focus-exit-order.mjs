@@ -44,6 +44,11 @@ try {
       requestAnimationFrame(sample);
     });
     await page.keyboard.press("Escape");
+    const rows = await page.getByRole("dialog").evaluate(root => root.getAnimations({ subtree: true })
+      .filter(animation => animation.effect.target.closest(".project-focus-details"))
+      .map(animation => ({ top: animation.effect.target.getBoundingClientRect().top, delay: animation.effect.getTiming().delay, duration: animation.effect.getTiming().duration })));
+    const tops = [...new Set(rows.map(row => row.top))].sort((a, b) => b - a);
+    assert.ok(rows.length > 0 && rows.every(row => row.duration === 300 && row.delay === tops.indexOf(row.top) * 20), JSON.stringify({ scenario: scenario.name, rows }));
     if (scenario.scroll) await page.mouse.wheel(0, 200);
     await page.getByRole("dialog").waitFor({ state: "detached" });
     const samples = await page.evaluate(() => window.__exitSamples);
