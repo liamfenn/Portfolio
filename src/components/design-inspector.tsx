@@ -9,7 +9,7 @@ import {
   resolveInspectorFlag, spacingKinds,
 } from "@/lib/design-inspector";
 import type { Box, InspectionKey, InspectionMode, SpacingKind } from "@/lib/design-inspector";
-import { PortfolioExperiments, usePortfolioExperiments } from "@/components/portfolio-experiments";
+import { PortfolioExperiments, PROJECT_INTERACTION_LABELS, PROJECT_INTERACTION_MODES, usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 type Inspection = { enabled: boolean; mode: InspectionMode; previousMode: InspectionMode; revision: number };
@@ -52,7 +52,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 }
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
-  const { paletteLabOpen, setPaletteLabOpen, inlineProjectPreviewEnabled, setInlineProjectPreviewEnabled, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled } = usePortfolioExperiments();
+  const { paletteLabOpen, setPaletteLabOpen, projectInteractionMode, setProjectInteractionMode, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled } = usePortfolioExperiments();
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
@@ -143,7 +143,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
         <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
-        <button type="button" aria-label="Preview inline project expansion" aria-pressed={inlineProjectPreviewEnabled} onClick={() => setInlineProjectPreviewEnabled(value => !value)}><InspectableText>Inline project expansion</InspectableText></button>
+        <button type="button" aria-label={`Cycle project interaction: ${PROJECT_INTERACTION_LABELS[projectInteractionMode]}`} data-project-interaction={projectInteractionMode} onClick={() => setProjectInteractionMode(value => PROJECT_INTERACTION_MODES[(PROJECT_INTERACTION_MODES.indexOf(value) + 1) % PROJECT_INTERACTION_MODES.length])}><InspectableText>Projects: {PROJECT_INTERACTION_LABELS[projectInteractionMode]}</InspectableText></button>
         <button type="button" aria-label="Preview skeleton loading states" aria-pressed={skeletonPreviewEnabled} onClick={() => setSkeletonPreviewEnabled(value => !value)}><InspectableText>Skeleton preview</InspectableText></button>
         <button type="button" aria-label="Test Safari edge colors" aria-pressed={safariEdgeTestEnabled} onClick={() => setSafariEdgeTestEnabled(value => !value)}><InspectableText>Safari edge test</InspectableText></button>
         <button type="button" aria-pressed={paletteLabOpen} onClick={() => setPaletteLabOpen(value => !value)}>Palette lab</button>

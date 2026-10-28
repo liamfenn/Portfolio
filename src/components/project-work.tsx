@@ -131,7 +131,7 @@ function WorkGlyphControl({
 }
 
 export function ProjectWork() {
-  const { inlineProjectPreviewEnabled } = usePortfolioExperiments();
+  const { projectInteractionMode } = usePortfolioExperiments();
   const [focusSelection, setFocusSelection] = useState<ProjectFocusSelection | null>(null);
   const closeFocus = useCallback(() => setFocusSelection(null), []);
   const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
@@ -514,7 +514,8 @@ export function ProjectWork() {
   };
 
   const displayedPreviews = [...sortedPreviews];
-  const expandedIndex = displayedPreviews.findIndex(preview => preview.id === expandedId);
+  const activeExpandedId = projectInteractionMode === "focus" ? null : expandedId;
+  const expandedIndex = displayedPreviews.findIndex(preview => preview.id === activeExpandedId);
   if (isMobile && mobileColumns === 2 && expandedIndex % 2 === 1) {
     // Put a right-column selection at its row's start before spanning both columns.
     // Its left neighbour flows below it; collapsing restores the selected sort order.
@@ -671,15 +672,21 @@ export function ProjectWork() {
       </div>
 
       <ul ref={gridRef} className="project-grid" style={gridStyle} aria-label="Selected work"
+        onFocusCapture={event => {
+          if (projectInteractionMode !== "overlay" || !expandedId) return;
+          const trigger = (event.target as Element).closest(".homepage-card-trigger");
+          if (trigger?.matches(":focus-visible") && trigger.closest<HTMLElement>("[data-project-id]")?.dataset.projectId !== expandedId) setExpandedId(null);
+        }}
         onPointerLeave={() => setHoveredId(null)}>
         {displayedPreviews.map((preview) => (
           <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
-            expanded={expandedId === preview.id}
+            expanded={activeExpandedId === preview.id}
+            cardOverlay={projectInteractionMode === "overlay"}
             hovered={hoveredId === preview.id}
             onHover={() => setHoveredId(preview.id)}
             onClearHover={() => setHoveredId(null)}
             focusActive={focusSelection?.preview.id === preview.id}
-            onOpenFocus={!inlineProjectPreviewEnabled ? (trigger, keyboard) => {
+            onOpenFocus={projectInteractionMode === "focus" ? (trigger, keyboard) => {
               const origin = trigger.getBoundingClientRect();
               layoutAnimations.current.forEach(animation => animation.finish());
               setFocusSelection({ preview, trigger, origin, keyboard });

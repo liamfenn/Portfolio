@@ -684,6 +684,39 @@ img.loading-image-error { visibility: hidden; }
 body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .homepage-project-company { color: var(--text-primary); --inspect-color-token: text-primary; }
 .homepage-project-period { color: var(--text-secondary); --inspect-color-token: text-secondary; }
+.has-card-overlay .homepage-project-overlay { z-index: 3; }
+.project-card-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--project-info-inset);
+  background: color-mix(in srgb, var(--bg-secondary-fill) var(--project-card-overlay-opacity), transparent);
+  -webkit-backdrop-filter: blur(var(--project-card-overlay-blur));
+  backdrop-filter: blur(var(--project-card-overlay-blur));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--project-card-overlay-duration) cubic-bezier(var(--project-focus-ease)), visibility 0s var(--project-card-overlay-duration);
+}
+.project-card-panel.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.has-card-overlay:has(.homepage-card-trigger:focus-visible) .project-card-panel { outline: var(--focus-ring); outline-offset: calc(-1 * var(--focus-offset)); }
+.project-card-panel :where(h3, ul) { margin: 0; padding: 0; list-style: none; }
+.project-card-panel h3, .project-card-panel li {
+  opacity: 0;
+  transition: opacity var(--card-row-duration, var(--project-card-overlay-duration)) cubic-bezier(var(--project-focus-ease));
+  transition-delay: calc(var(--card-row-exit, 0) * var(--card-row-stagger, 0ms));
+}
+.project-card-panel.is-open h3, .project-card-panel.is-open li { opacity: 1; transition-delay: calc(var(--card-row-enter, 0) * var(--card-row-stagger, 0ms)); }
+.project-card-panel.is-open a { pointer-events: auto; }
+@media (max-width: 767px) {
+  .project-card-panel { padding: var(--project-info-inset-mobile); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-card-panel, .project-card-panel h3, .project-card-panel li { transition: none; }
+}
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding) 12px; }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }
 .portfolio-v3 .portfolio-socials a { --inspect-color-token: text-secondary; color: var(--text-secondary); }

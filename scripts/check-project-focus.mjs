@@ -20,19 +20,21 @@ try {
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     assert.ok((await page.locator('meta[name="viewport"]').getAttribute("content")).includes("viewport-fit=cover"));
     await page.locator(".homepage-identity").click();
-    const toggle = page.getByRole("button", { name: "Preview inline project expansion" });
+    const toggle = page.getByRole("button", { name: /^Cycle project interaction:/ });
     await toggle.waitFor();
-    assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "focus");
     const blank = page.locator('[data-project-id="shop-03"] .homepage-card-trigger');
     assert.equal(await blank.getAttribute("aria-haspopup"), "dialog");
     await toggle.click();
-    assert.equal(await toggle.getAttribute("aria-pressed"), "true");
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "inline");
     assert.equal(await blank.getAttribute("aria-haspopup"), null);
     await blank.click();
     assert.equal(await page.getByRole("dialog").count(), 0);
     if (mobile) assert.equal(await blank.getAttribute("aria-expanded"), "true");
     await toggle.click();
-    assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "overlay");
+    await toggle.click();
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "focus");
     const tile = page.locator('[data-project-id="shop-01"] .homepage-card-trigger');
     await tile.scrollIntoViewIfNeeded();
     if (fixture) await page.waitForFunction(() => { const video = document.querySelector("video"); return video && !video.paused && video.currentTime > 1; });
@@ -278,7 +280,7 @@ try {
     // The inspector was left shown before opening, so this first click hides it.
     await page.locator(".homepage-identity").click();
     await toggle.click();
-    assert.equal(await toggle.getAttribute("aria-pressed"), "true");
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "inline");
     await page.goto(`${origin}/?inspect=off`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode === undefined);
     const defaultTile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
