@@ -1,12 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
-import { preserveVideoFrame } from "@/lib/video-playback";
+import { preserveVideoFrame, prepareVideoLanding } from "@/lib/video-playback";
 import { mediaUrl } from "@/lib/media-delivery";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 
@@ -16,7 +16,8 @@ function FocusText({ text }: { text: string }) {
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>{text}</span></InspectableText>;
 }
 
-export function ProjectFocusDetails({ preview, titleId = "project-focus-title" }: { preview: ProjectPreview; titleId?: string }) {
+export function ProjectFocusDetails({ preview, titleId = "project-focus-title", exitHeight }: { preview: ProjectPreview; titleId?: string; exitHeight?: number }) {
+  if (exitHeight !== undefined) return <div className="project-focus-details text-bodySans" style={{ height: exitHeight }} />;
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   return <div className="project-focus-details text-bodySans">
     <div className="project-focus-heading">
@@ -54,6 +55,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
   const bottomEdgeRef = useRef<HTMLDivElement>(null);
   const dismissRef = useRef<() => void>(() => {});
   const initialSelection = useRef(selection);
+  const [exitTextHeight, setExitTextHeight] = useState<number>();
   const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total });
 
   const animationsRef = useRef<Animation[]>([]);
@@ -156,6 +158,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     animationsRef.current = animations;
     let closing = false, disposed = false;
     let presentHandoff: (() => void) | undefined;
+    let landingPaint = 0;
     const tweenMedia = (from: DOMRect, to: DOMRect, delay = 0) => {
       const bounds = slot.getBoundingClientRect();
       return media.animate([
@@ -196,16 +199,27 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       animations.push(exit, ...faded.map((element, index) => {
         const animation = fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration);
         // Remove text from painting once its fade ends, including Safari's retained paging layers.
-        if (isText(element)) void animation.finished.then(() => { if (!disposed) element.style.visibility = "hidden"; }).catch(() => {});
+        if (isText(element)) void animation.finished.then(() => {
+          if (disposed) return;
+          element.style.visibility = "hidden";
+          // Remove the actual glyph layers while retaining the scroller's geometry through collapse.
+          if (element === details) flushSync(() => setExitTextHeight(details.getBoundingClientRect().height));
+        }).catch(() => {});
         return animation;
       }));
       if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
       void exit.finished.then(() => {
-        if (!disposed) { root.style.visibility = "hidden"; onClose(); }
+        if (disposed) return;
+        const close = () => { if (!disposed) { root.style.visibility = "hidden"; onClose(); } };
+        if (video && prepareVideoLanding(video)) {
+          // Paint the stationary landing surface before tearing down Safari's focus compositing tree.
+          landingPaint = requestAnimationFrame(() => { landingPaint = requestAnimationFrame(close); });
+        } else close();
       }).catch(() => {});
     };
     return () => {
       disposed = true;
+      cancelAnimationFrame(landingPaint);
       animations.forEach(animation => animation.cancel());
       if (!retainsMedia(media)) {
         const video = media.querySelector("video");
@@ -238,7 +252,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
-        <ProjectFocusDetails preview={selection.preview} />
+        <ProjectFocusDetails preview={selection.preview} exitHeight={exitTextHeight} />
       </div>
     </div>
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>

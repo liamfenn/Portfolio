@@ -103,8 +103,9 @@ beside **Tech**, and empty fields are omitted. Current projects share the Figma 
 and Swift/UIKit/Metal stack until their final content is ready.
 Focus labels render as ordinary native text without decorative glyph copies.
 Video holds its last decoded frame over the entire closing animation and return to the grid. It uncovers
-only after a fresh presented frame and two paint opportunities. Focus text leaves painting
-as soon as its exit fade completes. Normal pauses keep that frame; source release/error restores the poster.
+only after a fresh presented frame and two paint opportunities. A fixed landing copy paints before the
+overlay unmounts and covers the return through the existing 80ms handoff interval. Focus text is removed
+from the DOM after its exit fade, with its layout height retained until collapse completes. Normal pauses keep that frame; source release/error restores the poster.
 
 The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
 N or Right Arrow goes to the next. Buttons and shortcuts loop through the displayed grid order, including

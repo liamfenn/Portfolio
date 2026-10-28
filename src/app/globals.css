@@ -367,6 +367,8 @@
 .project-preview-media[data-video-display="loading"] > .skeleton { z-index: 1; }
 .project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: hidden; }
 .project-preview-handoff { z-index: 1; }
+.project-preview-landing { position: fixed; display: block; pointer-events: none; z-index: 2202; }
+body:has(.project-focus-root:not([data-phase="closing"])) > .project-preview-landing { visibility: hidden; }
 .project-preview-video[data-frame-ready="true"] + .project-preview-poster { visibility: hidden; }
 
 /* Shared loading surfaces sit behind real media, so cached and no-JS images remain visible. */

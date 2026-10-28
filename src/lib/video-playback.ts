@@ -27,6 +27,9 @@ type Entry = {
   coverTimer?: ReturnType<typeof setTimeout>;
   coverHeld?: boolean;
   coverPresent?: () => void;
+  landing?: HTMLCanvasElement;
+  landingUntil?: number;
+  landingTimer?: ReturnType<typeof setTimeout>;
   display?: (state: VideoDisplayState) => void;
 };
 type Connection = EventTarget & { saveData?: boolean };
@@ -121,6 +124,8 @@ class VideoPlayback {
     if (entry.cover && hold) {
       if (entry.coverFrame !== undefined) video.cancelVideoFrameCallback(entry.coverFrame);
       if (entry.coverPaint !== undefined) cancelAnimationFrame(entry.coverPaint);
+      clearTimeout(entry.landingTimer);
+      entry.landingTimer = undefined;
       entry.coverFrame = entry.coverPaint = undefined;
       entry.coverHeld = true;
       return entry.coverPresent;
@@ -146,7 +151,7 @@ class VideoPlayback {
         entry.coverFrame = undefined;
         // Give the reparented video two paint opportunities before uncovering its native surface.
         entry.coverPaint = requestAnimationFrame(() => {
-          entry.coverPaint = requestAnimationFrame(() => this.clearCover(entry));
+          entry.coverPaint = requestAnimationFrame(() => this.uncover(entry));
         });
       };
       if ("requestVideoFrameCallback" in video) entry.coverFrame = video.requestVideoFrameCallback(presented);
@@ -158,11 +163,42 @@ class VideoPlayback {
     return present;
   }
 
+  prepareLanding(video: HTMLVideoElement) {
+    const entry = this.entries.get(video);
+    if (!entry?.cover || entry.landing) return;
+    const landing = document.createElement("canvas");
+    landing.width = entry.cover.width;
+    landing.height = entry.cover.height;
+    const context = landing.getContext("2d");
+    if (!context) return;
+    try { context.drawImage(entry.cover, 0, 0); } catch { return; }
+    const bounds = entry.cover.getBoundingClientRect();
+    landing.className = "project-preview-landing";
+    landing.setAttribute("aria-hidden", "true");
+    Object.assign(landing.style, { left: `${bounds.left}px`, top: `${bounds.top}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
+    // This surface never changes parents while React unlocks the page and returns the native video.
+    document.body.appendChild(landing);
+    entry.landing = landing;
+    const delay = getComputedStyle(video).getPropertyValue("--project-focus-handoff-delay").trim();
+    entry.landingUntil = performance.now() + parseFloat(delay) * (delay.endsWith("ms") ? 1 : 1000);
+    return true;
+  }
+
+  private uncover(entry: Entry) {
+    if (entry.coverHeld) return;
+    const remaining = Math.max(0, (entry.landingUntil ?? 0) - performance.now());
+    if (remaining) entry.landingTimer = setTimeout(() => this.clearCover(entry), remaining);
+    else this.clearCover(entry);
+  }
+
   private clearCover(entry: Entry) {
     const hadCover = Boolean(entry.cover);
     if (entry.coverFrame !== undefined) entry.video.cancelVideoFrameCallback(entry.coverFrame);
     if (entry.coverPaint !== undefined) cancelAnimationFrame(entry.coverPaint);
     clearTimeout(entry.coverTimer);
+    clearTimeout(entry.landingTimer);
+    entry.landing?.remove();
+    entry.landing = entry.landingUntil = entry.landingTimer = undefined;
     entry.cover?.remove();
     entry.cover = entry.coverFrame = entry.coverPaint = entry.coverTimer = undefined;
     entry.coverHeld = false;
@@ -256,7 +292,7 @@ class VideoPlayback {
         entry.display?.("ready");
         if (entry.cover && !entry.coverHeld && entry.coverFrame === undefined) {
           entry.coverPaint = requestAnimationFrame(() => {
-            entry.coverPaint = requestAnimationFrame(() => this.clearCover(entry));
+            entry.coverPaint = requestAnimationFrame(() => this.uncover(entry));
           });
         }
       }
@@ -338,4 +374,8 @@ export function registerVideo(video: HTMLVideoElement, asset: PortfolioVideoAsse
 
 export function preserveVideoFrame(video: HTMLVideoElement, hold = false) {
   return coordinator?.preserveFrame(video, hold);
+}
+
+export function prepareVideoLanding(video: HTMLVideoElement) {
+  return coordinator?.prepareLanding(video);
 }

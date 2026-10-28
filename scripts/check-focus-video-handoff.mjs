@@ -39,6 +39,7 @@ try {
       await page.getByRole("dialog").waitFor({ state: "detached" });
       const cover = tile.locator(".project-preview-handoff");
       assert.equal(await cover.count(), 1);
+      assert.equal(await page.locator("body > .project-preview-landing").count(), 1);
       assert.ok(await cover.evaluate(canvas => {
         const video = window.__handoffVideo, bounds = canvas.getBoundingClientRect(), videoBounds = video.getBoundingClientRect();
         const elapsed = (video.currentTime - window.__handoffTime + video.duration) % video.duration;
@@ -48,10 +49,12 @@ try {
         // Policy release must cancel the pending handoff and reveal the poster, without waiting for a frame.
         await page.emulateMedia({ reducedMotion: "reduce" });
         await cover.waitFor({ state: "detached" });
+        assert.equal(await page.locator(".project-preview-landing").count(), 0);
         assert.ok(await tile.locator("video").evaluate(video => video.paused && !video.hasAttribute("src") && !video.dataset.frameReady));
       } else {
         await page.evaluate(() => window.__presentAfterMove());
         await cover.waitFor({ state: "detached" });
+        assert.equal(await page.locator(".project-preview-landing").count(), 0);
         assert.equal(await page.evaluate(() => window.__handoffLoads), 0);
         assert.ok(await tile.locator("video").evaluate(video => video === window.__handoffVideo && getComputedStyle(video).visibility === "visible" && getComputedStyle(video.nextElementSibling).visibility === "hidden"));
         if (index === 1) {
