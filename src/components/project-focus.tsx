@@ -147,8 +147,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const textEnterDelay = milliseconds("--project-focus-text-enter-delay");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const textStagger = milliseconds("--project-focus-text-stagger");
-    const textExitDuration = textEnterDuration / 2;
-    const textExitStagger = textStagger / 2;
+    const textExitDuration = milliseconds("--project-focus-text-exit-duration");
+    const textExitStagger = textStagger * textExitDuration / textEnterDuration;
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;

@@ -362,9 +362,9 @@
   box-shadow: none;
 }
 
-.project-preview-video:not([data-frame-ready="true"]) { visibility: hidden; }
 .project-preview-poster { background: transparent; }
-.project-preview-media[data-video-display="loading"] > .skeleton { z-index: 1; }
+/* Keep the video composited beneath opaque startup coverage instead of unhiding it at first reveal. */
+.project-preview-media > .skeleton { z-index: 1; }
 .project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: hidden; }
 .project-preview-handoff { z-index: 1; }
 .project-preview-landing { position: fixed; display: block; pointer-events: none; z-index: 2202; }

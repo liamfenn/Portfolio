@@ -155,7 +155,7 @@ try {
       const textOpacity = Number(getComputedStyle(lastRow.effect.target).opacity);
       const textTiming = lastRow.effect.getTiming();
       const rowTimings = rows.map(animation => ({ top: animation.effect.target.getBoundingClientRect().top, delay: animation.effect.getTiming().delay, duration: animation.effect.getTiming().duration }));
-      animations.forEach(animation => { animation.currentTime = 280; });
+      animations.forEach(animation => { animation.currentTime = 170; });
       const laterTextOpacity = Number(getComputedStyle(lastRow.effect.target).opacity);
       window.__exitHeldBounds = { top: held.top, left: held.left, width: held.width };
       animations.forEach(animation => animation.play());
@@ -164,9 +164,9 @@ try {
     assert.ok(handoff.held && handoff.noMediaAnimation);
     assert.ok(handoff.textOpacity > 0 && handoff.textOpacity < 1 && handoff.laterTextOpacity < 0.1);
     assert.equal(handoff.textDelay, 0);
-    assert.equal(handoff.textDuration, 300);
+    assert.equal(handoff.textDuration, 180);
     const exitTops = [...new Set(handoff.rowTimings.map(row => row.top))].sort((a, b) => b - a);
-    assert.ok(handoff.rowTimings.every(row => row.duration === 300 && row.delay === exitTops.indexOf(row.top) * 20));
+    assert.ok(handoff.rowTimings.every(row => row.duration === 180 && row.delay === exitTops.indexOf(row.top) * 12));
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.exit === "media");
     const collapse = await dialog.evaluate(root => {
       const media = root.querySelector(".homepage-project-media"), animation = media.getAnimations()[0];

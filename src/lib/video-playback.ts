@@ -19,6 +19,7 @@ type Entry = {
   generation: number;
   resumeTime?: number;
   frame?: number;
+  paint?: number;
   timer?: ReturnType<typeof setTimeout>;
   release?: ReturnType<typeof setTimeout>;
   cover?: HTMLCanvasElement;
@@ -321,6 +322,7 @@ class VideoPlayback {
     const generation = entry.generation;
     const reveal = () => {
       entry.frame = undefined;
+      entry.paint = undefined;
       if (generation === entry.generation && entry.wanted && !entry.video.paused) {
         entry.video.dataset.frameReady = "true";
         entry.video.dataset.playback = "playing";
@@ -334,8 +336,16 @@ class VideoPlayback {
     };
     void entry.video.play().then(() => {
       if (generation !== entry.generation || !entry.wanted || entry.video.paused) return;
-      if ("requestVideoFrameCallback" in entry.video) entry.frame = entry.video.requestVideoFrameCallback(reveal);
-      else reveal();
+      const presented = () => {
+        entry.frame = undefined;
+        if (generation !== entry.generation || !entry.wanted || entry.video.paused) return;
+        // Keep startup covered while Safari paints its native surface; don't reveal and promote it together.
+        if (entry.video.dataset.frameReady !== "true") {
+          entry.paint = requestAnimationFrame(() => { entry.paint = requestAnimationFrame(reveal); });
+        } else reveal();
+      };
+      if ("requestVideoFrameCallback" in entry.video) entry.frame = entry.video.requestVideoFrameCallback(presented);
+      else presented();
     }).catch(error => {
       if (generation !== entry.generation || (error as DOMException).name === "AbortError") return;
       // Autoplay denial is a poster state, rather than an endless play/reject loop.
@@ -352,7 +362,9 @@ class VideoPlayback {
   private pause(entry: Entry) {
     entry.video.pause();
     if (entry.frame !== undefined) entry.video.cancelVideoFrameCallback(entry.frame);
+    if (entry.paint !== undefined) cancelAnimationFrame(entry.paint);
     entry.frame = undefined;
+    entry.paint = undefined;
     // Pausing retains a decoded frame; only a source release should expose the poster again.
     if (entry.ready && !entry.failed) entry.video.dataset.playback = "paused";
   }

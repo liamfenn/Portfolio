@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Quicker exit, startup paint coverage, and video lifecycle audit (2026-10-28)**
+- Shortened reversed focus text exit from 300ms/20ms to 180ms/12ms. The duration aliases the existing card movement token and the stagger scales with the entry/exit duration ratio. The full sequence is 40% shorter; text removal/paint still completes before the card returns.
+- Liam confirmed the refresh flash is confined to the video/card. Startup previously unhid the native video and removed its skeleton on the first video-frame callback. It now keeps the native surface visible beneath an opaque skeleton through two paint opportunities after that callback. The bounded paint callbacks cancel on pause/release, with no extra media element or continuous drawing. This targets a first-paint race; physical Safari flash elimination is not yet confirmed. Source teardown policy remains unchanged.
+- Audited each entry/page/exit/startup owner and checked PhotoSwipe, Video.js, and WebKit sources. The [audit](focus-media-audit.md) recommends keeping native media in its original subtree and replacing the focus handoff machinery as a unit, rather than adding guards or a player package. A separate WebKit probe performs four geometry cycles per mobile/desktop width with continuous frames and zero pauses, loads, DOM removals, or canvases. It does not replace the production controller or cover native Safari, focus scrolling/paging, or accessibility integration yet; the production clock hold remains in place.
+- Validation: 59 tests, TypeScript, touched-file lint, and production build passed. Updated Chromium focus and WebKit paged/scrolled exit checks confirm the 180ms/12ms reverse sequence and text-free card movement. A new held-frame startup regression fails against the previous build and passes initial load plus two reloads per width and stale-reveal policy cancellation. WebKit real-video focus/loading/upgrade/swipe/rapid-reentry checks and Chromium loading/failure/reduced-motion/no-JS/pre-hydration/preview checks passed.
+
 **Primary focus navigation labels (2026-10-28)**
 - P and N now inherit `text-primary` and its inspector annotation from the shared focus action style, matching Close. Removed the secondary-color override; hover styling remains shared.
 
