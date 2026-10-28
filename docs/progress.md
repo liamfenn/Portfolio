@@ -269,9 +269,13 @@ production) is still the August version. Merging is Liam's call.
 **Earlier project video attempt (2026-10-24, reverted)**
 - Tried replacing the homepage's one project video (shop-01) with a Shop app product-page prototype (`public/media/shop/preview-01-*`, AV1 and H.264 at 800/1200/1600, uploaded to the Blob store), plus a fallback so deployed builds without `NEXT_PUBLIC_MEDIA_BASE_URL` read the store. It still didn't show on Liam's preview, so both commits are reverted; Liam is redoing it in Codex. The preview-01 files remain in the store, unreferenced. Likely cause worth checking: the variable isn't set for Vercel's Preview environment, so previews ask their own domain for the gitignored media.
 
-**Favicon (2026-10-23)**
+**Favicon (2026-10-28)**
+- Liam's serif "LF" mark on white: `public/images/meta/favicon-lf-{32,180,192}.png`. Supplied as a 192px PNG; the 32 and 180 sizes are lanczos downscales (ffmpeg).
+- Before that (2026-10-23), the footer globe below.
+
+**Favicon, globe version (2026-10-23, replaced)**
 - The footer globe at rest, mid-glitch (a teal @, a pink y, and a violet % lit), its glyphs spanning 80% of the square on white: `public/images/meta/favicon-globe-{32,180,192}.png`. Captured from the real component on `/og/favicon` (dev only) by `node scripts/capture-favicon.mjs <url>`, which fits the globe, saves frames while a glitch is under way (3+ glyphs lit; the glitch ripples a few at a time), and writes a choosing sheet to `out/favicon/sheet.png`; `--pick <n>` writes the icons from a 1024px master (captured at 2×). The favicon card turns off the glyphs' `will-change: transform`, which otherwise makes Chrome raster them at their tiny layout size and stretch the bitmap, so the first capture was blurry.
-- Tried: a seeded scatter of five tilted burst glyphs (commit 824472d), then Liam's "O LF" mark (`favicon-olf-*.png`, still in the repo, no longer referenced).
+- Tried: a seeded scatter of five tilted burst glyphs (commit 824472d), then Liam's "O LF" mark (`favicon-olf-*.png`). The olf and globe files are still in the repo, no longer referenced.
 
 **Link preview video (2026-10-23)**
 - og:video and og:image come from the Figma card (435:198): "Office of Liam Fennell" on white. Six letters glitch (~0.35s), every letter pops out and floats like the swarm's entry, then is kicked loose to bounce freely off the card's edges and each other for ~4s, pumping out 2–4 glyphs each (mostly punctuation, from a shuffled bag so none repeats until all have appeared). A pump: the letter squeezes while flickering between itself and the new glyph, then the glyph splits off its edge at under half size and springs to full size while the letter recoils. Loose pieces are topped back up to a cruising speed, since Matter stops bouncing slow contacts and they otherwise park along the walls.
