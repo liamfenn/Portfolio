@@ -35,7 +35,7 @@ try {
         if (!root.isConnected) return;
         if (root.dataset.phase === "closing") {
           started ??= performance.now();
-          const box = root.querySelector(".homepage-project-media").getBoundingClientRect();
+          const box = document.querySelector('[data-focus-media="current"]').getBoundingClientRect();
           initial ??= box;
           window.__exitSamples.push({ elapsed: performance.now() - started, movement: Math.abs(box.left - initial.left) + Math.abs(box.top - initial.top) + Math.abs(box.width - initial.width), scrollTop: scroller.scrollTop, text: [...root.querySelectorAll(".project-focus-details")].map(node => node.textContent.trim()).join(""), controlsOpacity: Number(getComputedStyle(root.querySelector(".project-focus-controls")).opacity) });
         }

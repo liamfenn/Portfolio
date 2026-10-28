@@ -104,13 +104,16 @@ Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
 Focus labels render as ordinary native text without decorative glyph copies.
-Video holds its last decoded frame over the entire closing animation and return to the grid. It uncovers
-only after a fresh presented frame and two paint opportunities. A fixed landing copy paints before the
-overlay unmounts and covers the return through the existing 80ms handoff interval. The same video's clock
-pauses while covered, with one fresh capture at the destination before resuming at reveal. This avoids
-hidden playback advancing ahead of the picture, without another video or a continuous canvas drawing loop. Focus text is removed
-from the DOM after every staggered exit fade finishes, with its layout height retained. The removal paints before the
-180ms asset return begins; scrolling locks during this sequence so the return geometry stays fixed. Normal pauses keep that frame; source release/error restores the poster.
+Focused media stays inside its original grid button for the entire session. A single controller in
+`src/lib/project-focus-media.ts` positions that element over the overlay's layout slot and shares the
+paging/return transforms. Native video keeps playing through entry, scrolling, paging, and exit; there
+are no focus canvas copies, clock holds, or landing timers. Event-driven scroll/resize updates keep media
+aligned without an idle rendering loop. Text and controls occupy higher overlay layers, and the slot
+provides the media's accessible label while background controls remain inert.
+Focus text is removed after every staggered exit fade, with its layout height retained. The removal
+paints before the 180ms card return begins; scrolling locks during this sequence. Rendition upgrades wait
+until motion settles and retain one frame only while an actual source change loads; pause/error/policy
+handling remains owned by the shared video coordinator.
 On initial playback, the native video stays visible beneath an opaque skeleton until a presented frame
 has had two paint opportunities, avoiding a simultaneous surface unhide and skeleton removal.
 

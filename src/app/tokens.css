@@ -50,12 +50,17 @@
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--hover-duration);
-  --project-focus-handoff-delay: 80ms;
+  --project-focus-page-min-duration: 80ms;
   --project-focus-text-enter-delay: 120ms;
   --project-focus-text-enter-duration: 600ms;
   --project-focus-text-stagger: var(--project-label-delay);
   --project-focus-text-exit-duration: var(--project-layout-duration);
   --project-focus-ease: .65, 0, .35, 1;
+  --project-focus-layer: 2200;
+  --project-focus-media-layer: calc(var(--project-focus-layer) + 1);
+  --project-focus-content-layer: calc(var(--project-focus-layer) + 2);
+  --project-focus-controls-layer: calc(var(--project-focus-layer) + 3);
+  --project-focus-edge-layer: calc(var(--project-focus-layer) + 4);
   --project-focus-width: 620px;
   --project-focus-backdrop-opacity: 92%;
   --project-focus-blur: 10px;

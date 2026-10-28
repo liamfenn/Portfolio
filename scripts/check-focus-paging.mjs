@@ -36,22 +36,27 @@ try {
       await control.click();
       const motion = await dialog.evaluate(async root => {
         const incoming = root.querySelector(".project-focus-scroll"), outgoing = root.querySelector("[data-paging-outgoing]");
-        const animations = [incoming.getAnimations({ subtree: true })[0], outgoing.getAnimations({ subtree: true })[0]];
+        const animations = [incoming.getAnimations({ subtree: true })[0], outgoing.getAnimations({ subtree: true })[0], ...[...document.querySelectorAll("[data-focus-media]")].flatMap(media => media.getAnimations())];
         animations.forEach(animation => animation.pause());
         await Promise.all(animations.map(animation => animation.ready));
         animations.forEach(animation => { animation.currentTime = animation.effect.getTiming().duration / 2; });
         await new Promise(resolve => requestAnimationFrame(resolve));
-        const state = { duration: animations[0].effect.getTiming().duration, incoming: new DOMMatrixReadOnly(getComputedStyle(animations[0].effect.target).transform).m41, outgoing: new DOMMatrixReadOnly(getComputedStyle(animations[1].effect.target).transform).m41, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: outgoing.querySelectorAll("video").length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll("[data-focus-text]")].every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible" && getComputedStyle(node.closest("h2, h3, p, li")).opacity === "1"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
-        return state;
+        const mediaAligned = [[incoming, "current"], [outgoing, "outgoing"]].every(([page, role]) => {
+          const slot = page.querySelector(".project-focus-media-slot").getBoundingClientRect();
+          const media = document.querySelector(`[data-focus-media="${role}"]`).getBoundingClientRect();
+          return Math.abs(slot.left - media.left) < 1 && Math.abs(slot.top - media.top) < 1 && Math.abs(slot.width - media.width) < 1;
+        });
+        const state = { duration: animations[0].effect.getTiming().duration, incoming: new DOMMatrixReadOnly(getComputedStyle(animations[0].effect.target).transform).m41, outgoing: new DOMMatrixReadOnly(getComputedStyle(animations[1].effect.target).transform).m41, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: document.querySelectorAll('[data-focus-media="outgoing"] video').length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll("[data-focus-text]")].every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible" && getComputedStyle(node.closest("h2, h3, p, li")).opacity === "1"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
+        return { ...state, mediaAligned };
       });
       assert.equal(motion.duration, 300);
       assert.ok(Math.abs(motion.incoming - direction * width / 2) < 2, JSON.stringify(motion));
       assert.ok(Math.abs(motion.outgoing + direction * width / 2) < 2, JSON.stringify(motion));
-      assert.ok(motion.outgoingInert && motion.outgoingHidden === "true" && motion.duplicateIds === 0 && motion.textVisible && motion.tint === "1");
+      assert.ok(motion.outgoingInert && motion.outgoingHidden === "true" && motion.duplicateIds === 0 && motion.textVisible && motion.tint === "1" && motion.mediaAligned);
       assert.equal(motion.nativeMedia, 1);
       assert.deepEqual(await dialog.locator(".project-focus-controls").boundingBox(), controlBounds);
       if (direction === 1) await page.screenshot({ path: `/tmp/portfolio-paging-${width}-mid.png` });
-      await dialog.evaluate(root => [root.querySelector(".project-focus-scroll"), root.querySelector("[data-paging-outgoing]")].forEach(node => node.getAnimations({ subtree: true }).forEach(animation => animation.play())));
+      await dialog.evaluate(root => [...root.getAnimations({ subtree: true }), ...[...document.querySelectorAll("[data-focus-media]")].flatMap(media => media.getAnimations())].forEach(animation => animation.play()));
       await settled(id);
     }
     if (mobile) {
@@ -107,7 +112,7 @@ try {
         assert.ok(await page.evaluate(point => window.__stableWheelTarget === document.elementFromPoint(point.x, point.y) && window.__stableWheelTarget.closest(".project-focus-scroll") && window.__stableFocusText === document.querySelector(".project-focus-description [data-focus-text]"), point), "Paging must retain the hit target and metadata nodes under a stationary pointer");
       }
       // Native wheel transactions can retain their original media target after it returns to the grid.
-      await dialog.evaluate(root => { window.__wheelTarget = root.querySelector(".homepage-project-media"); });
+      await dialog.evaluate(() => { window.__wheelTarget = document.querySelector('[data-focus-media="current"]'); });
       const idle = await dialog.evaluate(root => {
         const value = getComputedStyle(root).getPropertyValue("--project-focus-wheel-idle").trim();
         return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);

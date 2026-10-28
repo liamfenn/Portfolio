@@ -1,13 +1,11 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
-import { preserveVideoFrame, prepareVideoLanding } from "@/lib/video-playback";
-import { mediaUrl } from "@/lib/media-delivery";
+import { ProjectFocusMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
@@ -55,8 +53,9 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
   const bottomEdgeRef = useRef<HTMLDivElement>(null);
   const dismissRef = useRef<() => void>(() => {});
   const initialSelection = useRef(selection);
+  const [focusMedia] = useState(() => new ProjectFocusMedia());
   const [exitTextHeight, setExitTextHeight] = useState<number>();
-  const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total });
+  const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total, focusMedia });
 
   const animationsRef = useRef<Animation[]>([]);
 
@@ -76,6 +75,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
+
+    const stopMedia = focusMedia.start(scrollRef.current!);
 
     const previousTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     const theme = previousTheme ?? document.createElement("meta");
@@ -106,7 +107,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     };
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const onMotionChange = () => { if (motion.matches) animationsRef.current.forEach(animation => { if (animation.playState !== "idle") animation.finish(); }); };
-    // Reparented media retains its original React event ancestry, so use native capture here.
+    // Native capture keeps keyboard/pointer focus treatment consistent across controls and content.
     const onPointerDown = () => { root.dataset.input = "pointer"; };
     root.addEventListener("pointerdown", onPointerDown, { capture: true });
     window.addEventListener("keydown", onKeyDown, { capture: true });
@@ -122,9 +123,10 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
       window.scrollTo(scroll.x, scroll.y);
+      stopMedia();
       opener.focus({ preventScroll: true });
     };
-  }, [navigate]);
+  }, [navigate, focusMedia]);
 
   useLayoutEffect(() => {
     const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!;
@@ -152,23 +154,12 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
-    // Reuse the actual media element and return it before React removes its source card.
-    const enteringVideo = media.querySelector("video");
-    const presentEntry = enteringVideo && media.querySelector(".project-preview-handoff") ? preserveVideoFrame(enteringVideo, true) : undefined;
-    slot.appendChild(media);
-    presentEntry?.();
+    focusMedia.attach(trigger, slot);
     const animations: Animation[] = [];
     animationsRef.current = animations;
     let closing = false, disposed = false;
-    let presentHandoff: (() => void) | undefined;
-    let landingPaint = 0, exitPaint = 0;
-    const tweenMedia = (from: DOMRect, to: DOMRect, delay = 0) => {
-      const bounds = slot.getBoundingClientRect();
-      return media.animate([
-        { transform: `translate(${from.left - bounds.left}px, ${from.top - bounds.top}px) scale(${from.width / bounds.width}, ${from.height / bounds.height})` },
-        { transform: `translate(${to.left - bounds.left}px, ${to.top - bounds.top}px) scale(${to.width / bounds.width}, ${to.height / bounds.height})` },
-      ], { ...timing, duration: motion.matches ? 0 : timing.duration, delay: motion.matches ? 0 : delay, fill: "both" });
-    };
+    let exitPaint = 0;
+    const tweenMedia = (from: DOMRect, to: DOMRect) => focusMedia.animate(media, from, to, { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
@@ -179,8 +170,9 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       ...backgrounds.map(element => fade(element, 0, 1)),
       ...textRows.map(({ element, top }) => fade(element, 0, 1, textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
     );
-    void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
-    void Promise.all(animations.map(animation => animation.finished)).then(() => { if (!closing && !disposed) root.dataset.phase = "open"; }).catch(() => {});
+    void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
+      if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
+    });
     if (!root.contains(document.activeElement)) closeRef.current!.focus({ preventScroll: true });
 
     dismissRef.current = () => {
@@ -192,8 +184,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const scroller = scrollRef.current!;
       if (scroller.scrollHeight > scroller.clientHeight) scroller.style.scrollbarGutter = "stable";
       scroller.style.overflowY = "hidden";
-      const video = media.querySelector("video");
-      if (video) presentHandoff = preserveVideoFrame(video, true, true);
+      focusMedia.hold(media);
       const opacity = Number(getComputedStyle(media).opacity);
       const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
       const controlsOpacity = Number(getComputedStyle(controls).opacity);
@@ -221,11 +212,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
           if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
           void exit.finished.then(() => {
             if (disposed) return;
-            const close = () => { if (!disposed) { root.style.visibility = "hidden"; onClose(); } };
-            if (video && prepareVideoLanding(video)) {
-              // Paint the stationary landing surface before tearing down Safari's focus compositing tree.
-              landingPaint = requestAnimationFrame(() => { landingPaint = requestAnimationFrame(close); });
-            } else close();
+            root.style.visibility = "hidden";
+            onClose();
           }).catch(() => {});
         };
         // A timer shorter than the text fade let media cross glyphs retained by Safari after paging.
@@ -235,21 +223,22 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     };
     return () => {
       disposed = true;
-      cancelAnimationFrame(landingPaint);
       cancelAnimationFrame(exitPaint);
       animations.forEach(animation => animation.cancel());
-      if (!retainsMedia(media)) {
-        const video = media.querySelector("video");
-        const present = presentHandoff ?? (video ? preserveVideoFrame(video, true) : undefined);
-        trigger.prepend(media);
-        present?.();
-      }
+      if (!retainsMedia(media)) focusMedia.restore(media);
       if (animationsRef.current === animations) animationsRef.current = [];
     };
-  }, [selection, onClose, animatePage, retainsMedia, cancelPaging]);
+  }, [selection, onClose, animatePage, retainsMedia, cancelPaging, focusMedia]);
 
   const neighbor = neighborDirection === -1 ? neighbors.previous : neighbors.next;
-  const poster = neighbor.media?.kind === "video" ? neighbor.media.poster : neighbor.media?.src;
+  useLayoutEffect(() => {
+    const slot = neighborRef.current?.querySelector<HTMLElement>(".project-focus-media-slot");
+    if (!neighborDirection || !slot) return;
+    const trigger = selection.trigger.closest(".project-grid")?.querySelector<HTMLButtonElement>(`[data-project-id="${neighbor.id}"] .homepage-card-trigger`);
+    if (!trigger) return;
+    const media = focusMedia.attach(trigger, slot, "preview");
+    return () => { queueMicrotask(() => focusMedia.restore(media, slot)); };
+  }, [neighborDirection, neighbor, neighborRef, selection.trigger, focusMedia]);
 
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
@@ -268,18 +257,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dismissRef.current();
     }}>
       <div className="project-focus-panel">
-        <div ref={slotRef} className="project-focus-media-slot" />
+        <div ref={slotRef} className="project-focus-media-slot" role={selection.preview.media ? "img" : undefined} aria-label={selection.preview.media?.alt} />
         <ProjectFocusDetails preview={selection.preview} exitHeight={exitTextHeight} />
       </div>
     </div>
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>
       <div className="project-focus-panel">
-        <div className="project-focus-media-slot"><span className="homepage-project-media">
-          {poster && <span className="project-preview-media" style={{ "--media-backdrop": neighbor.media?.backdrop } as CSSProperties}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="project-preview-poster" src={mediaUrl(poster)} alt="" />
-          </span>}
-        </span></div>
+        <div className="project-focus-media-slot" />
         <ProjectFocusDetails preview={neighbor} titleId="" />
       </div>
     </div>}

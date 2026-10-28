@@ -128,7 +128,7 @@ try {
       await page.locator(".homepage-identity").click();
       await page.locator('[data-project-id="shop-02"] .homepage-card-trigger').click();
       await page.getByRole("dialog").waitFor();
-      assert.equal(await page.getByRole("dialog").locator(".skeleton.is-preview").count(), 1);
+      assert.equal(await page.locator('[data-focus-media="current"] .skeleton.is-preview').count(), 1);
       await page.keyboard.press("Escape");
       await page.getByRole("dialog").waitFor({ state: "detached" });
       await page.locator(".homepage-identity").click();

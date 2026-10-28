@@ -103,7 +103,7 @@ try {
     const checkSession = async id => {
       assert.ok(await dialog.evaluate((root, id) => {
         const session = window.__focusSession, source = window.__projectSources[id];
-        return root === session.root && root.querySelector(".project-focus-backdrop") === session.backdrop && root.querySelector(".project-focus-controls") === session.controls && root.querySelector(".project-focus-media-slot").contains(source.media) && document.body.style.position === "fixed" && document.querySelector("main").inert && Number(getComputedStyle(session.backdrop).opacity) === 1;
+        return root === session.root && root.querySelector(".project-focus-backdrop") === session.backdrop && root.querySelector(".project-focus-controls") === session.controls && source.trigger.contains(source.media) && source.media.dataset.focusMedia === "current" && document.body.style.position === "fixed" && document.querySelector("main").inert && Number(getComputedStyle(session.backdrop).opacity) === 1;
       }, id));
       assert.equal(await page.evaluate(() => window.__focusLockMutations), 0);
       assert.equal(await dialog.locator(".project-focus-summary").textContent(), description);
@@ -203,7 +203,7 @@ try {
     }
 
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.waitForFunction(() => document.querySelector('.project-focus-root .project-preview-poster')?.naturalWidth > 0);
+    await page.waitForFunction(() => document.querySelector('[data-focus-media="current"] .project-preview-poster')?.naturalWidth > 0);
     await page.screenshot({ path: `/tmp/project-focus-expanded-${width}.png` });
     if (mobile) {
       await dialog.locator(".project-focus-scroll").evaluate(node => { node.scrollTop = node.scrollHeight; });

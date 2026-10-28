@@ -57,14 +57,14 @@ try {
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     assert.equal(await dialog.locator(".project-focus-glyphs, .project-focus-text-reserve").count(), 0);
     assert.ok(await dialog.locator("[data-focus-text]").evaluateAll(nodes => nodes.every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible")));
-    if (fixture) await page.waitForFunction(time => { const video = document.querySelector(".project-focus-root video"); return video && !video.paused && video.currentTime >= time; }, videoTime);
+    if (fixture) await page.waitForFunction(time => { const video = document.querySelector('[data-focus-media="current"] video'); return video && !video.paused && video.currentTime >= time; }, videoTime);
     const state = await dialog.evaluate(root => {
       const source = window.__focusSource;
       const slot = root.querySelector(".project-focus-media-slot").getBoundingClientRect();
       const close = root.querySelector(".project-focus-close").getBoundingClientRect();
       const backdrop = getComputedStyle(root.querySelector(".project-focus-backdrop"));
       const blur = getComputedStyle(root.querySelector(".project-focus-blur"));
-      return { sameMedia: root.contains(source.media), sameVideo: root.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: blur.backdropFilter, tintBlur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, teamLinks: Array.from(root.querySelectorAll(".project-focus-team a"), link => ({ name: link.querySelector("[data-focus-text]").dataset.focusText, href: link.href })), title: root.querySelector(".project-focus-description [data-focus-text]").dataset.focusText, periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
+      return { sameMedia: source.trigger.contains(source.media) && source.media.dataset.focusMedia === "current", sameVideo: source.media.contains(source.video), width: slot.width, left: slot.left, top: slot.top, closeBottom: innerHeight - close.bottom, blur: blur.backdropFilter, tintBlur: backdrop.backdropFilter, color: backdrop.backgroundColor, bodyLocked: document.body.style.position === "fixed", backgroundInert: document.querySelector("main").inert, teamLinks: Array.from(root.querySelectorAll(".project-focus-team a"), link => ({ name: link.querySelector("[data-focus-text]").dataset.focusText, href: link.href })), title: root.querySelector(".project-focus-description [data-focus-text]").dataset.focusText, periodFont: getComputedStyle(root.querySelector(".project-focus-period")).fontSize };
     });
     assert.ok(state.sameMedia && state.sameVideo && state.bodyLocked && state.backgroundInert);
     assert.equal(state.width, mobile ? width : 620);
@@ -110,7 +110,7 @@ try {
               unchangedScrollArea: scroller.scrollHeight === contentHeight && scroller.clientHeight === contentClientHeight && document.documentElement.scrollHeight === documentHeight,
               noGradient: edges.every(edge => getComputedStyle(edge, "::before").content === "none" && getComputedStyle(edge, "::after").content === "none"),
               directChildren: edges.every(edge => edge.parentElement === document.body),
-              aboveContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) > Number(getComputedStyle(document.querySelector(".project-focus-root")).zIndex)),
+              aboveContent: edges.every(edge => Number(getComputedStyle(edge).zIndex) > Number(getComputedStyle(document.querySelector(".project-focus-controls")).zIndex)),
               nativeEdges: edges.every(edge => edge.getAttribute("style") === null),
             });
           }
@@ -143,10 +143,10 @@ try {
     assert.equal(await page.locator(".project-focus-close").evaluate(node => innerHeight - node.getBoundingClientRect().bottom), mobile ? 24 : 44);
     await page.screenshot({ path: `/tmp/project-focus-${width}.png` });
     const handoff = await dialog.evaluate(root => {
-      const media = root.querySelector(".homepage-project-media");
+      const media = document.querySelector('[data-focus-media="current"]');
       const before = media.getBoundingClientRect();
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-      const animations = root.getAnimations({ subtree: true });
+      const animations = [...root.getAnimations({ subtree: true }), ...media.getAnimations()];
       const noMediaAnimation = media.getAnimations().length === 0;
       animations.forEach(animation => { animation.pause(); animation.currentTime = 40; });
       const held = media.getBoundingClientRect();
@@ -171,7 +171,7 @@ try {
     assert.ok(handoff.rowTimings.every(row => row.duration === 180 && row.delay === exitTops.indexOf(row.top) * 12));
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.exit === "media");
     const collapse = await dialog.evaluate(root => {
-      const media = root.querySelector(".homepage-project-media"), animation = media.getAnimations()[0];
+      const media = document.querySelector('[data-focus-media="current"]'), animation = media.getAnimations()[0];
       animation.pause(); animation.currentTime = 90;
       const moving = media.getBoundingClientRect(), held = window.__exitHeldBounds;
       const timing = animation.effect.getTiming();
@@ -225,7 +225,8 @@ try {
       }
       if (index === 0) {
         const timing = await dialog.evaluate(root => {
-          const animations = root.getAnimations({ subtree: true });
+          const media = document.querySelector('[data-focus-media="current"]');
+          const animations = [...root.getAnimations({ subtree: true }), ...media.getAnimations()];
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
           return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: Boolean(animation.effect.target.closest(".project-focus-details")), controls: Boolean(animation.effect.target.closest(".project-focus-controls")) }));
         });
@@ -287,10 +288,10 @@ try {
       { name: "Max Kaplun", href: "https://x.com/maxkaplun" },
       { name: "Ben Parker", href: "https://x.com/benjamintparker" },
     ]);
-    assert.equal(await rewards.locator('video').count(), 1);
-    assert.equal(await rewards.locator('video').getAttribute("aria-label"), "Shop Rewards card interaction prototype");
-    await page.waitForFunction(() => document.querySelector('.project-focus-root .project-preview-poster')?.naturalWidth > 0);
-    assert.match(await rewards.locator('.project-preview-poster').getAttribute("src"), /\/media\/shop-rewards-card\//);
+    assert.equal(await defaultTile.locator('video').count(), 1);
+    assert.equal(await defaultTile.locator('video').getAttribute("aria-label"), "Shop Rewards card interaction prototype");
+    await page.waitForFunction(() => document.querySelector('[data-focus-media="current"] .project-preview-poster')?.naturalWidth > 0);
+    assert.match(await defaultTile.locator('.project-preview-poster').getAttribute("src"), /\/media\/shop-rewards-card\//);
     await page.getByRole("button", { name: "Close", exact: true }).click();
     await page.getByRole("dialog").waitFor({ state: "detached" });
     await page.reload({ waitUntil: "domcontentloaded" });

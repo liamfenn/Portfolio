@@ -10,6 +10,9 @@ type Entry = {
   near: boolean;
   distance: number;
   priority: boolean;
+  intentPriority: boolean;
+  focusWidth?: number;
+  focusMoving?: boolean;
   failed: boolean;
   wanted: boolean;
   loading: boolean;
@@ -23,16 +26,6 @@ type Entry = {
   timer?: ReturnType<typeof setTimeout>;
   release?: ReturnType<typeof setTimeout>;
   cover?: HTMLCanvasElement;
-  coverFrame?: number;
-  coverPaint?: number;
-  coverTimer?: ReturnType<typeof setTimeout>;
-  coverHeld?: boolean;
-  coverFreeze?: boolean;
-  coverPaused?: boolean;
-  coverPresent?: () => void;
-  landing?: HTMLCanvasElement;
-  landingUntil?: number;
-  landingTimer?: ReturnType<typeof setTimeout>;
   display?: (state: VideoDisplayState) => void;
 };
 type Connection = EventTarget & { saveData?: boolean };
@@ -76,7 +69,7 @@ class VideoPlayback {
 
   register(video: HTMLVideoElement, asset: PortfolioVideoAsset, display?: Entry["display"]) {
     const entry: Entry = {
-      video, asset, visible: 0, near: false, distance: Infinity, priority: false,
+      video, asset, visible: 0, near: false, distance: Infinity, priority: false, intentPriority: false,
       failed: false, wanted: false, loading: false, ready: false, width: 0, retries: 0, generation: 0, display,
     };
     this.entries.set(video, entry);
@@ -102,7 +95,7 @@ class VideoPlayback {
     intentTarget.addEventListener("pointerdown", intent);
     return {
       priority: (value: boolean) => {
-        entry.priority = value;
+        entry.intentPriority = value;
         if (value && entry.failed) { entry.failed = false; entry.retries = 0; }
         this.schedule();
       },
@@ -120,129 +113,36 @@ class VideoPlayback {
     };
   }
 
-  preserveFrame(video: HTMLVideoElement, hold = false, freezeClock = false) {
+  focus(video: HTMLVideoElement, width?: number, moving = false) {
     const entry = this.entries.get(video);
     if (!entry) return;
-    // Closing during a resolution upgrade must hold its existing cover too.
-    if (entry.cover && hold) {
-      if (entry.coverFrame !== undefined) video.cancelVideoFrameCallback(entry.coverFrame);
-      if (entry.coverPaint !== undefined) cancelAnimationFrame(entry.coverPaint);
-      clearTimeout(entry.landingTimer);
-      entry.landingTimer = undefined;
-      entry.coverFrame = entry.coverPaint = undefined;
-      entry.coverHeld = true;
-      if (freezeClock) this.holdClock(entry);
-      return entry.coverPresent;
-    }
-    if (video.dataset.frameReady !== "true" || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
-    this.clearCover(entry, false);
+    entry.focusWidth = width;
+    entry.focusMoving = moving;
+    this.schedule();
+  }
+
+  private captureUpgrade(entry: Entry) {
+    const video = entry.video;
+    if (entry.cover || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
     const cover = document.createElement("canvas");
     cover.width = video.videoWidth;
     cover.height = video.videoHeight;
     const context = cover.getContext("2d");
     if (!context) return;
     try { context.drawImage(video, 0, 0); } catch { return; }
-    cover.className = "project-preview-handoff";
+    cover.className = "project-preview-upgrade";
     cover.setAttribute("aria-hidden", "true");
     video.parentElement!.appendChild(cover);
     entry.cover = cover;
-    entry.coverHeld = hold;
-    if (freezeClock) this.holdClock(entry);
-    // Keep the last real frame over Safari's video surface while it changes compositing parents.
-    const present = () => {
-      if (entry.cover !== cover) return;
-      entry.coverHeld = false;
-      entry.coverPaused = false;
-      const presented = () => {
-        entry.coverFrame = undefined;
-        if (entry.cover !== cover) return;
-        if (entry.coverFreeze && (!entry.ready || video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA)) {
-          requestPresentation();
-          return;
-        }
-        if (entry.coverFreeze) {
-          // Refresh once at the destination, then hold that exact frame through the paint guard.
-          this.holdClock(entry);
-          if (entry.ready && !video.seeking && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-            try {
-              context.drawImage(video, 0, 0, cover.width, cover.height);
-              entry.landing?.getContext("2d")?.drawImage(cover, 0, 0);
-            } catch { /* Retain the last valid picture if capture is temporarily unavailable. */ }
-            video.dataset.frameReady = "true";
-            entry.display?.("ready");
-          }
-        }
-        // Give the reparented video two paint opportunities before uncovering its native surface.
-        entry.coverPaint = requestAnimationFrame(() => {
-          entry.coverPaint = requestAnimationFrame(() => this.uncover(entry));
-        });
-      };
-      const requestPresentation = () => {
-        if ("requestVideoFrameCallback" in video) entry.coverFrame = video.requestVideoFrameCallback(presented);
-        else entry.coverPaint = requestAnimationFrame(presented);
-      };
-      requestPresentation();
-      if (entry.coverFreeze && entry.ready) this.play(entry);
-      this.schedule();
-    };
-    entry.coverPresent = present;
-    if (!hold) present();
-    entry.coverTimer = setTimeout(() => this.clearCover(entry), VIDEO_POLICY.loadTimeout);
-    return present;
   }
 
-  private holdClock(entry: Entry) {
-    entry.coverFreeze = entry.coverPaused = true;
-    this.pause(entry);
-  }
-
-  prepareLanding(video: HTMLVideoElement) {
-    const entry = this.entries.get(video);
-    if (!entry?.cover || entry.landing) return;
-    const landing = document.createElement("canvas");
-    landing.width = entry.cover.width;
-    landing.height = entry.cover.height;
-    const context = landing.getContext("2d");
-    if (!context) return;
-    try { context.drawImage(entry.cover, 0, 0); } catch { return; }
-    const bounds = entry.cover.getBoundingClientRect();
-    landing.className = "project-preview-landing";
-    landing.setAttribute("aria-hidden", "true");
-    Object.assign(landing.style, { left: `${bounds.left}px`, top: `${bounds.top}px`, width: `${bounds.width}px`, height: `${bounds.height}px` });
-    // This surface never changes parents while React unlocks the page and returns the native video.
-    document.body.appendChild(landing);
-    entry.landing = landing;
-    const delay = getComputedStyle(video).getPropertyValue("--project-focus-handoff-delay").trim();
-    entry.landingUntil = performance.now() + parseFloat(delay) * (delay.endsWith("ms") ? 1 : 1000);
-    return true;
-  }
-
-  private uncover(entry: Entry) {
-    if (entry.coverHeld) return;
-    const remaining = Math.max(0, (entry.landingUntil ?? 0) - performance.now());
-    if (remaining) entry.landingTimer = setTimeout(() => this.clearCover(entry), remaining);
-    else this.clearCover(entry);
-  }
-
-  private clearCover(entry: Entry, resumeClock = true) {
-    const hadCover = Boolean(entry.cover);
-    const frozen = entry.coverFreeze;
-    if (entry.coverFrame !== undefined) entry.video.cancelVideoFrameCallback(entry.coverFrame);
-    if (entry.coverPaint !== undefined) cancelAnimationFrame(entry.coverPaint);
-    clearTimeout(entry.coverTimer);
-    clearTimeout(entry.landingTimer);
-    entry.landing?.remove();
-    entry.landing = entry.landingUntil = entry.landingTimer = undefined;
+  private clearCover(entry: Entry) {
     entry.cover?.remove();
-    entry.cover = entry.coverFrame = entry.coverPaint = entry.coverTimer = undefined;
-    entry.coverHeld = false;
-    entry.coverFreeze = entry.coverPaused = false;
-    entry.coverPresent = undefined;
-    if (frozen && resumeClock && entry.ready && this.active && !document.hidden && !this.motion.matches && !this.connection?.saveData) this.play(entry);
-    if (hadCover) this.schedule();
+    entry.cover = undefined;
   }
 
   private measure(entry: Entry) {
+    entry.priority = entry.intentPriority || entry.focusWidth !== undefined;
     const box = entry.video.getBoundingClientRect();
     const visibleHeight = Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0));
     const visibleWidth = Math.max(0, Math.min(box.right, innerWidth) - Math.max(box.left, 0));
@@ -291,9 +191,9 @@ class VideoPlayback {
     }
     let loading = all.filter(entry => entry.loading).length;
     for (const entry of ranked.filter(entry => prepared.has(entry))) {
-      const rung = videoRendition(entry.asset, entry.video.clientWidth, devicePixelRatio, entry.width);
+      const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
       if (!rung) continue;
-      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.coverHeld && !entry.coverFreeze && (!entry.width || rung.width > entry.width)) {
+      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && (!entry.focusMoving || !entry.width) && (!entry.width || rung.width > entry.width)) {
         this.load(entry, rung.h264, rung.width);
         loading++;
       } else if (entry.ready && entry.wanted) this.play(entry);
@@ -303,8 +203,7 @@ class VideoPlayback {
   private load(entry: Entry, source: string, width: number) {
     const resumeTime = entry.video.currentTime;
     // Resolution upgrades retain the current picture instead of briefly revealing an unrelated poster.
-    if (entry.video.dataset.frameReady === "true") this.preserveFrame(entry.video, true);
-    entry.coverHeld = false;
+    if (entry.video.dataset.frameReady === "true") this.captureUpgrade(entry);
     this.release(entry, Boolean(entry.cover));
     entry.resumeTime = resumeTime;
     entry.width = width;
@@ -318,7 +217,7 @@ class VideoPlayback {
   }
 
   private play(entry: Entry) {
-    if (!entry.video.paused || entry.failed || !entry.wanted || entry.coverPaused) return;
+    if (!entry.video.paused || entry.failed || !entry.wanted) return;
     const generation = entry.generation;
     const reveal = () => {
       entry.frame = undefined;
@@ -327,11 +226,7 @@ class VideoPlayback {
         entry.video.dataset.frameReady = "true";
         entry.video.dataset.playback = "playing";
         entry.display?.("ready");
-        if (entry.cover && !entry.coverHeld && entry.coverFrame === undefined) {
-          entry.coverPaint = requestAnimationFrame(() => {
-            entry.coverPaint = requestAnimationFrame(() => this.uncover(entry));
-          });
-        }
+        this.clearCover(entry);
       }
     };
     void entry.video.play().then(() => {
@@ -351,7 +246,7 @@ class VideoPlayback {
       // Autoplay denial is a poster state, rather than an endless play/reject loop.
       entry.failed = true;
       this.pause(entry);
-      this.clearCover(entry, false);
+      this.clearCover(entry);
       delete entry.video.dataset.frameReady;
       entry.video.dataset.playback = "blocked";
       entry.display?.("poster");
@@ -370,7 +265,7 @@ class VideoPlayback {
   }
 
   private release(entry: Entry, keepCover = false) {
-    if (!keepCover) this.clearCover(entry, false);
+    if (!keepCover) this.clearCover(entry);
     entry.generation++;
     this.pause(entry);
     delete entry.video.dataset.frameReady;
@@ -419,10 +314,6 @@ export function registerVideo(video: HTMLVideoElement, asset: PortfolioVideoAsse
   return coordinator.register(video, asset, display);
 }
 
-export function preserveVideoFrame(video: HTMLVideoElement, hold = false, freezeClock = false) {
-  return coordinator?.preserveFrame(video, hold, freezeClock);
-}
-
-export function prepareVideoLanding(video: HTMLVideoElement) {
-  return coordinator?.prepareLanding(video);
+export function setVideoFocus(video: HTMLVideoElement, width?: number, moving = false) {
+  coordinator?.focus(video, width, moving);
 }

@@ -4,12 +4,12 @@
 
 The media source is already shared: focus reuses the original video. The remaining complexity is around
 moving its DOM/compositing hierarchy, not a missing player API. Keeping that hierarchy stable is the
-preferred direction for continuous playback. This is a proposed replacement for the handoff machinery,
-not another guard to layer on top. It has not replaced the shipped focus controller yet.
+preferred direction for continuous playback. This replacement is now integrated in `ProjectFocusMedia`;
+the focus-specific pause/canvas/landing machinery has been removed. The shared startup and rendition-loading paths remain separate.
 
-## Current boundaries
+## Previous boundaries (before integration)
 
-| Boundary | Current owner and work |
+| Boundary | Previous owner and work |
 | --- | --- |
 | Initial load / refresh | `ProjectPreviewVideo` renders the skeleton/poster; `video-playback.ts` selects a rendition. Before this audit it revealed on the first video-frame callback while changing the native video from hidden to visible. Hidden-page/pagehide cleanup also removes sources. |
 | Enter | `project-focus.tsx` moves the media from the grid button into the focus slot and animates it. Its larger rendered width may trigger a rendition upgrade. |
@@ -40,9 +40,8 @@ This removes a specific surface/reveal race; a complete native Safari flash fix 
 
 ## Isolated stable-DOM experiment
 
-Run `node scripts/probe-stable-focus-media.mjs [origin]` with the existing optional WebKit tooling.
-The probe temporarily lifts the original grid media with fixed positioning and a transform, leaving its
-DOM parent, dimensions, source, and video element unchanged. It uses the actual Rewards video and actual
+The original probe (now superseded by `scripts/check-focus-video-continuity.mjs`) temporarily lifted the
+original grid media with fixed positioning and a transform, leaving its DOM parent, dimensions, source, and video element unchanged. It uses the actual Rewards video and actual
 page ancestry. No product behavior or dependency is installed by the probe.
 
 At 393px and 1440px, four cycles each passed with zero pause events, source loads, media removals, or
@@ -51,20 +50,23 @@ handoff canvases. Every opening continued presenting video frames, the clock adv
 feasibility of the basic geometry and continuous clock in test WebKit. It does not test complete focus
 scrolling/paging, accessibility, device compositor flashes, rendition changes, or a browser refresh.
 
-## Recommended replacement
+## Integrated replacement
 
-Keep the native video in its original subtree and let a single focus-media controller own its visual
-position through entry, scroll, paging, return, and interruption. The focus slot remains a layout target;
-text and controls remain in the overlay. Scroll/paging should update the media transform, not transfer
-the video to another subtree. Preserve the existing visibility/load/decoder coordinator for grid playback.
-Defer rendition changes until the media settles so transition and source replacement cannot race.
+Native media now stays in its original subtree. `ProjectFocusMedia` owns visual placement through entry,
+scroll, paging, return, and interruption. The focus slot is a layout target and accessible image label;
+text and controls remain in the overlay above the live media. Swipe previews also use original media
+rather than a separate poster. Geometry updates run on scroll/resize events, with no idle drawing loop.
 
-Replace the focus-specific canvas/clock/landing code as a unit once the controller passes the existing
-entry/exit/page/rapid-reentry matrix. Remove the superseded protections instead of running two paths.
-Keep startup coverage separate: verify the revised cold/warm reload and background/foreground on the
-affected iPhone. Do not change teardown timing on the assumption that a focus fix also fixes refresh.
+The shared visibility/load/decoder coordinator remains responsible for video playback. Focus motion
+blocks rendition upgrades until it settles; actual source changes retain a single upgrade frame until
+new presentation. This source-loading fallback does not freeze the clock merely because focus closes.
+The focus-specific cover callbacks, held-clock flags, landing canvas, and landing delay are removed.
 
-The isolated probe is the concrete starting point. Integration must cover focus scrolling, both paging
-directions, interrupted paging/entry/exit, geometry after body unlock, responsive changes, reduced motion,
-source errors/upgrades, background/foreground, and decoder limits. Native iPhone Safari must confirm the
-visual result; headless WebKit frame counters cannot certify that a black flash is gone.
+The integrated real-video check verifies continuous frames during rapid/scrolled exits and paging,
+unchanged parents, no close-time pauses/loads/duplicates/copies, responsive geometry, and policy cleanup.
+The earlier probe and pause/handoff tests have been replaced. Existing gesture, focus/navigation,
+text-before-card, loading, startup, and Safari-edge tests remain in the verification matrix. The twelve-video
+lab still bounds concurrent playback to four desktop/two mobile and two initial load slots.
+
+Native iPhone Safari must still confirm the visual result. Browser frame counters establish playback and
+lifecycle behavior, not a guarantee that a device compositor never flashes.

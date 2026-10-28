@@ -4,27 +4,20 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 import { commitsPage, pagingIntent, restartsWheelGesture } from "@/lib/project-paging";
-import { preserveVideoFrame } from "@/lib/video-playback";
+import type { ProjectFocusMedia } from "@/lib/project-focus-media";
 
 type Direction = -1 | 1;
 type Gesture = { id: number; x: number; y: number; lastX: number; time: number; velocity: number; offset: number; width: number; axis: "pending" | "horizontal" | "vertical" };
-type Page = { snapshot: HTMLElement; media: HTMLElement; trigger: HTMLButtonElement; direction: Direction; offset: number; width: number; animations: Animation[] };
+type Page = { snapshot: HTMLElement; media: HTMLElement; direction: Direction; offset: number; width: number; animations: Animation[] };
 
 function milliseconds(tokens: CSSStyleDeclaration, property: string) {
   const value = tokens.getPropertyValue(property).trim();
   return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
 }
 
-function restoreMedia(media: HTMLElement, trigger: HTMLButtonElement) {
-  const video = media.querySelector("video");
-  const present = video ? preserveVideoFrame(video, true) : undefined;
-  trigger.prepend(media);
-  present?.();
-}
-
-export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total }: {
+export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total, focusMedia }: {
   rootRef: RefObject<HTMLDivElement | null>; pagesRef: RefObject<HTMLDivElement | null>; scrollRef: RefObject<HTMLDivElement | null>; controlsRef: RefObject<HTMLDivElement | null>;
-  selection: ProjectFocusSelection; onNavigate: (direction: Direction, keyboard: boolean) => void; total: number;
+  focusMedia: ProjectFocusMedia; selection: ProjectFocusSelection; onNavigate: (direction: Direction, keyboard: boolean) => void; total: number;
 }) {
   const current = useRef({ selection, onNavigate, total });
   useLayoutEffect(() => { current.current = { selection, onNavigate, total }; }, [selection, onNavigate, total]);
@@ -42,13 +35,14 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     page.current = null;
     if (outgoing) {
       outgoing.animations.forEach(animation => animation.cancel());
-      restoreMedia(outgoing.media, outgoing.trigger);
+      focusMedia.restore(outgoing.media);
       outgoing.snapshot.remove();
       if (rootRef.current?.dataset.phase !== "closing" && rootRef.current) rootRef.current.dataset.phase = "open";
     }
     scrollRef.current?.style.removeProperty("transform");
     gesture.current = null;
-  }, [rootRef, scrollRef]);
+    focusMedia.sync();
+  }, [rootRef, scrollRef, focusMedia]);
   const cancelPaging = useCallback(() => { finishPaging(); setNeighborDirection(null); }, [finishPaging]);
 
   const navigate = useCallback((direction: Direction, keyboard: boolean, shortcut = false) => {
@@ -59,7 +53,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     setNeighborDirection(null);
     root.dataset.input = shortcut ? "shortcut" : keyboard ? "keyboard" : "pointer";
     controlsRef.current!.querySelector<HTMLButtonElement>(direction === -1 ? ".project-focus-step:first-child" : ".project-focus-step:last-child")!.focus({ preventScroll: true });
-    const media = scroller.querySelector<HTMLElement>(".homepage-project-media")!;
+    const media = current.current.selection.trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     // Copy metadata separately so the outgoing page never duplicates a media element.
     const snapshot = scroller.cloneNode(false) as HTMLElement;
     const panel = scroller.querySelector(".project-focus-panel")!.cloneNode(false) as HTMLElement;
@@ -76,38 +70,43 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     snapshot.querySelectorAll<HTMLElement>(".project-focus-details [style]").forEach(node => node.style.removeProperty("opacity"));
     pagesRef.current!.appendChild(snapshot);
     snapshot.scrollTop = scroller.scrollTop;
-    const video = media.querySelector("video");
-    const present = video ? preserveVideoFrame(video, true) : undefined;
-    slot.appendChild(media);
-    present?.();
-    page.current = { snapshot, media, trigger: current.current.selection.trigger, direction, offset, width: pagesRef.current!.clientWidth, animations: [] };
+    focusMedia.attach(current.current.selection.trigger, slot, "outgoing");
+    page.current = { snapshot, media, direction, offset, width: pagesRef.current!.clientWidth, animations: [] };
     current.current.onNavigate(direction, keyboard);
-  }, [rootRef, scrollRef, controlsRef, pagesRef, finishPaging]);
+  }, [rootRef, scrollRef, controlsRef, pagesRef, finishPaging, focusMedia]);
 
   const animatePage = useCallback((reduced: boolean) => {
     const outgoing = page.current;
     if (!outgoing) return null;
     const tokens = getComputedStyle(rootRef.current!);
     const duration = milliseconds(tokens, "--project-focus-page-duration");
-    const minimum = milliseconds(tokens, "--project-focus-handoff-delay");
+    const minimum = milliseconds(tokens, "--project-focus-page-min-duration");
     const remaining = Math.max(0, 1 - Math.abs(outgoing.offset) / outgoing.width);
     const options = { duration: reduced ? 0 : Math.max(minimum, duration * remaining), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})`, fill: "both" as const };
     // Keep the desktop wheel's scroll container stationary, including its native scrolling layer.
     const desktop = matchMedia("(min-width: 768px)").matches;
     const incomingTarget = desktop ? scrollRef.current!.querySelector<HTMLElement>(".project-focus-panel")! : scrollRef.current!;
     const outgoingTarget = desktop ? outgoing.snapshot.querySelector<HTMLElement>(".project-focus-panel")! : outgoing.snapshot;
+    const incomingMedia = current.current.selection.trigger.querySelector<HTMLElement>(".homepage-project-media")!;
+    const incomingBounds = scrollRef.current!.querySelector(".project-focus-media-slot")!.getBoundingClientRect();
+    const outgoingBounds = outgoing.snapshot.querySelector(".project-focus-media-slot")!.getBoundingClientRect();
+    const shifted = (bounds: DOMRect, x: number) => new DOMRect(bounds.left + x, bounds.top, bounds.width, bounds.height);
     const incoming = incomingTarget.animate([{ transform: `translateX(${outgoing.direction * outgoing.width + outgoing.offset}px)` }, { transform: "translateX(0px)" }], options);
     const leaving = outgoingTarget.animate([{ transform: `translateX(${outgoing.offset}px)` }, { transform: `translateX(${-outgoing.direction * outgoing.width}px)` }], options);
-    outgoing.animations = [incoming, leaving];
+    outgoing.animations = [incoming, leaving,
+      focusMedia.animate(incomingMedia, shifted(incomingBounds, outgoing.direction * outgoing.width + outgoing.offset), incomingBounds, options),
+      focusMedia.animate(outgoing.media, shifted(outgoingBounds, outgoing.offset), shifted(outgoingBounds, -outgoing.direction * outgoing.width), options),
+    ];
     void Promise.all(outgoing.animations.map(animation => animation.finished)).then(() => { if (page.current === outgoing) finishPaging(); }).catch(() => {});
     return outgoing.animations;
-  }, [rootRef, scrollRef, finishPaging]);
+  }, [rootRef, scrollRef, finishPaging, focusMedia]);
   const retainsMedia = useCallback((media: HTMLElement) => page.current?.media === media, []);
 
   useLayoutEffect(() => {
     const moving = gesture.current;
     if (moving && neighborRef.current && neighborDirection) neighborRef.current.style.transform = `translateX(${neighborDirection * moving.width + moving.offset}px)`;
-  }, [neighborDirection]);
+    focusMedia.sync();
+  }, [neighborDirection, focusMedia]);
 
   useLayoutEffect(() => {
     const root = rootRef.current!, scroller = scrollRef.current!;
@@ -118,14 +117,24 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
       gesture.current = null;
       if (!moving || moving.axis !== "horizontal") { setNeighborDirection(null); return; }
       const tokens = getComputedStyle(root);
-      const duration = Math.max(milliseconds(tokens, "--project-focus-handoff-delay"), milliseconds(tokens, "--project-focus-page-duration") * Math.abs(moving.offset) / moving.width);
+      const duration = Math.max(milliseconds(tokens, "--project-focus-page-min-duration"), milliseconds(tokens, "--project-focus-page-duration") * Math.abs(moving.offset) / moving.width);
       const options = { duration: reduced.matches ? 0 : duration, easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
+      const media = current.current.selection.trigger.querySelector<HTMLElement>(".homepage-project-media")!;
+      const bounds = media.getBoundingClientRect();
+      const target = new DOMRect(bounds.left - moving.offset, bounds.top, bounds.width, bounds.height);
       const animations = [scroller.animate([{ transform: `translateX(${moving.offset}px)` }, { transform: "translateX(0px)" }], options)];
+      animations.push(focusMedia.animate(media, bounds, target, options));
       scroller.style.removeProperty("transform");
       if (neighborRef.current) animations.push(neighborRef.current.animate([{ transform: `translateX(${(moving.offset < 0 ? 1 : -1) * moving.width + moving.offset}px)` }, { transform: `translateX(${(moving.offset < 0 ? 1 : -1) * moving.width}px)` }], options));
+      const previewSlot = neighborRef.current?.querySelector<HTMLElement>(".project-focus-media-slot");
+      if (previewSlot) {
+        const previewBounds = previewSlot.getBoundingClientRect();
+        const preview = focusMedia.animateSlot(previewSlot, previewBounds, new DOMRect(previewBounds.left - moving.offset, previewBounds.top, previewBounds.width, previewBounds.height), options);
+        if (preview) animations.push(preview);
+      }
       snapAnimations.current = animations;
       void Promise.all(animations.map(animation => animation.finished)).then(() => {
-        if (snapAnimations.current === animations) { snapAnimations.current = []; setNeighborDirection(null); }
+        if (snapAnimations.current === animations) { snapAnimations.current = []; focusMedia.settle(media); setNeighborDirection(null); }
       }).catch(() => {});
     };
     let wheelGesture: { x: number; y: number; time: number; axis: ReturnType<typeof pagingIntent>; committed: boolean; lastX: number; previousX: number; peak: number } | null = null;
@@ -187,6 +196,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
       scroller.style.transform = `translateX(${moving.offset}px)`;
       if (neighborRef.current) neighborRef.current.style.transform = `translateX(${direction * moving.width + moving.offset}px)`;
       setNeighborDirection(direction);
+      focusMedia.sync();
     };
     const pointerEnd = (event: PointerEvent) => {
       const moving = gesture.current;
@@ -221,7 +231,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
       window.removeEventListener("resize", resize);
       finishPaging();
     };
-  }, [rootRef, pagesRef, scrollRef, navigate, finishPaging, cancelPaging]);
+  }, [rootRef, pagesRef, scrollRef, navigate, finishPaging, cancelPaging, focusMedia]);
 
   return { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef };
 }

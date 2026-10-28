@@ -47,7 +47,7 @@ try {
         const root = document.querySelector(".project-focus-root");
         return [...document.querySelectorAll(selector)].map(node => {
           const style = getComputedStyle(node), rect = node.getBoundingClientRect();
-          return { display: style.display, color: style.backgroundColor, top: rect.top, bottom: rect.bottom, height: rect.height, width: rect.width, position: style.position, above: Number(style.zIndex) > Number(getComputedStyle(root).zIndex), direct: node.parentElement === document.body, inert: node.inert, pointerEvents: style.pointerEvents, opacity: style.opacity, blur: style.backdropFilter, transform: style.transform, animations: node.getAnimations().length, inline: node.getAttribute("style") };
+          return { display: style.display, color: style.backgroundColor, top: rect.top, bottom: rect.bottom, height: rect.height, width: rect.width, position: style.position, above: Number(style.zIndex) > Number(getComputedStyle(root.querySelector(".project-focus-controls")).zIndex), direct: node.parentElement === document.body, inert: node.inert, pointerEvents: style.pointerEvents, opacity: style.opacity, blur: style.backdropFilter, transform: style.transform, animations: node.getAnimations().length, inline: node.getAttribute("style") };
         });
       }, selector);
       if (!mobile) {
