@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Stationary-pointer paging and earlier focus text (2026-10-27)**
+- Fixed repeated desktop wheel gestures stopping after the first page when the pointer stays still. A wheel transaction can retain its original media target after that media returns to its grid card, outside the focus root. The wheel listener now captures on window for the focus session and is removed on dismissal; gesture thresholds, momentum protection, vertical scrolling, and mobile behavior are unchanged.
+- Added a regression that retains the same media target across multiple forward/backward gestures without pointer movement. It failed on the second page before the fix and now passes, including listener cleanup after close.
+- Liam approved reducing the initial text delay from 180ms to 120ms. Added a separate focus text-enter-delay token so the media transition remains 180ms; the 600ms fade and 40ms stagger are unchanged.
+- Validation: all 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus, navigation, and paging browser checks passed.
+
 **Desktop horizontal scroll paging (2026-10-27)**
 - Horizontal trackpad/wheel gestures now use the existing focused-project page transition on desktop, including both loop boundaries and displayed project order. Shift+wheel also pages. Horizontal intent uses the existing swipe axis rule and page-frame threshold; pixel, line, and page wheel units are normalized.
 - Each wheel stream commits at most one project, including momentum after the animation completes. A new wheel-idle role aliases the existing 300ms motion duration. Vertical gestures, modifier/pinch zoom, and mobile touch paging keep their native/existing behavior. The root listener is removed on dismissal and gesture state resets on resize.

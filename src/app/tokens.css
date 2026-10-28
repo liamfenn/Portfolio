@@ -51,6 +51,7 @@
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--motion-duration);
   --project-focus-handoff-delay: 80ms;
+  --project-focus-text-enter-delay: 120ms;
   --project-focus-text-enter-duration: 600ms;
   --project-focus-text-stagger: var(--project-label-delay);
   --project-focus-text-exit-duration: 120ms;

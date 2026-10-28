@@ -144,6 +144,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     };
     const handoffDelay = milliseconds("--project-focus-handoff-delay");
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
+    const textEnterDelay = milliseconds("--project-focus-text-enter-delay");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const textStagger = milliseconds("--project-focus-text-stagger");
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
@@ -170,7 +171,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     animations.push(...(pageAnimations ?? [opening]));
     if (!navigation) animations.push(
       ...[blur, backdrop, bottomFade].map(element => fade(element, 0, 1)),
-      ...textRows.map(({ element, top }) => fade(element, 0, 1, timing.duration + rowTops.indexOf(top) * textStagger, textEnterDuration)),
+      ...textRows.map(({ element, top }) => fade(element, 0, 1, textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
     );
     void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
     void Promise.all(animations.map(animation => animation.finished)).then(() => { if (!closing && !disposed) root.dataset.phase = "open"; }).catch(() => {});

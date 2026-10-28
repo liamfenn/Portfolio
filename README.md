@@ -94,7 +94,7 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
 The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif. All focus
-text uses the same 600ms opacity fade after the media handoff, staggered 40ms from top to bottom; rows at
+text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
 the same height enter together. P, Close, and N are visible immediately with no intro animation.
 Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description

@@ -47,14 +47,14 @@ try {
       return { duration: timing.duration, delay: timing.delay, easing: timing.easing, rowTimings, controlsStatic, samples, text: summary.textContent, streamed: Boolean(root.querySelector(".project-focus-glyphs")), controlsText: controls.textContent };
     });
     assert.equal(fade.duration, 600);
-    assert.equal(fade.delay, 260);
+    assert.equal(fade.delay, 200);
     assert.equal(fade.controlsStatic, true);
     assert.equal(fade.controlsText, "PCloseN");
     assert.ok(fade.samples[2] > 0 && fade.samples[2] < 1);
     assert.equal(fade.text, description);
     assert.equal(fade.streamed, false);
     const rowTops = [...new Set(fade.rowTimings.map(row => row.top))].sort((a, b) => a - b);
-    assert.ok(fade.rowTimings.every(row => row.duration === fade.duration && row.easing === fade.easing && row.delay === 180 + rowTops.indexOf(row.top) * 40));
+    assert.ok(fade.rowTimings.every(row => row.duration === fade.duration && row.easing === fade.easing && row.delay === 120 + rowTops.indexOf(row.top) * 40));
     const settled = async id => {
       await page.waitForFunction(id => {
         const root = document.querySelector(".project-focus-root");

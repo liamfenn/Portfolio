@@ -208,7 +208,7 @@ try {
         });
         assert.equal(timing.length, 16);
         assert.ok(timing.every(animation => !animation.controls && animation.duration === (animation.text ? 600 : 180) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
-        assert.deepEqual([...new Set(timing.filter(animation => animation.text).map(animation => animation.delay))], [180, 220, 260, 300, 340, 380, 420]);
+        assert.deepEqual([...new Set(timing.filter(animation => animation.text).map(animation => animation.delay))], [120, 160, 200, 240, 280, 320, 360]);
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
       await dialog.waitFor({ state: "detached" });

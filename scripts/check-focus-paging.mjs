@@ -92,15 +92,23 @@ try {
       assert.equal(await dialog.evaluate(root => root.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length), 0);
       await page.emulateMedia({ reducedMotion: "no-preference" });
     } else {
-      await page.mouse.move(width / 2, 500);
-      await page.mouse.wheel(0, 200);
-      await page.waitForFunction(() => document.querySelector(".project-focus-scroll").scrollTop > 0);
-      assert.equal(await dialog.getAttribute("data-focus-project"), ids[0]);
+      // Native wheel transactions can retain their original media target after it returns to the grid.
+      await dialog.evaluate(root => { window.__wheelTarget = root.querySelector(".homepage-project-media"); });
       const idle = await dialog.evaluate(root => {
         const value = getComputedStyle(root).getPropertyValue("--project-focus-wheel-idle").trim();
         return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
       });
       const newGesture = () => page.waitForTimeout(idle + 60);
+      for (const [direction, expected] of [[1, ids[1]], [1, ids[2]], [-1, ids[1]], [-1, ids[0]]]) {
+        await newGesture();
+        await page.evaluate(direction => window.__wheelTarget.dispatchEvent(new WheelEvent("wheel", { deltaX: direction * 100, bubbles: true, cancelable: true })), direction);
+        await settled(expected);
+      }
+      await page.mouse.move(width / 2, 500);
+      await page.mouse.wheel(0, 200);
+      await page.waitForFunction(() => document.querySelector(".project-focus-scroll").scrollTop > 0);
+      assert.equal(await dialog.getAttribute("data-focus-project"), ids[0]);
+
       await newGesture();
       // Small horizontal jitter stays on the current project, then a deliberate delta commits it.
       for (let index = 0; index < 3; index++) await page.mouse.wheel(2, 0);
@@ -149,9 +157,14 @@ try {
     await page.getByRole("button", { name: "Close", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(await page.locator("[data-paging-outgoing], [data-paging-neighbor]").count(), 0);
+    if (!mobile) assert.equal(await page.evaluate(() => {
+      const event = new WheelEvent("wheel", { deltaX: 100, bubbles: true, cancelable: true });
+      window.__wheelTarget.dispatchEvent(event);
+      return event.defaultPrevented;
+    }), false);
     assert.ok(await page.evaluate(() => window.__pagingMedia.every(({ trigger, media }) => trigger.contains(media)) && !document.querySelector("main").inert && document.body.style.position !== "fixed"));
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ width, paging: "directional paired motion, retained media, static controls, desktop wheel direction/wrap/momentum/axis/units, swipe tracking/wrap/cancel/vertical scroll, reduced motion and interruption cleanup passed" }));
+    console.log(JSON.stringify({ width, paging: "directional paired motion, retained media, static controls, desktop wheel retained target/repeated gestures/direction/wrap/momentum/axis/units/cleanup, swipe tracking/wrap/cancel/vertical scroll, reduced motion and interruption cleanup passed" }));
     await page.close();
   }
 } finally { await browser.close(); }

@@ -189,7 +189,8 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
       if (suppressClick.current && event.detail !== 0) { suppressClick.current = false; event.preventDefault(); event.stopImmediatePropagation(); }
     };
     const resize = () => { wheelGesture = null; cancelPaging(); };
-    root.addEventListener("wheel", wheel, { passive: false });
+    // Wheel transactions may keep targeting media after paging returns it to its original grid card.
+    window.addEventListener("wheel", wheel, { passive: false, capture: true });
     root.addEventListener("pointerdown", allowPointer, { capture: true });
     scroller.addEventListener("pointerdown", pointerStart);
     scroller.addEventListener("pointermove", pointerMove, { passive: false });
@@ -198,7 +199,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     window.addEventListener("click", click, { capture: true });
     window.addEventListener("resize", resize);
     return () => {
-      root.removeEventListener("wheel", wheel);
+      window.removeEventListener("wheel", wheel, { capture: true });
       root.removeEventListener("pointerdown", allowPointer, { capture: true });
       scroller.removeEventListener("pointerdown", pointerStart);
       scroller.removeEventListener("pointermove", pointerMove);
