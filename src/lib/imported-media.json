@@ -41,20 +41,20 @@
   "shop-rewards-card": {
     "id": "shop-rewards-card",
     "kind": "video",
-    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-1600.mp4",
-    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-poster-1600.webp",
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-1600.mp4",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-poster-1600.webp",
     "posters": [
       {
         "width": 480,
-        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-poster-480.webp"
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-poster-480.webp"
       },
       {
         "width": 800,
-        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-poster-800.webp"
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-poster-800.webp"
       },
       {
         "width": 1600,
-        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-poster-1600.webp"
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-poster-1600.webp"
       }
     ],
     "alt": "Shop Rewards card interaction prototype",
@@ -65,15 +65,15 @@
     "renditions": [
       {
         "width": 800,
-        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-800.mp4"
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-800.mp4"
       },
       {
         "width": 1200,
-        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-1200.mp4"
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-1200.mp4"
       },
       {
         "width": 1600,
-        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/5ba35d1a025583fb-1600.mp4"
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/847f10fc0ae2651c-1600.mp4"
       }
     ]
   }

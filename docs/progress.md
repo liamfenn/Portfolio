@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Updated Rewards card video (2026-10-27)**
+- Replaced the second project's media with Liam's `shop-card-v2.MP4`, including its revised background. Re-imported the tagged SDR master at the original 60fps and 27.1-second duration into immutable 800/1200/1600px H.264 renditions (about 1.08/1.98/2.99 MB), with fresh responsive posters from the visible card at 10 seconds.
+- Validation: all renditions passed full decode checks, all six CDN files match the local SHA-256 reports, and video byte-range delivery passed. Reviewed the new poster and desktop/mobile focus screenshots; browser checks confirmed the new poster URLs in grid/focus, retained project metadata/media identity, clean return to the grid, and poster-only reduced-motion delivery. All 58 tests, TypeScript, registry-consumer lint, and the production build passed. H.264 playback on native devices uses the existing player and remains for device review.
+
 **Close fades with the description (2026-10-27)**
 - Removed Close from the streamed color glitch. Its plain, inspectable label and button fade in with the description's existing delay, duration, and easing. Paging keeps the control visible, and reduced motion skips the fade.
 - Validation: 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus and navigation checks passed. Browser checks compare Close and description fade timing/opacity, confirm Close has no glitch renderer, and cover reduced motion, entry/exit, paging, and keyboard focus.
