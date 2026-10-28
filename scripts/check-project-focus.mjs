@@ -102,8 +102,8 @@ try {
     assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
-    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 14);
-    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 12);
+    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 13);
+    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 11);
     assert.equal(await page.evaluate(() => window.__focusStreamRegressed), false);
     assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
     assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
@@ -136,7 +136,7 @@ try {
     }));
     assert.ok(typography.every(item => item.singleTextRun && item.canonicalVisible && item.sameStyle && item.maxAdvanceDifference < 0.1), JSON.stringify(typography));
     const visibleColors = await page.evaluate(() => Object.entries(window.__focusVisibleColors).filter(([text]) => text.length > 1).map(([, timing]) => timing.last - timing.first));
-    assert.equal(visibleColors.length, 12);
+    assert.equal(visibleColors.length, 11);
     assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
     const lateFlashes = await dialog.evaluate(async root => {
       const changes = [];
@@ -299,9 +299,9 @@ try {
         const timing = await dialog.evaluate(root => {
           const animations = root.getAnimations({ subtree: true });
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
-          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-controls, .project-focus-summary"), summary: animation.effect.target.matches(".project-focus-summary") }));
+          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-controls, .project-focus-summary, .project-focus-close"), summary: animation.effect.target.matches(".project-focus-summary, .project-focus-close") }));
         });
-        assert.equal(timing.length, 7);
+        assert.equal(timing.length, 8);
         assert.ok(timing.every(animation => (animation.summary ? animation.duration > 500 && animation.duration < 700 : animation.duration === (animation.text ? 80 : 180)) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
         assert.ok(timing.every(animation => animation.delay === (animation.text ? 180 : 0)));
       }

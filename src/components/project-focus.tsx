@@ -192,7 +192,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
   }, [navigate]);
 
   useLayoutEffect(() => {
-    const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!;
+    const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!, close = closeRef.current!;
     const { trigger, origin, preview, navigation } = selection;
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
@@ -210,7 +210,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
-    const labels = [preview.company, preview.label, `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`, ...(preview.team?.length ? ["Contributors", ...preview.team.map(member => member.name)] : []), ...(preview.tech?.length ? ["Tech", ...preview.tech] : []), "P", "Close", "N"];
+    const labels = [preview.company, preview.label, `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`, ...(preview.team?.length ? ["Contributors", ...preview.team.map(member => member.name)] : []), ...(preview.tech?.length ? ["Tech", ...preview.tech] : []), "P", "N"];
     const cycles = FILTER_SCRAMBLE.scramble + Math.ceil(FILTER_SCRAMBLE.scramble / 2);
     const descriptionDuration = (Math.max(...labels.map(label => Array.from(label).length)) - 1 + cycles) * 1000 / (60 * FILTER_SCRAMBLE.speed);
     root.dataset.phase = "opening";
@@ -228,14 +228,14 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       ], { ...timing, duration: motion.matches ? 0 : timing.duration, delay: motion.matches ? 0 : delay, fill: "both" });
     };
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
-    const isText = (element: HTMLElement) => element === details || element === controls || element === summary;
+    const isText = (element: HTMLElement) => element === details || element === controls || element === summary || element === close;
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
     const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
-    const faded = [blur, backdrop, bottomFade, details, controls, ...(summary ? [summary] : [])];
+    const faded = [blur, backdrop, bottomFade, details, controls, close, ...(summary ? [summary] : [])];
     animations.push(...(pageAnimations ?? [opening]), ...faded.map(element => {
       if (navigation) return fade(element, 1, 1, 0, 0);
-      return fade(element, 0, 1, isText(element) ? timing.duration : 0, element === summary ? descriptionDuration : isText(element) ? textEnterDuration : timing.duration);
+      return fade(element, 0, 1, isText(element) ? timing.duration : 0, element === summary || element === close ? descriptionDuration : isText(element) ? textEnterDuration : timing.duration);
     }));
     void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
     void Promise.all(animations.map(animation => animation.finished)).then(() => { if (!closing && !disposed) root.dataset.phase = "open"; }).catch(() => {});
@@ -302,7 +302,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     <div className="project-focus-bottom-fade" aria-hidden="true" />
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
       <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><FocusText text="P" /></button>
-      <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>
+      <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>
       <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N ArrowRight" onClick={event => navigate(1, event.detail === 0)}><FocusText text="N" /></button>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Project {position} of {total}: {selection.preview.label}, {selection.preview.company}, {selection.preview.period}</span>

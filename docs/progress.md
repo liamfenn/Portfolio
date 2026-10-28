@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Close fades with the description (2026-10-27)**
+- Removed Close from the streamed color glitch. Its plain, inspectable label and button fade in with the description's existing delay, duration, and easing. Paging keeps the control visible, and reduced motion skips the fade.
+- Validation: 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus and navigation checks passed. Browser checks compare Close and description fade timing/opacity, confirm Close has no glitch renderer, and cover reduced motion, entry/exit, paging, and keyboard focus.
+
 **Shortcut navigation without control outlines (2026-10-27)**
 - P/N and Left/Right Arrow now use a separate shortcut input mode, keeping focus on the active navigation control without drawing its outline. Tab/Shift+Tab and Enter/Space button activation retain the shared keyboard ring. Pointer and swipe navigation remain outline-free; paging behavior and focus restoration are unchanged.
 - Validation: 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile navigation checks passed. Expanded the browser checks to verify ring-free shortcuts, restoration via Tab/Shift+Tab, visible feedback after Enter/Space activation, and switching back to a shortcut from keyboard focus.

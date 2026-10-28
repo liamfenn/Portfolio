@@ -32,17 +32,28 @@ try {
     await dialog.waitFor();
     const fade = await dialog.locator(".project-focus-summary").evaluate(summary => {
       const animation = summary.getAnimations()[0];
+      const close = document.querySelector(".project-focus-close");
+      const closeAnimation = close.getAnimations()[0];
       const timing = animation.effect.getTiming();
-      animation.pause();
-      animation.currentTime = timing.delay + timing.duration / 2;
-      const opacity = Number(getComputedStyle(summary).opacity);
-      animation.play();
-      return { duration: timing.duration, delay: timing.delay, opacity, text: summary.textContent, streamed: Boolean(summary.querySelector(".project-focus-glyphs")) };
+      const closeTiming = closeAnimation.effect.getTiming();
+      const samples = [0, 0.25, 0.5, 0.75, 1].map(progress => {
+        for (const fade of [animation, closeAnimation]) {
+          fade.pause();
+          fade.currentTime = timing.delay + timing.duration * progress;
+        }
+        return { summary: Number(getComputedStyle(summary).opacity), close: Number(getComputedStyle(close).opacity) };
+      });
+      animation.play(); closeAnimation.play();
+      return { duration: timing.duration, delay: timing.delay, samples, matchingTiming: JSON.stringify(timing) === JSON.stringify(closeTiming), text: summary.textContent, streamed: Boolean(summary.querySelector(".project-focus-glyphs")), closeText: close.textContent, closeStreamed: Boolean(close.querySelector(".project-focus-glyphs")) };
     });
     assert.ok(fade.duration > 500 && fade.duration < 700 && fade.delay === 180);
-    assert.ok(fade.opacity > 0 && fade.opacity < 1);
+    assert.equal(fade.matchingTiming, true);
+    assert.ok(fade.samples.every(sample => sample.close === sample.summary));
+    assert.ok(fade.samples[2].summary > 0 && fade.samples[2].summary < 1);
     assert.equal(fade.text, description);
     assert.equal(fade.streamed, false);
+    assert.equal(fade.closeText, "Close");
+    assert.equal(fade.closeStreamed, false);
     const settled = async id => {
       await page.waitForFunction(id => {
         const root = document.querySelector(".project-focus-root");

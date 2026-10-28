@@ -94,7 +94,8 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
 The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif and fades
-in alongside the streamed metadata; it never scrambles. Linked credits appear under **Contributors**,
+in alongside the streamed metadata; it never scrambles. Close uses plain text with the same delayed fade
+as the description. Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
 Streamed labels retain the same native text node after settling, avoiding a paint swap between copies.
