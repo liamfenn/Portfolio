@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Keep the video clock aligned with the focus safety image (2026-10-28)**
+- Liam confirmed the Safari flicker and desktop text fixes, then noticed a small video jump on rapid focus exits. A real-video WebKit regression measured about 0.367 seconds of hidden playback advancing behind the frozen closing image before this fix.
+- Kept the original video and existing canvases. Closing pauses the video clock; at landing, a fresh presented frame refreshes the canvases once, then the clock pauses through the remaining paint guard and resumes at reveal. Pending guards rearm when reopening before cleanup. No extra video/decoder, source load, dependency, or continuous canvas drawing loop; playback limits and resolution-upgrade policy remain unchanged.
+- Validation: 59 tests, TypeScript, touched-file lint, and production build passed. Real H.264 WebKit checks cover four rapid exits at desktop/mobile widths, a reopen before the pending landing frame, paused clock during close, reveal within 100ms of capture, resumed playback, unchanged video identity/count/source, and zero added source loads. Existing WebKit repeated-handoff/policy cleanup and loading/upgrade/text/swipe regressions also passed. Native Safari's final visual feel remains a device check.
+
 **Completion-ordered focus exit after paging and scrolling (2026-10-28)**
 - Liam's desktop Safari screenshot exposed the remaining overlap: the old 80ms media delay was shorter than the 120ms text exit. Reproducing four page changes and a vertical scroll in WebKit showed media moving around 100ms while 285 characters remained in the DOM until about 130ms. The new regression fails against that behavior.
 - Closing now completes both text fades, removes the metadata through React, and gives the removal a paint opportunity before starting the 180ms asset return and backdrop fade. The return no longer races an independent timer. Scrolling locks at its current offset with scrollbar space retained, and return geometry is measured after the text stage. The existing video landing shield is retained.

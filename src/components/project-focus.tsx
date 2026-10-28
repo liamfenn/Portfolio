@@ -152,7 +152,10 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
     // Reuse the actual media element and return it before React removes its source card.
+    const enteringVideo = media.querySelector("video");
+    const presentEntry = enteringVideo && media.querySelector(".project-preview-handoff") ? preserveVideoFrame(enteringVideo, true) : undefined;
     slot.appendChild(media);
+    presentEntry?.();
     const animations: Animation[] = [];
     animationsRef.current = animations;
     let closing = false, disposed = false;
@@ -189,7 +192,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       if (scroller.scrollHeight > scroller.clientHeight) scroller.style.scrollbarGutter = "stable";
       scroller.style.overflowY = "hidden";
       const video = media.querySelector("video");
-      if (video) presentHandoff = preserveVideoFrame(video, true);
+      if (video) presentHandoff = preserveVideoFrame(video, true, true);
       const opacity = Number(getComputedStyle(media).opacity);
       const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
       const textElements = [details, controls];

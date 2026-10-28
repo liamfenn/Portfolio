@@ -104,7 +104,9 @@ and Swift/UIKit/Metal stack until their final content is ready.
 Focus labels render as ordinary native text without decorative glyph copies.
 Video holds its last decoded frame over the entire closing animation and return to the grid. It uncovers
 only after a fresh presented frame and two paint opportunities. A fixed landing copy paints before the
-overlay unmounts and covers the return through the existing 80ms handoff interval. Focus text is removed
+overlay unmounts and covers the return through the existing 80ms handoff interval. The same video's clock
+pauses while covered, with one fresh capture at the destination before resuming at reveal. This avoids
+hidden playback advancing ahead of the picture, without another video or a continuous canvas drawing loop. Focus text is removed
 from the DOM after its 120ms exit fade, with its layout height retained. The removal paints before the
 180ms asset return begins; scrolling locks during this sequence so the return geometry stays fixed. Normal pauses keep that frame; source release/error restores the poster.
 
