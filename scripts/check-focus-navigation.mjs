@@ -102,6 +102,16 @@ try {
     await settled(ids.at(-1));
     await page.keyboard.press("n");
     await settled(ids[0]);
+    assert.equal(await previous.getAttribute("aria-keyshortcuts"), "P ArrowLeft");
+    assert.equal(await next.getAttribute("aria-keyshortcuts"), "N ArrowRight");
+    await page.keyboard.press("ArrowLeft");
+    await settled(ids.at(-1));
+    await page.keyboard.press("ArrowRight");
+    await settled(ids[0]);
+    await page.keyboard.press("ArrowRight");
+    await settled(ids[1]);
+    await page.keyboard.press("ArrowLeft");
+    await settled(ids[0]);
     // Fast consecutive changes must cancel old reveals without returning the page to its unlocked state.
     for (let index = 1; index <= 4; index++) {
       await next.click();
@@ -114,8 +124,10 @@ try {
     await settled(ids[0]);
     await checkSession(ids[0]);
     assert.ok(await page.evaluate(id => Object.entries(window.__projectSources).every(([key, source]) => key === id || source.trigger.contains(source.media)), ids[0]));
-    const modifier = await page.evaluate(() => document.querySelector(".project-focus-root").dispatchEvent(new KeyboardEvent("keydown", { key: "n", ctrlKey: true, bubbles: true, cancelable: true })));
-    assert.equal(modifier, true);
+    for (const [key, modifier] of [["n", "ctrlKey"], ["ArrowLeft", "altKey"], ["ArrowRight", "metaKey"]]) {
+      const unhandled = await page.evaluate(({ key, modifier }) => document.querySelector(".project-focus-root").dispatchEvent(new KeyboardEvent("keydown", { key, [modifier]: true, bubbles: true, cancelable: true })), { key, modifier });
+      assert.equal(unhandled, true);
+    }
     await checkSession(ids[0]);
 
     if (mobile) {

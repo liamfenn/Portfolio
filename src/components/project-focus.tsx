@@ -161,9 +161,11 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
     const onKeyDown = (event: KeyboardEvent) => {
       root.dataset.input = "keyboard";
       const key = event.key.toLowerCase();
-      if (!event.altKey && !event.ctrlKey && !event.metaKey && (key === "p" || key === "n") && root.dataset.phase !== "closing") {
+      const previous = key === "p" || key === "arrowleft";
+      const next = key === "n" || key === "arrowright";
+      if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || next) && root.dataset.phase !== "closing") {
         event.preventDefault(); event.stopImmediatePropagation();
-        navigationRef.current(key === "p" ? -1 : 1, true);
+        navigationRef.current(previous ? -1 : 1, true);
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
@@ -290,9 +292,9 @@ export function ProjectFocus({ selection, onClose, onNavigate, position, total }
       </div>
     </div>
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P" onClick={event => navigate(-1, event.detail === 0)}><FocusText text="P" /></button>
+      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><FocusText text="P" /></button>
       <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><FocusText text="Close" /></button>
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N" onClick={event => navigate(1, event.detail === 0)}><FocusText text="N" /></button>
+      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N ArrowRight" onClick={event => navigate(1, event.detail === 0)}><FocusText text="N" /></button>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Project {position} of {total}: {selection.preview.label}, {selection.preview.company}, {selection.preview.period}</span>
     </div>

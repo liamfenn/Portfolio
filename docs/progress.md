@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Focus keyboard navigation (2026-10-27)**
+- Added Left Arrow alongside P for previous project and Right Arrow alongside N for next. All four keys use the same wrapping displayed-grid navigation while focused view is open. Alt/Ctrl/Command combinations retain browser behavior; accessible shortcut metadata lists both alternatives.
+- Validation: 55 tests, TypeScript, touched-file lint, production build, and desktop/mobile navigation browser checks passed, including arrow-key wrap boundaries and modified-key exclusions.
+
 **Expanded focus content and looping navigation (2026-10-27)**
 - Implemented Figma 502:2452 and the P/Close/N strip at 502:2457. Added a bodySerif description and side-by-side Contributors/Tech columns. Every current project shares the supplied placeholder description and Swift/UIKit/Metal stack; existing titles, dates, media, and contributor links remain project-specific. Description, tech, and contributors are optional and empty sections are omitted.
 - The description stays plain text and fades over the duration of the longest streamed label, starting with the media handoff. Metadata retains the finite native-kerning reveal. Added focus roles for the 500px/361px description measures, 36px desktop section rhythm (32px mobile via existing spacing), 35px P/N visuals, and the existing 4px gap. Named type styles remain unchanged, using 20px/18px body leading instead of the mocks' fractional 1.35 leading. Kept the previously requested 92% white and 10px blur.

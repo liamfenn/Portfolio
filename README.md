@@ -93,8 +93,9 @@ in alongside the streamed metadata; it never scrambles. Linked credits appear un
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
 
-The fixed **P / Close / N** strip works on desktop and mobile. P and N (buttons or unmodified keyboard
-keys) loop through the grid's displayed order, including Recent and Random sorting. Navigation retains
+The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
+N or Right Arrow goes to the next. The buttons and keyboard shortcuts loop through the grid's displayed
+order, including Recent and Random sorting. Alt/Ctrl/Command shortcuts are left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
 The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
