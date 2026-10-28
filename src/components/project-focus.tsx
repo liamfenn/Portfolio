@@ -223,7 +223,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     <div ref={scrollRef} className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
-        <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} />
+        <ProjectFocusDetails preview={selection.preview} />
       </div>
     </div>
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>

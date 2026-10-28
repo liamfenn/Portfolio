@@ -111,7 +111,8 @@ left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
 Desktop focus also supports horizontal trackpad/wheel scrolling and Shift+wheel: right advances and left
-returns, one project per gesture including momentum. Vertical scrolling and pinch zoom remain native.
+returns, one project per gesture including momentum. The focused media slot and metadata stay mounted
+across paging to preserve wheel targets under a stationary pointer. Vertical scrolling and pinch zoom remain native.
 Mobile focus also supports horizontal swipes: left advances and right goes back, with the next project
 following the drag. Short/canceled drags snap back; vertical scrolling, pinch zoom, and edge gestures
 remain available. Buttons and keys use the same directional whole-page slide on desktop and mobile.

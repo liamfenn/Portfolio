@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
-import { chromium } from "playwright-core";
+import { chromium, webkit } from "playwright-core";
 import { readFile } from "node:fs/promises";
 
 const origin = process.argv[2] ?? "http://localhost:3100";
 const fixture = process.env.FOCUS_VIDEO_FIXTURE ? await readFile(process.env.FOCUS_VIDEO_FIXTURE) : null;
-const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
+const engine = process.env.FOCUS_BROWSER === "webkit" ? webkit : chromium;
+const browser = await engine.launch({ headless: true, ...(engine === chromium && process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 try {
-  for (const width of [1440, 393]) {
+  for (const width of engine === webkit ? [1440] : [1440, 393]) {
     const mobile = width < 768;
     const page = await browser.newPage({ viewport: { width, height: mobile ? 650 : 1024 }, isMobile: mobile, hasTouch: mobile });
     const errors = [];
@@ -92,6 +93,19 @@ try {
       assert.equal(await dialog.evaluate(root => root.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length), 0);
       await page.emulateMedia({ reducedMotion: "no-preference" });
     } else {
+      const slot = await dialog.locator(".project-focus-media-slot").first().boundingBox();
+      const point = { x: slot.x + slot.width / 2, y: slot.y + slot.height / 2 };
+      await page.mouse.move(point.x, point.y);
+      await page.evaluate(point => {
+        window.__stableWheelTarget = document.elementFromPoint(point.x, point.y);
+        window.__stableFocusText = document.querySelector(".project-focus-description [data-focus-text]");
+      }, point);
+      for (const [direction, expected] of [[1, ids[1]], [1, ids[2]], [-1, ids[1]], [-1, ids[0]]]) {
+        await page.waitForTimeout(400);
+        await page.mouse.wheel(direction * 100, 0);
+        await settled(expected);
+        assert.ok(await page.evaluate(point => window.__stableWheelTarget === document.elementFromPoint(point.x, point.y) && window.__stableWheelTarget.closest(".project-focus-scroll") && window.__stableFocusText === document.querySelector(".project-focus-description [data-focus-text]"), point), "Paging must retain the hit target and metadata nodes under a stationary pointer");
+      }
       // Native wheel transactions can retain their original media target after it returns to the grid.
       await dialog.evaluate(root => { window.__wheelTarget = root.querySelector(".homepage-project-media"); });
       const idle = await dialog.evaluate(root => {

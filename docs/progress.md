@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Persistent wheel hit targets (2026-10-27)**
+- Liam still reproduced the desktop stationary-pointer failure after the window-listener change. That change only addressed bubbling of delivered events; the original media could still leave the overlay and become inert, and keyed details were still replaced on each project.
+- Desktop focused media now lets its persistent media slot receive pointer hit testing. Project details update in place instead of remounting per project, retaining the title/description target nodes. Mobile media hit testing and native touch paging are unchanged, as are the 120ms entry delay, fade, stagger, and wheel momentum guard.
+- Expanded check-focus-paging.mjs with actual repeated wheel input at one fixed media coordinate and assertions that the hit target and metadata DOM remain the same across paging. The target-identity regression fails before this change. Added FOCUS_BROWSER=webkit for the desktop checks; mobile CDP touch checks remain Chromium-only.
+- Validation: all 58 tests, TypeScript, touched-file lint, and production build passed. Production-build paging checks pass in WebKit 18 and Chromium, including stable targets, repeated forward/backward input without pointer movement, wrapping, momentum, vertical scrolling, reduced motion, and cleanup; Chromium mobile touch checks and desktop/mobile navigation checks also pass. The dev server served stale globals.css during the initial rerun, so final CSS checks used the production build. Native Safari trackpad confirmation remains for Liam; native UI input was unavailable through computer use.
+
 **Stationary-pointer paging and earlier focus text (2026-10-27)**
 - Fixed repeated desktop wheel gestures stopping after the first page when the pointer stays still. A wheel transaction can retain its original media target after that media returns to its grid card, outside the focus root. The wheel listener now captures on window for the focus session and is removed on dismissal; gesture thresholds, momentum protection, vertical scrolling, and mobile behavior are unchanged.
 - Added a regression that retains the same media target across multiple forward/backward gestures without pointer movement. It failed on the second page before the fix and now passes, including listener cleanup after close.

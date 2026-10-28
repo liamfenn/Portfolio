@@ -761,6 +761,10 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
+/* Keep desktop wheel hit testing on the persistent slot while its media returns to the grid. */
+@media (min-width: 768px) {
+  .project-focus-media-slot > .homepage-project-media { pointer-events: none; }
+}
 .project-focus-details { display: flex; flex-direction: column; gap: var(--project-focus-section-gap); padding-top: var(--content-padding); --inspect-color-token: text-primary; color: var(--text-primary); }
 .project-focus-details :where(h2, h3, p, ul) { margin: 0; padding: 0; list-style: none; }
 .project-focus-name h2 { font: inherit; }
