@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Share focus layers above background controls and globe (2026-10-28)**
+- The fixed focus wrapper created its own stacking context even with an automatic z-index, trapping the backdrop/content/buttons below positively layered page controls and globe glyphs. The wrapper now stays unstacked, while its backdrop, pages, buttons, and bottom fade are fixed to the viewport and share the existing layer tokens with native grid media. No video placement/playback code, extra layers, or new tokens were added.
+- Added a regression that temporarily enables background hit testing: inert elements can paint above a modal while being absent from ordinary hit tests, which is why previous interaction checks missed it. The new check fails against the previous build with both desktop menu controls above focus.
+- Validation: 59 tests, TypeScript, touched-script lint, and production build passed. WebKit and Chromium stacking checks cover menus and in-view globe glyphs at desktop/mobile widths, with viewport geometry, navigation, scroll restoration, and screenshots checked. Existing focus/exit sequencing, real-video continuous entry/paging/rapid exit/resize/policy recovery, and Safari edge/safe-area checks pass.
+
 **Hide grid hover labels immediately on focus entry (2026-10-28)**
 - Grid card labels become hidden as soon as the focus root mounts and stay hidden through its return animation. The ordinary hover reverse-stream effect remains available outside focus, but cannot linger behind the expanded card. This is a scoped visibility rule with no new animation state, timers, or media changes.
 - Validation: 59 tests, TypeScript, and production build passed. WebKit and Chromium browser checks start from visible hover text, verify hidden labels on the first focus frame and throughout paging/return, then confirm normal hover visibility after closing and immediate hiding on keyboard entry.

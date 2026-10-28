@@ -757,12 +757,13 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 
 .homepage-project-media { position: absolute; inset: 0; display: block; background: var(--bg-secondary-fill); transform-origin: top left; }
 .homepage-project-media[data-focus-media] { position: fixed; inset: auto; left: 0; top: 0; z-index: var(--project-focus-media-layer); pointer-events: none; }
-.project-focus-root { position: fixed; inset: 0; }
+/* Keep the wrapper out of the stacking hierarchy shared by its panels and the original grid media. */
+.project-focus-root { position: absolute; inset: 0; }
 /* Extend only the background layers; the foreground keeps the visible viewport's height. */
 .project-focus-backdrop, .project-focus-blur { top: calc(0px - var(--viewport-safe-top)); right: calc(0px - var(--viewport-safe-right)); left: calc(0px - var(--viewport-safe-left)); height: calc(max(100%, var(--project-focus-full-height)) + var(--viewport-safe-top) + var(--viewport-safe-bottom)); }
-.project-focus-backdrop { position: absolute; z-index: var(--project-focus-layer); background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent); }
-.project-focus-blur { position: absolute; z-index: var(--project-focus-layer); -webkit-backdrop-filter: blur(var(--project-focus-blur)); backdrop-filter: blur(var(--project-focus-blur)); }
-.project-focus-pages { position: absolute; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
+.project-focus-backdrop { position: fixed; z-index: var(--project-focus-layer); background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent); }
+.project-focus-blur { position: fixed; z-index: var(--project-focus-layer); -webkit-backdrop-filter: blur(var(--project-focus-blur)); backdrop-filter: blur(var(--project-focus-blur)); }
+.project-focus-pages { position: fixed; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
 .project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: calc(var(--project-focus-top) + var(--viewport-safe-top)) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--project-focus-close-bottom) + var(--project-focus-hit-size) + var(--content-padding) * 2 + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
@@ -784,7 +785,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-focus-summary { width: 100%; max-width: var(--project-focus-description-width); }
 .project-focus-credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
 .project-focus-team a { text-decoration: none; }
-.project-focus-controls { position: absolute; z-index: var(--project-focus-controls-layer); left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
+.project-focus-controls { position: fixed; z-index: var(--project-focus-controls-layer); left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
 .project-focus-action { position: relative; display: grid; place-items: center; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; transition: color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease); }
 .project-focus-step { width: var(--project-focus-navigation-width); }
 .project-focus-action::before { content: ""; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100%; height: 100%; min-width: var(--project-focus-hit-size); min-height: var(--project-focus-hit-size); }
@@ -808,7 +809,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .project-focus-edge-bottom { background: var(--bg-fill); }
   .safari-edge-test-top { background: var(--bg-green-fill); }
   .safari-edge-test-bottom { background: var(--bg-purple-fill); }
-  .project-focus-bottom-fade { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--project-focus-hit-size) + max(var(--project-focus-edge-size), var(--viewport-safe-bottom))); background: linear-gradient(to top, var(--bg-fill) max(var(--project-focus-edge-size), var(--viewport-safe-bottom)), transparent); }
+  .project-focus-bottom-fade { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--project-focus-hit-size) + max(var(--project-focus-edge-size), var(--viewport-safe-bottom))); background: linear-gradient(to top, var(--bg-fill) max(var(--project-focus-edge-size), var(--viewport-safe-bottom)), transparent); }
   .project-focus-scroll { touch-action: pan-y pinch-zoom; }
   .project-focus-scroll, .project-focus-paging-page { padding: max(var(--project-focus-edge-size), var(--viewport-safe-top)) var(--viewport-safe-right) calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--content-padding-mobile) * 2 + var(--viewport-safe-bottom)) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-section-gap: calc(var(--content-padding) * 2); --project-focus-description-width: var(--project-focus-description-width-mobile); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }

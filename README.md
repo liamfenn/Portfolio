@@ -111,6 +111,8 @@ paging/return transforms. Native video keeps playing through entry, scrolling, p
 are no focus canvas copies, clock holds, or landing timers. Event-driven scroll/resize updates keep media
 aligned without an idle rendering loop. Text and controls occupy higher overlay layers, and the slot
 provides the media's accessible label while background controls remain inert.
+The dialog wrapper stays unstacked; its panels are viewport-fixed so their layer tokens can sit above
+background menus/globe glyphs and share the same stacking hierarchy as the original grid media.
 Focus text is removed after every staggered exit fade, with its layout height retained. The removal
 paints before the 180ms card return begins; scrolling locks during this sequence. Rendition upgrades wait
 until motion settles and retain one frame only while an actual source change loads; pause/error/policy
