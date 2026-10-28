@@ -144,7 +144,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const value = tokens.getPropertyValue(property).trim();
       return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
     };
-    const handoffDelay = milliseconds("--project-focus-handoff-delay");
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const textEnterDelay = milliseconds("--project-focus-text-enter-delay");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
@@ -158,7 +157,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     animationsRef.current = animations;
     let closing = false, disposed = false;
     let presentHandoff: (() => void) | undefined;
-    let landingPaint = 0;
+    let landingPaint = 0, exitPaint = 0;
     const tweenMedia = (from: DOMRect, to: DOMRect, delay = 0) => {
       const bounds = slot.getBoundingClientRect();
       return media.animate([
@@ -167,14 +166,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       ], { ...timing, duration: motion.matches ? 0 : timing.duration, delay: motion.matches ? 0 : delay, fill: "both" });
     };
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
-    const isText = (element: HTMLElement) => element === details || element === controls;
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
     const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
-    const faded = [blur, backdrop, bottomFade, details, controls];
+    const backgrounds = [blur, backdrop, bottomFade];
     animations.push(...(pageAnimations ?? [opening]));
     if (!navigation) animations.push(
-      ...[blur, backdrop, bottomFade].map(element => fade(element, 0, 1)),
+      ...backgrounds.map(element => fade(element, 0, 1)),
       ...textRows.map(({ element, top }) => fade(element, 0, 1, textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
     );
     void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
@@ -186,40 +184,54 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       cancelPaging();
       closing = true;
       root.dataset.phase = "closing";
+      root.dataset.exit = "text";
+      const scroller = scrollRef.current!;
+      if (scroller.scrollHeight > scroller.clientHeight) scroller.style.scrollbarGutter = "stable";
+      scroller.style.overflowY = "hidden";
       const video = media.querySelector("video");
       if (video) presentHandoff = preserveVideoFrame(video, true);
-      const from = media.getBoundingClientRect();
       const opacity = Number(getComputedStyle(media).opacity);
-      const opacities = faded.map(element => Number(getComputedStyle(element).opacity));
+      const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
+      const textElements = [details, controls];
+      const textOpacities = textElements.map(element => Number(getComputedStyle(element).opacity));
       // Preserve partially revealed rows when closing before their entrance finishes.
       const rowOpacities = textRows.map(({ element }) => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
+      backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      const exit = tweenMedia(from, trigger.getBoundingClientRect(), handoffDelay);
-      animations.push(exit, ...faded.map((element, index) => {
-        const animation = fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration);
-        // Remove text from painting once its fade ends, including Safari's retained paging layers.
-        if (isText(element)) void animation.finished.then(() => {
-          if (disposed) return;
-          element.style.visibility = "hidden";
-          // Remove the actual glyph layers while retaining the scroller's geometry through collapse.
-          if (element === details) flushSync(() => setExitTextHeight(details.getBoundingClientRect().height));
-        }).catch(() => {});
-        return animation;
-      }));
-      if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
-      void exit.finished.then(() => {
+      const textExit = textElements.map((element, index) => fade(element, textOpacities[index], 0, 0, textExitDuration));
+      animations.push(...textExit);
+      void Promise.all(textExit.map(animation => animation.finished)).then(() => {
         if (disposed) return;
-        const close = () => { if (!disposed) { root.style.visibility = "hidden"; onClose(); } };
-        if (video && prepareVideoLanding(video)) {
-          // Paint the stationary landing surface before tearing down Safari's focus compositing tree.
-          landingPaint = requestAnimationFrame(() => { landingPaint = requestAnimationFrame(close); });
-        } else close();
+        const height = details.getBoundingClientRect().height;
+        textElements.forEach(element => { element.style.visibility = "hidden"; });
+        flushSync(() => setExitTextHeight(height));
+        root.dataset.exit = "paint";
+        const returnMedia = () => {
+          if (disposed) return;
+          root.dataset.exit = "media";
+          // Read geometry after scrolling is locked and the text's removal has actually painted.
+          const exit = tweenMedia(media.getBoundingClientRect(), trigger.getBoundingClientRect());
+          animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
+          if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
+          void exit.finished.then(() => {
+            if (disposed) return;
+            const close = () => { if (!disposed) { root.style.visibility = "hidden"; onClose(); } };
+            if (video && prepareVideoLanding(video)) {
+              // Paint the stationary landing surface before tearing down Safari's focus compositing tree.
+              landingPaint = requestAnimationFrame(() => { landingPaint = requestAnimationFrame(close); });
+            } else close();
+          }).catch(() => {});
+        };
+        // A timer shorter than the text fade let media cross glyphs retained by Safari after paging.
+        if (motion.matches) returnMedia();
+        else exitPaint = requestAnimationFrame(() => { exitPaint = requestAnimationFrame(returnMedia); });
       }).catch(() => {});
     };
     return () => {
       disposed = true;
       cancelAnimationFrame(landingPaint);
+      cancelAnimationFrame(exitPaint);
       animations.forEach(animation => animation.cancel());
       if (!retainsMedia(media)) {
         const video = media.querySelector("video");

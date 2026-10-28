@@ -105,7 +105,8 @@ Focus labels render as ordinary native text without decorative glyph copies.
 Video holds its last decoded frame over the entire closing animation and return to the grid. It uncovers
 only after a fresh presented frame and two paint opportunities. A fixed landing copy paints before the
 overlay unmounts and covers the return through the existing 80ms handoff interval. Focus text is removed
-from the DOM after its exit fade, with its layout height retained until collapse completes. Normal pauses keep that frame; source release/error restores the poster.
+from the DOM after its 120ms exit fade, with its layout height retained. The removal paints before the
+180ms asset return begins; scrolling locks during this sequence so the return geometry stays fixed. Normal pauses keep that frame; source release/error restores the poster.
 
 The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
 N or Right Arrow goes to the next. Buttons and shortcuts loop through the displayed grid order, including
