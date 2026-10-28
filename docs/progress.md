@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Delay focus controls until content exit completes (2026-10-28)**
+- P, Close, and N remain opaque through all reversed content-row fades. Their existing 180ms fade starts after the text is removed, alongside the card-return stage, so fading buttons cannot reveal lingering text behind them. This uses the existing completion chain instead of a separate timer and adds no extra exit wait. Entry, row timing, and video protections are unchanged.
+- Validation: 59 tests, TypeScript, touched-file lint, and production build passed. Chromium desktop/mobile focus checks and WebKit paged/scrolled exits verify opaque controls while text remains and gradual button fading afterward, with the same card-return timing. WebKit rapid video exits/reentry retain the same source with no added loads.
+
 **Quicker exit, startup paint coverage, and video lifecycle audit (2026-10-28)**
 - Shortened reversed focus text exit from 300ms/20ms to 180ms/12ms. The duration aliases the existing card movement token and the stagger scales with the entry/exit duration ratio. The full sequence is 40% shorter; text removal/paint still completes before the card returns.
 - Liam confirmed the refresh flash is confined to the video/card. Startup previously unhid the native video and removed its skeleton on the first video-frame callback. It now keeps the native surface visible beneath an opaque skeleton through two paint opportunities after that callback. The bounded paint callbacks cancel on pause/release, with no extra media element or continuous drawing. This targets a first-paint race; physical Safari flash elimination is not yet confirmed. Source teardown policy remains unchanged.

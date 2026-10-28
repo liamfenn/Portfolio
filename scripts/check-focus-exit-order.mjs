@@ -37,7 +37,7 @@ try {
           started ??= performance.now();
           const box = root.querySelector(".homepage-project-media").getBoundingClientRect();
           initial ??= box;
-          window.__exitSamples.push({ elapsed: performance.now() - started, movement: Math.abs(box.left - initial.left) + Math.abs(box.top - initial.top) + Math.abs(box.width - initial.width), scrollTop: scroller.scrollTop, text: [...root.querySelectorAll(".project-focus-details")].map(node => node.textContent.trim()).join("") });
+          window.__exitSamples.push({ elapsed: performance.now() - started, movement: Math.abs(box.left - initial.left) + Math.abs(box.top - initial.top) + Math.abs(box.width - initial.width), scrollTop: scroller.scrollTop, text: [...root.querySelectorAll(".project-focus-details")].map(node => node.textContent.trim()).join(""), controlsOpacity: Number(getComputedStyle(root.querySelector(".project-focus-controls")).opacity) });
         }
         requestAnimationFrame(sample);
       };
@@ -54,6 +54,8 @@ try {
     const samples = await page.evaluate(() => window.__exitSamples);
     const moved = samples.filter(sample => sample.movement > 0.5);
     assert.ok(moved.length > 0, scenario.name);
+    assert.ok(samples.some(sample => sample.text && sample.controlsOpacity === 1) && samples.every(sample => !sample.text || sample.controlsOpacity === 1), "controls must remain opaque while content remains");
+    assert.ok(samples.some(sample => !sample.text && sample.controlsOpacity > 0 && sample.controlsOpacity < 1), "controls fade after content disappears");
     assert.ok(moved.every(sample => sample.text === ""), JSON.stringify({ scenario: scenario.name, overlap: moved.filter(sample => sample.text !== "").map(({ elapsed, movement, text }) => ({ elapsed, movement, textLength: text.length })) }));
     assert.ok(samples.every(sample => Math.abs(sample.scrollTop - samples[0].scrollTop) < 0.1), JSON.stringify({ scenario: scenario.name, scrollOffsets: samples.map(sample => sample.scrollTop) }));
     assert.deepEqual(errors, []);

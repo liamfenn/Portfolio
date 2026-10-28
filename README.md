@@ -99,6 +99,7 @@ The focus view also accepts `description` and `tech: string[]`. The description 
 text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
 the same height enter together. Exit reverses the row order with 180ms fades and a 12ms bottom-to-top
 stagger; the stagger scales with the exit/entry duration ratio. P, Close, and N are visible immediately with no intro animation.
+On exit, those buttons remain opaque until all content rows disappear, then fade during the card-return stage.
 Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
