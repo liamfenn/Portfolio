@@ -100,6 +100,7 @@ text uses the same 600ms opacity fade starting 120ms after opening, staggered 40
 the same height enter together. Exit reverses the row order with 180ms fades and a 12ms bottom-to-top
 stagger; the stagger scales with the exit/entry duration ratio. P, Close, and N are visible immediately with no intro animation.
 On exit, those buttons fade out first over 180ms; the bottom-to-top content stagger starts after they disappear, followed by the card return.
+Grid hover labels hide immediately for the focus session, so their reverse stream cannot linger behind the moving media.
 Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.

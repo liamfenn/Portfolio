@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Hide grid hover labels immediately on focus entry (2026-10-28)**
+- Grid card labels become hidden as soon as the focus root mounts and stay hidden through its return animation. The ordinary hover reverse-stream effect remains available outside focus, but cannot linger behind the expanded card. This is a scoped visibility rule with no new animation state, timers, or media changes.
+- Validation: 59 tests, TypeScript, and production build passed. WebKit and Chromium browser checks start from visible hover text, verify hidden labels on the first focus frame and throughout paging/return, then confirm normal hover visibility after closing and immediate hiding on keyboard entry.
+
 **Focus controls leave before the content (2026-10-28)**
 - Reversed the dismissal order: P, Close, and N complete their existing 180ms fade before the 180ms/12ms bottom-to-top content stagger starts. The same completion chain then removes text, allows its removal to paint, and returns the card. No independent delay timer, media-controller change, or playback pause was added; interrupted entry and reduced motion keep their existing handling.
 - Confirmed the skeleton remains active during initial video loading until frame presentation plus two paint opportunities; focus integration did not remove it. Existing loaded media keeps playing instead of returning to a loading state on focus changes.

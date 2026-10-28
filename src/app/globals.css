@@ -680,6 +680,8 @@ img.loading-image-error { visibility: hidden; }
   text-align: left;
   pointer-events: none;
 }
+/* Focus takes over before the grid labels can stream back out behind the moving media. */
+body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .homepage-project-company { color: var(--text-primary); --inspect-color-token: text-primary; }
 .homepage-project-period { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding) 12px; }
