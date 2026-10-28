@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Primary focus navigation labels (2026-10-28)**
+- P and N now inherit `text-primary` and its inspector annotation from the shared focus action style, matching Close. Removed the secondary-color override; hover styling remains shared.
+
 **Reverse-staggered focus content exit (2026-10-28)**
 - Focus rows now fade out bottom to top with the same easing as entry, at twice the speed: 300ms per fade and 20ms stagger, derived from the existing 600ms/40ms tokens. Aligned rows leave together, partially entered rows continue from their current opacity, and reduced motion remains immediate. Removed the obsolete independent 120ms exit token.
 - The existing completion chain waits for every row before removing text, painting that removal, and starting the card return. Layout height, scroll lock, video clock hold, landing guard, and fresh-frame reveal stay intact; no dependencies or extra media work were added.
