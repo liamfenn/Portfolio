@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Staggered focus fades and immediate controls (2026-10-27)**
+- Removed the focus-only streamed color glitch and its duplicate text layers. Every text row, including the description, now shares a 600ms opacity fade with the existing focus easing after the media handoff. Rows enter top to bottom at 40ms intervals; aligned rows across the two columns enter together. The existing focus text-enter token now defines the shared duration, and a new stagger role aliases the existing project-label delay.
+- P, Close, and N render immediately with no entrance animation. Paging keeps plain text fully visible, reduced motion skips entry motion, and early dismissal preserves partial row opacity before the existing exit fade.
+- Validation: all 58 tests, TypeScript, touched-file lint, production build, and desktop/mobile focus, navigation, and swipe/paging browser checks passed. Browser checks verify identical fade durations/easing, ordered delays including the description, immediate controls, reduced motion, interrupted closing, and navigation cleanup. Reviewed the mobile focus screenshot.
+
 **Updated Rewards card video (2026-10-27)**
 - Replaced the second project's media with Liam's `shop-card-v2.MP4`, including its revised background. Re-imported the tagged SDR master at the original 60fps and 27.1-second duration into immutable 800/1200/1600px H.264 renditions (about 1.08/1.98/2.99 MB), with fresh responsive posters from the visible card at 10 seconds.
 - Validation: all renditions passed full decode checks, all six CDN files match the local SHA-256 reports, and video byte-range delivery passed. Reviewed the new poster and desktop/mobile focus screenshots; browser checks confirmed the new poster URLs in grid/focus, retained project metadata/media identity, clean return to the grid, and poster-only reduced-motion delivery. All 58 tests, TypeScript, registry-consumer lint, and the production build passed. H.264 playback on native devices uses the existing player and remains for device review.

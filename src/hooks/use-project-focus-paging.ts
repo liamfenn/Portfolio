@@ -72,11 +72,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     snapshot.inert = true;
     snapshot.setAttribute("aria-hidden", "true");
     snapshot.querySelectorAll("[id]").forEach(node => node.removeAttribute("id"));
-    snapshot.querySelectorAll<HTMLElement>("[data-focus-text]").forEach(node => {
-      node.textContent = node.dataset.focusText!;
-      node.classList.remove("project-focus-text");
-      node.removeAttribute("data-focus-text");
-    });
+    snapshot.querySelectorAll<HTMLElement>(".project-focus-details [style]").forEach(node => node.style.removeProperty("opacity"));
     pagesRef.current!.appendChild(snapshot);
     snapshot.scrollTop = scroller.scrollTop;
     const video = media.querySelector("video");

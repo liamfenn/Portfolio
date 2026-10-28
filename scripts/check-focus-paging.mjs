@@ -40,7 +40,7 @@ try {
         await Promise.all(animations.map(animation => animation.ready));
         animations.forEach(animation => { animation.currentTime = animation.effect.getTiming().duration / 2; });
         await new Promise(resolve => requestAnimationFrame(resolve));
-        const state = { duration: animations[0].effect.getTiming().duration, incoming: incoming.getBoundingClientRect().left, outgoing: outgoing.getBoundingClientRect().left, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: outgoing.querySelectorAll("video").length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll(".project-focus-glyphs")].every(node => node.dataset.reveal === "settled" && getComputedStyle(node).visibility === "visible"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
+        const state = { duration: animations[0].effect.getTiming().duration, incoming: incoming.getBoundingClientRect().left, outgoing: outgoing.getBoundingClientRect().left, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: outgoing.querySelectorAll("video").length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll("[data-focus-text]")].every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible" && getComputedStyle(node.closest("h2, h3, p, li")).opacity === "1"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
         return state;
       });
       assert.equal(motion.duration, 300);

@@ -75,7 +75,7 @@ It works on the homepage and the palette lab:
   all Safari tab layouts on iOS 27.2. It stays available for debugging and resets off on reload.
   Normal focus uses the same placement with #f6f8f9 at the top and white at the bottom. A short inward
   fade sits behind the navigation controls; the edge sampled by Safari stays solid.
-- Project tap/click opens the focused project view by default. The hidden avatar menu’s **Inline project expansion** toggle restores the earlier behavior for comparison: mobile taps expand tiles in the grid, while desktop retains hover previews. This toggle starts off on each page load. The media moves into an overlay with a white 92% backdrop and 10px blur, and its text color-glitches on entry; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Reduced motion skips the effects.
+- Project tap/click opens the focused project view by default. The hidden avatar menu’s **Inline project expansion** toggle restores the earlier behavior for comparison: mobile taps expand tiles in the grid, while desktop retains hover previews. This toggle starts off on each page load. The media moves into an overlay with a white 92% backdrop and 10px blur, and its text fades in from top to bottom; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Reduced motion skips the effects.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.
@@ -93,12 +93,13 @@ The intro is inspected as one paragraph, using its shared bodySerif style and ba
 Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 `--bg-purple-fill`. Other project assets remain available for later use.
 Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
-The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif and fades
-in alongside the streamed metadata; it never scrambles. Close uses plain text with the same delayed fade
-as the description. Linked credits appear under **Contributors**,
+The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif. All focus
+text uses the same 600ms opacity fade after the media handoff, staggered 40ms from top to bottom; rows at
+the same height enter together. P, Close, and N are visible immediately with no intro animation.
+Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
-Streamed labels retain the same native text node after settling, avoiding a paint swap between copies.
+Focus labels render as ordinary native text without decorative glyph copies.
 Video returns to the grid with its last decoded frame covering the compositing handoff until a fresh
 frame is presented. Normal pauses keep that frame; source release/error restores the poster.
 
@@ -113,7 +114,7 @@ Mobile focus also supports horizontal swipes: left advances and right goes back,
 following the drag. Short/canceled drags snap back; vertical scrolling, pinch zoom, and edge gestures
 remain available. Buttons and keys use the same directional whole-page slide on desktop and mobile.
 Paging uses the shared 300ms motion duration and focus easing, shortened for the remaining swipe
-distance. The backdrop, Safari edge strips, bottom fade, and controls stay fixed. Text streams on initial
+distance. The backdrop, Safari edge strips, bottom fade, and controls stay fixed. Text fades on initial
 open and stays fully readable during page changes. Reduced motion switches pages without sliding.
 The palette lives in `src/lib/palette-toy.ts`, independent of UI colors: 29
 colours kept from a 64-colour, full-spectrum quiz (pinks and raspberries,

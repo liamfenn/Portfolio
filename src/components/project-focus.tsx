@@ -1,109 +1,42 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
-import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
-import { currentGlyphPalette } from "@/lib/palette-toy";
 import { preserveVideoFrame } from "@/lib/video-playback";
 import { mediaUrl } from "@/lib/media-delivery";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
-function FocusGlitch({ text }: { text: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const node = ref.current!;
-    const root = node.closest(".project-focus-root");
-    const characters = Array.from(text);
-    const choices = characters.map(character => FILTER_SCRAMBLE.range.filter(code => String.fromCharCode(code) !== character));
-    const colors = currentGlyphPalette();
-    const interval = 1000 / (60 * FILTER_SCRAMBLE.speed);
-    const cycles = FILTER_SCRAMBLE.scramble + Math.ceil(FILTER_SCRAMBLE.scramble / 2);
-    let frame = 0, disposed = false, resolved = 0;
-    // Keep resolved letters in one native text run so the font retains its shaping and kerning.
-    const prefix = document.createTextNode("");
-    const active = document.createElement("span");
-    const tail = document.createTextNode(" ".repeat(text.length));
-    node.replaceChildren(prefix, active, tail);
-    node.dataset.reveal = "streaming";
-
-    const media = root?.querySelector(".homepage-project-media");
-    const opening = [...(media?.getAnimations() ?? []), ...(root?.querySelector(".project-focus-scroll")?.getAnimations() ?? [])];
-    // Tie the reveal to the real media handoff instead of racing its animation with a timer.
-    void Promise.all([...opening.map(animation => animation.finished), document.fonts.ready]).then(() => {
-      if (disposed || !root || root.getAttribute("data-phase") === "closing") return;
-      let started: number | undefined, previousTick = -1;
-      const draw = (now: number) => {
-        started ??= now;
-        const tick = Math.floor((now - started) / interval);
-        if (tick !== previousTick) {
-          const resolvedCount = Math.min(characters.length, Math.max(0, tick - cycles + 1));
-          while (resolved < resolvedCount) prefix.appendData(characters[resolved++]);
-          const visibleCount = Math.min(characters.length, tick + 1);
-          const glyphs = characters.slice(resolved, visibleCount).map((character, position) => {
-            if (!character.trim()) return document.createTextNode(character);
-            const index = resolved + position;
-            const glyph = document.createElement("span");
-            const range = choices[index];
-            // A random match must not look settled for a frame and then glitch again.
-            glyph.textContent = String.fromCharCode(range[Math.floor(Math.random() * range.length)]) + " ".repeat(character.length - 1);
-            if (colors.length) glyph.style.color = colors[(index + tick) % colors.length];
-            return glyph;
-          });
-          active.replaceChildren(...glyphs);
-          tail.data = " ".repeat(characters.slice(visibleCount).join("").length);
-          if (resolved === characters.length) {
-            active.remove();
-            tail.remove();
-            node.dataset.reveal = "settled";
-          }
-          previousTick = tick;
-        }
-        if (tick < characters.length - 1 + cycles) frame = requestAnimationFrame(draw);
-      };
-      frame = requestAnimationFrame(draw);
-    }).catch(() => {});
-    return () => { disposed = true; cancelAnimationFrame(frame); };
-  }, [text]);
-  return <span ref={ref} className="project-focus-glyphs" aria-hidden="true">{" ".repeat(text.length)}</span>;
+function FocusText({ text }: { text: string }) {
+  return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>{text}</span></InspectableText>;
 }
 
-function FocusText({ text, reveal = true }: { text: string; reveal?: boolean }) {
-  const reducedMotion = useReducedMotion();
-  return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>
-    <span className="project-focus-text-reserve" aria-hidden="true">{text}</span>
-    {reducedMotion || !reveal ? <span className="project-focus-glyphs" data-reveal="settled" aria-hidden="true">{text}</span> : <FocusGlitch text={text} />}
-    <span className="sr-only">{text}</span>
-  </span></InspectableText>;
-}
-
-export function ProjectFocusDetails({ preview, reveal = true, titleId = "project-focus-title" }: { preview: ProjectPreview; reveal?: boolean; titleId?: string }) {
+export function ProjectFocusDetails({ preview, titleId = "project-focus-title" }: { preview: ProjectPreview; titleId?: string }) {
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   return <div className="project-focus-details text-bodySans">
     <div className="project-focus-heading">
       <div className="project-focus-name">
-        <h2 id={titleId || undefined}><FocusText text={preview.company} reveal={reveal} /></h2>
-        <p className="project-focus-description"><FocusText text={preview.label} reveal={reveal} /></p>
+        <h2 id={titleId || undefined}><FocusText text={preview.company} /></h2>
+        <p className="project-focus-description"><FocusText text={preview.label} /></p>
       </div>
-      <p className="project-focus-period text-captionSans"><FocusText text={period} reveal={reveal} /></p>
+      <p className="project-focus-period text-captionSans"><FocusText text={period} /></p>
     </div>
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
     {Boolean(preview.team?.length || preview.tech?.length) && <div className="project-focus-credits">
       {Boolean(preview.team?.length) && <div className="project-focus-team">
-        <h3 className="text-captionSans"><FocusText text="Contributors" reveal={reveal} /></h3>
+        <h3 className="text-captionSans"><FocusText text="Contributors" /></h3>
         <ul>{preview.team!.map(member => <li key={member.href}>
-          <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} reveal={reveal} /></a>
+          <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} /></a>
         </li>)}</ul>
       </div>}
       {Boolean(preview.tech?.length) && <div className="project-focus-tech">
-        <h3 className="text-captionSans"><FocusText text="Tech" reveal={reveal} /></h3>
-        <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} reveal={reveal} /></li>)}</ul>
+        <h3 className="text-captionSans"><FocusText text="Tech" /></h3>
+        <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} /></li>)}</ul>
       </div>}
     </div>}
   </div>;
@@ -192,14 +125,17 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
   }, [navigate]);
 
   useLayoutEffect(() => {
-    const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!, close = closeRef.current!;
-    const { trigger, origin, preview, navigation } = selection;
+    const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!;
+    const { trigger, origin, navigation } = selection;
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
     const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
     const bottomFade = root.querySelector<HTMLElement>(".project-focus-bottom-fade")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
-    const summary = root.querySelector<HTMLElement>(".project-focus-summary");
+    const textRows = Array.from(details.querySelectorAll<HTMLElement>("h2, .project-focus-description, .project-focus-period, .project-focus-summary, h3, li"))
+      .map(element => ({ element, top: element.getBoundingClientRect().top }))
+      .sort((a, b) => a.top - b.top);
+    const rowTops = [...new Set(textRows.map(row => row.top))];
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const tokens = getComputedStyle(root);
     const milliseconds = (property: string) => {
@@ -209,10 +145,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const handoffDelay = milliseconds("--project-focus-handoff-delay");
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
+    const textStagger = milliseconds("--project-focus-text-stagger");
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
-    const labels = [preview.company, preview.label, `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`, ...(preview.team?.length ? ["Contributors", ...preview.team.map(member => member.name)] : []), ...(preview.tech?.length ? ["Tech", ...preview.tech] : []), "P", "N"];
-    const cycles = FILTER_SCRAMBLE.scramble + Math.ceil(FILTER_SCRAMBLE.scramble / 2);
-    const descriptionDuration = (Math.max(...labels.map(label => Array.from(label).length)) - 1 + cycles) * 1000 / (60 * FILTER_SCRAMBLE.speed);
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
     // Reuse the actual media element and return it before React removes its source card.
@@ -228,15 +162,16 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       ], { ...timing, duration: motion.matches ? 0 : timing.duration, delay: motion.matches ? 0 : delay, fill: "both" });
     };
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
-    const isText = (element: HTMLElement) => element === details || element === controls || element === summary || element === close;
+    const isText = (element: HTMLElement) => element === details || element === controls;
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
     const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
-    const faded = [blur, backdrop, bottomFade, details, controls, close, ...(summary ? [summary] : [])];
-    animations.push(...(pageAnimations ?? [opening]), ...faded.map(element => {
-      if (navigation) return fade(element, 1, 1, 0, 0);
-      return fade(element, 0, 1, isText(element) ? timing.duration : 0, element === summary || element === close ? descriptionDuration : isText(element) ? textEnterDuration : timing.duration);
-    }));
+    const faded = [blur, backdrop, bottomFade, details, controls];
+    animations.push(...(pageAnimations ?? [opening]));
+    if (!navigation) animations.push(
+      ...[blur, backdrop, bottomFade].map(element => fade(element, 0, 1)),
+      ...textRows.map(({ element, top }) => fade(element, 0, 1, timing.duration + rowTops.indexOf(top) * textStagger, textEnterDuration)),
+    );
     void opening.finished.then(() => { if (!closing && !disposed) opening.cancel(); }).catch(() => {});
     void Promise.all(animations.map(animation => animation.finished)).then(() => { if (!closing && !disposed) root.dataset.phase = "open"; }).catch(() => {});
     if (!root.contains(document.activeElement)) closeRef.current!.focus({ preventScroll: true });
@@ -249,7 +184,10 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       const from = media.getBoundingClientRect();
       const opacity = Number(getComputedStyle(media).opacity);
       const opacities = faded.map(element => Number(getComputedStyle(element).opacity));
+      // Preserve partially revealed rows when closing before their entrance finishes.
+      const rowOpacities = textRows.map(({ element }) => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
+      textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
       const exit = tweenMedia(from, trigger.getBoundingClientRect(), handoffDelay);
       animations.push(exit, ...faded.map((element, index) => fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration)));
       if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
@@ -284,7 +222,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     <div ref={scrollRef} className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
-        <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} reveal={!selection.navigation} />
+        <ProjectFocusDetails key={selection.preview.id} preview={selection.preview} />
       </div>
     </div>
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>
@@ -295,15 +233,15 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
             <img className="project-preview-poster" src={mediaUrl(poster)} alt="" />
           </span>}
         </span></div>
-        <ProjectFocusDetails preview={neighbor} reveal={false} titleId="" />
+        <ProjectFocusDetails preview={neighbor} titleId="" />
       </div>
     </div>}
     </div>
     <div className="project-focus-bottom-fade" aria-hidden="true" />
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><FocusText text="P" /></button>
+      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><InspectableText>P</InspectableText></button>
       <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N ArrowRight" onClick={event => navigate(1, event.detail === 0)}><FocusText text="N" /></button>
+      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N ArrowRight" onClick={event => navigate(1, event.detail === 0)}><InspectableText>N</InspectableText></button>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Project {position} of {total}: {selection.preview.label}, {selection.preview.company}, {selection.preview.period}</span>
     </div>

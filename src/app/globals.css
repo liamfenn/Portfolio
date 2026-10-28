@@ -764,10 +764,6 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-details { display: flex; flex-direction: column; gap: var(--project-focus-section-gap); padding-top: var(--content-padding); --inspect-color-token: text-primary; color: var(--text-primary); }
 .project-focus-details :where(h2, h3, p, ul) { margin: 0; padding: 0; list-style: none; }
 .project-focus-name h2 { font: inherit; }
-.project-focus-text { position: relative; display: inline-grid; vertical-align: top; }
-/* The revealed text stays in the same native text node after settling; never swap painted copies. */
-.project-focus-glyphs { position: absolute; inset: 0; overflow: hidden; }
-.project-focus-text-reserve { visibility: hidden; }
 .project-focus-heading { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--project-focus-top); }
 .project-focus-name, .project-focus-team, .project-focus-team ul, .project-focus-tech, .project-focus-tech ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--project-info-gap); }
 .project-focus-description, .project-focus-summary, .project-focus-team a, .project-focus-tech li { --inspect-color-token: text-secondary; color: var(--text-secondary); }

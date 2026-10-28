@@ -19,52 +19,6 @@ try {
     await page.goto(origin, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     assert.ok((await page.locator('meta[name="viewport"]').getAttribute("content")).includes("viewport-fit=cover"));
-    await page.evaluate(() => {
-      window.__focusGlitched = new Set();
-      window.__focusShortFrames = new Set();
-      window.__focusStreamed = new Set();
-      window.__focusFrontiers = {};
-      window.__focusStreamRegressed = false;
-      window.__focusVisibleColors = {};
-      window.__focusColorsDuringMediaMove = false;
-      window.__focusSettledChanges = false;
-      window.__focusPaintedCopyChanged = false;
-      const settled = new WeakMap(), prefixes = new WeakMap();
-      const paintedNodes = new WeakMap();
-      new MutationObserver(() => {
-        document.querySelectorAll(".project-focus-text").forEach(node => {
-          const live = node.querySelector(".project-focus-glyphs").textContent;
-          const glyphs = node.querySelector(".project-focus-glyphs");
-          if (glyphs.dataset.reveal) {
-            if (paintedNodes.has(glyphs) && paintedNodes.get(glyphs) !== glyphs.firstChild) window.__focusPaintedCopyChanged = true;
-            paintedNodes.set(glyphs, glyphs.firstChild);
-            const prefix = glyphs.firstChild?.textContent ?? "";
-            const previousPrefix = prefixes.get(glyphs) ?? "";
-            if (!prefix.startsWith(previousPrefix)) window.__focusStreamRegressed = true;
-            prefixes.set(glyphs, prefix);
-            if (settled.has(glyphs) && (live !== settled.get(glyphs) || glyphs.children.length)) window.__focusSettledChanges = true;
-            if (glyphs.dataset.reveal === "settled") settled.set(glyphs, live);
-          }
-          if (live.length !== node.dataset.focusText.length) window.__focusShortFrames.add(node.dataset.focusText);
-          const frontier = live.trimEnd().length;
-          const previous = window.__focusFrontiers[node.dataset.focusText] ?? 0;
-          if (frontier > 0 && frontier < node.dataset.focusText.length) window.__focusStreamed.add(node.dataset.focusText);
-          if (frontier < previous) window.__focusStreamRegressed = true;
-          window.__focusFrontiers[node.dataset.focusText] = frontier;
-          if (node.querySelector('.project-focus-glyphs [style*="color"]')) {
-            window.__focusGlitched.add(node.dataset.focusText);
-            const media = document.querySelector(".project-focus-root .homepage-project-media");
-            const container = node.closest(".project-focus-details, .project-focus-controls, .project-focus-summary");
-            if (Number(getComputedStyle(container).opacity) >= 0.75) {
-              // A timer may update hidden glyphs before the animation's next frame; check visible overlap.
-              if (media?.getAnimations().some(animation => animation.playState === "running" && animation.currentTime < animation.effect.getTiming().duration)) window.__focusColorsDuringMediaMove = true;
-              const observation = window.__focusVisibleColors[node.dataset.focusText] ??= { first: performance.now(), last: 0 };
-              observation.last = performance.now();
-            }
-          }
-        });
-      }).observe(document.body, { subtree: true, childList: true });
-    });
     await page.locator(".homepage-identity").click();
     const toggle = page.getByRole("button", { name: "Preview inline project expansion" });
     await toggle.waitFor();
@@ -101,56 +55,8 @@ try {
     assert.equal(await dialog.getAttribute("data-input"), "pointer");
     assert.equal(await dialog.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
-    await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
-    assert.equal(await page.evaluate(() => window.__focusGlitched.size), 13);
-    assert.equal(await page.evaluate(() => window.__focusStreamed.size), 11);
-    assert.equal(await page.evaluate(() => window.__focusStreamRegressed), false);
-    assert.equal(await page.evaluate(() => window.__focusShortFrames.size), 0);
-    assert.equal(await page.evaluate(() => window.__focusColorsDuringMediaMove), false);
-    assert.equal(await page.evaluate(() => window.__focusSettledChanges), false);
-    assert.equal(await page.evaluate(() => window.__focusPaintedCopyChanged), false);
-    const typography = await dialog.evaluate(root => [...root.querySelectorAll(".project-focus-text")].map(node => {
-      const glyphs = node.querySelector(".project-focus-glyphs"), reserve = node.querySelector(".project-focus-text-reserve");
-      const singleTextRun = glyphs.childNodes.length === 1 && glyphs.firstChild.nodeType === Node.TEXT_NODE;
-      const canonicalVisible = getComputedStyle(reserve).visibility === "hidden" && getComputedStyle(glyphs).visibility === "visible";
-      const reference = document.createElement("span");
-      reference.textContent = node.dataset.focusText;
-      reference.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
-      node.appendChild(reference);
-      const style = getComputedStyle(glyphs), referenceStyle = getComputedStyle(reference);
-      const sameStyle = ["fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight", "fontFeatureSettings", "fontKerning"].every(key => style[key] === referenceStyle[key]);
-      let maxAdvanceDifference = 0;
-      if (singleTextRun) {
-        const actual = document.createRange(), expected = document.createRange();
-        let actualStart = 0, expectedStart = 0;
-        for (let index = 0; index < node.dataset.focusText.length; index++) {
-          actual.setStart(glyphs.firstChild, index); actual.setEnd(glyphs.firstChild, index + 1);
-          expected.setStart(reference.firstChild, index); expected.setEnd(reference.firstChild, index + 1);
-          const a = actual.getBoundingClientRect(), b = expected.getBoundingClientRect();
-          if (index === 0) { actualStart = a.left; expectedStart = b.left; }
-          maxAdvanceDifference = Math.max(maxAdvanceDifference, Math.abs((a.left - actualStart) - (b.left - expectedStart)));
-        }
-      }
-      reference.remove();
-      return { text: node.dataset.focusText, singleTextRun, canonicalVisible, sameStyle, maxAdvanceDifference };
-    }));
-    assert.ok(typography.every(item => item.singleTextRun && item.canonicalVisible && item.sameStyle && item.maxAdvanceDifference < 0.1), JSON.stringify(typography));
-    const visibleColors = await page.evaluate(() => Object.entries(window.__focusVisibleColors).filter(([text]) => text.length > 1).map(([, timing]) => timing.last - timing.first));
-    assert.equal(visibleColors.length, 11);
-    assert.ok(visibleColors.every(duration => duration >= 80), `Visible glitch durations: ${visibleColors}`);
-    const lateFlashes = await dialog.evaluate(async root => {
-      const changes = [];
-      const observer = new MutationObserver(() => {
-        if (root.querySelector('.project-focus-glyphs [style*="color"]')) changes.push(performance.now());
-      });
-      observer.observe(root, { subtree: true, childList: true });
-      document.querySelector(".project-grid").dispatchEvent(new PointerEvent("pointerout", { bubbles: true, relatedTarget: document.body }));
-      window.dispatchEvent(new Event("resize"));
-      await new Promise(resolve => setTimeout(resolve, 600));
-      observer.disconnect();
-      return changes.length;
-    });
-    assert.equal(lateFlashes, 0);
+    assert.equal(await dialog.locator(".project-focus-glyphs, .project-focus-text-reserve").count(), 0);
+    assert.ok(await dialog.locator("[data-focus-text]").evaluateAll(nodes => nodes.every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible")));
     if (fixture) await page.waitForFunction(time => { const video = document.querySelector(".project-focus-root video"); return video && !video.paused && video.currentTime >= time; }, videoTime);
     const state = await dialog.evaluate(root => {
       const source = window.__focusSource;
@@ -277,21 +183,20 @@ try {
     // Repeated open/close and reduced motion exercise cleanup and the alternate motion policy.
     for (let index = 0; index < 3; index++) {
       await page.emulateMedia({ reducedMotion: index === 2 ? "reduce" : "no-preference" });
-      if (index === 2) await page.evaluate(() => window.__focusGlitched.clear());
       await tile.click();
       await dialog.waitFor();
       if (index === 2) {
         await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
-        assert.equal(await page.evaluate(() => window.__focusGlitched.size), 0);
+        assert.ok(await dialog.evaluate(root => root.getAnimations({ subtree: true }).every(animation => animation.effect.getTiming().duration === 0)));
       }
       if (index === 1) {
-        await page.waitForFunction(() => Array.from(document.querySelectorAll(".project-focus-text")).every(node => node.querySelector(".project-focus-glyphs").textContent === node.dataset.focusText));
+        await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
         const stable = await dialog.evaluate(async root => {
-          const before = [...root.querySelectorAll(".project-focus-glyphs")].map(node => node.innerHTML);
+          const before = [...root.querySelectorAll("[data-focus-text]")].map(node => node.innerHTML);
           document.querySelector(".project-grid").dispatchEvent(new PointerEvent("pointerout", { bubbles: true, relatedTarget: document.body }));
           window.dispatchEvent(new Event("resize"));
           await new Promise(resolve => setTimeout(resolve, 200));
-          return [...root.querySelectorAll(".project-focus-glyphs")].every((node, index) => node.innerHTML === before[index]);
+          return [...root.querySelectorAll("[data-focus-text]")].every((node, index) => node.innerHTML === before[index]);
         });
         assert.equal(stable, true);
       }
@@ -299,11 +204,11 @@ try {
         const timing = await dialog.evaluate(root => {
           const animations = root.getAnimations({ subtree: true });
           animations.forEach(animation => { animation.pause(); animation.currentTime = 90; });
-          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: animation.effect.target.matches(".project-focus-details, .project-focus-controls, .project-focus-summary, .project-focus-close"), summary: animation.effect.target.matches(".project-focus-summary, .project-focus-close") }));
+          return animations.map(animation => ({ duration: animation.effect.getTiming().duration, easing: animation.effect.getTiming().easing, delay: animation.effect.getTiming().delay, text: Boolean(animation.effect.target.closest(".project-focus-details")), controls: Boolean(animation.effect.target.closest(".project-focus-controls")) }));
         });
-        assert.equal(timing.length, 8);
-        assert.ok(timing.every(animation => (animation.summary ? animation.duration > 500 && animation.duration < 700 : animation.duration === (animation.text ? 80 : 180)) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
-        assert.ok(timing.every(animation => animation.delay === (animation.text ? 180 : 0)));
+        assert.equal(timing.length, 16);
+        assert.ok(timing.every(animation => !animation.controls && animation.duration === (animation.text ? 600 : 180) && animation.easing === "cubic-bezier(0.65, 0, 0.35, 1)"));
+        assert.deepEqual([...new Set(timing.filter(animation => animation.text).map(animation => animation.delay))], [180, 220, 260, 300, 340, 380, 420]);
       }
       await page.getByRole("button", { name: "Close", exact: true }).click();
       await dialog.waitFor({ state: "detached" });

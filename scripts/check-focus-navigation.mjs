@@ -32,32 +32,33 @@ try {
     await dialog.waitFor();
     const fade = await dialog.locator(".project-focus-summary").evaluate(summary => {
       const animation = summary.getAnimations()[0];
-      const close = document.querySelector(".project-focus-close");
-      const closeAnimation = close.getAnimations()[0];
       const timing = animation.effect.getTiming();
-      const closeTiming = closeAnimation.effect.getTiming();
+      const root = summary.closest(".project-focus-root");
+      const rows = [...root.querySelectorAll(".project-focus-details h2, .project-focus-description, .project-focus-period, .project-focus-summary, .project-focus-details h3, .project-focus-details li")];
+      const rowTimings = rows.map(row => ({ top: row.getBoundingClientRect().top, ...row.getAnimations()[0].effect.getTiming() }));
+      const controls = root.querySelector(".project-focus-controls");
+      const controlsStatic = controls.getAnimations({ subtree: true }).length === 0 && [controls, ...controls.querySelectorAll("button")].every(node => getComputedStyle(node).opacity === "1");
       const samples = [0, 0.25, 0.5, 0.75, 1].map(progress => {
-        for (const fade of [animation, closeAnimation]) {
-          fade.pause();
-          fade.currentTime = timing.delay + timing.duration * progress;
-        }
-        return { summary: Number(getComputedStyle(summary).opacity), close: Number(getComputedStyle(close).opacity) };
+        animation.pause();
+        animation.currentTime = timing.delay + timing.duration * progress;
+        return Number(getComputedStyle(summary).opacity);
       });
-      animation.play(); closeAnimation.play();
-      return { duration: timing.duration, delay: timing.delay, samples, matchingTiming: JSON.stringify(timing) === JSON.stringify(closeTiming), text: summary.textContent, streamed: Boolean(summary.querySelector(".project-focus-glyphs")), closeText: close.textContent, closeStreamed: Boolean(close.querySelector(".project-focus-glyphs")) };
+      animation.play();
+      return { duration: timing.duration, delay: timing.delay, easing: timing.easing, rowTimings, controlsStatic, samples, text: summary.textContent, streamed: Boolean(root.querySelector(".project-focus-glyphs")), controlsText: controls.textContent };
     });
-    assert.ok(fade.duration > 500 && fade.duration < 700 && fade.delay === 180);
-    assert.equal(fade.matchingTiming, true);
-    assert.ok(fade.samples.every(sample => sample.close === sample.summary));
-    assert.ok(fade.samples[2].summary > 0 && fade.samples[2].summary < 1);
+    assert.equal(fade.duration, 600);
+    assert.equal(fade.delay, 260);
+    assert.equal(fade.controlsStatic, true);
+    assert.equal(fade.controlsText, "PCloseN");
+    assert.ok(fade.samples[2] > 0 && fade.samples[2] < 1);
     assert.equal(fade.text, description);
     assert.equal(fade.streamed, false);
-    assert.equal(fade.closeText, "Close");
-    assert.equal(fade.closeStreamed, false);
+    const rowTops = [...new Set(fade.rowTimings.map(row => row.top))].sort((a, b) => a - b);
+    assert.ok(fade.rowTimings.every(row => row.duration === fade.duration && row.easing === fade.easing && row.delay === 180 + rowTops.indexOf(row.top) * 40));
     const settled = async id => {
       await page.waitForFunction(id => {
         const root = document.querySelector(".project-focus-root");
-        return root?.dataset.focusProject === id && root.dataset.phase === "open" && [...root.querySelectorAll(".project-focus-glyphs")].every(node => node.dataset.reveal === "settled");
+        return root?.dataset.focusProject === id && root.dataset.phase === "open";
       }, id);
     };
     await settled(ids[0]);

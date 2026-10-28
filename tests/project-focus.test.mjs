@@ -21,11 +21,11 @@ test("project focus renders each supplied team member as their own external link
     { name: "First Person", href: "https://example.com/first" },
     { name: "Second Person", href: "https://example.com/second" },
   ]);
-  assert.match(html, /class="sr-only">Contributors<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Contributors<\/span>/);
   assert.match(html, /href="https:\/\/example.com\/first" target="_blank" rel="noreferrer"/);
-  assert.match(html, /class="sr-only">First Person<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">First Person<\/span>/);
   assert.match(html, /href="https:\/\/example.com\/second" target="_blank" rel="noreferrer"/);
-  assert.match(html, /class="sr-only">Second Person<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Second Person<\/span>/);
 });
 
 
@@ -34,9 +34,9 @@ test("description and tech render independently of optional contributors", () =>
   assert.match(html, /project-focus-summary text-bodySerif/);
   assert.match(html, /A project description\./);
   assert.match(html, /project-focus-tech/);
-  assert.match(html, /class="sr-only">Tech<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Tech<\/span>/);
   assert.doesNotMatch(html, /project-focus-team|Contributors/);
-  for (const technology of ["Swift", "UIKit", "Metal"]) assert.match(html, new RegExp(`class="sr-only">${technology}<\\/span>`));
+  for (const technology of ["Swift", "UIKit", "Metal"]) assert.match(html, new RegExp(`class="project-focus-text" data-focus-text="[^"]*">${technology}<\\/span>`));
 });
 
 test("missing or empty description and tech omit their sections", () => {
