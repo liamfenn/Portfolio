@@ -68,7 +68,7 @@ This checks desktop/mobile decoder and initial-load limits, priority, upgrades, 
 
 `node scripts/check-focus-regressions.mjs [origin]` uses real H.264 playback in WebKit to check delayed-video skeletons, held-frame upgrades (including closing mid-upgrade), text removal after paging/close, and successive trackpad-style strokes without a pointer move or a full momentum pause. Native Safari compositing remains a device check.
 
-`node scripts/check-focus-exit-order.mjs [origin]` checks the 180ms bottom-to-top fades with 12ms stagger and that no return movement begins while focus text remains, after paging and vertical scrolling, for video/placeholder cards and different grid widths. Set `FOCUS_BROWSER=chromium` to repeat the default WebKit checks in Chromium. Focus exit completes all row fades/removal and a paint opportunity before measuring and starting the media return; scrolling stays locked until close.
+`node scripts/check-focus-exit-order.mjs [origin]` checks that controls disappear before the 180ms bottom-to-top fades with 12ms stagger, and that no return movement begins while focus text remains, after paging and vertical scrolling, for video/placeholder cards and different grid widths. Set `FOCUS_BROWSER=chromium` to repeat the default WebKit checks in Chromium. Focus exit completes the control fade, all row fades/removal, and a paint opportunity before measuring and starting the media return; scrolling stays locked until close.
 
 The [focus media audit](focus-media-audit.md) records the investigated lifecycle boundaries and external implementations. The stable-DOM controller is now integrated; automated frame continuity does not certify native Safari compositing.
 

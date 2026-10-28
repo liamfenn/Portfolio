@@ -142,16 +142,29 @@ try {
     await page.locator(".project-focus-scroll").evaluate(node => { node.scrollTop = 200; });
     assert.equal(await page.locator(".project-focus-close").evaluate(node => innerHeight - node.getBoundingClientRect().bottom), mobile ? 24 : 44);
     await page.screenshot({ path: `/tmp/project-focus-${width}.png` });
+    const buttonsFirst = await dialog.evaluate(root => {
+      const media = document.querySelector('[data-focus-media="current"]');
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      const controls = root.querySelector(".project-focus-controls"), animation = controls.getAnimations()[0];
+      animation.pause(); animation.currentTime = 90;
+      const opacity = Number(getComputedStyle(controls).opacity);
+      const rowsHeld = [...root.querySelectorAll(".project-focus-details h2, .project-focus-description, .project-focus-period, .project-focus-summary, .project-focus-details h3, .project-focus-details li")]
+        .every(row => row.getAnimations().length === 0 && getComputedStyle(row).opacity === "1");
+      const result = { rowsHeld, buttonsFading: opacity > 0 && opacity < 1, duration: animation.effect.getTiming().duration, mediaHeld: media.getAnimations().length === 0 };
+      animation.play();
+      return result;
+    });
+    assert.deepEqual(buttonsFirst, { rowsHeld: true, buttonsFading: true, duration: 180, mediaHeld: true });
+    await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.exit === "text");
     const handoff = await dialog.evaluate(root => {
       const media = document.querySelector('[data-focus-media="current"]');
       const before = media.getBoundingClientRect();
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-      const animations = [...root.getAnimations({ subtree: true }), ...media.getAnimations()];
+      const animations = root.getAnimations({ subtree: true }).filter(animation => animation.effect.target.closest(".project-focus-details"));
       const noMediaAnimation = media.getAnimations().length === 0;
       animations.forEach(animation => { animation.pause(); animation.currentTime = 40; });
       const held = media.getBoundingClientRect();
       const controls = root.querySelector(".project-focus-controls");
-      const controlsHeld = getComputedStyle(controls).opacity === "1" && controls.getAnimations().length === 0;
+      const controlsGone = getComputedStyle(controls).opacity === "0" && getComputedStyle(controls).visibility === "hidden";
       const rows = animations.filter(animation => animation.effect.target.closest(".project-focus-details"));
       const lastRow = rows.find(animation => animation.effect.getTiming().delay === 0);
       const textOpacity = Number(getComputedStyle(lastRow.effect.target).opacity);
@@ -161,9 +174,9 @@ try {
       const laterTextOpacity = Number(getComputedStyle(lastRow.effect.target).opacity);
       window.__exitHeldBounds = { top: held.top, left: held.left, width: held.width };
       animations.forEach(animation => animation.play());
-      return { held: Math.abs(before.top - held.top) < 0.1 && Math.abs(before.width - held.width) < 0.1, noMediaAnimation, controlsHeld, textOpacity, laterTextOpacity, textDelay: textTiming.delay, textDuration: textTiming.duration, rowTimings };
+      return { held: Math.abs(before.top - held.top) < 0.1 && Math.abs(before.width - held.width) < 0.1, noMediaAnimation, controlsGone, textOpacity, laterTextOpacity, textDelay: textTiming.delay, textDuration: textTiming.duration, rowTimings };
     });
-    assert.ok(handoff.held && handoff.noMediaAnimation && handoff.controlsHeld);
+    assert.ok(handoff.held && handoff.noMediaAnimation && handoff.controlsGone);
     assert.ok(handoff.textOpacity > 0 && handoff.textOpacity < 1 && handoff.laterTextOpacity < 0.1);
     assert.equal(handoff.textDelay, 0);
     assert.equal(handoff.textDuration, 180);
@@ -175,16 +188,12 @@ try {
       animation.pause(); animation.currentTime = 90;
       const moving = media.getBoundingClientRect(), held = window.__exitHeldBounds;
       const timing = animation.effect.getTiming();
-      const controls = root.querySelector(".project-focus-controls"), controlsFade = controls.getAnimations()[0];
-      controlsFade.pause(); controlsFade.currentTime = 90;
-      const controlsOpacity = Number(getComputedStyle(controls).opacity);
-      const result = { moves: Math.abs(moving.top - held.top) + Math.abs(moving.left - held.left) + Math.abs(moving.width - held.width) > 0.1, textGone: root.querySelector(".project-focus-details").textContent === "", controlsFading: controlsOpacity > 0 && controlsOpacity < 1, controlsDuration: controlsFade.effect.getTiming().duration, mediaDelay: timing.delay, mediaDuration: timing.duration };
-      controlsFade.play();
+      const controls = root.querySelector(".project-focus-controls");
+      const result = { moves: Math.abs(moving.top - held.top) + Math.abs(moving.left - held.left) + Math.abs(moving.width - held.width) > 0.1, textGone: root.querySelector(".project-focus-details").textContent === "", controlsGone: getComputedStyle(controls).visibility === "hidden", mediaDelay: timing.delay, mediaDuration: timing.duration };
       animation.play();
       return result;
     });
-    assert.ok(collapse.moves && collapse.textGone && collapse.controlsFading);
-    assert.equal(collapse.controlsDuration, 180);
+    assert.ok(collapse.moves && collapse.textGone && collapse.controlsGone);
     assert.equal(collapse.mediaDelay, 0);
     assert.equal(collapse.mediaDuration, 180);
     await dialog.waitFor({ state: "detached" });

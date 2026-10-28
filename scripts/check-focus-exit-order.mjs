@@ -37,13 +37,17 @@ try {
           started ??= performance.now();
           const box = document.querySelector('[data-focus-media="current"]').getBoundingClientRect();
           initial ??= box;
-          window.__exitSamples.push({ elapsed: performance.now() - started, movement: Math.abs(box.left - initial.left) + Math.abs(box.top - initial.top) + Math.abs(box.width - initial.width), scrollTop: scroller.scrollTop, text: [...root.querySelectorAll(".project-focus-details")].map(node => node.textContent.trim()).join(""), controlsOpacity: Number(getComputedStyle(root.querySelector(".project-focus-controls")).opacity) });
+          const controls = getComputedStyle(root.querySelector(".project-focus-controls"));
+          const rowsFading = [...root.querySelectorAll(".project-focus-details h2, .project-focus-description, .project-focus-period, .project-focus-summary, .project-focus-details h3, .project-focus-details li")]
+            .some(row => Number(getComputedStyle(row).opacity) < 1);
+          window.__exitSamples.push({ elapsed: performance.now() - started, stage: root.dataset.exit, rowsFading, movement: Math.abs(box.left - initial.left) + Math.abs(box.top - initial.top) + Math.abs(box.width - initial.width), scrollTop: scroller.scrollTop, text: [...root.querySelectorAll(".project-focus-details")].map(node => node.textContent.trim()).join(""), controlsOpacity: Number(controls.opacity), controlsVisibility: controls.visibility });
         }
         requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
     });
     await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.exit === "text");
     const rows = await page.getByRole("dialog").evaluate(root => root.getAnimations({ subtree: true })
       .filter(animation => animation.effect.target.closest(".project-focus-details"))
       .map(animation => ({ top: animation.effect.target.getBoundingClientRect().top, delay: animation.effect.getTiming().delay, duration: animation.effect.getTiming().duration })));
@@ -54,8 +58,9 @@ try {
     const samples = await page.evaluate(() => window.__exitSamples);
     const moved = samples.filter(sample => sample.movement > 0.5);
     assert.ok(moved.length > 0, scenario.name);
-    assert.ok(samples.some(sample => sample.text && sample.controlsOpacity === 1) && samples.every(sample => !sample.text || sample.controlsOpacity === 1), "controls must remain opaque while content remains");
-    assert.ok(samples.some(sample => !sample.text && sample.controlsOpacity > 0 && sample.controlsOpacity < 1), "controls fade after content disappears");
+    assert.ok(samples.some(sample => sample.stage === "controls" && sample.controlsOpacity > 0 && sample.controlsOpacity < 1 && !sample.rowsFading), "controls fade while content holds still");
+    assert.ok(samples.some(sample => sample.stage === "text" && sample.rowsFading), "reverse stagger follows the controls");
+    assert.ok(samples.every(sample => sample.stage !== "text" || (sample.controlsOpacity === 0 && sample.controlsVisibility === "hidden")), "controls must disappear before the content fades");
     assert.ok(moved.every(sample => sample.text === ""), JSON.stringify({ scenario: scenario.name, overlap: moved.filter(sample => sample.text !== "").map(({ elapsed, movement, text }) => ({ elapsed, movement, textLength: text.length })) }));
     assert.ok(samples.every(sample => Math.abs(sample.scrollTop - samples[0].scrollTop) < 0.1), JSON.stringify({ scenario: scenario.name, scrollOffsets: samples.map(sample => sample.scrollTop) }));
     assert.deepEqual(errors, []);

@@ -180,7 +180,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       cancelPaging();
       closing = true;
       root.dataset.phase = "closing";
-      root.dataset.exit = "text";
+      root.dataset.exit = "controls";
       const scroller = scrollRef.current!;
       if (scroller.scrollHeight > scroller.clientHeight) scroller.style.scrollbarGutter = "stable";
       scroller.style.overflowY = "hidden";
@@ -193,15 +193,19 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       animations.forEach(animation => animation.cancel());
       backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
-      animations.push(...textExit);
-      void Promise.all(textExit.map(animation => animation.finished)).then(() => {
+      const controlsExit = fade(controls, controlsOpacity, 0);
+      animations.push(controlsExit);
+      void controlsExit.finished.then(async () => {
+        if (disposed) return;
+        controls.style.visibility = "hidden";
+        root.dataset.exit = "text";
+        const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
+        animations.push(...textExit);
+        await Promise.all(textExit.map(animation => animation.finished));
         if (disposed) return;
         const height = details.getBoundingClientRect().height;
         details.style.visibility = "hidden";
         flushSync(() => setExitTextHeight(height));
-        // Keep the controls opaque until the content behind them has disappeared.
-        animations.push(fade(controls, controlsOpacity, 0));
         root.dataset.exit = "paint";
         const returnMedia = () => {
           if (disposed) return;
