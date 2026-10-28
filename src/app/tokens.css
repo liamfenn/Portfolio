@@ -49,7 +49,7 @@
   --project-label-delay: 40ms;
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-page-duration: var(--motion-duration);
-  --project-focus-wheel-idle: var(--motion-duration);
+  --project-focus-wheel-idle: var(--hover-duration);
   --project-focus-handoff-delay: 80ms;
   --project-focus-text-enter-delay: 120ms;
   --project-focus-text-enter-duration: 600ms;

@@ -155,6 +155,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const animations: Animation[] = [];
     animationsRef.current = animations;
     let closing = false, disposed = false;
+    let presentHandoff: (() => void) | undefined;
     const tweenMedia = (from: DOMRect, to: DOMRect, delay = 0) => {
       const bounds = slot.getBoundingClientRect();
       return media.animate([
@@ -182,6 +183,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       cancelPaging();
       closing = true;
       root.dataset.phase = "closing";
+      const video = media.querySelector("video");
+      if (video) presentHandoff = preserveVideoFrame(video, true);
       const from = media.getBoundingClientRect();
       const opacity = Number(getComputedStyle(media).opacity);
       const opacities = faded.map(element => Number(getComputedStyle(element).opacity));
@@ -190,17 +193,25 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       animations.forEach(animation => animation.cancel());
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
       const exit = tweenMedia(from, trigger.getBoundingClientRect(), handoffDelay);
-      animations.push(exit, ...faded.map((element, index) => fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration)));
+      animations.push(exit, ...faded.map((element, index) => {
+        const animation = fade(element, opacities[index], 0, isText(element) ? 0 : handoffDelay, isText(element) ? textExitDuration : timing.duration);
+        // Remove text from painting once its fade ends, including Safari's retained paging layers.
+        if (isText(element)) void animation.finished.then(() => { if (!disposed) element.style.visibility = "hidden"; }).catch(() => {});
+        return animation;
+      }));
       if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
-      void exit.finished.then(() => { if (!disposed) onClose(); }).catch(() => {});
+      void exit.finished.then(() => {
+        if (!disposed) { root.style.visibility = "hidden"; onClose(); }
+      }).catch(() => {});
     };
     return () => {
       disposed = true;
       animations.forEach(animation => animation.cancel());
       if (!retainsMedia(media)) {
         const video = media.querySelector("video");
-        if (video) preserveVideoFrame(video);
+        const present = presentHandoff ?? (video ? preserveVideoFrame(video, true) : undefined);
         trigger.prepend(media);
+        present?.();
       }
       if (animationsRef.current === animations) animationsRef.current = [];
     };
@@ -220,7 +231,11 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
     <div ref={pagesRef} className="project-focus-pages">
-    <div ref={scrollRef} className="project-focus-scroll" onClick={event => { if (event.target === event.currentTarget) dismissRef.current(); }}>
+    <div ref={scrollRef} className="project-focus-scroll" onClick={event => {
+      if (event.target !== event.currentTarget) return;
+      const bounds = event.currentTarget.querySelector(".project-focus-panel")!.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dismissRef.current();
+    }}>
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" />
         <ProjectFocusDetails preview={selection.preview} />

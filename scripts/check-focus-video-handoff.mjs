@@ -1,11 +1,12 @@
 // Use FOCUS_VIDEO_FIXTURE for Chromium builds without H.264. Tests frame handoff, not native Safari compositing.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { chromium } from "playwright-core";
+import { chromium, webkit } from "playwright-core";
 
 const origin = process.argv[2] ?? "http://localhost:3100";
 const fixture = process.env.FOCUS_VIDEO_FIXTURE ? await readFile(process.env.FOCUS_VIDEO_FIXTURE) : null;
-const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
+const engine = process.env.FOCUS_BROWSER === "webkit" ? webkit : chromium;
+const browser = await engine.launch({ headless: true, ...(engine === chromium && process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 try {
   for (const width of [393, 1440]) {
     const page = await browser.newPage({ viewport: { width, height: width < 768 ? 650 : 1024 }, isMobile: width < 768, hasTouch: width < 768 });

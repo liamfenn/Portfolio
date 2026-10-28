@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { commitsPage, pagingIntent } from "../src/lib/project-paging.ts";
+import { commitsPage, pagingIntent, restartsWheelGesture } from "../src/lib/project-paging.ts";
 
 test("paging intent waits for deliberate horizontal motion and leaves vertical gestures to scrolling", () => {
   assert.equal(pagingIntent(5, 3, 8), "pending");
@@ -21,4 +21,13 @@ test("paging commits sufficient travel or a deliberate flick in either direction
 test("a reversed short drag snaps back instead of using stale flick velocity", () => {
   assert.equal(commitsPage(35, 393, -0.8, 8), false);
   assert.equal(commitsPage(-35, 393, 0.8, 8), false);
+});
+
+test("a new trackpad stroke can interrupt momentum without waiting for complete silence", () => {
+  assert.equal(restartsWheelGesture(24, 300, 4, 2, 80, 8), true);
+  assert.equal(restartsWheelGesture(-24, -300, -4, -2, 80, 8), true);
+  assert.equal(restartsWheelGesture(-12, 300, 40, 50, 80, 8), true);
+  for (const [x, last, previous] of [[60, 60, 60], [20, 30, 40], [3, 2, 4], [12, 10, 14], [90, 70, 50]]) {
+    assert.equal(restartsWheelGesture(x, 300, last, previous, 80, 8), false);
+  }
 });

@@ -40,8 +40,10 @@ and leading together. Email and social links use bodySerif. Project details,
 project dates, and the player's listening status and time use captionSans.
 
 Shared loading surfaces use `Skeleton` and `SkeletonText` in `src/components/skeleton.tsx`.
-Project posters/images, the profile photo, and initial album art show a subtle gray sweep until
-loaded, then retain their real image while a video buffers or new artwork is fetched. Text skeletons
+Images, the profile photo, and initial album art show a subtle gray sweep until loaded. Video tiles
+keep that skeleton until their first frame is presented, then retain the current picture through buffering
+and resolution upgrades. Posters remain available for reduced motion, data saving, failed/blocked
+playback, and no JavaScript. Text skeletons
 cover initial track/time/weather gaps; cached track data stays visible during refreshes. Missing project
 assets remain static placeholders. Reduced motion removes the sweep, image failures stop it, and
 no-JavaScript visitors see available images and static fallback copy. Timing, fill roles, and line height
@@ -100,8 +102,9 @@ Linked credits appear under **Contributors**,
 beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
 and Swift/UIKit/Metal stack until their final content is ready.
 Focus labels render as ordinary native text without decorative glyph copies.
-Video returns to the grid with its last decoded frame covering the compositing handoff until a fresh
-frame is presented. Normal pauses keep that frame; source release/error restores the poster.
+Video holds its last decoded frame over the entire closing animation and return to the grid. It uncovers
+only after a fresh presented frame and two paint opportunities. Focus text leaves painting
+as soon as its exit fade completes. Normal pauses keep that frame; source release/error restores the poster.
 
 The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
 N or Right Arrow goes to the next. Buttons and shortcuts loop through the displayed grid order, including
@@ -111,8 +114,9 @@ left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
 Desktop focus also supports horizontal trackpad/wheel scrolling and Shift+wheel: right advances and left
-returns, one project per gesture including momentum. The focused media slot and metadata stay mounted
-across paging to preserve wheel targets under a stationary pointer. Vertical scrolling and pinch zoom remain native.
+returns, one project per finger stroke. New strokes can interrupt a previous fling’s momentum without
+moving the pointer; the idle reset uses the shared 150ms hover duration. On desktop the native scroller
+stays stationary while its panel slides inside it, preserving the wheel target across page changes. Vertical scrolling and pinch zoom remain native.
 Mobile focus also supports horizontal swipes: left advances and right goes back, with the next project
 following the drag. Short/canceled drags snap back; vertical scrolling, pinch zoom, and edge gestures
 remain available. Buttons and keys use the same directional whole-page slide on desktop and mobile.

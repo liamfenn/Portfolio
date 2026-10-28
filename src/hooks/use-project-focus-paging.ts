@@ -3,7 +3,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { ProjectFocusSelection } from "@/components/project-focus";
-import { commitsPage, pagingIntent } from "@/lib/project-paging";
+import { commitsPage, pagingIntent, restartsWheelGesture } from "@/lib/project-paging";
 import { preserveVideoFrame } from "@/lib/video-playback";
 
 type Direction = -1 | 1;
@@ -17,8 +17,9 @@ function milliseconds(tokens: CSSStyleDeclaration, property: string) {
 
 function restoreMedia(media: HTMLElement, trigger: HTMLButtonElement) {
   const video = media.querySelector("video");
-  if (video) preserveVideoFrame(video);
+  const present = video ? preserveVideoFrame(video, true) : undefined;
   trigger.prepend(media);
+  present?.();
 }
 
 export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total }: {
@@ -76,8 +77,9 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     pagesRef.current!.appendChild(snapshot);
     snapshot.scrollTop = scroller.scrollTop;
     const video = media.querySelector("video");
-    if (video) preserveVideoFrame(video);
+    const present = video ? preserveVideoFrame(video, true) : undefined;
     slot.appendChild(media);
+    present?.();
     page.current = { snapshot, media, trigger: current.current.selection.trigger, direction, offset, width: pagesRef.current!.clientWidth, animations: [] };
     current.current.onNavigate(direction, keyboard);
   }, [rootRef, scrollRef, controlsRef, pagesRef, finishPaging]);
@@ -90,8 +92,12 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     const minimum = milliseconds(tokens, "--project-focus-handoff-delay");
     const remaining = Math.max(0, 1 - Math.abs(outgoing.offset) / outgoing.width);
     const options = { duration: reduced ? 0 : Math.max(minimum, duration * remaining), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})`, fill: "both" as const };
-    const incoming = scrollRef.current!.animate([{ transform: `translateX(${outgoing.direction * outgoing.width + outgoing.offset}px)` }, { transform: "translateX(0px)" }], options);
-    const leaving = outgoing.snapshot.animate([{ transform: `translateX(${outgoing.offset}px)` }, { transform: `translateX(${-outgoing.direction * outgoing.width}px)` }], options);
+    // Keep the desktop wheel's scroll container stationary, including its native scrolling layer.
+    const desktop = matchMedia("(min-width: 768px)").matches;
+    const incomingTarget = desktop ? scrollRef.current!.querySelector<HTMLElement>(".project-focus-panel")! : scrollRef.current!;
+    const outgoingTarget = desktop ? outgoing.snapshot.querySelector<HTMLElement>(".project-focus-panel")! : outgoing.snapshot;
+    const incoming = incomingTarget.animate([{ transform: `translateX(${outgoing.direction * outgoing.width + outgoing.offset}px)` }, { transform: "translateX(0px)" }], options);
+    const leaving = outgoingTarget.animate([{ transform: `translateX(${outgoing.offset}px)` }, { transform: `translateX(${-outgoing.direction * outgoing.width}px)` }], options);
     outgoing.animations = [incoming, leaving];
     void Promise.all(outgoing.animations.map(animation => animation.finished)).then(() => { if (page.current === outgoing) finishPaging(); }).catch(() => {});
     return outgoing.animations;
@@ -122,28 +128,34 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
         if (snapAnimations.current === animations) { snapAnimations.current = []; setNeighborDirection(null); }
       }).catch(() => {});
     };
-    let wheelGesture: { x: number; y: number; time: number; axis: ReturnType<typeof pagingIntent>; committed: boolean } | null = null;
+    let wheelGesture: { x: number; y: number; time: number; axis: ReturnType<typeof pagingIntent>; committed: boolean; lastX: number; previousX: number; peak: number } | null = null;
     const wheel = (event: WheelEvent) => {
       if (mobile.matches || event.ctrlKey || event.metaKey || event.altKey || current.current.total < 2 || root.dataset.phase === "closing") return;
       const tokens = getComputedStyle(root);
       const idle = milliseconds(tokens, "--project-focus-wheel-idle");
       const threshold = parseFloat(tokens.getPropertyValue("--page-frame"));
-      if (!wheelGesture || event.timeStamp - wheelGesture.time > idle) wheelGesture = { x: 0, y: 0, time: event.timeStamp, axis: "pending", committed: false };
-      const moving = wheelGesture;
-      moving.time = event.timeStamp;
       const line = parseFloat(tokens.getPropertyValue("--type-body-leading"));
       const scaleX = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? line : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? scroller.clientWidth : 1;
       const scaleY = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? line : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? scroller.clientHeight : 1;
       const shiftWheel = event.shiftKey && event.deltaX === 0;
       const x = (shiftWheel ? event.deltaY : event.deltaX) * scaleX;
       const y = shiftWheel ? 0 : event.deltaY * scaleY;
+      const momentum = (event as WheelEvent & { momentum?: boolean }).momentum === true;
+      const renewed = wheelGesture?.committed && !page.current && !momentum && pagingIntent(x, y, threshold) === "horizontal"
+        && restartsWheelGesture(x, wheelGesture.x, wheelGesture.lastX, wheelGesture.previousX, wheelGesture.peak, threshold);
+      if (!wheelGesture || event.timeStamp - wheelGesture.time > idle || renewed) wheelGesture = { x: 0, y: 0, time: event.timeStamp, axis: "pending", committed: false, lastX: 0, previousX: 0, peak: 0 };
+      const moving = wheelGesture;
+      moving.time = event.timeStamp;
+      moving.previousX = moving.lastX;
+      moving.lastX = x;
+      moving.peak = Math.max(moving.peak, Math.abs(x));
       moving.x += x;
       moving.y += y;
       if (moving.axis === "pending") moving.axis = pagingIntent(moving.x, moving.y, threshold);
       // Consume even the small lead-in deltas so horizontal gestures cannot trigger browser history.
       if (moving.axis === "horizontal" || (moving.axis === "pending" && Math.abs(x) > Math.abs(y) * 1.2)) event.preventDefault();
-      if (moving.axis !== "horizontal" || moving.committed || Math.abs(moving.x) < threshold * 3) return;
-      // Latch until the wheel stream goes quiet, including momentum after the page transition ends.
+      if (moving.axis !== "horizontal" || moving.committed || momentum || Math.abs(moving.x) < threshold * 3) return;
+      // Ignore one stroke's momentum, but let the next finger stroke rearm without moving the pointer.
       moving.committed = true;
       if (!page.current) navigate(moving.x > 0 ? 1 : -1, false);
     };

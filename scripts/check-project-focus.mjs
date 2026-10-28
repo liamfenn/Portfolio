@@ -128,7 +128,7 @@ try {
       assert.ok(viewportEdges.every(edge => edge.unchangedScrollArea && edge.backdropBottom === 900));
       assert.ok(viewportEdges.every(edge => edge.colors[0] === "rgb(246, 248, 249)" && edge.colors[1] === "rgb(255, 255, 255)"));
     }
-    await page.locator(".project-focus-media-slot").click();
+    await page.locator(".project-focus-media-slot").click({ force: true });
     assert.equal(await dialog.getAttribute("data-phase"), "open");
     await page.keyboard.press("Tab");
     assert.equal(await page.evaluate(() => document.activeElement.querySelector("[data-focus-text]")?.dataset.focusText), "Annabel Lake");
@@ -278,7 +278,7 @@ try {
     await page.getByRole("dialog").waitFor();
     assert.equal(await page.getByRole("dialog").getAttribute("data-input"), "keyboard");
     assert.equal(await page.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "solid");
-    await page.locator(".project-focus-media-slot").click();
+    await page.locator(".project-focus-media-slot").click({ force: true });
     assert.equal(await page.getByRole("dialog").getAttribute("data-input"), "pointer");
     assert.equal(await page.locator(".project-focus-close").evaluate(node => getComputedStyle(node).outlineStyle), "none");
     await page.keyboard.press("Escape");

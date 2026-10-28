@@ -36,12 +36,12 @@ try {
       await control.click();
       const motion = await dialog.evaluate(async root => {
         const incoming = root.querySelector(".project-focus-scroll"), outgoing = root.querySelector("[data-paging-outgoing]");
-        const animations = [incoming.getAnimations()[0], outgoing.getAnimations()[0]];
+        const animations = [incoming.getAnimations({ subtree: true })[0], outgoing.getAnimations({ subtree: true })[0]];
         animations.forEach(animation => animation.pause());
         await Promise.all(animations.map(animation => animation.ready));
         animations.forEach(animation => { animation.currentTime = animation.effect.getTiming().duration / 2; });
         await new Promise(resolve => requestAnimationFrame(resolve));
-        const state = { duration: animations[0].effect.getTiming().duration, incoming: incoming.getBoundingClientRect().left, outgoing: outgoing.getBoundingClientRect().left, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: outgoing.querySelectorAll("video").length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll("[data-focus-text]")].every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible" && getComputedStyle(node.closest("h2, h3, p, li")).opacity === "1"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
+        const state = { duration: animations[0].effect.getTiming().duration, incoming: new DOMMatrixReadOnly(getComputedStyle(animations[0].effect.target).transform).m41, outgoing: new DOMMatrixReadOnly(getComputedStyle(animations[1].effect.target).transform).m41, outgoingInert: outgoing.inert, outgoingHidden: outgoing.getAttribute("aria-hidden"), nativeMedia: outgoing.querySelectorAll("video").length, duplicateIds: outgoing.querySelectorAll("[id]").length, textVisible: [...incoming.querySelectorAll("[data-focus-text]")].every(node => node.textContent === node.dataset.focusText && getComputedStyle(node).visibility === "visible" && getComputedStyle(node.closest("h2, h3, p, li")).opacity === "1"), tint: getComputedStyle(root.querySelector(".project-focus-backdrop")).opacity };
         return state;
       });
       assert.equal(motion.duration, 300);
@@ -51,7 +51,7 @@ try {
       assert.equal(motion.nativeMedia, 1);
       assert.deepEqual(await dialog.locator(".project-focus-controls").boundingBox(), controlBounds);
       if (direction === 1) await page.screenshot({ path: `/tmp/portfolio-paging-${width}-mid.png` });
-      await dialog.evaluate(root => [root.querySelector(".project-focus-scroll"), root.querySelector("[data-paging-outgoing]")].forEach(node => node.getAnimations().forEach(animation => animation.play())));
+      await dialog.evaluate(root => [root.querySelector(".project-focus-scroll"), root.querySelector("[data-paging-outgoing]")].forEach(node => node.getAnimations({ subtree: true }).forEach(animation => animation.play())));
       await settled(id);
     }
     if (mobile) {

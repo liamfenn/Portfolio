@@ -364,6 +364,9 @@
 
 .project-preview-video:not([data-frame-ready="true"]) { visibility: hidden; }
 .project-preview-poster { background: transparent; }
+.project-preview-media[data-video-display="loading"] > .skeleton { z-index: 1; }
+.project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: hidden; }
+.project-preview-handoff { z-index: 1; }
 .project-preview-video[data-frame-ready="true"] + .project-preview-poster { visibility: hidden; }
 
 /* Shared loading surfaces sit behind real media, so cached and no-JS images remain visible. */
@@ -761,10 +764,12 @@ img.loading-image-error { visibility: hidden; }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
-/* Keep desktop wheel hit testing on the persistent slot while its media returns to the grid. */
+/* The native wheel target stays on the stationary scroller while the content pages inside it. */
 @media (min-width: 768px) {
-  .project-focus-media-slot > .homepage-project-media { pointer-events: none; }
+  .project-focus-scroll > .project-focus-panel { pointer-events: none; }
+  .project-focus-scroll .project-focus-details a { pointer-events: auto; }
 }
+.project-focus-scroll, .project-focus-paging-page { overflow-x: hidden; }
 .project-focus-details { display: flex; flex-direction: column; gap: var(--project-focus-section-gap); padding-top: var(--content-padding); --inspect-color-token: text-primary; color: var(--text-primary); }
 .project-focus-details :where(h2, h3, p, ul) { margin: 0; padding: 0; list-style: none; }
 .project-focus-name h2 { font: inherit; }
