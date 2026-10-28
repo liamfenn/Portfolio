@@ -148,7 +148,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     // Non-selectable text can suppress custom highlights. The selectstart guard below
     // still blocks manual selection while these containers allow the masks to paint.
     highlightStyle.textContent = `
-      .homepage-spotify, .work-density-control, .portfolio-footer {
+      .homepage-card-trigger, .homepage-spotify, .work-density-control, .portfolio-footer {
         -webkit-user-select: text;
         user-select: text;
       }

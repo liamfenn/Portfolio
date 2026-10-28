@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Paint party-mode donation gaps in project labels (2026-10-28)**
+- Project cards were missing from party mode's temporary text-selection exception. WebKit registered the donated character ranges but did not paint their transparent highlight while the card button retained `user-select: none`. Added cards to the existing active-party exception; the selection guard still blocks manual selection and removing the party style restores normal button behavior.
+- The painted-pixel regression fails on the previous build: a donated project character has a registered mask but zero changed pixels when that mask is revealed. The check also covers stable donated positions after hover reentry, source-text preservation, and full cleanup.
+- Validation: 59 tests, TypeScript, touched-file lint, and production build passed. WebKit and Chromium show actual painted donation gaps, retain the same missing positions on repeat hover, keep source text mounted, prevent manual selection during the party, and restore selection policy/listeners when it ends.
+
 **Share focus layers above background controls and globe (2026-10-28)**
 - The fixed focus wrapper created its own stacking context even with an automatic z-index, trapping the backdrop/content/buttons below positively layered page controls and globe glyphs. The wrapper now stays unstacked, while its backdrop, pages, buttons, and bottom fade are fixed to the viewport and share the existing layer tokens with native grid media. No video placement/playback code, extra layers, or new tokens were added.
 - Added a regression that temporarily enables background hit testing: inert elements can paint above a modal while being absent from ordinary hit tests, which is why previous interaction checks missed it. The new check fails against the previous build with both desktop menu controls above focus.

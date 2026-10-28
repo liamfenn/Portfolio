@@ -169,6 +169,10 @@ more letters into it. These hover-only labels stay intact until revealed, then t
 color-glitch with the same capture motion. Each label keeps the same missing characters for that party,
 including across dropdown remounts and repeated mobile taps, without donating more on re-entry. On exit,
 these extra copies fly offscreen while labels restore at once; permanent page letters still glide home normally.
+Party mode temporarily allows custom text highlights on project cards, menus, the player, and footer;
+a selection guard still blocks manual text selection. The temporary overrides disappear when the party ends.
+`node scripts/check-party-hover-masks.mjs [origin]` verifies painted project-label gaps and cleanup in WebKit;
+set `PARTY_BROWSER=chromium` to check Chromium too.
 
 The swarm has no downward gravity. It floats in a loose zone that trails the
 cursor lazily and sways a little. Each letter circles its own spot in the zone and
