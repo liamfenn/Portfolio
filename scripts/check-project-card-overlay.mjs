@@ -23,8 +23,8 @@ try {
       assert.equal(await cycle.getAttribute("data-project-interaction"), mode);
     }
     const wipeCycle = page.getByRole("button", { name: /^Cycle card overlay entry:/ });
-    assert.equal(await wipeCycle.getAttribute("data-card-wipe"), "glow");
-    for (const style of ["particles", "lens", "glow"]) {
+    assert.equal(await wipeCycle.getAttribute("data-card-wipe"), "particles");
+    for (const style of ["glow", "lens", "particles"]) {
       await wipeCycle.click();
       assert.equal(await wipeCycle.getAttribute("data-card-wipe"), style);
     }
@@ -77,9 +77,12 @@ try {
     await trigger.click();
     assert.equal(await trigger.getAttribute("aria-expanded"), "false");
     assert.equal(await first.locator(".homepage-project-overlay").getAttribute("aria-hidden"), "true");
-    const exit = await panel.evaluate(panel => [...panel.querySelectorAll("h3,li")].map(row => ({ top: row.getBoundingClientRect().top, delay: parseFloat(getComputedStyle(row).transitionDelay) * 1000, duration: parseFloat(getComputedStyle(row).transitionDuration) * 1000 })));
-    assert.equal(Math.max(...exit.map(row => row.delay + row.duration)), 180);
-    assert.ok(exit[0].delay > exit.at(-1).delay);
+    // Closing rewinds the wipe: the canvas takes over from the CSS surface, hides rows as the front recedes past
+    // them (the last-revealed first), and leaves nothing behind.
+    assert.deepEqual(await panel.evaluate(panel => ({ wipe: panel.dataset.wipe, canvases: panel.querySelectorAll("canvas").length, visibility: getComputedStyle(panel).visibility })), { wipe: "running", canvases: 1, visibility: "visible" });
+    await page.waitForFunction(() => { const rows = [...document.querySelectorAll('[data-project-id="shop-03"] .project-card-panel :is(h3, li)')]; return Number(rows.at(-1).style.opacity) < 1 && Number(rows[0].style.opacity) === 1; });
+    await page.waitForFunction(() => { const panel = document.querySelector('[data-project-id="shop-03"] .project-card-panel'); return !panel.dataset.wipe && !panel.querySelector("canvas") && getComputedStyle(panel).visibility === "hidden"; });
+    assert.ok(await panel.evaluate(panel => [...panel.querySelectorAll("h3,li")].every(row => !row.style.opacity && getComputedStyle(row).opacity === "0")));
     await trigger.click();
     await next.locator(".homepage-card-trigger").click();
     assert.equal(await page.locator('.project-card-panel.is-open').count(), 1);
