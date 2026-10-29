@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import { ProjectCredits } from "@/components/project-focus";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { parseBezier, playCardWipe } from "@/lib/card-overlay-wipe";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 
 const milliseconds = (tokens: CSSStyleDeclaration, property: string) => {
   const value = tokens.getPropertyValue(property).trim();
@@ -16,6 +17,10 @@ export function ProjectCardOverlay({ preview, open, id }: { preview: ProjectPrev
   const rootRef = useRef<HTMLDivElement>(null);
   const wipeHostRef = useRef<HTMLSpanElement>(null);
   const generation = useRef(0);
+  // The inspector's Card entry toggle compares the wipe with the plain fade; a switch applies from the next opening.
+  const { cardEntryMode } = usePortfolioExperiments();
+  const entryMode = useRef(cardEntryMode);
+  useLayoutEffect(() => { entryMode.current = cardEntryMode; }, [cardEntryMode]);
   useLayoutEffect(() => {
     const root = rootRef.current!;
     const measure = () => {
@@ -41,7 +46,7 @@ export function ProjectCardOverlay({ preview, open, id }: { preview: ProjectPrev
   useLayoutEffect(() => {
     const root = rootRef.current!, host = wipeHostRef.current!;
     // Read at opening, so a preference changed while the page is open applies to the next wipe.
-    if (!open || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!open || entryMode.current === "fade" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const tokens = getComputedStyle(root);
     const ease = parseBezier(tokens.getPropertyValue("--project-card-overlay-enter-ease"));
     const fade = milliseconds(tokens, "--project-card-overlay-duration");

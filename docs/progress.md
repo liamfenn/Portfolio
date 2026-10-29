@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Back to the first shader, with a Fade toggle (2026-10-28)**
+- Liam preferred the first diagonal lens wipe to the Glow and Particles styles, the 65° sweep, and the rewinding exit, so both of those commits are reverted (903c547, 11cebfe); the code matches 1a7ba39 again. Their designs remain in git history (9d160f0, 898f1b1) if we want to revisit them.
+- The avatar menu's **Card entry** control switches between **Shader** (the default) and **Fade**, the original 180ms CSS fade, for comparison. A switch applies from the next opening.
+
 **Card overlay entry wipe (2026-10-28)**
 - Opening a card overlay now runs a WebGL shader: a diagonal front from the top-left corner sweeps to the bottom-right over 900ms on `.85, 0, .15, 1`, bending the media in a lens as it passes and leaving the 10px blur and 88% white tint set behind it. Credit rows reveal as the blur sets under their centers (not before, so text never sits on sharp, bent video). Once the front has crossed, the CSS surface appears beneath the canvas and the canvas fades out over 180ms and is removed with its context released. Exit is unchanged.
 - The blur moved from the panel onto its own `.project-card-surface` layer: the canvas has to sit between blur and text, and opacity on the panel would cut its backdrop-filter off from the media.

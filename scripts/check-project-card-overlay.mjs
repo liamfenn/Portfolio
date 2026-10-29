@@ -22,6 +22,19 @@ try {
       await cycle.click();
       assert.equal(await cycle.getAttribute("data-project-interaction"), mode);
     }
+    const entryCycle = page.getByRole("button", { name: /^Cycle card overlay entry:/ });
+    assert.equal(await entryCycle.getAttribute("data-card-entry"), "shader");
+    await entryCycle.click();
+    assert.equal(await entryCycle.getAttribute("data-card-entry"), "fade");
+    // Fade mode opens with the plain CSS fade: no wipe, no canvas.
+    await page.locator(".homepage-identity").click();
+    const fadeCard = page.locator('[data-project-id="shop-04"]');
+    await fadeCard.locator(".homepage-card-trigger").click();
+    assert.deepEqual(await fadeCard.locator(".project-card-panel").evaluate(panel => ({ wipe: panel.dataset.wipe ?? null, canvases: panel.querySelectorAll("canvas").length, open: panel.classList.contains("is-open") })), { wipe: null, canvases: 0, open: true });
+    await fadeCard.locator(".homepage-card-trigger").click();
+    await page.locator(".homepage-identity").click();
+    await entryCycle.click();
+    assert.equal(await entryCycle.getAttribute("data-card-entry"), "shader");
     await page.locator(".homepage-identity").click();
     const first = page.locator('[data-project-id="shop-03"]');
     const next = page.locator('[data-project-id="shop-04"]');
