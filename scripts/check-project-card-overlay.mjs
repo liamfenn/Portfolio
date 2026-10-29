@@ -33,15 +33,20 @@ try {
     await trigger.click();
     assert.equal(await page.getByRole("dialog").count(), 0);
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+    // The entry wipe draws on a canvas over a hidden surface, revealing rows itself, then hands back to CSS.
+    assert.deepEqual(await panel.evaluate(panel => ({ wipe: panel.dataset.wipe, canvases: panel.querySelectorAll(".project-card-wipe > canvas").length, surface: getComputedStyle(panel.querySelector(".project-card-surface")).opacity })), { wipe: "running", canvases: 1, surface: "0" });
+    // Production CSS minifies the token to seconds.
+    assert.equal(await panel.evaluate(panel => { const value = getComputedStyle(panel).getPropertyValue("--project-card-overlay-enter-duration").trim(); return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000); }), 900);
+    await page.waitForFunction(() => { const panel = document.querySelector('[data-project-id="shop-03"] .project-card-panel'); return !panel.dataset.wipe && !panel.querySelector("canvas"); });
     await page.waitForFunction(() => document.querySelector('[data-project-id="shop-03"] .project-card-panel')?.getAnimations({ subtree: true }).length === 0);
     await page.waitForFunction(() => document.querySelector('[data-swarm-label-id="shop-03:company"]').textContent === "Shop");
     if (!mobile) await page.mouse.move(5, 5);
     assert.equal(await first.locator(".homepage-project-overlay").getAttribute("aria-hidden"), "false");
     const geometry = await first.evaluate(card => {
       const panel = card.querySelector(".project-card-panel"), header = card.querySelector(".homepage-project-overlay");
-      const bounds = panel.getBoundingClientRect(), label = header.getBoundingClientRect(), style = getComputedStyle(panel);
+      const bounds = panel.getBoundingClientRect(), label = header.getBoundingClientRect(), style = getComputedStyle(panel), surface = getComputedStyle(panel.querySelector(".project-card-surface"));
       const rows = [...panel.querySelectorAll("h3,li")].map(row => ({ top: row.getBoundingClientRect().top, delay: parseFloat(getComputedStyle(row).transitionDelay) * 1000, duration: parseFloat(getComputedStyle(row).transitionDuration) * 1000, opacity: getComputedStyle(row).opacity }));
-      return { width: bounds.width, height: bounds.height, inset: label.left - bounds.left, headerAbove: Number(getComputedStyle(header).zIndex) > Number(style.zIndex), background: style.backgroundColor, blur: style.backdropFilter || style.webkitBackdropFilter, duration: parseFloat(style.transitionDuration) * 1000, rows, caption: getComputedStyle(panel.querySelector("h3")).fontSize, body: getComputedStyle(panel.querySelector("li")).fontSize };
+      return { width: bounds.width, height: bounds.height, inset: label.left - bounds.left, headerAbove: Number(getComputedStyle(header).zIndex) > Number(style.zIndex), background: surface.backgroundColor, blur: surface.backdropFilter || surface.webkitBackdropFilter, duration: parseFloat(surface.transitionDuration) * 1000, surfaceOpacity: surface.opacity, rows, caption: getComputedStyle(panel.querySelector("h3")).fontSize, body: getComputedStyle(panel.querySelector("li")).fontSize };
     });
     assert.equal(geometry.width, geometry.height);
     if (mobile) assert.equal(geometry.width, 393);
@@ -50,6 +55,7 @@ try {
     assert.ok(["color(srgb 1 1 1 / 0.88)", "rgba(255, 255, 255, 0.88)"].includes(geometry.background), geometry.background);
     assert.equal(geometry.blur, "blur(10px)");
     assert.equal(geometry.duration, 180);
+    assert.equal(geometry.surfaceOpacity, "1");
     assert.equal(geometry.caption, mobile ? "13px" : "14px");
     assert.equal(geometry.body, mobile ? "14px" : "15px");
     assert.ok(geometry.rows.every(row => row.opacity === "1"));
@@ -105,7 +111,7 @@ try {
     }
     await page.emulateMedia({ reducedMotion: "reduce" });
     await trigger.click();
-    assert.equal(await panel.evaluate(panel => getComputedStyle(panel).transitionProperty), "none");
+    assert.deepEqual(await panel.evaluate(panel => ({ panel: getComputedStyle(panel).transitionProperty, surface: getComputedStyle(panel.querySelector(".project-card-surface")).transitionProperty, wipe: panel.dataset.wipe ?? null, canvases: panel.querySelectorAll("canvas").length })), { panel: "none", surface: "none", wipe: null, canvases: 0 });
     await page.reload();
     await page.locator(".homepage-identity").click();
     assert.equal(await cycle.getAttribute("data-project-interaction"), "overlay");

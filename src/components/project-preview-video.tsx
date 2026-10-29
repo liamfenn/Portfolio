@@ -26,12 +26,13 @@ export function ProjectPreviewVideo({ asset, priority = false }: { asset: Portfo
   const pending = display === "loading" || (display === "poster" && posterPending);
   return <span className="project-preview-media" data-video-display={display} aria-busy={pending} style={{ "--media-backdrop": asset.backdrop } as CSSProperties}>
     <Skeleton active={pending} />
-    <video ref={videoRef} className="project-preview-video" aria-label={asset.alt}
+    {/* CORS lets the card overlay's entry wipe read frames from the media host; it allows any origin. */}
+    <video ref={videoRef} className="project-preview-video" aria-label={asset.alt} crossOrigin="anonymous"
       width={asset.width} height={asset.height} muted loop playsInline disablePictureInPicture preload="none" />
     {/* The poster covers the video until a decoded frame is presented, including failed autoplay. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img ref={posterAttachImage} onLoad={posterOnLoad} onError={posterOnError}
-      className={`project-preview-poster${posterFailed ? " loading-image-error" : ""}`} src={mediaUrl(asset.poster)}
+      className={`project-preview-poster${posterFailed ? " loading-image-error" : ""}`} crossOrigin="anonymous" src={mediaUrl(asset.poster)}
       srcSet={asset.posters?.map(poster => `${mediaUrl(poster.src)} ${poster.width}w`).join(", ")}
       sizes="auto, (max-width: 767px) 100vw, 33vw" width={asset.width} height={asset.height}
       alt="" aria-hidden="true" loading="lazy" decoding="async" />

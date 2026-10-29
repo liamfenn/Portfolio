@@ -693,15 +693,30 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   flex-direction: column;
   justify-content: flex-end;
   padding: var(--project-info-inset);
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s var(--project-card-overlay-duration);
+}
+.project-card-panel.is-open { visibility: visible; transition-delay: 0s; }
+/* The blur lives on its own layer, not the panel: opacity on an ancestor would cut a backdrop-filter off from the
+   media it blurs, and the entry wipe draws between this surface and the credits. */
+.project-card-surface, .project-card-wipe, .project-card-wipe > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.project-card-surface {
   background: color-mix(in srgb, var(--bg-fill) var(--project-card-overlay-opacity), transparent);
   -webkit-backdrop-filter: blur(var(--project-card-overlay-blur));
   backdrop-filter: blur(var(--project-card-overlay-blur));
   opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity var(--project-card-overlay-duration) cubic-bezier(var(--project-focus-ease)), visibility 0s var(--project-card-overlay-duration);
+  transition: opacity var(--project-card-overlay-duration) cubic-bezier(var(--project-focus-ease));
 }
-.project-card-panel.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.project-card-panel.is-open .project-card-surface { opacity: 1; }
+.project-card-panel > .project-focus-credits { position: relative; }
+/* While the wipe runs, its canvas is the surface and it sets each row's opacity itself; once the front has
+   crossed, the CSS surface appears beneath the canvas as it fades. */
+.project-card-wipe > canvas { opacity: 0; transition: opacity var(--project-card-overlay-duration) cubic-bezier(var(--project-focus-ease)); }
+.project-card-panel[data-wipe="running"] .project-card-wipe > canvas { opacity: 1; transition: none; }
+.project-card-panel[data-wipe="running"] .project-card-surface { opacity: 0; transition: none; }
+.project-card-panel.is-open[data-wipe="settling"] .project-card-surface { transition: none; }
+.project-card-panel[data-wipe="running"] :is(h3, li) { transition: none; }
 .has-card-overlay:has(.homepage-card-trigger:focus-visible) .project-card-panel { outline: var(--focus-ring); outline-offset: calc(-1 * var(--focus-offset)); }
 .project-card-panel :where(h3, ul) { margin: 0; padding: 0; list-style: none; }
 .project-card-panel h3, .project-card-panel li {
@@ -715,7 +730,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .project-card-panel { padding: var(--project-info-inset-mobile); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .project-card-panel, .project-card-panel h3, .project-card-panel li { transition: none; }
+  .project-card-panel, .project-card-surface, .project-card-panel h3, .project-card-panel li { transition: none; }
 }
 .portfolio-v3 .homepage-contact { display: flex; margin: 48px 0 0; padding: 0 var(--content-padding) 12px; }
 .portfolio-v3 .portfolio-socials { display: flex; flex-direction: column; }

@@ -10,6 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Card overlay entry wipe (2026-10-28)**
+- Opening a card overlay now runs a WebGL shader: a diagonal front from the top-left corner sweeps to the bottom-right over 900ms on `.85, 0, .15, 1`, bending the media in a lens as it passes and leaving the 10px blur and 88% white tint set behind it. Credit rows reveal as the blur sets under their centers (not before, so text never sits on sharp, bent video). Once the front has crossed, the CSS surface appears beneath the canvas and the canvas fades out over 180ms and is removed with its context released. Exit is unchanged.
+- The blur moved from the panel onto its own `.project-card-surface` layer: the canvas has to sit between blur and text, and opacity on the panel would cut its backdrop-filter off from the media.
+- Grid videos and posters now load with `crossOrigin="anonymous"` so WebGL can read their frames; the Blob host returns `Access-Control-Allow-Origin: *`. Without it the texture upload throws a cross-origin error. If a frame is still unreadable, the sweep runs over the media's backdrop color, which under the 88% tint looks nearly the same.
+- New tokens `--project-card-overlay-enter-duration` (900ms) and `--project-card-overlay-enter-ease`; no existing motion role was long or strong enough. Shape constants (band width, lens strength) live in `card-overlay-wipe.ts`. No dependencies added.
+- Validation: 64 tests (new `tests/card-overlay-wipe.test.mjs` covers the bezier solver, front range, row reveal, and cover fit), TypeScript, touched-file lint, production build. Chromium card overlay, focus, paging, navigation, Safari edge, and loading checks pass at desktop and mobile widths. Headless captures confirmed the lens, row sync, and settle at both widths; closing mid-sweep, rapid reopen, and reduced motion leave no canvas or inline styles. Not checked: WebKit (not installed on this machine) and real Safari/iPhone GPU performance.
+
 **Card overlay is the default (2026-10-28)**
 - Surface lightened to an 88% white tint and the focused view's 10px blur (`--project-focus-blur`), replacing 92% and 12px. 88% has no existing role, so `--project-card-overlay-opacity` holds it directly instead of aliasing the focus backdrop.
 - Project clicks and taps now open the card overlay. Focused view and Inline expansion stay in the avatar menu's **Projects** cycle (Card overlay → Focused view → Inline expansion), which resets to Card overlay on reload.
