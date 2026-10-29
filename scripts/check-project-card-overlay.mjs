@@ -22,12 +22,6 @@ try {
       await cycle.click();
       assert.equal(await cycle.getAttribute("data-project-interaction"), mode);
     }
-    const wipeCycle = page.getByRole("button", { name: /^Cycle card overlay entry:/ });
-    assert.equal(await wipeCycle.getAttribute("data-card-wipe"), "glow");
-    for (const style of ["particles", "lens", "glow"]) {
-      await wipeCycle.click();
-      assert.equal(await wipeCycle.getAttribute("data-card-wipe"), style);
-    }
     await page.locator(".homepage-identity").click();
     const first = page.locator('[data-project-id="shop-03"]');
     const next = page.locator('[data-project-id="shop-04"]');
@@ -42,7 +36,7 @@ try {
     // The entry wipe draws on a canvas over a hidden surface, revealing rows itself, then hands back to CSS.
     assert.deepEqual(await panel.evaluate(panel => ({ wipe: panel.dataset.wipe, canvases: panel.querySelectorAll(".project-card-wipe > canvas").length, surface: getComputedStyle(panel.querySelector(".project-card-surface")).opacity })), { wipe: "running", canvases: 1, surface: "0" });
     // Production CSS minifies the token to seconds.
-    assert.equal(await panel.evaluate(panel => { const value = getComputedStyle(panel).getPropertyValue("--project-card-overlay-enter-duration").trim(); return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000); }), 750);
+    assert.equal(await panel.evaluate(panel => { const value = getComputedStyle(panel).getPropertyValue("--project-card-overlay-enter-duration").trim(); return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000); }), 900);
     await page.waitForFunction(() => { const panel = document.querySelector('[data-project-id="shop-03"] .project-card-panel'); return !panel.dataset.wipe && !panel.querySelector("canvas"); });
     await page.waitForFunction(() => document.querySelector('[data-project-id="shop-03"] .project-card-panel')?.getAnimations({ subtree: true }).length === 0);
     await page.waitForFunction(() => document.querySelector('[data-swarm-label-id="shop-03:company"]').textContent === "Shop");

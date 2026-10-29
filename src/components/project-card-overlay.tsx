@@ -4,8 +4,6 @@ import { useLayoutEffect, useRef } from "react";
 import { ProjectCredits } from "@/components/project-focus";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { parseBezier, playCardWipe } from "@/lib/card-overlay-wipe";
-import { usePortfolioExperiments } from "@/components/portfolio-experiments";
-import { currentGlyphPalette } from "@/lib/palette-toy";
 
 const milliseconds = (tokens: CSSStyleDeclaration, property: string) => {
   const value = tokens.getPropertyValue(property).trim();
@@ -18,10 +16,6 @@ export function ProjectCardOverlay({ preview, open, id }: { preview: ProjectPrev
   const rootRef = useRef<HTMLDivElement>(null);
   const wipeHostRef = useRef<HTMLSpanElement>(null);
   const generation = useRef(0);
-  // A ref so switching styles in the inspector applies to the next opening without restarting the current one.
-  const { cardWipeStyle } = usePortfolioExperiments();
-  const style = useRef(cardWipeStyle);
-  useLayoutEffect(() => { style.current = cardWipeStyle; }, [cardWipeStyle]);
   useLayoutEffect(() => {
     const root = rootRef.current!;
     const measure = () => {
@@ -70,7 +64,6 @@ export function ProjectCardOverlay({ preview, open, id }: { preview: ProjectPrev
       duration: milliseconds(tokens, "--project-card-overlay-enter-duration"), ease,
       blur: parseFloat(tokens.getPropertyValue("--project-card-overlay-blur")),
       tint: parseFloat(tokens.getPropertyValue("--project-card-overlay-opacity")) / 100,
-      style: style.current, palette: currentGlyphPalette(),
       onSettle: () => finish("settling"),
     });
     if (!wipe) { canvas.remove(); return; }

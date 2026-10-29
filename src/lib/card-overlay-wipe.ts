@@ -1,13 +1,8 @@
 /**
- * The card overlay's entry: a diagonal front sweeps from the tile's top-left corner to its bottom-right, leaving the
- * overlay's blur and white tint set behind it. WebGL draws only while the front moves; once it has crossed, the CSS
- * surface takes over, so the resting overlay is the same backdrop-filter as before. Three styles, picked from the
- * design inspector while we compare them:
- *
- * - lens: the media bends as the front passes (stretching what it has crossed, compressing what lies ahead).
- * - glow: a gentler lens under a soft frosted edge, washed with pastel palette colors that drift along it.
- * - particles: the blur frosts in smoothly while the white arrives as round particles that grow from scattered
- *   points until they close up; the youngest ones at the edge carry a pale palette color.
+ * The card overlay's entry: a diagonal front sweeps from the tile's top-left corner to its bottom-right, bending the
+ * media as it passes (a lens that stretches what it has crossed and compresses what lies ahead) and leaving the
+ * overlay's blur and white tint set behind it. WebGL draws only while the front moves; once it has crossed, the
+ * CSS surface takes over, so the resting overlay is the same backdrop-filter as before.
  *
  * Positions are on the tile's diagonal: 0 at the top-left corner, 1 at the bottom-right, halfway between the two
  * edge fractions so wide (expanded mobile) tiles still sweep corner to corner.
@@ -17,12 +12,6 @@
 export const WIPE_BAND = 0.14;
 /** Peak lens displacement, as a fraction of the tile's shorter side. */
 export const WIPE_DISTORTION = 0.07;
-/** Where the front starts: inside the corner's fade, so the first frame already shows movement. */
-export const WIPE_START = -0.75 * WIPE_BAND;
-
-export const CARD_WIPE_STYLES = ["glow", "particles", "lens"] as const;
-export type CardWipeStyle = typeof CARD_WIPE_STYLES[number];
-export const CARD_WIPE_LABELS: Record<CardWipeStyle, string> = { glow: "Glow", particles: "Particles", lens: "Lens" };
 
 /** A CSS cubic-bezier timing function, solved for x by Newton's method with a bisection fallback. */
 export function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
@@ -56,21 +45,10 @@ export function parseBezier(value: string) {
   return points.length === 4 && points.every(Number.isFinite) ? cubicBezier(points[0], points[1], points[2], points[3]) : null;
 }
 
-/** The front's diagonal position for an eased progress. It starts already touching the top-left corner and ends far
- *  enough past the bottom-right that the blur has fully set there. */
+/** The front's diagonal position for an eased progress. It starts and ends far enough outside the tile that the
+ *  band enters unseen and the blur has fully set at the bottom-right corner when it finishes. */
 export function wipeFront(eased: number, band = WIPE_BAND) {
-  const start = WIPE_START * band / WIPE_BAND;
-  return start + eased * (1 + 2 * band - start);
-}
-
-/** Up to `count` colors spread evenly across a palette, as 0–1 RGB. */
-export function paletteSamples(hexes: readonly string[], count: number) {
-  if (!hexes.length) return [[1, 1, 1]];
-  const step = Math.max(1, hexes.length / count);
-  return Array.from({ length: Math.min(count, hexes.length) }, (_, index) => {
-    const hex = hexes[Math.floor(index * step)].replace("#", "");
-    return [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
-  });
+  return -2 * band + eased * (1 + 4 * band);
 }
 
 /** A point's diagonal position inside a box. */
@@ -112,11 +90,6 @@ uniform float band;
 uniform float distortion;
 uniform float blur;
 uniform float tint;
-uniform int style;
-uniform float time;
-uniform float cell;
-uniform vec3 palette[8];
-uniform int paletteSize;
 
 vec3 sampleAt(vec2 point) {
   if (!hasSource) return backdrop;
@@ -139,68 +112,15 @@ vec3 blurred(vec2 point, float radius) {
   return total / weight;
 }
 
-// Constant-index lookup: GLSL ES 1.0 only promises loop-index access to uniform arrays in fragment shaders.
-vec3 paletteAt(float position) {
-  float scaled = fract(position) * float(paletteSize);
-  vec3 low = palette[0], high = palette[0];
-  for (int i = 0; i < 8; i++) {
-    if (i == int(floor(scaled))) low = palette[i];
-    if (i == int(mod(floor(scaled) + 1.0, float(paletteSize)))) high = palette[i];
-  }
-  return mix(low, high, smoothstep(0.0, 1.0, fract(scaled)));
-}
-
-float hash(vec2 value) {
-  return fract(sin(dot(value, vec2(127.1, 311.7))) * 43758.5453);
-}
-
 void main() {
   vec2 point = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y);
   float diagonal = (point.x / resolution.x + point.y / resolution.y) * 0.5;
-  // Position along the front, 0 at one end and 1 at the other, so colors run along the edge rather than across it.
-  float along = (point.x / resolution.x - point.y / resolution.y) * 0.5 + 0.5;
   float behind = front - diagonal;
-
-  float alpha = smoothstep(-2.0 * band, -0.75 * band, behind);
-  // Frost reaches a little ahead of the tint, so the media softens before the white arrives.
-  float frost = smoothstep(-0.75 * band, 1.25 * band, behind);
-
-  if (style == 2) {
-    // The blur frosts in smoothly; the white arrives as round particles. Each cell's particle appears at a
-    // scattered time around the front and grows while drifting back to its cell center. The gaps close along the
-    // diagonal rather than per cell, so no square cell edges ever show.
-    vec2 id = floor(point / cell);
-    float seed = hash(id);
-    vec2 center = (id + 0.5) * cell;
-    float arrival = behind + (seed - 0.5) * 1.6 * band - ((center.x - point.x) / resolution.x + (center.y - point.y) / resolution.y) * 0.5;
-    float grow = smoothstep(0.0, 1.1 * band, arrival);
-    vec2 particle = center - direction * (1.0 - grow) * cell * 0.8;
-    // Half a cell keeps particles round; larger ones get clipped square by the cell edge.
-    float radius = grow * cell * 0.5;
-    float dot = (1.0 - smoothstep(radius - 1.0, radius + 1.0, length(point - particle))) * step(0.001, grow);
-    float cover = max(dot, smoothstep(1.2 * band, 2.0 * band, behind));
-    vec3 pastel = mix(paletteAt(seed + along * 0.5), vec3(1.0), 0.4);
-    vec3 white = mix(vec3(1.0), pastel, (1.0 - grow) * 0.7);
-    vec3 color = mix(blurred(point, blur * frost), white, tint * cover);
-    float shown = max(alpha, cover);
-    gl_FragColor = vec4(color * shown, shown);
-    return;
-  }
-
   float lens = exp(-(behind * behind) / (band * band));
-  float strength = style == 1 ? 0.6 : 1.0;
-  vec2 bent = point - direction * distortion * strength * (behind / band) * lens;
+  vec2 bent = point - direction * distortion * (behind / band) * lens;
   float set = smoothstep(0.0, 2.0 * band, behind);
-  vec3 color;
-  if (style == 1) {
-    // A broad pastel wash rides just behind the front.
-    color = mix(blurred(bent, blur * frost), vec3(1.0), tint * set);
-    float edge = exp(-pow((behind - 0.5 * band) / (1.1 * band), 2.0));
-    vec3 pastel = mix(paletteAt(along * 0.8 + time * 0.35), vec3(1.0), 0.4);
-    color = mix(color, pastel, edge * 0.24);
-  } else {
-    color = mix(blurred(bent, blur * set), vec3(1.0), tint * set);
-  }
+  float alpha = smoothstep(-2.0 * band, -0.75 * band, behind);
+  vec3 color = mix(blurred(bent, blur * set), vec3(1.0), tint * set);
   gl_FragColor = vec4(color * alpha, alpha);
 }
 `;
@@ -250,9 +170,6 @@ export type CardWipeOptions = {
   ease: (progress: number) => number;
   blur: number;
   tint: number;
-  style: CardWipeStyle;
-  /** Hex colors for the glow and particle edges; the site's live glyph palette. */
-  palette: readonly string[];
   /** Called once the front has crossed and the CSS surface is showing. */
   onSettle: () => void;
 };
@@ -260,7 +177,7 @@ export type CardWipeOptions = {
 /** Starts the entry. `stop` halts drawing and hands the rows back to CSS; `release` frees the context once the
  *  canvas has faded out (losing it earlier would blank the canvas mid-fade). Returns null when WebGL is
  *  unavailable, so the overlay keeps its plain fade. */
-export function playCardWipe({ panel, canvas, rows, duration, ease, blur, tint, style, palette, onSettle }: CardWipeOptions) {
+export function playCardWipe({ panel, canvas, rows, duration, ease, blur, tint, onSettle }: CardWipeOptions) {
   const gl = canvas.getContext("webgl", { premultipliedAlpha: true, antialias: false });
   const program = gl && compile(gl);
   if (!gl || !program) return null;
@@ -283,10 +200,6 @@ export function playCardWipe({ panel, canvas, rows, duration, ease, blur, tint, 
   gl.uniform3f(uniform("backdrop"), ...backdrop);
   gl.uniform1f(uniform("band"), WIPE_BAND);
   gl.uniform1f(uniform("tint"), tint);
-  gl.uniform1i(uniform("style"), { lens: 0, glow: 1, particles: 2 }[style]);
-  const colors = paletteSamples(palette, 8);
-  gl.uniform3fv(uniform("palette"), new Float32Array(Array.from({ length: 8 }, (_, index) => colors[index % colors.length]).flat()));
-  gl.uniform1i(uniform("paletteSize"), colors.length);
 
   let source = visibleSource(card), uploaded: Source | null = null, frame = 0, stopped = false;
   const start = performance.now();
@@ -306,9 +219,6 @@ export function playCardWipe({ panel, canvas, rows, duration, ease, blur, tint, 
     gl.uniform1f(uniform("distortion"), WIPE_DISTORTION * Math.min(width, height));
     gl.uniform1f(uniform("blur"), blur * ratio);
     gl.uniform1f(uniform("front"), front);
-    gl.uniform1f(uniform("time"), (now - start) / 1000);
-    // Particles stay about 9 CSS pixels apart at any density.
-    gl.uniform1f(uniform("cell"), 9 * ratio);
 
     const media = mediaBox?.getBoundingClientRect() ?? bounds;
     gl.uniform4f(uniform("media"), (media.left - bounds.left) * ratio, (media.top - bounds.top) * ratio, Math.max(1, media.width * ratio), Math.max(1, media.height * ratio));
