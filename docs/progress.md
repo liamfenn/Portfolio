@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Intro paragraph punctuation (2026-10-29)**
+- Added ending periods to both homepage intro paragraphs, as plain text after the closing “get in touch” and “process” links.
+
 **Process mobile media, hero, and text entrance (2026-10-29)**
 - Every media square on `/process` now spans the mobile viewport; paragraph and centered-caption insets stay at 12px. Desktop retains the 620px media/reading width and 24px top inset.
 - Added Liam's supplied `Clipped Mobile.png` as the opening image, with one static frame and a matching caption. The compact 379KB PNG is served intact and prioritized; the local optimized-image preview did not display it, while the direct image loads correctly. Other image slots retain responsive optimization.
