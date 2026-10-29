@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Correct the process section heading (2026-10-29)**
+- Restored “Two languages” for the editorial/terminal section, matching Liam's corrected [Figma node 544:4657](https://www.figma.com/design/nIi2Tpt2b8yYxYsuCq38OJ/New-Portfolio?node-id=544-4657). The page title remains “In the margins”; section styling and paragraphs are unchanged.
+
 **Process Cosmos hover and hand pointers (2026-10-29)**
 - On desktop hover or keyboard-visible focus, `/portfolio` streams after Cosmos using the shared `useColorScramble`/`FILTER_SCRAMBLE` treatment; it scrambles back to blanks on exit. The suffix is positioned after the link so the centered caption does not shift. It remains hidden on mobile/touch layouts, and reduced motion uses immediate plain text. The accessible link name identifies Cosmos/portfolio throughout.
 - Explicitly applied the homepage's hand pointer to process links and enabled buttons, including media cards and Close. The supplied Cosmos icon, destination, caption typography, and mobile media behavior remain unchanged.

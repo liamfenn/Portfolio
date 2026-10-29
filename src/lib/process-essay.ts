@@ -25,7 +25,7 @@ export const PROCESS_SECTIONS = [
   },
   {
     id: "two-languages",
-    title: "In the margins",
+    title: "Two languages",
     paragraphs: [
       "The starting point is a juxtaposition between editorial, print design, and the terminal. I love the way a printed page organizes attention: the relationship between text and image, a caption tucked beneath a photograph, the rhythm of columns and margins. The composition gives you a way into the material without explaining itself.",
       "I spend a lot of my day in a terminal, and find a different kind of beauty there. Sharp edges and character grids create a precise, repeatable structure. Color, hierarchy, and the rhythm of text arriving do a lot of work with very little surrounding UI. The constraints create their own possibilities for expression.",
