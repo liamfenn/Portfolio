@@ -693,7 +693,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   flex-direction: column;
   justify-content: flex-end;
   padding: var(--project-info-inset);
-  background: color-mix(in srgb, var(--bg-secondary-fill) var(--project-card-overlay-opacity), transparent);
+  background: color-mix(in srgb, var(--bg-fill) var(--project-card-overlay-opacity), transparent);
   -webkit-backdrop-filter: blur(var(--project-card-overlay-blur));
   backdrop-filter: blur(var(--project-card-overlay-blur));
   opacity: 0;

@@ -49,7 +49,7 @@
   --project-label-delay: 40ms;
   --project-card-overlay-duration: var(--project-layout-duration);
   --project-card-overlay-opacity: var(--project-focus-backdrop-opacity);
-  --project-card-overlay-blur: 6px;
+  --project-card-overlay-blur: 12px;
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--hover-duration);

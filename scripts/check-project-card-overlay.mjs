@@ -47,8 +47,8 @@ try {
     if (mobile) assert.equal(geometry.width, 393);
     assert.equal(geometry.inset, mobile ? 12 : 16);
     assert.ok(geometry.headerAbove);
-    assert.match(geometry.background, /0\.92/);
-    assert.equal(geometry.blur, "blur(6px)");
+    assert.ok(["color(srgb 1 1 1 / 0.92)", "rgba(255, 255, 255, 0.92)"].includes(geometry.background), geometry.background);
+    assert.equal(geometry.blur, "blur(12px)");
     assert.equal(geometry.duration, 180);
     assert.equal(geometry.caption, mobile ? "13px" : "14px");
     assert.equal(geometry.body, mobile ? "14px" : "15px");
