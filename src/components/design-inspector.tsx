@@ -9,7 +9,7 @@ import {
   resolveInspectorFlag, spacingKinds,
 } from "@/lib/design-inspector";
 import type { Box, InspectionKey, InspectionMode, SpacingKind } from "@/lib/design-inspector";
-import { CARD_ENTRY_LABELS, CARD_ENTRY_MODES, PortfolioExperiments, PROJECT_INTERACTION_LABELS, PROJECT_INTERACTION_MODES, usePortfolioExperiments } from "@/components/portfolio-experiments";
+import { CARD_ENTRY_LABELS, CARD_ENTRY_MODES, INTRO_LABELS, INTRO_MODES, PortfolioExperiments, PROJECT_INTERACTION_LABELS, PROJECT_INTERACTION_MODES, usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 type Inspection = { enabled: boolean; mode: InspectionMode; previousMode: InspectionMode; revision: number };
@@ -52,7 +52,7 @@ export function DesignInspector({ children }: { children: ReactNode }) {
 }
 
 function EnabledDesignInspector({ children }: { children: ReactNode }) {
-  const { paletteLabOpen, setPaletteLabOpen, projectInteractionMode, setProjectInteractionMode, cardEntryMode, setCardEntryMode, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled } = usePortfolioExperiments();
+  const { introMode, setIntroMode, paletteLabOpen, setPaletteLabOpen, projectInteractionMode, setProjectInteractionMode, cardEntryMode, setCardEntryMode, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled } = usePortfolioExperiments();
   const [inspection, setInspection] = useState<Inspection>({ enabled: true, mode: "content", previousMode: "content", revision: 0 });
   // "auto" shows the panel while a mode is active; H (or the avatar on phones) pins it shown or hidden across modes.
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
@@ -143,6 +143,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
         <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
+        <button type="button" aria-label={`Cycle intro copy: ${INTRO_LABELS[introMode]}`} data-intro-mode={introMode} onClick={() => setIntroMode(value => INTRO_MODES[(INTRO_MODES.indexOf(value) + 1) % INTRO_MODES.length])}><InspectableText>Intro: {INTRO_LABELS[introMode]}</InspectableText></button>
         <button type="button" aria-label={`Cycle project interaction: ${PROJECT_INTERACTION_LABELS[projectInteractionMode]}`} data-project-interaction={projectInteractionMode} onClick={() => setProjectInteractionMode(value => PROJECT_INTERACTION_MODES[(PROJECT_INTERACTION_MODES.indexOf(value) + 1) % PROJECT_INTERACTION_MODES.length])}><InspectableText>Projects: {PROJECT_INTERACTION_LABELS[projectInteractionMode]}</InspectableText></button>
         <button type="button" aria-label={`Cycle card overlay entry: ${CARD_ENTRY_LABELS[cardEntryMode]}`} data-card-entry={cardEntryMode} onClick={() => setCardEntryMode(value => CARD_ENTRY_MODES[(CARD_ENTRY_MODES.indexOf(value) + 1) % CARD_ENTRY_MODES.length])}><InspectableText>Card entry: {CARD_ENTRY_LABELS[cardEntryMode]}</InspectableText></button>
         <button type="button" aria-label="Preview skeleton loading states" aria-pressed={skeletonPreviewEnabled} onClick={() => setSkeletonPreviewEnabled(value => !value)}><InspectableText>Skeleton preview</InspectableText></button>

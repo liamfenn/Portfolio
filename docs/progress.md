@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Intro copy comparison in debug menu**
+- Added an Intro cycle in the avatar debug menu: Long → Short → Short · resonates. Long remains the default on refresh. Both short variants omit the opening three sentences of paragraph two; the third variant also uses “If something here resonates, get in touch”.
+- All variants retain the primary colors and two unindented paragraphs with no ending periods. Shop's following period remains outside the link. Only “process” is linked in the final sentence; “Read about the” uses the normal secondary text color.
+- Validation: 64 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production browser checks at 1440px and 390px verified all three variants, cycling back, Long on reload, paragraph endings, six primary links, Shop/process link boundaries, and no horizontal overflow.
+
 **Intro copy and links**
 - Replaced the intro with Liam's two supplied paragraphs, with no indentation and one line of space between them. The existing serif type, pretty wrapping, and 520px desktop width remain.
 - Liam Fennell stays unlinked in text-primary. Shop, OpenPurpose, Bird, Plasticity, get in touch, and Read about the process use text-primary and the supplied web/mail destinations.
