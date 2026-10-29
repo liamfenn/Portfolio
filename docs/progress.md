@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Process page follows Liam's Figma edits (2026-10-29)**
+- Matched [the edited process frame, 544:4551](https://www.figma.com/design/nIi2Tpt2b8yYxYsuCq38OJ/New-Portfolio?node-id=544-4551): shortened subtitle, sans title/headings, muted sans captions, 36px desktop section spacing, and a wide two-column media block. The opening image remains 620px square with a 24px top inset; its caption is removed. Paragraphs retain the shared bodySerif/text-secondary roles and fill the 620px column.
+- Each multi-asset card now has a top-right `[1]` counter that advances on tap and wraps independently. Captions stay centered and stable beneath the set. Inspiration links to Cosmos with the exact supplied 14px SVG, saved as `public/images/process/cosmos-mark.svg`; the supplied hero matches the existing PNG byte for byte. Placeholder frames stay empty gray squares.
+- On mobile, all media remains full bleed; the two-column block becomes a native horizontal snap carousel with viewport-wide cards. Swiping changes cards, while tapping cycles the selected card's asset set. Prose retains 12px insets, 14/18px type, and 32px section spacing. Live announcements, Enter/Space activation, the focus text entrance, white status-bar blur, and Close navigation are preserved.
+- Used existing counter-inset tokens (16px desktop, 12px mobile) instead of Figma's 20px, and the existing 20px desktop serif line-height instead of 20.25px. No new tokens or dependencies. Validation: 62 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser checks cover 1440px desktop geometry, 320/390px full-bleed media without page overflow, native carousel snapping, independent counters and wraparound, keyboard activation, loaded hero/Cosmos assets, and no console errors. Native iPhone Safari safe-area painting remains a device check.
+
 **Intro wording adjustment (2026-10-29)**
 - Removed “where” after OpenPurpose; the intro now reads “Previously at OpenPurpose, he designed interfaces for…”. Links and unlinked ending periods are unchanged. Validation: 62 tests, TypeScript, touched-file lint, and diff checks pass.
 

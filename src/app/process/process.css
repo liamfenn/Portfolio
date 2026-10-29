@@ -7,27 +7,25 @@
 .process-page :where(h1, h2, p, figure) { margin: 0; }
 .process-page :where(h1, h2) { font-weight: var(--font-weight-regular); }
 
-.process-reading-column {
+.process-reading-column,
+.process-figure {
   width: 100%;
   max-width: calc(var(--project-focus-width) + var(--content-padding) * 2);
   margin-inline: auto;
   padding-inline: var(--content-padding);
 }
-.process-heading { padding-top: var(--project-focus-section-gap); }
-.process-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--content-padding); }
+.process-heading { padding-top: var(--content-padding); }
+.process-figure { position: relative; }
+.process-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--project-focus-top); }
 .process-title-row > span { white-space: nowrap; }
-.process-subtitle { margin-top: var(--project-info-gap); }
-.process-essay { display: flex; flex-direction: column; gap: var(--process-section-gap); margin-top: var(--process-section-gap); }
-.process-section { display: flex; flex-direction: column; gap: var(--content-padding); }
+.process-title-copy { display: flex; flex-direction: column; gap: var(--project-info-gap); }
+.process-essay { margin-top: var(--project-focus-section-gap); }
+.process-section { display: flex; flex-direction: column; gap: var(--page-frame); padding-block: var(--project-focus-section-gap); }
+.process-section-opening { padding-top: 0; }
 .process-section-heading { scroll-margin-top: var(--project-focus-top); }
 .process-prose { width: 100%; text-wrap: pretty; }
-.process-prose p + p { margin-top: var(--type-body-leading); }
-.process-figure { width: 100%; padding-top: var(--content-padding); }
-.process-hero {
-  max-width: calc(var(--project-focus-width) + var(--content-padding) * 2);
-  margin-inline: auto;
-  padding: var(--project-focus-top) var(--content-padding) 0;
-}
+.process-prose p + p { margin-top: var(--content-padding); }
+.process-hero { padding-top: var(--project-focus-top); }
 .process-media {
   position: relative;
   display: block;
@@ -41,8 +39,20 @@
 button.process-media { cursor: pointer; }
 .process-media img { object-fit: cover; }
 .process-hero .process-media { background: var(--bg-fill); }
-.process-caption { margin-top: var(--page-frame); text-align: center; }
-.process-caption a { text-decoration: underline; text-underline-offset: var(--focus-offset); }
+.process-media-count { position: absolute; top: var(--project-info-inset); right: var(--project-info-inset); }
+.process-caption,
+.process-caption-link { display: flex; align-items: center; justify-content: center; gap: var(--project-focus-controls-gap); }
+.process-caption { margin-top: var(--page-frame); text-align: center; flex-wrap: wrap; }
+.process-caption-link img { flex-shrink: 0; }
+.process-media-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--page-frame);
+  width: calc(100% - var(--content-padding) * 2);
+  max-width: calc(var(--project-focus-width) * 2 + var(--page-frame));
+  margin-inline: auto;
+}
+.process-media-group .process-figure { padding-inline: 0; max-width: none; min-width: 0; }
 .process-close:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .process-enter-text {
   animation: process-text-enter var(--project-focus-text-enter-duration) cubic-bezier(var(--project-focus-ease)) both;
@@ -56,10 +66,29 @@ button.process-media { cursor: pointer; }
   .process-close:hover { opacity: 1; }
 }
 @media (max-width: 767px) {
-  .process-page { padding-bottom: calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--process-section-gap) + var(--viewport-safe-bottom)); }
+  .process-page {
+    --project-focus-section-gap: calc(var(--content-padding) * 2);
+    --project-info-inset: var(--project-info-inset-mobile);
+    padding-bottom: calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--process-section-gap) + var(--viewport-safe-bottom));
+  }
   .process-reading-column { padding-inline: var(--content-padding-mobile); }
-  .process-essay .process-figure { width: calc(100% + var(--content-padding-mobile) * 2); margin-inline: calc(0px - var(--content-padding-mobile)); }
+  .process-heading { padding-top: var(--content-padding-mobile); }
+  .process-prose p + p { margin-top: var(--content-padding-mobile); }
+  .process-figure { max-width: none; padding-inline: 0; }
   .process-caption { padding-inline: var(--content-padding-mobile); }
+  .process-media-group {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .process-media-group::-webkit-scrollbar { display: none; }
+  .process-media-group .process-figure { scroll-snap-align: start; scroll-snap-stop: always; }
   .process-page .project-focus-edge-top { background: var(--bg-fill); }
   .process-page .project-focus-edge-top::after {
     content: "";
@@ -75,7 +104,7 @@ button.process-media { cursor: pointer; }
     mask-image: linear-gradient(to bottom, var(--bg-fill), transparent);
   }
   /* Body already includes the safe-area inset; only add the focus view's minimum top edge. */
-  .process-hero { max-width: none; padding: max(0px, calc(var(--project-focus-edge-size) - var(--viewport-safe-top))) 0 0; }
+  .process-hero { padding-top: max(0px, calc(var(--project-focus-edge-size) - var(--viewport-safe-top))); }
 }
 @media (prefers-reduced-motion: reduce) {
   .process-enter-text { animation: none; }

@@ -1,7 +1,7 @@
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 
 export type ProcessMediaFrame = { caption: string; asset?: PortfolioMediaAsset };
-export type ProcessMediaSequence = { id: string; label: string; frames: ProcessMediaFrame[]; href?: string };
+export type ProcessMediaSequence = { id: string; label: string; frames: ProcessMediaFrame[]; caption?: string; href?: string; linkLabel?: string; icon?: string };
 
 // Add assets to these frames as recordings and references are ready.
 export const PROCESS_OPENING_MEDIA: ProcessMediaSequence = {
@@ -25,14 +25,14 @@ export const PROCESS_SECTIONS = [
   },
   {
     id: "two-languages",
-    title: "Two languages",
+    title: "In the margins",
     paragraphs: [
       "The starting point is a juxtaposition between editorial, print design, and the terminal. I love the way a printed page organizes attention: the relationship between text and image, a caption tucked beneath a photograph, the rhythm of columns and margins. The composition gives you a way into the material without explaining itself.",
       "I spend a lot of my day in a terminal, and find a different kind of beauty there. Sharp edges and character grids create a precise, repeatable structure. Color, hierarchy, and the rhythm of text arriving do a lot of work with very little surrounding UI. The constraints create their own possibilities for expression.",
       "Both influences are present here. Serif text, modular layouts, and whitespace come from the editorial side. Compact controls, streaming labels, and brief color changes bring the behavior of a working interface into that composition. I like the tension between a page that feels typeset and a screen that keeps responding.",
     ],
     media: {
-      id: "inspiration", label: "Inspiration", href: "https://www.cosmos.so/notliam/portfolio", frames: [
+      id: "inspiration", label: "Inspiration", caption: "Inspiration from", href: "https://www.cosmos.so/notliam/portfolio", linkLabel: "Cosmos", icon: "/images/process/cosmos-mark.svg", frames: [
         { caption: "Editorial layouts and printed matter." },
         { caption: "Terminal interfaces, grids, and color themes." },
         { caption: "References collected on my Cosmos board." },
@@ -48,7 +48,7 @@ export const PROCESS_SECTIONS = [
       "The return matters as much as the release. Each character finds its way back to its own place, and the page becomes readable again. That balance took a lot of adjustment: enough disorder to feel playful, enough continuity that the whole thing still feels connected to the interface you started with.",
     ],
     media: {
-      id: "glyphs", label: "Glyph globe interaction", frames: [
+      id: "glyphs", label: "Glyph globe interaction", caption: "Glyph globe", frames: [
         { caption: "The globe: type, motion, and color." },
         { caption: "Letters released from the page." },
         { caption: "Finding their way home." },
@@ -64,14 +64,14 @@ export const PROCESS_SECTIONS = [
       "Along the way, I built a type and spacing inspector, a palette lab, and a workflow for importing video. They make it easier to check a decision in context. Code-first exploration and AI-assisted work have made the movement between design and implementation more fluid for me, but the value still comes from looking at what actually happened and deciding what to change.",
     ],
     media: {
-      id: "iterations", label: "Project view iterations", frames: [
+      id: "iterations", label: "Text style iterations", caption: "Text styles", frames: [
         { caption: "Project views: inline expansion." },
         { caption: "Project views: focused layout." },
         { caption: "Project views: card overlay." },
       ],
     },
     extraMedia: {
-      id: "tools", label: "Tools behind the site", frames: [
+      id: "tools", label: "Tools behind the site", caption: "Text styles", frames: [
         { caption: "The design inspector." },
         { caption: "The palette lab." },
         { caption: "Preparing media for the site." },
