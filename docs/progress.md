@@ -11,6 +11,7 @@ The v3 homepage is built and live on the branch preview (see [`workflow.md`](wor
 production) is still the August version. Merging is Liam's call.
 
 **Card overlay is the default (2026-10-28)**
+- Surface lightened to an 88% white tint and the focused view's 10px blur (`--project-focus-blur`), replacing 92% and 12px. 88% has no existing role, so `--project-card-overlay-opacity` holds it directly instead of aliasing the focus backdrop.
 - Project clicks and taps now open the card overlay. Focused view and Inline expansion stay in the avatar menu's **Projects** cycle (Card overlay → Focused view → Inline expansion), which resets to Card overlay on reload.
 - `?projects=<mode>` selects a mode on load, applied on the first frame after hydration. The focus browser checks load `?projects=focus` and wait for the dialog trigger before clicking, so they keep covering Focused view.
 
