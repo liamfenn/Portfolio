@@ -10,7 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Intro copy comparison in debug menu**
+**Blur entry and short intro locked in**
+- Project card overlays now always use the existing 180ms blur-surface fade and staggered credits. Removed the WebGL wipe implementation, its dedicated tests/tokens/styles/host, and the Card entry debug toggle/state. Other project interaction modes remain available.
+- The intro is permanently the short “If something here resonates, get in touch” version with the short process paragraph. Removed the other copy variants and Intro debug toggle/state. Paragraphs have no ending periods; only “process” is linked in the last sentence, and Shop's period stays outside its link.
+- Validation: 59 remaining tests (the five shader tests were removed with the implementation), TypeScript, touched-file lint, production build, and diff checks pass. Production Chromium checks cover desktop/mobile blur timing, credit-row ordering, pinning, second-click/selection/Escape dismissal, links/keyboard focus, reduced motion, original-video continuity with a supported-codec fixture, final intro copy, and absence of both removed controls/canvas.
+
+**Intro copy comparison in debug menu (removed)**
 - Added an Intro cycle in the avatar debug menu: Long → Short → Short · resonates. Long remains the default on refresh. Both short variants omit the opening three sentences of paragraph two; the third variant also uses “If something here resonates, get in touch”.
 - All variants retain the primary colors and two unindented paragraphs with no ending periods. Shop's following period remains outside the link. Only “process” is linked in the final sentence; “Read about the” uses the normal secondary text color.
 - Validation: 64 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production browser checks at 1440px and 390px verified all three variants, cycling back, Long on reload, paragraph endings, six primary links, Shop/process link boundaries, and no horizontal overflow.

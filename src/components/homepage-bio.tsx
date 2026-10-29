@@ -3,7 +3,6 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
-import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 
 export function InlineBioExpansion({ word, children }: { word: string; children?: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -42,13 +41,12 @@ function BioLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 export function HomepageBio() {
-  const { introMode } = usePortfolioExperiments();
   return <div className="portfolio-bio text-bodySerif">
     <p><InspectableText>
-      <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at <BioLink href="https://shop.com">Shop</BioLink>. Previously at <BioLink href="https://s.engineering">OpenPurpose</BioLink>, designing interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others. {introMode === "short-resonates" ? "If something here resonates, " : "If you’ve got something interesting in mind, "}<BioLink href="mailto:info@fennell.cv">get in touch</BioLink>
+      <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at <BioLink href="https://shop.com">Shop</BioLink>. Previously at <BioLink href="https://s.engineering">OpenPurpose</BioLink>, designing interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others. If something here resonates, <BioLink href="mailto:info@fennell.cv">get in touch</BioLink>
     </InspectableText></p>
     <p><InspectableText>
-      {introMode === "long" && "He likes working in the margins. Between disciplines, in the balance of structure and expression, and in the details that make things feel effortless. "}This site is an experiment in the tools, ideas, and changing ways we design and build. Read about the <BioLink href="https://fennell.cv/process">process</BioLink>
+      This site is an experiment in the tools, ideas, and changing ways we design and build. Read about the <BioLink href="https://fennell.cv/process">process</BioLink>
     </InspectableText></p>
   </div>;
 }

@@ -50,9 +50,6 @@
   --project-card-overlay-duration: var(--project-layout-duration);
   --project-card-overlay-opacity: 88%;
   --project-card-overlay-blur: var(--project-focus-blur);
-  /* The entry wipe: a long, strongly eased sweep, slow off the corner and slow into the far one. */
-  --project-card-overlay-enter-duration: 900ms;
-  --project-card-overlay-enter-ease: .85, 0, .15, 1;
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--hover-duration);

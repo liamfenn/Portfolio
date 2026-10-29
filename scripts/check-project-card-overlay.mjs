@@ -22,19 +22,12 @@ try {
       await cycle.click();
       assert.equal(await cycle.getAttribute("data-project-interaction"), mode);
     }
-    const entryCycle = page.getByRole("button", { name: /^Cycle card overlay entry:/ });
-    assert.equal(await entryCycle.getAttribute("data-card-entry"), "shader");
-    await entryCycle.click();
-    assert.equal(await entryCycle.getAttribute("data-card-entry"), "fade");
-    // Fade mode opens with the plain CSS fade: no wipe, no canvas.
-    await page.locator(".homepage-identity").click();
-    const fadeCard = page.locator('[data-project-id="shop-04"]');
-    await fadeCard.locator(".homepage-card-trigger").click();
-    assert.deepEqual(await fadeCard.locator(".project-card-panel").evaluate(panel => ({ wipe: panel.dataset.wipe ?? null, canvases: panel.querySelectorAll("canvas").length, open: panel.classList.contains("is-open") })), { wipe: null, canvases: 0, open: true });
-    await fadeCard.locator(".homepage-card-trigger").click();
-    await page.locator(".homepage-identity").click();
-    await entryCycle.click();
-    assert.equal(await entryCycle.getAttribute("data-card-entry"), "shader");
+    assert.equal(await page.locator('[data-card-entry], [data-intro-mode]').count(), 0);
+    const paragraphs = await page.locator('.portfolio-bio p').allTextContents();
+    assert.ok(paragraphs[0].includes('If something here resonates, get in touch'));
+    assert.ok(paragraphs[1].trim().startsWith('This site is an experiment'));
+    assert.ok(paragraphs.every(text => !text.trim().endsWith('.')));
+    assert.equal(await page.locator('.portfolio-bio a[href="https://fennell.cv/process"]').textContent(), 'process');
     await page.locator(".homepage-identity").click();
     const first = page.locator('[data-project-id="shop-03"]');
     const next = page.locator('[data-project-id="shop-04"]');
@@ -46,11 +39,7 @@ try {
     await trigger.click();
     assert.equal(await page.getByRole("dialog").count(), 0);
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
-    // The entry wipe draws on a canvas over a hidden surface, revealing rows itself, then hands back to CSS.
-    assert.deepEqual(await panel.evaluate(panel => ({ wipe: panel.dataset.wipe, canvases: panel.querySelectorAll(".project-card-wipe > canvas").length, surface: getComputedStyle(panel.querySelector(".project-card-surface")).opacity })), { wipe: "running", canvases: 1, surface: "0" });
-    // Production CSS minifies the token to seconds.
-    assert.equal(await panel.evaluate(panel => { const value = getComputedStyle(panel).getPropertyValue("--project-card-overlay-enter-duration").trim(); return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000); }), 900);
-    await page.waitForFunction(() => { const panel = document.querySelector('[data-project-id="shop-03"] .project-card-panel'); return !panel.dataset.wipe && !panel.querySelector("canvas"); });
+    assert.equal(await panel.locator("canvas, .project-card-wipe").count(), 0);
     await page.waitForFunction(() => document.querySelector('[data-project-id="shop-03"] .project-card-panel')?.getAnimations({ subtree: true }).length === 0);
     await page.waitForFunction(() => document.querySelector('[data-swarm-label-id="shop-03:company"]').textContent === "Shop");
     if (!mobile) await page.mouse.move(5, 5);
