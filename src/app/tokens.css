@@ -78,11 +78,8 @@
   --project-focus-hit-size: 44px;
   --project-focus-edge-size: var(--content-padding-mobile);
   --project-focus-full-height: 100lvh;
-  /* Editorial page rhythm and media slots; typography stays within the four shared roles. */
+  /* Editorial page rhythm; media uses the same square shape as the project grid. */
   --process-section-gap: 72px;
-  --process-hero-ratio: 16 / 9;
-  --process-study-ratio: 4 / 5;
-  --process-media-ratio: 3 / 2;
   --album-swap-duration: 200ms;
   --album-glitch-flash-duration: 32ms;
   --motion-ease: cubic-bezier(.16, 1, .3, 1);

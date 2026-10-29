@@ -1,46 +1,89 @@
+import type { PortfolioMediaAsset } from "@/lib/media-assets";
+
+export type ProcessMediaFrame = { caption: string; asset?: PortfolioMediaAsset };
+export type ProcessMediaSequence = { id: string; label: string; frames: ProcessMediaFrame[]; href?: string };
+
+// Add assets to these frames as recordings and references are ready.
+export const PROCESS_OPENING_MEDIA: ProcessMediaSequence = {
+  id: "opening", label: "The site in motion", frames: [
+    { caption: "The site in motion." },
+    { caption: "A closer look at the details." },
+  ],
+};
+
 export const PROCESS_SECTIONS = [
   {
     id: "in-the-margins",
     title: "In the margins",
     paragraphs: [
-      "I've always been drawn to the margins. The space between disciplines, the balance of structure and expression, and the small decisions that make something feel effortless. It's where I tend to find the work most interesting.",
-      "On a page, that might mean leaving a little more room around a paragraph. In a product, it might be the way a control responds, or a detail you only notice when it gets in your way. Some of the most important pixels are the ones left untouched.",
-      "This site is a place to explore those decisions at a smaller scale. I wanted the work to have room, the interface to feel familiar, and the occasional interruption to reward a closer look.",
+      "I've always been drawn to the margins. The space between design and engineering, the edges of a printed page, and the small decisions that shape how something feels. I like work where those things meet, where making an interface and deciding what it should be happen together.",
+      "This site gives me somewhere to explore that at a personal scale. The work needs room to speak, but the surface around it can have a character of its own. I'm interested in how much that character can come from typography, spacing, and behavior, before adding anything else.",
     ],
   },
   {
     id: "two-languages",
     title: "Two languages",
     paragraphs: [
-      "I spend a lot of my day in a terminal now. I've grown attached to how little it needs to feel complete. A line break, a repeated alignment, or a change in color can carry a surprising amount of meaning. The structure is expected, so small differences become expressive.",
-      "That sensibility runs through this site: sharp edges, tight grids, compact information, and text that changes as you interact. The influence is as much about behavior as appearance. Information reveals itself when you need it, and animation has a short, purposeful job.",
-      "The serif brings another rhythm. I like the tension between that precise working environment and something more personal and editorial. Generous whitespace lets the two coexist. A limited vocabulary gives me a structure to push against, and makes the moments of expression easier to see.",
+      "The starting point is a juxtaposition between editorial, print design, and the terminal. I love the way a printed page organizes attention: the relationship between text and image, a caption tucked beneath a photograph, the rhythm of columns and margins. The composition gives you a way into the material without explaining itself.",
+      "I spend a lot of my day in a terminal, and find a different kind of beauty there. Sharp edges and character grids create a precise, repeatable structure. Color, hierarchy, and the rhythm of text arriving do a lot of work with very little surrounding UI. The constraints create their own possibilities for expression.",
+      "Both influences are present here. Serif text, modular layouts, and whitespace come from the editorial side. Compact controls, streaming labels, and brief color changes bring the behavior of a working interface into that composition. I like the tension between a page that feels typeset and a screen that keeps responding.",
     ],
+    media: {
+      id: "inspiration", label: "Inspiration", href: "https://www.cosmos.so/notliam/portfolio", frames: [
+        { caption: "Editorial layouts and printed matter." },
+        { caption: "Terminal interfaces, grids, and color themes." },
+        { caption: "References collected on my Cosmos board." },
+      ],
+    },
+  },
+  {
+    id: "letters-set-loose",
+    title: "Letters, set loose",
+    paragraphs: [
+      "The glyph globe is where those two languages get to play together. Characters turn in a small sphere, with short flashes of color passing through them. Tap it and letters leave their places across the page. What was a composed piece of typography becomes something you can move through and disturb.",
+      "I like that the interaction uses the material already there. The letters carry information, then briefly become shapes with weight and movement. Their empty spaces are still visible in the page, so the connection to where they came from is never quite lost.",
+      "The return matters as much as the release. Each character finds its way back to its own place, and the page becomes readable again. That balance took a lot of adjustment: enough disorder to feel playful, enough continuity that the whole thing still feels connected to the interface you started with.",
+    ],
+    media: {
+      id: "glyphs", label: "Glyph globe interaction", frames: [
+        { caption: "The globe: type, motion, and color." },
+        { caption: "Letters released from the page." },
+        { caption: "Finding their way home." },
+      ],
+    },
   },
   {
     id: "thinking-through-making",
     title: "Thinking through making",
     paragraphs: [
-      "I don't see engineering simply as the step that follows a finished design. A working prototype is often how I understand an idea. Something can look convincing in a mockup and still feel wrong when you try to use it. Building changes the questions I ask.",
-      "The project views here have been a useful example. Inline expansion, a separate focused view, and details over the card each change the relationship between browsing and looking closely. Trying them in the browser makes those differences tangible, especially on a phone.",
-      "I've also tried more elaborate transitions, including a shader that swept across the cards, before returning to a simple blur and fade. The discarded version helps me see what the quieter one does well. Some things can only be understood by making them, then being willing to take them apart.",
+      "A working prototype is often how I understand an idea. A transition can look convincing in a mockup and feel distracting in use. The project views here went through inline expansion, a focused view, and details over the card. Each changes how it feels to move between browsing and looking closely.",
+      "I also tried a shader that swept across the cards before returning to a simpler blur and fade. Seeing the more elaborate version running made the quieter option easier to judge. The useful part of an experiment is sometimes finding out what to leave behind.",
+      "Along the way, I built a type and spacing inspector, a palette lab, and a workflow for importing video. They make it easier to check a decision in context. Code-first exploration and AI-assisted work have made the movement between design and implementation more fluid for me, but the value still comes from looking at what actually happened and deciding what to change.",
     ],
-  },
-  {
-    id: "tools-for-the-work",
-    title: "Tools for the work",
-    paragraphs: [
-      "Some of the most useful things I designed for this site aren't part of the finished experience. There's an inspector for checking type styles, color roles, and spacing directly on the page. A palette lab lets me try colors in context. A video import workflow handles the different sizes and posters the work needs.",
-      "These are small tools, but they make it easier to experiment without losing the thread of the system. I can change something, see its consequences, and keep moving. The care given to that working environment affects what I feel able to explore.",
-      "I'm interested in how code-first exploration and AI-assisted workflows make the movement between design, prototyping, and implementation more fluid. Faster iteration is useful. So is getting closer to the material, noticing where an assumption breaks, and having enough room to try again.",
-    ],
+    media: {
+      id: "iterations", label: "Project view iterations", frames: [
+        { caption: "Project views: inline expansion." },
+        { caption: "Project views: focused layout." },
+        { caption: "Project views: card overlay." },
+      ],
+    },
+    extraMedia: {
+      id: "tools", label: "Tools behind the site", frames: [
+        { caption: "The design inspector." },
+        { caption: "The palette lab." },
+        { caption: "Preparing media for the site." },
+      ],
+    },
   },
   {
     id: "what-stays-the-same",
     title: "What stays the same",
     paragraphs: [
-      "The tools will keep changing. So will the mediums and the ways we move between them. I enjoy that uncertainty, and having somewhere small and personal to test what a different way of working might make possible.",
-      "What stays with me is the need to look carefully. To judge what belongs, what needs another pass, and what can be left alone. Taste and restraint still take attention, even when making becomes easier. I'm trying to reduce the distance between an intention and the experience someone actually has. This site is one ongoing attempt.",
+      "The tools and the ways we work will keep changing. I enjoy having somewhere to try them, without needing every experiment to become part of the finished site.",
+      "What stays with me is the need to look carefully: at the way a paragraph sits, how an interaction responds, or whether an idea needs to be there at all. I'm trying to get closer to the experience I had in mind, through whatever combination of drawing, writing, and building helps me understand it.",
     ],
   },
-] as const;
+] satisfies {
+  id: string; title: string; paragraphs: string[];
+  media?: ProcessMediaSequence; extraMedia?: ProcessMediaSequence;
+}[];

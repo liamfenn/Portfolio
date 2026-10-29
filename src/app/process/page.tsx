@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { DesignInspector, InspectableText } from "@/components/design-inspector";
-import { ProcessInspectorStudy, ProcessTypeStudy } from "@/components/process-studies";
-import { PROCESS_SECTIONS } from "@/lib/process-essay";
+import { ProcessMedia } from "@/components/process-studies";
+import { PROCESS_OPENING_MEDIA, PROCESS_SECTIONS } from "@/lib/process-essay";
 import "./process.css";
 
 const description = "On systems, expression, and the changing ways we design and build.";
@@ -19,70 +18,30 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "In the margins | Liam Fennell", description, images: ["/images/meta/og-office.png"] },
 };
 
-function IterationStudy() {
-  return <figure className="process-figure">
-    <div className="process-iterations">
-      {[
-        { label: "Inline expansion", status: "Exploration", lines: ["Work", "Project details"] },
-        { label: "Focused view", status: "Exploration", lines: ["Project", "Close"] },
-        { label: "Card overlay", status: "Current", lines: ["Project", "Contributors / Tech"] },
-      ].map(({ label, status, lines }, index) => <div className="process-iteration" key={label}>
-        <div className={`process-iteration-sketch process-iteration-sketch-${index}`} aria-hidden="true">
-          <span className="process-sketch-media" />
-          <div className="process-sketch-labels text-captionSans text-secondary">
-            {lines.map(line => <span key={line}><InspectableText>{line}</InspectableText></span>)}
-          </div>
-        </div>
-        <div className="process-iteration-label text-captionSans text-secondary"><InspectableText>{label}</InspectableText></div>
-        <span className="text-captionSans text-muted"><InspectableText>{status}</InspectableText></span>
-      </div>)}
-    </div>
-    <figcaption className="process-caption text-captionSans text-muted"><InspectableText>02 / Schematic studies of the three project views. The shader entry was set aside in favor of blur and fade.</InspectableText></figcaption>
-  </figure>;
-}
-
 export default function ProcessPage() {
   return <DesignInspector>
     <main className="process-page" id="top">
       <header className="process-header">
-        <div className="process-hero" role="img" aria-label="Opening media placeholder: Office of Liam Fennell, centered on a white field">
-          <Image src="/images/meta/og-office.png" alt="" fill priority sizes="100vw" />
-        </div>
+        <ProcessMedia sequence={PROCESS_OPENING_MEDIA} number="01" hero />
         <div className="process-reading-column process-heading">
-          <p className="process-caption text-captionSans text-muted"><InspectableText>Opening media / Placeholder</InspectableText></p>
           <div className="process-title-row">
-            <h1 className="text-bodySans text-primary"><InspectableText>In the margins</InspectableText></h1>
-            <span className="text-captionSans text-muted"><InspectableText>5 min read</InspectableText></span>
+            <h1 id="process-title" className="text-bodySerif text-secondary"><InspectableText>In the margins</InspectableText></h1>
+            <span className="text-captionSerif text-secondary"><InspectableText>5 min read</InspectableText></span>
           </div>
           <p className="process-subtitle text-bodySerif text-secondary"><InspectableText>{description}</InspectableText></p>
         </div>
       </header>
       <article className="process-reading-column process-essay" aria-label="In the margins">
-        {PROCESS_SECTIONS.map((section, index) => <section className="process-section" key={section.id} aria-labelledby={section.id}>
-          <h2 id={section.id} className="process-section-heading text-captionSans text-primary">
-            <span className="text-muted"><InspectableText>{String(index + 1).padStart(2, "0")}</InspectableText></span>
+        {PROCESS_SECTIONS.map((section, index) => <section id={index === 0 ? section.id : undefined} className="process-section" key={section.id} aria-labelledby={index === 0 ? "process-title" : section.id}>
+          {index > 0 && <h2 id={section.id} className="process-section-heading text-bodySerif text-secondary">
             <InspectableText>{section.title}</InspectableText>
-          </h2>
+          </h2>}
           <div className="process-prose text-bodySerif text-secondary">
             {section.paragraphs.map(paragraph => <p key={paragraph}><InspectableText>{paragraph}</InspectableText></p>)}
           </div>
-          {index === 1 && <ProcessTypeStudy />}
-          {index === 2 && <IterationStudy />}
-          {index === 3 && <>
-            <ProcessInspectorStudy />
-            <figure className="process-figure">
-              <div className="process-media-placeholder text-captionSans text-muted" role="img" aria-label="Placeholder for a future recording of the palette lab and video workflow">
-                <InspectableText>Process recording / Media to come</InspectableText>
-              </div>
-              <figcaption className="process-caption text-captionSans text-muted"><InspectableText>04 / A place for the palette lab, working sessions, and the tools behind the site.</InspectableText></figcaption>
-            </figure>
-          </>}
+          {section.media && <ProcessMedia sequence={section.media} number={String(index + 1).padStart(2, "0")} />}
+          {section.extraMedia && <ProcessMedia sequence={section.extraMedia} number="05" />}
         </section>)}
-        <footer className="process-colophon text-captionSans text-muted">
-          <p><InspectableText>Written, designed, and built by Liam Fennell.</InspectableText></p>
-          <p><InspectableText>Set in ABC Oracle and ABC Otto. An ongoing work in progress.</InspectableText></p>
-          <Link className="text-secondary" href="/"><InspectableText>Back to the work</InspectableText></Link>
-        </footer>
       </article>
       <div className="project-focus-bottom-fade" aria-hidden="true" />
       <nav className="project-focus-controls" aria-label="Return to portfolio">

@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Simplify the process essay (2026-10-29)**
+- Reduced the editorial page to bodySerif text-secondary, with centered captionSerif text-secondary footnotes. Removed section numbers, the duplicated opening heading, the type specimen, inspector demo, component sketches, and colophon. Paragraphs now fill the complete 620px reading column instead of stopping at the intro's 500px measure. The existing Close control remains.
+- Rewrote the essay to 636 words with equal attention to editorial/print composition and terminal behavior, a section on the glyph globe and letter release/return interaction, and a shorter account of prototypes and tools. Linked the inspiration caption to Liam's [Cosmos board](https://www.cosmos.so/notliam/portfolio).
+- All five media slots are empty gray squares using the homepage placeholder fill, including the full-bleed opening square. Tapping cycles each sequence independently and loops back to the beginning; only its centered caption/count changes while assets are absent. Native buttons support Enter/Space and announce caption changes. Frames in `src/lib/process-essay.ts` accept shared image/video assets later; videos reuse the existing lifecycle. No autoplay reel or new motion was added.
+- Removed the now-unused process media-ratio tokens. Validation: 59 tests, TypeScript, touched-file lint, production build, and diff checks; browser checks cover desktop/mobile square geometry, blank placeholders, full-column paragraphs, consistent type/color, caption alignment, the Cosmos destination, and pointer/keyboard sequence wraparound.
+
 **Process essay, first pass (2026-10-29)**
 - Added `/process`, “In the margins”: a 623-word, five-section illustrated essay on the site's design language, making prototypes, and the working environment. Tooling examples come from the existing inspector, palette lab, and media-import workflow. Copy lives in `src/lib/process-essay.ts` for later editing.
 - The ordinary homepage process link now stays on the current origin and opens the route in the same tab. The page has a solid white background, a full-width opening media block (the existing Office image, explicitly labeled as a placeholder), the focused view's centered reading measure, and its fixed Close treatment returning to `/`. No entry/exit transition or modal behavior.

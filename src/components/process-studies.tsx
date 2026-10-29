@@ -1,43 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { InspectableText } from "@/components/design-inspector";
+import { ProjectPreviewVideo } from "@/components/project-preview-video";
+import { mediaUrl } from "@/lib/media-delivery";
+import type { ProcessMediaSequence } from "@/lib/process-essay";
 
-const TYPE_STYLES = [
-  { style: "text-bodySans", name: "ABC Oracle", role: "bodySans" },
-  { style: "text-bodySerif", name: "ABC Otto", role: "bodySerif" },
-  { style: "text-captionSans", name: "Labels & details", role: "captionSans" },
-  { style: "text-captionSerif", name: "Notes in the margin", role: "captionSerif" },
-];
+export function ProcessMedia({ sequence, number, hero = false }: { sequence: ProcessMediaSequence; number: string; hero?: boolean }) {
+  const [index, setIndex] = useState(0);
+  const frame = sequence.frames[index];
+  const multiple = sequence.frames.length > 1;
+  const captionId = `process-media-${sequence.id}-caption`;
+  const asset = frame.asset;
+  const media = asset?.kind === "video" ? <ProjectPreviewVideo key={asset.id} asset={asset} />
+    : asset?.kind === "image" ? <Image key={asset.id} src={mediaUrl(asset.src)} alt={asset.alt} fill sizes={hero ? "100vw" : "(max-width: 767px) 100vw, 620px"} priority={hero} />
+    : null;
 
-export function ProcessTypeStudy() {
-  return <figure className="process-figure">
-    <div className="process-type-study">
-      {TYPE_STYLES.map(({ style, name, role }) => <div className="process-type-row" key={role}>
-        <span className={`${style} text-secondary`}><InspectableText>{name}</InspectableText></span>
-        <span className="text-captionSans text-muted"><InspectableText>{role}</InspectableText></span>
-      </div>)}
-    </div>
-    <figcaption className="process-caption text-captionSans text-muted"><InspectableText>01 / Two typefaces, four styles. A small vocabulary for the whole site.</InspectableText></figcaption>
-  </figure>;
-}
-
-export function ProcessInspectorStudy() {
-  const [inspecting, setInspecting] = useState(false);
-  return <figure className="process-figure">
-    <div className="process-inspector-study">
-      <div className="process-study-toolbar text-captionSans text-secondary">
-        <span><InspectableText>Type & color</InspectableText></span>
-        <button type="button" className="process-study-toggle text-captionSans text-primary" aria-pressed={inspecting}
-          aria-controls="process-inspector-sample" onClick={() => setInspecting(value => !value)}>
-          <InspectableText>{inspecting ? "Show text" : "Inspect"}</InspectableText>
-        </button>
-      </div>
-      <div id="process-inspector-sample" className="process-inspector-sample" aria-live="polite">
-        <p className="text-bodySerif text-secondary"><InspectableText>{inspecting ? "bodySerif / text-secondary" : "Small things carry more weight when there's less around them."}</InspectableText></p>
-        <span className="text-captionSans text-muted"><InspectableText>{inspecting ? "captionSans / text-muted" : "A note from the working environment."}</InspectableText></span>
-      </div>
-    </div>
-    <figcaption className="process-caption text-captionSans text-muted"><InspectableText>03 / A small demonstration of the site&apos;s design inspector. Switch between the text and its roles.</InspectableText></figcaption>
+  return <figure className={`process-figure${hero ? " process-hero" : ""}`}>
+    {multiple ? <button type="button" className="process-media" aria-label={`Next in ${sequence.label}: ${index + 1} of ${sequence.frames.length}`}
+      aria-describedby={captionId} onClick={() => setIndex(current => (current + 1) % sequence.frames.length)}>
+      {media}
+    </button> : <div className="process-media" role={asset ? undefined : "img"} aria-label={asset ? undefined : sequence.label}>{media}</div>}
+    <figcaption id={captionId} className={`process-caption text-captionSerif text-secondary${hero ? " process-reading-column" : ""}`} aria-live="polite" aria-atomic="true">
+      <InspectableText>{number} / {frame.caption}{multiple ? ` (${index + 1}/${sequence.frames.length})` : ""}</InspectableText>
+      {sequence.href && <> <a href={sequence.href} target="_blank" rel="noreferrer"><InspectableText>Inspiration on Cosmos</InspectableText></a></>}
+    </figcaption>
   </figure>;
 }
