@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 export default function ProcessPage() {
   return <DesignInspector>
     <main className="process-page" id="top">
+      <div className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
       <header className="process-header">
         <ProcessMedia sequence={PROCESS_OPENING_MEDIA} number="01" hero />
         <div className="process-reading-column process-heading">

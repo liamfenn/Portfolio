@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Process header responsive correction (2026-10-29)**
+- Constrained the opening square to the same 620px column as the essay on desktop, with the existing 24px `--project-focus-top` inset. Mobile retains full-width media and now reuses the focused view's fixed gray top-edge sampler for the status-bar safe area. Its minimum top spacing accounts for the body's existing safe-area padding rather than doubling it. Updated future image sizing to the constrained desktop measure; no new tokens.
+- Validation: 59 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser measurements at 1280px confirm a centered 620px square starting at y=24; at 390px, media spans the viewport beneath the fixed 12px gray edge. No horizontal overflow. Native iPhone Safari's status-bar extension remains a device check.
+
 **Simplify the process essay (2026-10-29)**
 - Reduced the editorial page to bodySerif text-secondary, with centered captionSerif text-secondary footnotes. Removed section numbers, the duplicated opening heading, the type specimen, inspector demo, component sketches, and colophon. Paragraphs now fill the complete 620px reading column instead of stopping at the intro's 500px measure. The existing Close control remains.
 - Rewrote the essay to 636 words with equal attention to editorial/print composition and terminal behavior, a section on the glyph globe and letter release/return interaction, and a shorter account of prototypes and tools. Linked the inspiration caption to Liam's [Cosmos board](https://www.cosmos.so/notliam/portfolio).

@@ -23,7 +23,11 @@
 .process-prose { width: 100%; text-wrap: pretty; }
 .process-prose p + p { margin-top: var(--type-body-leading); }
 .process-figure { width: 100%; padding-top: var(--content-padding); }
-.process-hero { padding-top: 0; }
+.process-hero {
+  max-width: calc(var(--project-focus-width) + var(--content-padding) * 2);
+  margin-inline: auto;
+  padding: var(--project-focus-top) var(--content-padding) 0;
+}
 .process-media {
   position: relative;
   display: block;
@@ -45,4 +49,6 @@ button.process-media { cursor: pointer; }
 @media (max-width: 767px) {
   .process-page { padding-bottom: calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--process-section-gap) + var(--viewport-safe-bottom)); }
   .process-reading-column { padding-inline: var(--content-padding-mobile); }
+  /* Body already includes the safe-area inset; only add the focus view's minimum top edge. */
+  .process-hero { max-width: none; padding: max(0px, calc(var(--project-focus-edge-size) - var(--viewport-safe-top))) 0 0; }
 }

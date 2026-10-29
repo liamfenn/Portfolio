@@ -14,7 +14,7 @@ export function ProcessMedia({ sequence, number, hero = false }: { sequence: Pro
   const captionId = `process-media-${sequence.id}-caption`;
   const asset = frame.asset;
   const media = asset?.kind === "video" ? <ProjectPreviewVideo key={asset.id} asset={asset} />
-    : asset?.kind === "image" ? <Image key={asset.id} src={mediaUrl(asset.src)} alt={asset.alt} fill sizes={hero ? "100vw" : "(max-width: 767px) 100vw, 620px"} priority={hero} />
+    : asset?.kind === "image" ? <Image key={asset.id} src={mediaUrl(asset.src)} alt={asset.alt} fill sizes="(max-width: 767px) 100vw, 620px" priority={hero} />
     : null;
 
   return <figure className={`process-figure${hero ? " process-hero" : ""}`}>
