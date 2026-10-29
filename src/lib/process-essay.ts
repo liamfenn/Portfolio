@@ -1,7 +1,7 @@
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 
 export type ProcessMediaFrame = { caption: string; asset?: PortfolioMediaAsset };
-export type ProcessMediaSequence = { id: string; label: string; frames: ProcessMediaFrame[]; caption?: string; href?: string; linkLabel?: string; icon?: string };
+export type ProcessMediaSequence = { id: string; label: string; frames: ProcessMediaFrame[]; caption?: string; href?: string; linkLabel?: string; hoverLabel?: string; icon?: string };
 
 // Add assets to these frames as recordings and references are ready.
 export const PROCESS_OPENING_MEDIA: ProcessMediaSequence = {
@@ -32,7 +32,7 @@ export const PROCESS_SECTIONS = [
       "Both influences are present here. Serif text, modular layouts, and whitespace come from the editorial side. Compact controls, streaming labels, and brief color changes bring the behavior of a working interface into that composition. I like the tension between a page that feels typeset and a screen that keeps responding.",
     ],
     media: {
-      id: "inspiration", label: "Inspiration", caption: "Inspiration from", href: "https://www.cosmos.so/notliam/portfolio", linkLabel: "Cosmos", icon: "/images/process/cosmos-mark.svg", frames: [
+      id: "inspiration", label: "Inspiration", caption: "Inspiration from", href: "https://www.cosmos.so/notliam/portfolio", linkLabel: "Cosmos", hoverLabel: "/portfolio", icon: "/images/process/cosmos-mark.svg", frames: [
         { caption: "Editorial layouts and printed matter." },
         { caption: "Terminal interfaces, grids, and color themes." },
         { caption: "References collected on my Cosmos board." },

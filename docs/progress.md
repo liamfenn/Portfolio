@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Process Cosmos hover and hand pointers (2026-10-29)**
+- On desktop hover or keyboard-visible focus, `/portfolio` streams after Cosmos using the shared `useColorScramble`/`FILTER_SCRAMBLE` treatment; it scrambles back to blanks on exit. The suffix is positioned after the link so the centered caption does not shift. It remains hidden on mobile/touch layouts, and reduced motion uses immediate plain text. The accessible link name identifies Cosmos/portfolio throughout.
+- Explicitly applied the homepage's hand pointer to process links and enabled buttons, including media cards and Close. The supplied Cosmos icon, destination, caption typography, and mobile media behavior remain unchanged.
+- Validation: 62 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser checks confirm colored intermediate glyphs on actual pointer hover and keyboard focus, settled `/portfolio`, clean exit, unchanged caption/link geometry, pointer styles on all six interactive elements, and a hidden mobile suffix with no horizontal overflow at 390px.
+
 **Simplify process mobile edges and bottom spacing (2026-10-29)**
 - Removed the process page's custom fixed top sampler/blur and bottom fade so mobile uses the browser's native edge treatment. The hero no longer adds a 12px sampler inset; the document's safe-area padding remains in place. Shared project-focus styles are unchanged.
 - Reduced mobile page bottom padding from 116px to 92px plus the safe-area inset, matching the focused view's existing clearance formula. The last section keeps its 32px internal spacing; desktop remains at 160px bottom padding and a 24px hero top inset.

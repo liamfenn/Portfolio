@@ -6,6 +6,7 @@
 
 .process-page :where(h1, h2, p, figure) { margin: 0; }
 .process-page :where(h1, h2) { font-weight: var(--font-weight-regular); }
+.process-page :where(a, button:not(:disabled)) { cursor: pointer; }
 
 .process-reading-column,
 .process-figure {
@@ -36,7 +37,6 @@
   background: var(--bg-secondary-fill);
   overflow: hidden;
 }
-button.process-media { cursor: pointer; }
 .process-media img { object-fit: cover; }
 .process-hero .process-media { background: var(--bg-fill); }
 .process-media-count { position: absolute; top: var(--project-info-inset); right: var(--project-info-inset); }
@@ -44,6 +44,8 @@ button.process-media { cursor: pointer; }
 .process-caption-link { display: flex; align-items: center; justify-content: center; gap: var(--project-focus-controls-gap); }
 .process-caption { margin-top: var(--page-frame); text-align: center; flex-wrap: wrap; }
 .process-caption-link img { flex-shrink: 0; }
+.process-caption-link { position: relative; }
+.process-caption-detail { display: none; }
 .process-media-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -64,6 +66,10 @@ button.process-media { cursor: pointer; }
 }
 @media (hover: hover) {
   .process-close:hover { opacity: 1; }
+}
+@media (min-width: 768px) and (hover: hover) {
+  /* Reveal the board path without shifting the centered caption. */
+  .process-caption-detail { display: block; position: absolute; left: 100%; white-space: pre; }
 }
 @media (max-width: 767px) {
   .process-page {

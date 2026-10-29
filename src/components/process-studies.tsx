@@ -2,10 +2,38 @@
 
 import { useState, type CSSProperties } from "react";
 import Image from "next/image";
+import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
+import { useColorScramble } from "@/hooks/use-color-scramble";
 import { mediaUrl } from "@/lib/media-delivery";
+import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import type { ProcessMediaSequence } from "@/lib/process-essay";
+
+function ScrambledLinkDetail({ text, active }: { text: string; active: boolean }) {
+  const { ref } = useColorScramble({
+    ...FILTER_SCRAMBLE, text: active ? text : " ".repeat(text.length), ignore: [], playOnMount: false,
+  });
+  return <span ref={ref}>{" ".repeat(text.length)}</span>;
+}
+
+function ProcessCaptionLink({ sequence }: { sequence: ProcessMediaSequence }) {
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const active = hovered || focused;
+  const label = sequence.linkLabel ?? sequence.label;
+  const desktopHover = () => window.matchMedia("(min-width: 768px) and (hover: hover)").matches;
+  return <a className="process-caption-link text-secondary" href={sequence.href} target="_blank" rel="noreferrer" aria-label={`${label}${sequence.hoverLabel ?? ""}`}
+    onPointerEnter={event => setHovered(event.pointerType !== "touch" && desktopHover())} onPointerLeave={() => setHovered(false)}
+    onFocus={event => setFocused(event.currentTarget.matches(":focus-visible") && desktopHover())} onBlur={() => setFocused(false)}>
+    {sequence.icon && <Image src={sequence.icon} width={14} height={14} alt="" aria-hidden="true" />}
+    <InspectableText>{label}</InspectableText>
+    {sequence.hoverLabel && <span className="process-caption-detail" aria-hidden="true"><InspectableText text={active ? sequence.hoverLabel : ""}>
+      {reducedMotion ? (active ? sequence.hoverLabel : "") : <ScrambledLinkDetail text={sequence.hoverLabel} active={active} />}
+    </InspectableText></span>}
+  </a>;
+}
 
 export function ProcessMedia({ sequence, hero = false, entranceOrder = 0 }: { sequence: ProcessMediaSequence; hero?: boolean; entranceOrder?: number }) {
   const [index, setIndex] = useState(0);
@@ -27,10 +55,7 @@ export function ProcessMedia({ sequence, hero = false, entranceOrder = 0 }: { se
     {multiple && <span className="sr-only text-captionSans text-muted" role="status" aria-live="polite" aria-atomic="true"><InspectableText>{sequence.label}: asset {index + 1} of {sequence.frames.length}</InspectableText></span>}
     {!hero && <figcaption id={captionId} className="process-caption process-enter-text text-captionSans text-muted" style={entrance}>
       <InspectableText>{sequence.caption ?? frame.caption}</InspectableText>
-      {sequence.href && <a className="process-caption-link text-secondary" href={sequence.href} target="_blank" rel="noreferrer">
-        {sequence.icon && <Image src={sequence.icon} width={14} height={14} alt="" aria-hidden="true" />}
-        <InspectableText>{sequence.linkLabel ?? sequence.label}</InspectableText>
-      </a>}
+      {sequence.href && <ProcessCaptionLink sequence={sequence} />}
     </figcaption>}
   </figure>;
 }
