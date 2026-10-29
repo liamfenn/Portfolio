@@ -10,6 +10,14 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Process mobile media, hero, and text entrance (2026-10-29)**
+- Every media square on `/process` now spans the mobile viewport; paragraph and centered-caption insets stay at 12px. Desktop retains the 620px media/reading width and 24px top inset.
+- Added Liam's supplied `Clipped Mobile.png` as the opening image, with one static frame and a matching caption. The compact 379KB PNG is served intact and prioritized; the local optimized-image preview did not display it, while the direct image loads correctly. Other image slots retain responsive optimization.
+- Replaced the process page's gray mobile top edge with white and a masked 10px blur/tint fading below it, using the existing focus fill, blur, safe-area, and control-size tokens. The white image background blends into this status-bar treatment.
+- Process text now enters with the focused view's 120ms delay, 600ms opacity fade, 40ms stagger, and shared easing. The title and reading time enter together; media and Close are immediately visible. CSS keeps the essay server rendered and removes the animation for reduced-motion preferences. Cycling a caption does not replay its entrance.
+- Homepage intro now reads “Previously at OpenPurpose, where he designed interfaces for…”, preserving its existing links and type.
+- Validation: 59 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser checks cover full-width squares/no overflow at 320/390px, unchanged 620px desktop geometry at y=24, mid-entrance opacity/timing, settled/cycled captions, the loaded hero, the white masked blur, and homepage/process/Close navigation. Native iPhone Safari rendering remains a device check.
+
 **Process header responsive correction (2026-10-29)**
 - Constrained the opening square to the same 620px column as the essay on desktop, with the existing 24px `--project-focus-top` inset. Mobile retains full-width media and now reuses the focused view's fixed gray top-edge sampler for the status-bar safe area. Its minimum top spacing accounts for the body's existing safe-area padding rather than doubling it. Updated future image sizing to the constrained desktop measure; no new tokens.
 - Validation: 59 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser measurements at 1280px confirm a centered 620px square starting at y=24; at 390px, media spans the viewport beneath the fixed 12px gray edge. No horizontal overflow. Native iPhone Safari's status-bar extension remains a device check.

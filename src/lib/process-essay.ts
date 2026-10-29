@@ -5,9 +5,12 @@ export type ProcessMediaSequence = { id: string; label: string; frames: ProcessM
 
 // Add assets to these frames as recordings and references are ready.
 export const PROCESS_OPENING_MEDIA: ProcessMediaSequence = {
-  id: "opening", label: "The site in motion", frames: [
-    { caption: "The site in motion." },
-    { caption: "A closer look at the details." },
+  id: "opening", label: "The homepage on mobile", frames: [
+    { caption: "The homepage, on mobile.", asset: {
+      id: "process-clipped-mobile", kind: "image", src: "/images/process/clipped-mobile.png",
+      width: 2880, height: 2880,
+      alt: "The portfolio homepage inside an iPhone, showing the introduction and Shop rewards card on a white background.",
+    } },
   ],
 };
 

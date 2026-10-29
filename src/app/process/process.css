@@ -40,15 +40,43 @@
 }
 button.process-media { cursor: pointer; }
 .process-media img { object-fit: cover; }
+.process-hero .process-media { background: var(--bg-fill); }
 .process-caption { margin-top: var(--page-frame); text-align: center; }
 .process-caption a { text-decoration: underline; text-underline-offset: var(--focus-offset); }
 .process-close:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.process-enter-text {
+  animation: process-text-enter var(--project-focus-text-enter-duration) cubic-bezier(var(--project-focus-ease)) both;
+  animation-delay: calc(var(--project-focus-text-enter-delay) + var(--process-text-order) * var(--project-focus-text-stagger));
+}
+@keyframes process-text-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 @media (hover: hover) {
   .process-close:hover { opacity: 1; }
 }
 @media (max-width: 767px) {
   .process-page { padding-bottom: calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--process-section-gap) + var(--viewport-safe-bottom)); }
   .process-reading-column { padding-inline: var(--content-padding-mobile); }
+  .process-essay .process-figure { width: calc(100% + var(--content-padding-mobile) * 2); margin-inline: calc(0px - var(--content-padding-mobile)); }
+  .process-caption { padding-inline: var(--content-padding-mobile); }
+  .process-page .project-focus-edge-top { background: var(--bg-fill); }
+  .process-page .project-focus-edge-top::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: var(--project-focus-hit-size);
+    background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent);
+    -webkit-backdrop-filter: blur(var(--project-focus-blur));
+    backdrop-filter: blur(var(--project-focus-blur));
+    -webkit-mask-image: linear-gradient(to bottom, var(--bg-fill), transparent);
+    mask-image: linear-gradient(to bottom, var(--bg-fill), transparent);
+  }
   /* Body already includes the safe-area inset; only add the focus view's minimum top edge. */
   .process-hero { max-width: none; padding: max(0px, calc(var(--project-focus-edge-size) - var(--viewport-safe-top))) 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .process-enter-text { animation: none; }
 }
