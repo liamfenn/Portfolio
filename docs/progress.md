@@ -10,6 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Process essay, first pass (2026-10-29)**
+- Added `/process`, “In the margins”: a 623-word, five-section illustrated essay on the site's design language, making prototypes, and the working environment. Tooling examples come from the existing inspector, palette lab, and media-import workflow. Copy lives in `src/lib/process-essay.ts` for later editing.
+- The ordinary homepage process link now stays on the current origin and opens the route in the same tab. The page has a solid white background, a full-width opening media block (the existing Office image, explicitly labeled as a placeholder), the focused view's centered reading measure, and its fixed Close treatment returning to `/`. No entry/exit transition or modal behavior.
+- Prose uses bodySerif and text-secondary throughout. Type specimens use the four existing roles, component-view schematics document the available iterations, an accessible toggle demonstrates type/color inspection, and a labeled media slot leaves room for future process recordings. The page remains readable with server-rendered content and native links.
+- New `--process-section-gap` (72px desktop / 48px mobile) and media-ratio roles provide editorial rhythm and replaceable media slots; other spacing, colors, typography, hover behavior, and safe-area offsets reuse existing tokens. No dependencies added.
+- Validation: all 59 tests, TypeScript, touched-file lint, production build, and diff checks pass. Local browser checks at 1280, 390, and 320px confirm no horizontal overflow, full-width media, 15/20 and 14/18 Otto prose in #555, the inspector demo, and same-tab homepage/Close navigation.
+
 **Intro maximum width**
 - Set the intro width token to 500px and cap its container at that width across breakpoints, while allowing it to shrink to available space on smaller screens.
 - Validation: 59 tests, TypeScript, production build, and diff checks pass. Production browser measurements at 1440/768/600px are 500px; at 390px the intro fits the available 366px, with no horizontal overflow.

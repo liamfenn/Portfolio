@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { InspectableText } from "@/components/design-inspector";
 
 export function InlineBioExpansion({ word, children }: { word: string; children?: string }) {
@@ -34,6 +35,7 @@ export function InlineBioExpansion({ word, children }: { word: string; children?
 }
 
 function BioLink({ href, children }: { href: string; children: ReactNode }) {
+  if (href.startsWith("/")) return <Link className="text-primary" href={href}>{children}</Link>;
   const external = href.startsWith("https:");
   return <a className="text-primary" href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
     {children}
@@ -46,7 +48,7 @@ export function HomepageBio() {
       <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at <BioLink href="https://shop.com">Shop</BioLink>. Previously at <BioLink href="https://s.engineering">OpenPurpose</BioLink>, designing interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others. If something here resonates, <BioLink href="mailto:info@fennell.cv">get in touch</BioLink>
     </InspectableText></p>
     <p><InspectableText>
-      This site is an experiment in the tools, ideas, and changing ways we design and build. Read about the <BioLink href="https://fennell.cv/process">process</BioLink>
+      This site is an experiment in the tools, ideas, and changing ways we design and build. Read about the <BioLink href="/process">process</BioLink>
     </InspectableText></p>
   </div>;
 }

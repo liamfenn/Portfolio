@@ -58,7 +58,7 @@ that browser (it's remembered) and `?inspect` to turn it back on. When off,
 On desktop or mobile, tap the avatar to show or hide the panel (it skips the Shop link
 while the inspector is on), then choose a mode or test control. Palette-lab access lives here.
 
-It works on the homepage and the palette lab:
+It works on the homepage, `/process`, and the palette lab:
 
 - **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
 - **O** cycles content → color token → hex → content. (C is taken by the Vercel

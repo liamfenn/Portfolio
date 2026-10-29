@@ -40,6 +40,7 @@ tests, the type checker, and a local `npm run build`. Liam checks the look on th
 | URL | What it does |
 | --- | --- |
 | `/` | The homepage. |
+| `/process` | “In the margins”, the design and process essay. |
 | `/?palette-lab` | Opens the palette lab: **Colors** (the palette quiz) and **Glyphs** (swarm tuning). |
 | `/?inspect=off`, `/?inspect` | Turns the design inspector off or on in that browser (remembered). |
 
