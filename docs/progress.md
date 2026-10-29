@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Intro copy and links**
+- Replaced the intro with Liam's two supplied paragraphs, with no indentation and one line of space between them. The existing serif type, pretty wrapping, and 520px desktop width remain.
+- Liam Fennell stays unlinked in text-primary. Shop, OpenPurpose, Bird, Plasticity, get in touch, and Read about the process use text-primary and the supplied web/mail destinations.
+- Validation: 64 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production browser checks at 1440px and 390px verified all six destinations, primary link/name colors, paragraph spacing, zero indentation, and no horizontal overflow.
+
 **Back to the first shader, with a Fade toggle (2026-10-28)**
 - Liam preferred the first diagonal lens wipe to the Glow and Particles styles, the 65° sweep, and the rewinding exit, so both of those commits are reverted (903c547, 11cebfe); the code matches 1a7ba39 again. Their designs remain in git history (9d160f0, 898f1b1) if we want to revisit them.
 - The avatar menu's **Card entry** control switches between **Shader** (the default) and **Fade**, the original 180ms CSS fade, for comparison. A switch applies from the next opening.

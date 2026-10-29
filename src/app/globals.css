@@ -103,6 +103,10 @@
   margin: 0;
 }
 
+.portfolio-bio p + p {
+  margin-top: var(--type-body-leading);
+}
+
 .portfolio-bio strong,
 .portfolio-link-strong,
 .portfolio-contact a {

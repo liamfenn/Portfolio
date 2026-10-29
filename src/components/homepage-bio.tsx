@@ -43,7 +43,10 @@ function BioLink({ href, children }: { href: string; children: ReactNode }) {
 export function HomepageBio() {
   return <div className="portfolio-bio text-bodySerif">
     <p><InspectableText>
-      <strong>Liam Fennell</strong> is a designer based in Atlanta. Currently at <BioLink href="https://shop.app">Shop</BioLink>, pushing pixels and code. Previously at OpenPurpose where he designed interfaces for Bird, Plasticity and more. Available in limited capacities.
+      <strong>Liam Fennell</strong> is a designer based in Atlanta, currently at <BioLink href="https://shop.com">Shop</BioLink>. Previously at <BioLink href="https://s.engineering">OpenPurpose</BioLink>, designing interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others. If you’ve got something interesting in mind, <BioLink href="mailto:info@fennell.cv">get in touch</BioLink>
+    </InspectableText></p>
+    <p><InspectableText>
+      He likes working in the margins. Between disciplines, in the balance of structure and expression, and in the details that make things feel effortless. This site is an experiment in the tools, ideas, and changing ways we design and build. <BioLink href="https://fennell.cv/process">Read about the process</BioLink>
     </InspectableText></p>
   </div>;
 }
