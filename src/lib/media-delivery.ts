@@ -17,7 +17,10 @@ export function mediaUrl(path: string) {
     return path;
   }
 
-  return `${MEDIA_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  const publicPath = `${path.startsWith("/") ? "" : "/"}${path}`;
+  // Committed site images live on the current origin, including when videos use Blob storage.
+  if (publicPath.startsWith("/images/")) return publicPath;
+  return `${MEDIA_BASE_URL}${publicPath}`;
 }
 
 /**

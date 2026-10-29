@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fix process hero delivery with the preview CDN configuration (2026-10-29)**
+- The committed hero image was valid, but `mediaUrl()` prepended `NEXT_PUBLIC_MEDIA_BASE_URL` on Vercel and requested it from Blob instead of the site's `/public/images` directory. Static `/images/` paths now stay on the current origin; relative encoded media still uses the configured CDN and absolute URLs remain unchanged. Liam's reattached `placeholder.png` is byte-identical to the existing hero, so no duplicate image was added.
+- Added regression coverage with a nonempty CDN base for static images, relative encoded media, and absolute URLs. Validation: 62 tests, TypeScript, touched-file lint, and diff checks pass. A production build with a CDN base verifies the prerendered hero URL stays local. The branch preview is protected by Vercel SSO, which prevents an unauthenticated HTTP check of the deployed image.
+
 **Intro paragraph punctuation (2026-10-29)**
 - Added ending periods to both homepage intro paragraphs, as plain text after the closing “get in touch” and “process” links.
 
