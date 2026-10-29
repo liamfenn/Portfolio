@@ -50,12 +50,9 @@
   --project-card-overlay-duration: var(--project-layout-duration);
   --project-card-overlay-opacity: 88%;
   --project-card-overlay-blur: var(--project-focus-blur);
-  /* The wipe: moving from the first frame, fast through the middle, with a long settle. The exit rewinds it on
-     the same curve, quicker. The angle is the sweep's direction below horizontal, from the top-left corner. */
+  /* The entry wipe: moving from the first frame, fast through the middle, with a long settle into the far corner. */
   --project-card-overlay-enter-duration: 750ms;
-  --project-card-overlay-exit-duration: 500ms;
   --project-card-overlay-enter-ease: .35, .15, .1, 1;
-  --project-card-overlay-angle: 65deg;
   --project-focus-duration: var(--project-layout-duration);
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--hover-duration);

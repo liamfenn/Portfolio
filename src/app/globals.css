@@ -697,7 +697,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   pointer-events: none;
   transition: visibility 0s var(--project-card-overlay-duration);
 }
-.project-card-panel.is-open, .project-card-panel[data-wipe] { visibility: visible; transition-delay: 0s; }
+.project-card-panel.is-open { visibility: visible; transition-delay: 0s; }
 /* The blur lives on its own layer, not the panel: opacity on an ancestor would cut a backdrop-filter off from the
    media it blurs, and the entry wipe draws between this surface and the credits. */
 .project-card-surface, .project-card-wipe, .project-card-wipe > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
@@ -710,9 +710,8 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 }
 .project-card-panel.is-open .project-card-surface { opacity: 1; }
 .project-card-panel > .project-focus-credits { position: relative; }
-/* While the wipe runs, in either direction, its canvas is the surface and it sets each row's opacity itself (the
-   panel stays visible through a rewind). Once an entry has crossed, the CSS surface appears beneath the canvas as it
-   fades. */
+/* While the wipe runs, its canvas is the surface and it sets each row's opacity itself; once the front has
+   crossed, the CSS surface appears beneath the canvas as it fades. */
 .project-card-wipe > canvas { opacity: 0; transition: opacity var(--project-card-overlay-duration) cubic-bezier(var(--project-focus-ease)); }
 .project-card-panel[data-wipe="running"] .project-card-wipe > canvas { opacity: 1; transition: none; }
 .project-card-panel[data-wipe="running"] .project-card-surface { opacity: 0; transition: none; }

@@ -10,14 +10,6 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Grain particles, 65° sweep, and a rewinding exit (2026-10-28)**
-- From Liam's second reference: Particles is now a fine-grain dissolve, not dots on a grid. Grains on a jittered 3px grid arrive at scattered times across a wide band, start as specks and grow until they meet; a smooth fill closes the rest. Ahead of the grains the media stays sharp, bent slightly near the front. Only the youngest grains carry color: a palette hue mixed 30% toward white, at up to 28%, so fainter than Glow's wash.
-- Liam felt the reference was too wavy, so the front wavers by under a fifth of a band along its length and the bend is 30% of Lens.
-- Particles is the default; the **Card entry** cycle is Particles → Glow → Lens.
-- The sweep direction is a token, `--project-card-overlay-angle: 65deg` (below horizontal, from the top-left corner); positions use `sweepPosition` instead of the 45° diagonal.
-- Exit rewinds the wipe (`--project-card-overlay-exit-duration: 500ms`, same curve): the canvas replaces the CSS surface in the same frame (the first frame draws synchronously), the front recedes to the corner, and rows leave as it passes them. Closing mid-entry or reopening mid-exit reverses from the current front on the same canvas, with the duration scaled to the distance left. The panel stays visible while `data-wipe` is set. Without WebGL the old CSS fades remain.
-- Validation: 67 tests (sweep position at both angles, reversal duration, exit endpoints), TypeScript, touched-file lint, production build; Chromium card overlay (now asserting the rewind), focus, navigation, and loading checks; mid-close/reopen/reduced-motion cases; headless entry and exit captures with the real clip. Not checked: WebKit and device GPUs.
-
 **Card entry styles: Glow and Particles (2026-10-28)**
 - Liam found the first wipe solid but slow to start, and shared a reference: a soft frosted front with a pale lilac/teal edge sweeping over warping content. The front now starts already touching the corner (`WIPE_START`), on `.35, .15, .1, 1` over 750ms, so it moves from the first frame and keeps the long settle.
 - **Glow** (default): the lens at 60% strength, frost that reaches slightly ahead of the white tint, and a broad pastel wash just behind the front. Colors come from the live glyph palette (`currentGlyphPalette`, so the palette lab changes them), sampled along the front and drifting over time, mixed 40% toward white and applied at 24%.
