@@ -24,7 +24,6 @@ export default function ProcessPage() {
   const entranceStyle = () => ({ "--process-text-order": textOrder++ }) as CSSProperties;
   return <DesignInspector>
     <main className="process-page" id="top">
-      <div className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
       <header className="process-header">
         <ProcessMedia sequence={PROCESS_OPENING_MEDIA} hero />
         <div className="process-reading-column process-heading">
@@ -53,7 +52,6 @@ export default function ProcessPage() {
           </div> : <ProcessMedia sequence={section.media} entranceOrder={textOrder++} />)}
         </Fragment>)}
       </article>
-      <div className="project-focus-bottom-fade" aria-hidden="true" />
       <nav className="project-focus-controls" aria-label="Return to portfolio">
         <Link className="project-focus-action process-close text-bodySans" href="/" aria-label="Close process and return to the portfolio"><InspectableText>Close</InspectableText></Link>
       </nav>

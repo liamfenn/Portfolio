@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Simplify process mobile edges and bottom spacing (2026-10-29)**
+- Removed the process page's custom fixed top sampler/blur and bottom fade so mobile uses the browser's native edge treatment. The hero no longer adds a 12px sampler inset; the document's safe-area padding remains in place. Shared project-focus styles are unchanged.
+- Reduced mobile page bottom padding from 116px to 92px plus the safe-area inset, matching the focused view's existing clearance formula. The last section keeps its 32px internal spacing; desktop remains at 160px bottom padding and a 24px hero top inset.
+- Validation: 62 tests, TypeScript, touched-file lint, production build, and diff checks pass. At 390px, browser checks confirm no edge overlays or horizontal overflow and the final paragraph clears Close by 66px at the end of the page. Desktop retains 620px media. Native Safari's own chrome rendering remains a device check.
+
 **Process page follows Liam's Figma edits (2026-10-29)**
 - Matched [the edited process frame, 544:4551](https://www.figma.com/design/nIi2Tpt2b8yYxYsuCq38OJ/New-Portfolio?node-id=544-4551): shortened subtitle, sans title/headings, muted sans captions, 36px desktop section spacing, and a wide two-column media block. The opening image remains 620px square with a 24px top inset; its caption is removed. Paragraphs retain the shared bodySerif/text-secondary roles and fill the 620px column.
 - Each multi-asset card now has a top-right `[1]` counter that advances on tap and wraps independently. Captions stay centered and stable beneath the set. Inspiration links to Cosmos with the exact supplied 14px SVG, saved as `public/images/process/cosmos-mark.svg`; the supplied hero matches the existing PNG byte for byte. Placeholder frames stay empty gray squares.
