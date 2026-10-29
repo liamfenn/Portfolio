@@ -22,6 +22,8 @@ try {
     await page.locator(".homepage-identity").click();
     const toggle = page.getByRole("button", { name: /^Cycle project interaction:/ });
     await toggle.waitFor();
+    assert.equal(await toggle.getAttribute("data-project-interaction"), "overlay");
+    await toggle.click();
     assert.equal(await toggle.getAttribute("data-project-interaction"), "focus");
     const blank = page.locator('[data-project-id="shop-03"] .homepage-card-trigger');
     assert.equal(await blank.getAttribute("aria-haspopup"), "dialog");
@@ -285,6 +287,11 @@ try {
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode === undefined);
     const defaultTile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
     await defaultTile.waitFor();
+    // Reloading returns to the default card overlay; the rest of this check opens focus through the URL.
+    assert.equal(await defaultTile.getAttribute("aria-haspopup"), null);
+    assert.equal(await defaultTile.getAttribute("aria-controls"), await page.locator('[data-project-id="shop-02"] .project-card-panel').getAttribute("id"));
+    await page.goto(`${origin}/?inspect=off&projects=focus`, { waitUntil: "domcontentloaded" });
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     assert.equal(await page.locator('.project-grid > li').nth(1).getAttribute("data-project-id"), "shop-02");
     assert.equal(await defaultTile.getAttribute("aria-haspopup"), "dialog");
     await defaultTile.click();
@@ -308,6 +315,7 @@ try {
     await page.reload({ waitUntil: "domcontentloaded" });
     // Keyboard activation can run before hydration; the image ref's settled state confirms React is ready.
     await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     await defaultTile.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("dialog").waitFor();

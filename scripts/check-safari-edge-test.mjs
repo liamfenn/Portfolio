@@ -11,11 +11,12 @@ try {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(`${origin}/?inspect`);
+    await page.goto(`${origin}/?inspect&projects=focus`);
     await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     const dialog = page.getByRole("dialog");
     const edges = page.locator("[data-safari-edge-test]");
     const open = async () => {
+      await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
       await page.locator(".homepage-card-trigger").first().click();
       await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
     };

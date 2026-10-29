@@ -9,7 +9,8 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 2, isMobile: width < 768, hasTouch: width < 768 });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.goto(`${origin}/?inspect=off`);
+    await page.goto(`${origin}/?inspect=off&projects=focus`);
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     const tile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
     await tile.scrollIntoViewIfNeeded();
     await page.waitForFunction(() => {

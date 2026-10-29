@@ -17,8 +17,8 @@ try {
     await page.goto(origin);
     await page.locator(".homepage-identity").click();
     const cycle = page.getByRole("button", { name: /^Cycle project interaction:/ });
-    assert.equal(await cycle.getAttribute("data-project-interaction"), "focus");
-    for (const mode of ["inline", "overlay", "focus", "inline", "overlay"]) {
+    assert.equal(await cycle.getAttribute("data-project-interaction"), "overlay");
+    for (const mode of ["focus", "inline", "overlay", "focus", "inline", "overlay"]) {
       await cycle.click();
       assert.equal(await cycle.getAttribute("data-project-interaction"), mode);
     }
@@ -108,7 +108,7 @@ try {
     assert.equal(await panel.evaluate(panel => getComputedStyle(panel).transitionProperty), "none");
     await page.reload();
     await page.locator(".homepage-identity").click();
-    assert.equal(await cycle.getAttribute("data-project-interaction"), "focus");
+    assert.equal(await cycle.getAttribute("data-project-interaction"), "overlay");
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({ browser: engine.name(), mobile, cycle: true, labelsPinned: true, overlayTiming: geometry.duration, keyboardAndLinks: true, originalVideo: !mobile }));
     await context.close();

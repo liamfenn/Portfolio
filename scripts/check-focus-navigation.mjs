@@ -15,7 +15,8 @@ try {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     if (fixture) await page.route(/\.mp4(?:\?|$)/, route => route.fulfill({ status: 200, contentType: "video/webm", body: fixture }));
-    await page.goto(`${origin}/?inspect=off`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${origin}/?inspect=off&projects=focus`, { waitUntil: "domcontentloaded" });
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
     const order = () => page.locator(".project-grid > li").evaluateAll(nodes => nodes.map(node => node.dataset.projectId));
     const ids = await order();

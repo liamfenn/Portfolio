@@ -89,7 +89,7 @@ try {
       }
       return route.continue();
     });
-    await page.goto(`${origin}/?inspect=${preview ? "" : "off"}`, { waitUntil: mode === "before-hydration" ? "commit" : "domcontentloaded" });
+    await page.goto(`${origin}/?inspect=${preview ? "" : "off"}&projects=focus`, { waitUntil: mode === "before-hydration" ? "commit" : "domcontentloaded" });
     if (preview) await page.waitForFunction(() => document.documentElement.dataset.inspectorMode !== undefined);
     if (mode === "reduced-motion") {
       await page.waitForFunction(() => document.querySelector(".homepage-avatar .skeleton"));

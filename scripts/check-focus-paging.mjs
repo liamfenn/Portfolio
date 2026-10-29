@@ -13,7 +13,8 @@ try {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     if (fixture) await page.route(/\.mp4(?:\?|$)/, route => route.fulfill({ contentType: "video/webm", body: fixture }));
-    await page.goto(`${origin}/?inspect=off`);
+    await page.goto(`${origin}/?inspect=off&projects=focus`);
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
     const ids = await page.locator(".project-grid > li").evaluateAll(nodes => nodes.map(node => node.dataset.projectId));
     await page.evaluate(() => { window.__pagingMedia = [...document.querySelectorAll(".project-grid > li")].map(node => ({ trigger: node.querySelector("button"), media: node.querySelector(".homepage-project-media") })); });

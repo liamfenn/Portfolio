@@ -13,7 +13,8 @@ try {
     let release;
     const pending = new Promise(resolve => { release = resolve; });
     await page.route(/\.mp4(?:\?|$)/, async route => { await pending; await route.continue().catch(() => {}); });
-    await page.goto(`${origin}/?inspect=off`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${origin}/?inspect=off&projects=focus`, { waitUntil: "domcontentloaded" });
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     const tile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
     await tile.scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('[data-project-id="shop-02"] .project-preview-poster')?.naturalWidth > 0);
@@ -60,7 +61,8 @@ try {
   let releaseUpgrade;
   const upgrade = new Promise(resolve => { releaseUpgrade = resolve; });
   await page.route(/shop-rewards-card\/.*-1600\.mp4/, async route => { await upgrade; await route.continue().catch(() => {}); });
-  await page.goto(`${origin}/?inspect=off`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${origin}/?inspect=off&projects=focus`, { waitUntil: "domcontentloaded" });
+  await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
   const tile = page.locator('[data-project-id="shop-02"] .homepage-card-trigger');
   await tile.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector('[data-project-id="shop-02"] video')?.dataset.frameReady === "true");

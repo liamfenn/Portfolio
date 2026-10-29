@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Card overlay is the default (2026-10-28)**
+- Project clicks and taps now open the card overlay. Focused view and Inline expansion stay in the avatar menu's **Projects** cycle (Card overlay → Focused view → Inline expansion), which resets to Card overlay on reload.
+- `?projects=<mode>` selects a mode on load, applied on the first frame after hydration. The focus browser checks load `?projects=focus` and wait for the dialog trigger before clicking, so they keep covering Focused view.
+
 **Three project interaction options with a card overlay (2026-10-28)**
 - The hidden avatar menu now cycles Focused view → Inline expansion → Card overlay and resets to Focused view on reload. Both existing modes are preserved. The new mode follows [Figma 518:3001](https://www.figma.com/design/nIi2Tpt2b8yYxYsuCq38OJ/New-Portfolio?node-id=518-3001): company/quarter at the top and shared contributors/tech columns at the bottom, over a uniform 92% white tint with 12px background blur (Liam’s surface adjustment after the initial Figma match). Mobile retains the existing expansion/FLIP and company/quarter color glitch; desktop pins its existing hover labels above the surface until another selection, second click, or keyboard focus on another project.
 - The tint and detail rows share one 180ms window in both directions. Rows enter top to bottom and exit bottom to top, with a scaled 12ms stagger and 144ms fade for today's four aligned rows. CSS handles interrupted transitions; reduced motion is immediate. Contributor links are siblings of the card button, closed content is inert, Escape restores the trigger, and the overlay preserves its keyboard focus outline. Credits reuse the focused-view markup; no new dependencies, extra video elements, or media lifecycle changes.

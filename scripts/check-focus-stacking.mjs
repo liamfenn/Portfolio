@@ -12,7 +12,8 @@ try {
       const page = await browser.newPage({ viewport: { width, height: 650 }, isMobile: width < 768, hasTouch: width < 768 });
       const errors = [];
       page.on("pageerror", error => errors.push(error.message));
-      await page.goto(`${origin}/?inspect=off`);
+      await page.goto(`${origin}/?inspect=off&projects=focus`);
+      await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
       await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
       if (scenario === "globe") await page.locator(".glyph-globe").scrollIntoViewIfNeeded();
       else await page.locator(".work-toolbar").scrollIntoViewIfNeeded();

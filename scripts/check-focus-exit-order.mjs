@@ -16,7 +16,8 @@ try {
     const page = await browser.newPage({ viewport: { width: scenario.width, height: 950 }, deviceScaleFactor: 2 });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.goto(`${origin}/?inspect=off`);
+    await page.goto(`${origin}/?inspect=off&projects=focus`);
+    await page.locator('.homepage-card-trigger[aria-haspopup="dialog"]').first().waitFor();
     await page.waitForFunction(() => document.querySelector(".homepage-avatar")?.getAttribute("aria-busy") === "false");
     await page.locator(`[data-project-id="${scenario.start}"] .homepage-card-trigger`).click();
     const settled = () => page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open" && !document.querySelector("[data-paging-outgoing]"));
