@@ -21,7 +21,7 @@
   /* Spacing: an 8px frame around the page, 16px inside each section. */
   --page-frame: 8px;
   --content-padding: 16px;
-  --intro-text-width: 520px;
+  --intro-text-width: 500px;
   --project-info-inset: 16px;
   --project-info-inset-mobile: 12px;
   --project-info-gap: 2px;

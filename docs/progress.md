@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Intro maximum width**
+- Set the intro width token to 500px and cap its container at that width across breakpoints, while allowing it to shrink to available space on smaller screens.
+- Validation: 59 tests, TypeScript, production build, and diff checks pass. Production browser measurements at 1440/768/600px are 500px; at 390px the intro fits the available 366px, with no horizontal overflow.
+
 **Blur entry and short intro locked in**
 - Project card overlays now always use the existing 180ms blur-surface fade and staggered credits. Removed the WebGL wipe implementation, its dedicated tests/tokens/styles/host, and the Card entry debug toggle/state. Other project interaction modes remain available.
 - The intro is permanently the short “If something here resonates, get in touch” version with the short process paragraph. Removed the other copy variants and Intro debug toggle/state. Paragraphs have no ending periods; only “process” is linked in the last sentence, and Shop's period stays outside its link.
