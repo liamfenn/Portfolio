@@ -10,6 +10,14 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Card entry styles: Glow and Particles (2026-10-28)**
+- Liam found the first wipe solid but slow to start, and shared a reference: a soft frosted front with a pale lilac/teal edge sweeping over warping content. The front now starts already touching the corner (`WIPE_START`), on `.35, .15, .1, 1` over 750ms, so it moves from the first frame and keeps the long settle.
+- **Glow** (default): the lens at 60% strength, frost that reaches slightly ahead of the white tint, and a broad pastel wash just behind the front. Colors come from the live glyph palette (`currentGlyphPalette`, so the palette lab changes them), sampled along the front and drifting over time, mixed 40% toward white and applied at 24%.
+- **Particles**: the blur frosts in smoothly while the white arrives as round particles on a 9px grid. Each appears at a scattered time around the front, grows while drifting back to its cell, and carries a pale palette color while young. Gaps close along the diagonal, not per cell; per-cell fills showed hard square edges.
+- **Lens**: the original 900ms version's shape at the new timing, kept for comparison.
+- The avatar menu's **Card entry** control cycles Glow → Particles → Lens and resets on reload. A switch applies from the next opening.
+- Validation: 65 tests, TypeScript, touched-file lint, production build; Chromium card overlay, focus, and loading checks; mid-close/reopen/reduced-motion edge cases. Headless frame captures with the real product-page clip (re-encoded to VP9, since this Chromium can't decode H.264) for each style. Not checked: WebKit and device GPUs.
+
 **Card overlay entry wipe (2026-10-28)**
 - Opening a card overlay now runs a WebGL shader: a diagonal front from the top-left corner sweeps to the bottom-right over 900ms on `.85, 0, .15, 1`, bending the media in a lens as it passes and leaving the 10px blur and 88% white tint set behind it. Credit rows reveal as the blur sets under their centers (not before, so text never sits on sharp, bent video). Once the front has crossed, the CSS surface appears beneath the canvas and the canvas fades out over 180ms and is removed with its context released. Exit is unchanged.
 - The blur moved from the panel onto its own `.project-card-surface` layer: the canvas has to sit between blur and text, and opacity on the panel would cut its backdrop-filter off from the media.
