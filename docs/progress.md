@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Mobile Spotify timer spacing**
+- Increased the gap between the title/artist viewport and timer from 12px to 24px on mobile, derived from the existing mobile content-padding token. The marquee viewport and its existing fade end earlier, giving the timer more space. Desktop retains its 16px gap.
+- Validation: 63 tests, TypeScript, production build, and diff checks pass. Production browser checks with a long-track fixture verify a 24px measured mobile gap, active marquee/24px fade at 320/390px, the same mobile gap at 767px, unchanged desktop styling at 768/1440px, and no horizontal overflow.
+
 **Updated third Shop video**
 - Replaced the third tile's clip with Liam's updated 4,861,213-byte source (2160px square, 60fps, 18.45s), using fresh versioned responsive-video/poster paths. Shop / Q3 26, Ashten Alexander, and Swift/UIKit metadata are retained.
 - Continues the existing bundled `/videos/` delivery while Blob credentials are unavailable. Superseded bundled renditions/posters are removed; the master and processing reports stay outside Git.
