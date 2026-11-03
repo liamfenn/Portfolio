@@ -80,6 +80,45 @@ export const MEDIA_ASSETS = {
       }
     ]
   },
+  shopFourthPreview: {
+    id: "shop-fourth-preview",
+    kind: "video",
+    src: "/videos/shop-fourth-preview/3409f49a692266b8-1600.mp4",
+    poster: "/videos/shop-fourth-preview/3409f49a692266b8-poster-1600.webp",
+    posters: [
+      {
+        width: 480,
+        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-480.webp"
+      },
+      {
+        width: 800,
+        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-800.webp"
+      },
+      {
+        width: 1600,
+        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-1600.webp"
+      }
+    ],
+    alt: "Shop interaction prototype from Q2 2026",
+    width: 1600,
+    height: 1600,
+    frameRate: 60,
+    duration: 13.433333,
+    renditions: [
+      {
+        width: 800,
+        h264: "/videos/shop-fourth-preview/3409f49a692266b8-800.mp4"
+      },
+      {
+        width: 1200,
+        h264: "/videos/shop-fourth-preview/3409f49a692266b8-1200.mp4"
+      },
+      {
+        width: 1600,
+        h264: "/videos/shop-fourth-preview/3409f49a692266b8-1600.mp4"
+      }
+    ]
+  },
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",

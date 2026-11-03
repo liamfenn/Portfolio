@@ -40,7 +40,7 @@ export function ProjectCredits({ preview }: { preview: ProjectPreview }) {
       </li>)}</ul>
     </div>}
     {Boolean(preview.tech?.length) && <div className="project-focus-tech">
-      <h3 className="text-captionSans"><FocusText text="Tech" /></h3>
+      <h3 className="text-captionSans"><FocusText text="Stack" /></h3>
       <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} /></li>)}</ul>
     </div>}
   </div>;

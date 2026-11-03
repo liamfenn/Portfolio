@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fourth Shop video and Stack credits**
+- Added Liam's supplied fourth video as shop-04, dated Q2 26, with no contributors and Stack entries Swift, Nano Banana, and Kling. The remaining eight placeholders keep their existing IDs/order.
+- Renamed the shared credits heading from Tech to Stack, covering card overlays and focused views. Without contributors, Stack is the first grid child and occupies the left column with the existing left alignment; two-column credits remain unchanged when both sections exist.
+- Imported the square 2160px/60fps source (13.433333s) into bundled 800/1200/1600px H.264 videos and responsive posters; video sizes are 1,620,414 / 2,407,508 / 3,165,273 bytes. Masters/reports remain untracked.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Production desktop/mobile checks verify new-source playback, exact Q2 26/Stack entries, no contributor section, and Stack left alignment in card overlays and focused views. The four-video mobile grid advances without tile interaction and retains offscreen/reduced-motion pausing and scroll-back recovery. Blob clips used a local fixture for that combined playback check; both bundled clips use their actual sources.
+
 **Third Shop clip refinement**
 - Replaced the third video's previous revision with Liam's newest 4,825,236-byte master, preserving its 2160px square source, 18.45s duration, and 60fps. Rebuilt the responsive H.264 videos and WebP posters under a fresh content version; superseded bundled files are removed.
 - Q3 26, Ashten Alexander/ashten.studio, Swift/UIKit, and playback behavior are unchanged.

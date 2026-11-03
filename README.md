@@ -78,7 +78,7 @@ It works on the homepage, `/process`, and the palette lab:
   Normal focus uses the same placement with #f6f8f9 at the top and white at the bottom. A short inward
   fade sits behind the navigation controls; the edge sampled by Safari stays solid.
 - The hidden avatar menu’s **Projects** control cycles **Card overlay → Focused view → Inline expansion** and resets to Card overlay, the default, on reload. `?projects=focus` or `?projects=inline` picks another mode on load, which the browser checks use. Focused view opens the existing full-screen project view with a white 92% backdrop and 10px blur; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Inline expansion preserves the earlier behavior: mobile taps expand tiles in the grid, while desktop retains hover previews.
-- **Card overlay** adds contributors/tech credits inside the selected tile over an 88% white tint and 10px background blur. The blur surface fades over 180ms; credit rows enter top to bottom and exit bottom to top within the same window. Mobile keeps tile expansion and company/quarter color glitches; desktop pins hover labels until a second click, another selection, or keyboard focus on another project. Escape closes it. Credits reuse the focused-view component and links; the original video keeps playing in place. Reduced motion shows the surface and credits immediately. There is no shader or entry-style toggle.
+- **Card overlay** adds Contributors/Stack credits inside the selected tile over an 88% white tint and 10px background blur. The blur surface fades over 180ms; credit rows enter top to bottom and exit bottom to top within the same window. Mobile keeps tile expansion and company/quarter color glitches; desktop pins hover labels until a second click, another selection, or keyboard focus on another project. Escape closes it. Credits reuse the focused-view component and links; the original video keeps playing in place. Reduced motion shows the surface and credits immediately. There is no shader or entry-style toggle.
 - The intro uses the short copy ending “If something here resonates, get in touch”, followed by the short process paragraph. Only “process” is linked in its final sentence. The comparison variants and Intro toggle have been removed.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
@@ -104,8 +104,8 @@ stagger; the stagger scales with the exit/entry duration ratio. P, Close, and N 
 On exit, those buttons fade out first over 180ms; the bottom-to-top content stagger starts after they disappear, followed by the card return.
 Grid hover labels hide immediately for the focus session, so their reverse stream cannot linger behind the moving media.
 Linked credits appear under **Contributors**,
-beside **Tech**, and empty fields are omitted. Current projects share the Figma placeholder description
-and Swift/UIKit/Metal stack until their final content is ready.
+beside **Stack**, and empty fields are omitted. Stack takes the left column when contributors are absent.
+Projects may override their contributors and stack independently; placeholders retain the shared defaults.
 Focus labels render as ordinary native text without decorative glyph copies.
 Focused media stays inside its original grid button for the entire session. A single controller in
 `src/lib/project-focus-media.ts` positions that element over the overlay's layout slot and shares the

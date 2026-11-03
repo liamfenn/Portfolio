@@ -59,8 +59,14 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     team: [{ name: "Ashten Alexander", href: "https://ashten.studio" }],
     tech: ["Swift", "UIKit"],
   },
-  ...Array.from({ length: 9 }, (_, index) => ({
-    id: `shop-${String(index + 4).padStart(2, "0")}`,
+  {
+    id: "shop-04", ...shop,
+    media: MEDIA_ASSETS.shopFourthPreview,
+    team: [],
+    tech: ["Swift", "Nano Banana", "Kling"],
+  },
+  ...Array.from({ length: 8 }, (_, index) => ({
+    id: `shop-${String(index + 5).padStart(2, "0")}`,
     ...shop,
   })),
 ];
