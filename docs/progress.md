@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Caption typography for project credits**
+- Applied the shared captionSans style to the credits container so all contributor names and Stack entries use it in card overlays and focused views, on desktop and mobile. Headings retain their existing captionSans styling and colors.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production browser checks verify Oracle regular captionSans at 14/19px desktop and 13/18px mobile for contributor names and Stack entries in both views, with the existing muted headings and secondary entry colors.
+
 **Third Shop video: latest tweak**
 - Replaced shop-03's video with Liam's newest 4,767,928-byte source. Source duration and rate remain 18.45s / 60fps. Fresh responsive-video/poster URLs replace the previous revision; Q3 26, contributor, and Stack entries are unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile production playback verifies the d77935b0eb47b148 revision and unchanged overlay metadata. The 800/1200/1600px videos are 889,565 / 1,305,842 / 1,670,993 bytes; superseded bundled files are removed.

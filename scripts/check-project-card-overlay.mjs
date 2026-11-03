@@ -59,7 +59,7 @@ try {
     assert.equal(geometry.duration, 180);
     assert.equal(geometry.surfaceOpacity, "1");
     assert.equal(geometry.caption, mobile ? "13px" : "14px");
-    assert.equal(geometry.body, mobile ? "14px" : "15px");
+    assert.equal(geometry.body, mobile ? "13px" : "14px");
     assert.ok(geometry.rows.every(row => row.opacity === "1"));
     assert.equal(Math.max(...geometry.rows.map(row => row.delay + row.duration)), 180);
     assert.equal(Math.min(...geometry.rows.map(row => row.delay)), 0);

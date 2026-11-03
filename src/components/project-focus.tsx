@@ -32,7 +32,7 @@ export function ProjectFocusDetails({ preview, titleId = "project-focus-title", 
 
 export function ProjectCredits({ preview }: { preview: ProjectPreview }) {
   if (!preview.team?.length && !preview.tech?.length) return null;
-  return <div className="project-focus-credits">
+  return <div className="project-focus-credits text-captionSans">
     {Boolean(preview.team?.length) && <div className="project-focus-team">
       <h3 className="text-captionSans"><FocusText text="Contributors" /></h3>
       <ul>{preview.team!.map(member => <li key={member.href}>
