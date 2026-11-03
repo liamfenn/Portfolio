@@ -52,8 +52,8 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-03", ...shop,
-    period: "Q3 2024",
-    year: 2024,
+    period: "Q3 2026",
+    year: 2026,
     quarter: 3,
     media: MEDIA_ASSETS.shopQ32024,
     team: [{ name: "Ashten Alexander", href: "https://ashten.studio" }],

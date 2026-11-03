@@ -10,7 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Mobile grid playback with three videos**
+**Uncapped visible mobile video playback**
+- Removed the mobile playback cap at Liam's request. Every visible mobile video is eligible to play together; desktop retains its four-video cap. Two initial load slots still bound simultaneous startup work, and offscreen/background/reduced-motion/data-saving behavior remains unchanged.
+- More simultaneously visible videos can increase decode/GPU work, battery use, heat, and dropped frames on real phones. Today's three-video grid has the same playback load as the preceding fix; future denser content needs device checks.
+- Corrected the new third Shop video's visible date and sorting year to Q3 2026, per Liam's follow-up. Its previously published file URLs remain stable.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. A mobile twelve-video development fixture verified six visible clips advancing simultaneously beyond the old caps, with offscreen/reduced-motion pausing intact. Production checks verified all three current videos advancing untouched, scroll-back recovery, and the corrected Q3 26 overlay/contributor/tech metadata at desktop/mobile widths. These are functional checks, not real-phone performance benchmarks.
+
+**Mobile grid playback with three videos (superseded)**
 - Reproduced a fully visible mobile grid where the two-video decoder cap left one of the three clips paused on its last frame. This follows playback prioritization rather than Blob/local hosting; no tap or media failure is required.
 - Raised the mobile playback cap to three so today's three visible clips can run together. Desktop stays at four, initial loads at two, and offscreen/reduced-motion/data-saving behavior is unchanged. Updated the optional grid QA budget and current media-workflow documentation.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production Chromium mobile-grid regression reproduced one paused visible clip before the fix; afterward all three clocks/decoded-frame counters advance without tile interaction. Offscreen pausing, scroll-back resume, and reduced-motion release pass. Blob-hosted clips used a supported local media fixture; the third clip used its real bundled source. Native phone performance remains a device check.

@@ -10,6 +10,7 @@ const snapshots = page => page.locator("video").evaluateAll(videos => videos.map
   src: video.getAttribute("src"), playing: !video.paused, state: video.dataset.playback,
   ready: video.dataset.frameReady, width: video.videoWidth, time: video.currentTime,
   top: video.getBoundingClientRect().top,
+  visible: video.getBoundingClientRect().bottom > 0 && video.getBoundingClientRect().top < innerHeight,
 })));
 try {
   for (const width of process.env.VIDEO_CHECK_FALLBACKS_ONLY ? [] : [1440, 390]) {
@@ -29,12 +30,24 @@ try {
     await page.goto(`${origin}/dev/video-lab`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector('video[data-frame-ready="true"]'));
     await page.waitForTimeout(1200);
-    const limit = width < 768 ? 3 : 4;
+    const limit = width < 768 ? Infinity : 4;
     const initial = await snapshots(page);
     assert.equal(initial.length, 12);
-    assert.ok(initial.filter(video => video.playing).length <= limit);
-    assert.ok(initial.filter(video => video.src).length <= limit + 1);
+    const visible = initial.filter(video => video.visible).length;
+    assert.ok(initial.filter(video => video.playing).length <= Math.min(limit, visible));
+    assert.ok(initial.filter(video => video.src).length <= Math.min(limit, visible) + 1);
     assert.ok(initial.some(video => !video.src));
+    if (width < 768) {
+      await page.locator(".project-grid").evaluate(grid => grid.style.setProperty("--project-mobile-columns", "2"));
+      await page.waitForFunction(() => {
+        const visible = [...document.querySelectorAll("video")].filter(video => {
+          const box = video.getBoundingClientRect();
+          return box.bottom > 0 && box.top < innerHeight;
+        });
+        return visible.length > 3 && visible.every(video => !video.paused && video.currentTime > 0);
+      });
+      await page.locator(".project-grid").evaluate(grid => grid.style.removeProperty("--project-mobile-columns"));
+    }
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.waitForFunction(() => [...document.querySelectorAll("video")].every(video => !video.hasAttribute("src")));
     await page.emulateMedia({ reducedMotion: "no-preference" });

@@ -60,7 +60,7 @@ export const MEDIA_ASSETS = {
         src: "/videos/shop-q3-2024/57a9f0be6088bc12-poster-1600.webp"
       }
     ],
-    alt: "Shop interaction prototype from Q3 2024",
+    alt: "Shop interaction prototype from Q3 2026",
     width: 1600,
     height: 1600,
     frameRate: 60,

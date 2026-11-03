@@ -173,7 +173,7 @@ class VideoPlayback {
       return;
     }
     const ranked = rankVideos(all);
-    const limit = this.mobile.matches ? VIDEO_POLICY.mobileLimit : VIDEO_POLICY.desktopLimit;
+    const limit = this.mobile.matches ? ranked.length : VIDEO_POLICY.desktopLimit;
     const playing = new Set(ranked.filter(entry => entry.visible > 0).slice(0, limit));
     // Warm just one upcoming tile, without filling the load queue with offscreen cards.
     const upcoming = ranked.find(entry => !entry.visible);
