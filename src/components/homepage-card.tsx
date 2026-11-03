@@ -88,7 +88,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
             src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
         </> : null}
         </span>
-        <span id={detailsId} className={`homepage-project-overlay ${cardOverlay && isMobile ? "text-bodySans" : "text-captionSans"}${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
+        <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>

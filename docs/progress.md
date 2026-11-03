@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Mobile company/date caption typography**
+- Removed the card overlay's mobile-only bodySans override. Company and quarter/year labels now consistently use captionSans in mobile cards, matching inline mobile labels and existing desktop labels. Colors, scrambles, and spacing are unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production checks verify 13/18px captionSans labels on mobile and unchanged 14/19px desktop labels in overlay/inline modes, retaining primary company and secondary date colors.
+
 **Caption typography for project credits**
 - Applied the shared captionSans style to the credits container so all contributor names and Stack entries use it in card overlays and focused views, on desktop and mobile. Headings retain their existing captionSans styling and colors.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production browser checks verify Oracle regular captionSans at 14/19px desktop and 13/18px mobile for contributor names and Stack entries in both views, with the existing muted headings and secondary entry colors.
