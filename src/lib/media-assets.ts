@@ -44,20 +44,20 @@ export const MEDIA_ASSETS = {
   shopQ32026: {
     id: "shop-q3-2026",
     kind: "video",
-    src: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-1600.mp4",
-    poster: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-poster-1600.webp",
+    src: "/videos/shop-q3-2026/d77935b0eb47b148-1600.mp4",
+    poster: "/videos/shop-q3-2026/d77935b0eb47b148-poster-1600.webp",
     posters: [
       {
         width: 480,
-        src: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-poster-480.webp"
+        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-480.webp"
       },
       {
         width: 800,
-        src: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-poster-800.webp"
+        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-800.webp"
       },
       {
         width: 1600,
-        src: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-poster-1600.webp"
+        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-1600.webp"
       }
     ],
     alt: "Shop interaction prototype from Q3 2026",
@@ -68,15 +68,15 @@ export const MEDIA_ASSETS = {
     renditions: [
       {
         width: 800,
-        h264: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-800.mp4"
+        h264: "/videos/shop-q3-2026/d77935b0eb47b148-800.mp4"
       },
       {
         width: 1200,
-        h264: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-1200.mp4"
+        h264: "/videos/shop-q3-2026/d77935b0eb47b148-1200.mp4"
       },
       {
         width: 1600,
-        h264: "/videos/shop-q3-2026/b3ef5d9e2c451a2e-1600.mp4"
+        h264: "/videos/shop-q3-2026/d77935b0eb47b148-1600.mp4"
       }
     ]
   },

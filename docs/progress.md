@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Third Shop video: latest tweak**
+- Replaced shop-03's video with Liam's newest 4,767,928-byte source. Source duration and rate remain 18.45s / 60fps. Fresh responsive-video/poster URLs replace the previous revision; Q3 26, contributor, and Stack entries are unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile production playback verifies the d77935b0eb47b148 revision and unchanged overlay metadata. The 800/1200/1600px videos are 889,565 / 1,305,842 / 1,670,993 bytes; superseded bundled files are removed.
+
 **Fourth Shop video and Stack credits**
 - Added Liam's supplied fourth video as shop-04, dated Q2 26, with no contributors and Stack entries Swift, Nano Banana, and Kling. The remaining eight placeholders keep their existing IDs/order.
 - Renamed the shared credits heading from Tech to Stack, covering card overlays and focused views. Without contributors, Stack is the first grid child and occupies the left column with the existing left alignment; two-column credits remain unchanged when both sections exist.
