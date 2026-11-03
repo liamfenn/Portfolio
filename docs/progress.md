@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Mobile grid playback with three videos**
+- Reproduced a fully visible mobile grid where the two-video decoder cap left one of the three clips paused on its last frame. This follows playback prioritization rather than Blob/local hosting; no tap or media failure is required.
+- Raised the mobile playback cap to three so today's three visible clips can run together. Desktop stays at four, initial loads at two, and offscreen/reduced-motion/data-saving behavior is unchanged. Updated the optional grid QA budget and current media-workflow documentation.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production Chromium mobile-grid regression reproduced one paused visible clip before the fix; afterward all three clocks/decoded-frame counters advance without tile interaction. Offscreen pausing, scroll-back resume, and reduced-motion release pass. Blob-hosted clips used a supported local media fixture; the third clip used its real bundled source. Native phone performance remains a device check.
+
 **Third Shop tile video**
 - Prepared shop-03 for Liam's supplied square, 2160px, 60fps, 18.766667s clip. Metadata is Shop / Q3 24, contributor Ashten Alexander (https://ashten.studio), and Swift/UIKit.
 - Encoded and validated 800/1200/1600px H.264 at the original 60fps (856,393 / 1,237,980 / 1,591,409 bytes) and responsive WebP posters. Local report: `public/media/shop-q3-2024/57a9f0be6088bc12-report.json`. The Blob token remains unavailable. Following Liam’s instruction to push the preview, the six optimized files are bundled under versioned public/videos/shop-q3-2024 paths as a temporary delivery fallback. Bundled /videos paths stay on the current origin even when other media uses a Blob base URL. The master, processing reports, and all other generated media remain untracked. The media asset uses these local paths; the imported CDN registry is unchanged.

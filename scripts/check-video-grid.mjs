@@ -29,7 +29,7 @@ try {
     await page.goto(`${origin}/dev/video-lab`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector('video[data-frame-ready="true"]'));
     await page.waitForTimeout(1200);
-    const limit = width < 768 ? 2 : 4;
+    const limit = width < 768 ? 3 : 4;
     const initial = await snapshots(page);
     assert.equal(initial.length, 12);
     assert.ok(initial.filter(video => video.playing).length <= limit);
