@@ -13,6 +13,8 @@ interface PortfolioMediaBase {
 export interface PortfolioImageAsset extends PortfolioMediaBase {
   kind: "image";
   blurDataURL?: string;
+  /** Preserve supplied pixels for color-sensitive assets that are already small. */
+  unoptimized?: boolean;
 }
 
 /** One rung of the encode ladder. H.264 is the grid baseline; AV1 is an optional export. */
@@ -122,7 +124,8 @@ export const MEDIA_ASSETS = {
   shopCollections: {
     id: "shop-collections",
     kind: "image",
-    src: "/images/projects/shop-collections-v3.jpg",
+    src: "/images/projects/shop-collections-v4.jpg",
+    unoptimized: true,
     alt: "Shop saved collections interface",
     width: 1280,
     height: 1280,

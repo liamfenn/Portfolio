@@ -85,7 +85,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         {preview.media?.kind === "image" ? <>
           <Skeleton active={pending} />
           <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}
-            src={mediaUrl(preview.media.src)} alt={preview.media.alt} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+            src={mediaUrl(preview.media.src)} alt={preview.media.alt} unoptimized={preview.media.unoptimized} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
         </> : null}
         </span>
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>

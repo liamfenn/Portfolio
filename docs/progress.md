@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**PNG export received as JPEG; preserve supplied image bytes**
+- Liam supplied a PNG export, but the actual attached file delivered to the workspace is a 1280px JPEG/JFIF (89,009 bytes). The upload path appears to have converted it; the original lossless PNG is not available. Requested a ZIP to preserve those bytes.
+- Applied this revision as shop-collections-v4.jpg, with opt-in unoptimized delivery for this small, color-sensitive asset. It avoids an additional Next image resize/recompression pass; future image assets retain the normal optimization default. Source corner RGB is (247,248,250), close to the sampled Chromium video readback (246,248,250), without claiming an exact Safari display match. Project metadata/native image actions remain unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production desktop/mobile overlay/focus checks verify the direct original URL, no generated srcset, loaded image, metadata, and uncancelled context-menu handling. An HTTP download matches the received attachment byte for byte.
+
 **Fifth image color comparison and next revision**
 - Swapped in Liam's latest JPEG under shop-collections-v3.jpg with fresh cache identity. Project metadata and image behavior remain unchanged.
 - Sampled a flat 50px-square corner: both v2 and the new source decode to RGB(244,248,249), while sampled decoded third/fourth video frames are RGB(246,247,250). The tested Next image WebP rendition at 828px/q75 retained the source background RGB, so that sample does not implicate image optimization. Browser/native-video color management may differ; this is not an actual iPhone display match.
