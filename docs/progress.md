@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fifth image background revision**
+- Swapped in Liam's updated 1280px-square JPEG unchanged, using shop-collections-v2.jpg to avoid stale image caches. Removed the superseded file. Project position, Q3 25, Staci Kelly's link, and omitted Stack are unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile production checks load the v2 image in overlays and focused views and retain the prior metadata and native image context-menu path.
+
 **Fifth project: Shop collections image**
 - Added the supplied 1280px-square image to shop-05, dated Q3 25, with Staci Kelly linked to her supplied LinkedIn profile and no Stack section. The original JPEG is kept unchanged under public/images/projects; native image context-menu behavior is retained.
 - The focused-view label describes the saved collections interface, without the unrelated shared placeholder summary. The remaining seven placeholders keep their IDs/order.
