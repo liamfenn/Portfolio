@@ -18,8 +18,8 @@ test("relative encoded media still uses the configured CDN", () => {
 });
 
 test("bundled preview videos and posters stay on the current origin", () => {
-  assert.equal(mediaUrl("/videos/shop-q3-2024/clip.mp4"), "/videos/shop-q3-2024/clip.mp4");
-  assert.equal(mediaUrl("videos/shop-q3-2024/poster.webp"), "/videos/shop-q3-2024/poster.webp");
+  assert.equal(mediaUrl("/videos/shop-q3-2026/clip.mp4"), "/videos/shop-q3-2026/clip.mp4");
+  assert.equal(mediaUrl("videos/shop-q3-2026/poster.webp"), "/videos/shop-q3-2026/poster.webp");
 });
 
 test("explicit media URLs remain unchanged", () => {

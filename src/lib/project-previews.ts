@@ -55,7 +55,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     period: "Q3 2026",
     year: 2026,
     quarter: 3,
-    media: MEDIA_ASSETS.shopQ32024,
+    media: MEDIA_ASSETS.shopQ32026,
     team: [{ name: "Ashten Alexander", href: "https://ashten.studio" }],
     tech: ["Swift", "UIKit"],
   },

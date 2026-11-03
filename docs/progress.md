@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Updated third Shop video**
+- Replaced the third tile's clip with Liam's updated 4,861,213-byte source (2160px square, 60fps, 18.45s), using fresh versioned responsive-video/poster paths. Shop / Q3 26, Ashten Alexander, and Swift/UIKit metadata are retained.
+- Continues the existing bundled `/videos/` delivery while Blob credentials are unavailable. Superseded bundled renditions/posters are removed; the master and processing reports stay outside Git.
+- The 800/1200/1600px videos are 912,627 / 1,326,736 / 1,700,238 bytes, each preserving 60fps. Validation: 63 tests, TypeScript, touched-file lint, production build, full encode/decode checks, and diff checks pass. Production playback at 1440px and 390px resolves the new versioned URLs, reports the new 18.45s duration, advances decoded video, and retains Q3 26 / Ashten Alexander / Swift/UIKit overlay details.
+
 **Globe and swarm overhead with growing video content (2026-11-03)**
 - Removed the idle globe's per-frame size read and the color ripples' glyph-bound measurements. Size follows a ResizeObserver; ripples reuse the animation's known positions. Spin and colors now share one animation loop, stop together offscreen/background, and resume without a time jump. Depth order only writes when it changes; hover acceleration follows elapsed time.
 - Swarm entry measures each arriving batch before adding glyphs/masks. The exit control's clear pocket updates on scroll, resize, text/layout changes instead of measuring every frame. Hidden pages stop the physics loop; resuming resets its accumulator. Catch-up is capped at two fixed 60Hz steps instead of four to avoid amplifying a hitch. Letter count, collision settings, video quality, source frame rates, and desktop/mobile playback policy are preserved.
