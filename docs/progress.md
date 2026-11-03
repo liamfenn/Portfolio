@@ -10,6 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fifth image color comparison and next revision**
+- Swapped in Liam's latest JPEG under shop-collections-v3.jpg with fresh cache identity. Project metadata and image behavior remain unchanged.
+- Sampled a flat 50px-square corner: both v2 and the new source decode to RGB(244,248,249), while sampled decoded third/fourth video frames are RGB(246,247,250). The tested Next image WebP rendition at 828px/q75 retained the source background RGB, so that sample does not implicate image optimization. Browser/native-video color management may differ; this is not an actual iPhone display match.
+- Recommended an sRGB PNG exported from the original design for predictable still-image colors, rather than repeated JPEG adjustments. Converting an already compressed JPEG cannot recover its pre-compression colors. References: https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Image_types and https://nextjs.org/docs/app/api-reference/components/image.
+- Chromium canvas readback samples the third/fourth videos at RGB(246,248,250), while the displayed optimized fifth image remains RGB(244,248,249). This differs slightly from the FFmpeg readback above, illustrating why decoded values should not be presented as a guaranteed Safari display match. The original editor's pre-JPEG pixels are unavailable, so JPEG's exact contribution is not proven.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlays and focused views load the v3 image with unchanged project metadata and native image context handling. The v3 image's tested 828px/q75 WebP output retains its source corner RGB.
+
 **Fifth image background revision**
 - Swapped in Liam's updated 1280px-square JPEG unchanged, using shop-collections-v2.jpg to avoid stale image caches. Removed the superseded file. Project position, Q3 25, Staci Kelly's link, and omitted Stack are unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile production checks load the v2 image in overlays and focused views and retain the prior metadata and native image context-menu path.
