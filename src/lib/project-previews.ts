@@ -65,8 +65,19 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     team: [],
     tech: ["Swift", "Nano Banana", "Kling"],
   },
-  ...Array.from({ length: 8 }, (_, index) => ({
-    id: `shop-${String(index + 5).padStart(2, "0")}`,
+  {
+    id: "shop-05", ...shop,
+    label: "Saved collections",
+    description: undefined,
+    period: "Q3 2025",
+    year: 2025,
+    quarter: 3,
+    media: MEDIA_ASSETS.shopCollections,
+    team: [{ name: "Staci Kelly", href: "https://www.linkedin.com/in/stacikelly" }],
+    tech: [],
+  },
+  ...Array.from({ length: 7 }, (_, index) => ({
+    id: `shop-${String(index + 6).padStart(2, "0")}`,
     ...shop,
   })),
 ];

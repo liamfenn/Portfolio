@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fifth project: Shop collections image**
+- Added the supplied 1280px-square image to shop-05, dated Q3 25, with Staci Kelly linked to her supplied LinkedIn profile and no Stack section. The original JPEG is kept unchanged under public/images/projects; native image context-menu behavior is retained.
+- The focused-view label describes the saved collections interface, without the unrelated shared placeholder summary. The remaining seven placeholders keep their IDs/order.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production desktop/mobile checks verify fifth position, image decoding, no video element, uncancelled native image context-menu handling, Q3 25, Staci's exact link, captionSans/left-aligned contributor placement, and absence of Stack in overlays and focused views.
+
 **Mobile company/date caption typography**
 - Removed the card overlay's mobile-only bodySans override. Company and quarter/year labels now consistently use captionSans in mobile cards, matching inline mobile labels and existing desktop labels. Colors, scrambles, and spacing are unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Production checks verify 13/18px captionSans labels on mobile and unchanged 14/19px desktop labels in overlay/inline modes, retaining primary company and secondary date colors.
