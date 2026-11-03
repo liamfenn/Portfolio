@@ -264,8 +264,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const speed = 1.2 + Math.random() * 3;
     return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
   };
-  const release = (source: Source) => {
-    const char = resolve(source);
+  const prepareRelease = (source: Source, nodes: Map<Element, Text[]>) => {
+    const char = resolve(source, nodes);
     if (char === null || !char.trim()) return;
     const rect = source.range.getClientRects()[0];
     if (!rect || rect.width < 1) return;
@@ -273,7 +273,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     // Letters scrolled out of view stream in from the nearest edge.
     const at = entryPoint(centerOf(rect), window.innerWidth, window.innerHeight);
     const style = getComputedStyle(source.node.parentElement ?? source.parent);
-    spawn(char, rect, at, fontOf(style), style.color, pop(at), 300 + Math.random() * 1300, source);
+    return { char, rect, at, font: fontOf(style), color: style.color, source };
   };
 
   // The globe's own characters burst outward from its centre; the ones that form the exit ring stay behind.
@@ -430,15 +430,17 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   document.addEventListener("selectstart", preventSelection);
   root.addEventListener("pointerover", onLabelInteraction);
   root.addEventListener("focusin", onLabelInteraction);
-  let patchesStale = true;
-  const onScroll = () => { patchesStale = true; };
+  let patchesStale = true, clearStale = true;
+  const onScroll = () => { patchesStale = clearStale = true; };
   const onResize = () => {
-    placeWalls(); patchesStale = true;
+    placeWalls(); patchesStale = clearStale = true;
     for (const glyph of glyphs) {
       const { x, y } = glyph.body.position;
       Body.setPosition(glyph.body, { x: Math.max(8, Math.min(window.innerWidth - 8, x)), y: Math.max(8, Math.min(window.innerHeight - 8, y)) });
     }
   };
+  const layoutObserver = new ResizeObserver(() => { clearStale = true; });
+  layoutObserver.observe(root);
   window.addEventListener("scroll", onScroll, { passive: true }); window.addEventListener("resize", onResize);
   document.body.append(layer);
 
@@ -560,7 +562,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     if (time - source.pending.at >= MORPH_AFTER_MS) { glyph.element.textContent = char; source.pending = undefined; } else morphing = true;
   };
   const reattach = (time: number) => {
-    morphing = false; patchesStale = true;
+    morphing = false; patchesStale = clearStale = true;
     refreshHoverLabels();
     // Letters sharing a label also share its text walk; hover scrambles can replace it every frame.
     const nodes = new Map<Element, Text[]>();
@@ -576,19 +578,31 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
 
   const startedAt = performance.now();
   let frame = 0, previousTime = startedAt, pending = 0;
+  let clear: { center: Point; radius: number } | null = null;
   const render = (time: number) => {
     const dt = Math.min(64, time - previousTime) / 1000;
-    pending = Math.min(pending + time - previousTime, STEP * 4); previousTime = time;
+    // Discard excess debt after a hitch; four catch-up steps can turn one missed frame into several.
+    pending = Math.min(pending + time - previousTime, STEP * 2); previousTime = time;
     const elapsed = time - startedAt, loose = phase === "loose";
     if (loose && hoverPending) refreshHoverLabels();
-    while (loose && queued < queue.length && queue[queued].at <= elapsed) release(queue[queued++].source);
+    // Measure the entire release batch before appending glyphs or changing text masks.
+    const releases: NonNullable<ReturnType<typeof prepareRelease>>[] = [], nodes = new Map<Element, Text[]>();
+    while (loose && queued < queue.length && queue[queued].at <= elapsed) {
+      const release = prepareRelease(queue[queued++].source, nodes);
+      if (release) releases.push(release);
+    }
     // The anchor trails the pointer lazily and never quite sits still, so the cloud sways rather than snapping into place.
     const target = pointer ?? viewportCenter();
     const goal = { x: target.x + Math.sin(time * 0.00071) * 24, y: target.y + Math.cos(time * 0.00053) * 18 };
-    const zone = radius(), gap = spacing(), members = floating();
     // Letters drift out of the exit ring's way so it always reads, wherever the swarm is.
-    const clearBox = options.keepClear()?.getBoundingClientRect();
-    const clear = clearBox?.width ? { center: centerOf(clearBox), radius: Math.max(clearBox.width, clearBox.height) / 2 + 18 } : null;
+    // Its control only moves with layout/scroll, not with the rotating ring inside it.
+    if (clearStale) {
+      const clearBox = options.keepClear()?.getBoundingClientRect();
+      clear = clearBox?.width ? { center: centerOf(clearBox), radius: Math.max(clearBox.width, clearBox.height) / 2 + 18 } : null;
+      clearStale = false;
+    }
+    for (const { char, rect, at, font, color, source } of releases) spawn(char, rect, at, font, color, pop(at), 300 + Math.random() * 1300, source);
+    const zone = radius(), gap = spacing(), members = floating();
     while (pending >= STEP) {
       anchor.x += (goal.x - anchor.x) * 0.035; anchor.y += (goal.y - anchor.y) * 0.035;
       for (const glyph of members) {
@@ -642,7 +656,12 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     patchesStale = false;
     if (phase !== "done") frame = requestAnimationFrame(render);
   };
-  frame = requestAnimationFrame(render);
+  const onVisibility = () => {
+    cancelAnimationFrame(frame); pending = 0; previousTime = performance.now();
+    if (!document.hidden && phase !== "done") frame = requestAnimationFrame(render);
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+  onVisibility();
 
   const unlisten = () => {
     root.removeEventListener("pointerover", onLabelInteraction);
@@ -656,8 +675,9 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   const cleanup = () => {
     if (removed) return;
-    removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect();
+    removed = true; phase = "done"; cancelAnimationFrame(frame); unlisten(); Engine.clear(engine); textObserver.disconnect(); layoutObserver.disconnect();
     window.removeEventListener("scroll", onScroll);
+    document.removeEventListener("visibilitychange", onVisibility);
     clearHoverLabels();
     if (highlight) CSS.highlights.delete("glyph-swarm-taken");
     highlightStyle.remove(); layer.remove();

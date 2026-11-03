@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
+import { animateWhenVisible } from "@/lib/visible-animation";
+import type { Point } from "@/lib/glyph-physics";
 
 export type GlyphMode = "idle" | "loading" | "active" | "collapsing";
 
@@ -33,7 +35,7 @@ const POINTS = GLOBE_CHARS.map((_, index) => {
   return { x: Math.cos(theta) * ring, y, z: Math.sin(theta) * ring };
 });
 
-function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
+function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number, positions?: Point[]) {
   const zoom = size / BASE_SIZE, cos = Math.cos(angle), sin = Math.sin(angle), tiltCos = Math.cos(TILT), tiltSin = Math.sin(TILT);
   chars.forEach((char, index) => {
     if (!char) return;
@@ -41,21 +43,26 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number) {
     const x = point.x * cos + point.z * sin, z0 = point.z * cos - point.x * sin;
     const y = point.y * tiltCos - z0 * tiltSin, z = point.y * tiltSin + z0 * tiltCos;
     const depth = (z + 1) / 2;
+    if (positions) { positions[index].x = x * RADIUS * zoom; positions[index].y = y * RADIUS * zoom; }
     char.style.transform = `translate(${x * RADIUS * zoom}px,${y * RADIUS * zoom}px) translate(-50%,-50%) scale(${(0.36 + 0.22 * depth) * zoom})`;
     char.style.opacity = String(0.3 + 0.7 * depth);
-    char.style.zIndex = String(Math.round(depth * 10));
+    const order = String(Math.round(depth * 10));
+    if (char.style.zIndex !== order) char.style.zIndex = order;
   });
 }
 
 // Short staggered runs pass through nearby glyphs, then return to the inherited text color.
-function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], isHot: () => boolean) {
+function colorGlitches(glyphs: (HTMLElement | null)[], positions: Point[], colors: string[], isHot: () => boolean) {
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
   const active = new Map<HTMLElement, number>();
   let pending: { glyph: HTMLElement; at: number }[] = [];
   let nextBurst = performance.now() + 1550 + Math.random() * 1200;
   let wasHot = false;
-  const timer = window.setInterval(() => {
-    const now = performance.now(), hot = isHot();
+  let previous = 0;
+  const tick = (now: number) => {
+    if (now - previous < 25) return;
+    previous = now;
+    const hot = isHot();
     for (const [glyph, until] of active) {
       if (now >= until) { glyph.style.color = ""; active.delete(glyph); }
     }
@@ -66,14 +73,15 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
     }
     if (now >= nextBurst && colors.length && !pending.length) {
       // A scattered subset ripples from a fresh origin; gaps keep it from reading as a solid band.
-      const origin = live[Math.floor(Math.random() * live.length)]?.getBoundingClientRect();
-      const x = origin ? origin.left + origin.width / 2 : 0, y = origin ? origin.top + origin.height / 2 : 0;
+      // The animation already knows these positions; measuring transformed DOM here forces style/layout work.
+      const origin = positions[Math.floor(Math.random() * live.length)];
+      const x = origin?.x ?? 0, y = origin?.y ?? 0;
       const count = Math.min(live.length, hot ? 11 + Math.floor(Math.random() * 5) : 8 + Math.floor(Math.random() * 4));
       const pool = [...live];
       const selected = Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
       const ordered = selected.map(glyph => {
-        const rect = glyph.getBoundingClientRect();
-        return { glyph, position: Math.hypot(rect.left + rect.width / 2 - x, rect.top + rect.height / 2 - y) + Math.random() * 6 };
+        const point = positions[live.indexOf(glyph)];
+        return { glyph, position: Math.hypot(point.x - x, point.y - y) + Math.random() * 6 };
       }).sort((a, b) => a.position - b.position);
       let at = now;
       pending = ordered.map(({ glyph }) => {
@@ -90,11 +98,8 @@ function startColorGlitches(glyphs: (HTMLElement | null)[], colors: string[], is
       glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
       active.set(glyph, now + (hot ? 70 : 90) + Math.random() * 70);
     }
-  }, 25);
-  return () => {
-    window.clearInterval(timer);
-    live.forEach(glyph => { glyph.style.color = ""; });
   };
+  return { tick, clear: () => live.forEach(glyph => { glyph.style.color = ""; }) };
 }
 
 /** The ring's current turn, in radians. */
@@ -165,52 +170,42 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     if (!globe) return;
     if (reducedMotion) { paint(chars, angleRef.current, globe.offsetWidth); return; }
     if (spent) return;
-    let frame = 0, speed = 1, previous = 0;
-    const turn = (time: number) => {
-      speed += ((hoverRef.current ? 3 : 1) - speed) * 0.06;
-      angleRef.current += Math.min(64, previous ? time - previous : 0) / TURN_MS * Math.PI * 2 * speed; previous = time;
-      paint(chars, angleRef.current, globe.offsetWidth);
-      frame = requestAnimationFrame(turn);
-    };
-    paint(chars, angleRef.current, globe.offsetWidth);
-    const observer = new IntersectionObserver(([entry]) => {
-      cancelAnimationFrame(frame); previous = 0;
-      if (entry.isIntersecting) frame = requestAnimationFrame(turn);
-    }, { rootMargin: "200px" });
-    observer.observe(globe);
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
-  }, [globeRef, reducedMotion, spent]);
+    let speed = 1, size = globe.offsetWidth;
+    const positions = POINTS.map(() => ({ x: 0, y: 0 }));
+    const glitches = colorGlitches(chars, positions, colors, () => hoverRef.current);
+    hoverRef.current = globe.matches(":hover, :focus-visible");
+    const resize = new ResizeObserver(([entry]) => {
+      size = entry.contentRect.width;
+      paint(chars, angleRef.current, size, positions);
+    });
+    resize.observe(globe);
+    paint(chars, angleRef.current, size, positions);
+    const stop = animateWhenVisible(globe, (time, dt) => {
+      speed += ((hoverRef.current ? 3 : 1) - speed) * (1 - Math.exp(-dt / 270));
+      angleRef.current += dt / TURN_MS * Math.PI * 2 * speed;
+      paint(chars, angleRef.current, size, positions);
+      glitches.tick(time);
+    });
+    return () => { stop(); resize.disconnect(); glitches.clear(); };
+  }, [colors, globeRef, reducedMotion, spent]);
 
   // The ring turns slowly clockwise while the swarm is out, faster under the cursor, and keeps turning after the
   // click until its glyphs start folding back into the globe.
   useEffect(() => {
     const ring = ringRef.current;
     if (!ring || (mode !== "active" && mode !== "collapsing") || reducedMotion) return;
-    let frame = 0, previous = 0, angle = ringAngle(ring);
-    const spin = (time: number) => {
-      if (ringHaltRef.current) return;
-      const dt = Math.min(64, previous ? time - previous : 0); previous = time;
+    let angle = ringAngle(ring);
+    const size = ring.offsetWidth;
+    const glitches = colorGlitches(glyphRefs.current, RING.map(point => ({ x: point.x * size, y: point.y * size })), colors, () => ringHotRef.current);
+    const stop = animateWhenVisible(ring, (time, dt) => {
+      if (ringHaltRef.current) return false;
       // Eases toward the target speed over about 200ms, whatever the frame rate.
       ringSpeedRef.current += ((ringHotRef.current ? RING_HOT_SPEED : 1) - ringSpeedRef.current) * (1 - Math.exp(-dt / 200));
       angle += dt / RING_TURN_MS * Math.PI * 2 * ringSpeedRef.current;
       ring.style.transform = `rotate(${angle}rad)`;
-      frame = requestAnimationFrame(spin);
-    };
-    frame = requestAnimationFrame(spin);
-    return () => cancelAnimationFrame(frame);
-  }, [mode, reducedMotion]);
-
-  // Mostly monochrome, with brief sparse flickers; hover and keyboard focus intensify them.
-  useEffect(() => {
-    const globe = globeRef.current;
-    if (reducedMotion || spent) return;
-    hoverRef.current = globe?.matches(":hover, :focus-visible") ?? false;
-    return startColorGlitches(charRefs.current, colors, () => hoverRef.current);
-  }, [colors, globeRef, reducedMotion, spent]);
-
-  useEffect(() => {
-    if (mode !== "active" || reducedMotion) return;
-    return startColorGlitches(glyphRefs.current, colors, () => ringHotRef.current);
+      if (mode === "active") glitches.tick(time);
+    });
+    return () => { stop(); glitches.clear(); };
   }, [colors, mode, reducedMotion]);
 
   // The ring glyphs glide out of the bursting globe into the ring, and back on exit. The globe is frozen while

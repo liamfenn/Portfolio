@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { MEDIA_ASSETS } from "@/lib/media-assets";
 import { ProjectPreviewVideo } from "./project-preview-video";
 import { InspectableText } from "./design-inspector";
+import { PortfolioFooter } from "./portfolio-footer";
 
 // Distinct URLs exercise twelve independent fetches rather than one shared browser-cache entry.
 const clips = Array.from({ length: 12 }, (_, index) => {
@@ -33,5 +34,6 @@ export function VideoLab() {
         </button>
       </li>)}
     </ul>
+    <PortfolioFooter />
   </main>;
 }

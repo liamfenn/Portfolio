@@ -58,7 +58,9 @@ The Q3 2024 Shop clip is temporarily bundled under `public/videos/shop-q3-2024/`
 
 ## Repeatable browser checks
 
-`/dev/video-lab` renders twelve independently fetched copies of the current clip with density and priority controls, and returns 404 outside development. It is a synthetic concurrency check, not validation of twelve different finished clips.
+`/dev/video-lab` renders twelve independently fetched copies of the current clip with density and priority controls, plus the real footer globe so video playback and the letter swarm can run together. It returns 404 outside development. It is a synthetic concurrency check, not validation of twelve different finished clips.
+
+`node scripts/check-glyph-performance.mjs [origin]` checks the homepage's globe and swarm with real video playback: no recurring idle geometry reads, offscreen/background suspension, resume, resize, return, and reduced-motion cleanup. Set `GLYPH_LAB=1` against a development server to repeat with all twelve lab tiles. It defaults to WebKit; `GLYPH_BROWSER=chromium` and `CHROMIUM_PATH` select Chromium. `GLYPH_PLAYWRIGHT_MODULE` can point to another installed Playwright module's `index.mjs`. `GLYPH_MEDIA_FIXTURE=/absolute/path/to/clip.mp4` substitutes a local H.264 file for remote video URLs when CDN access is unavailable; this checks lifecycle rather than the real source's decode load. Native Mac/iPhone Safari performance still needs device checks.
 
 With the optional Playwright tooling already used by the capture scripts and a WebKit browser installed, run:
 
