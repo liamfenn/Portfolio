@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Third Shop clip refinement**
+- Replaced the third video's previous revision with Liam's newest 4,825,236-byte master, preserving its 2160px square source, 18.45s duration, and 60fps. Rebuilt the responsive H.264 videos and WebP posters under a fresh content version; superseded bundled files are removed.
+- Q3 26, Ashten Alexander/ashten.studio, Swift/UIKit, and playback behavior are unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Production desktop/mobile playback loads the new b3ef5d9e2c451a2e files, advances video, and retains the existing overlay metadata. Responsive video sizes are 909,750 / 1,327,347 / 1,696,171 bytes at 800/1200/1600px.
+
 **Mobile Spotify timer spacing**
 - Increased the gap between the title/artist viewport and timer from 12px to 20px on mobile (reduced from the initial 24px after feedback), derived from the existing mobile content-padding and page-frame tokens. The marquee viewport and its existing fade end earlier, giving the timer more space. Desktop retains its 16px gap.
 - Validation: 63 tests, TypeScript, production build, and diff checks pass. Production browser checks with a long-track fixture verify a 20px measured mobile gap, active marquee/24px fade at 320/390px, the same mobile gap at 767px, unchanged desktop styling at 768/1440px, and no horizontal overflow.
