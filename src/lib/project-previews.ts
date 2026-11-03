@@ -50,7 +50,15 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
       { name: "Ben Parker", href: "https://x.com/benjamintparker" },
     ],
   },
-  { id: "shop-03", ...shop },
+  {
+    id: "shop-03", ...shop,
+    period: "Q3 2024",
+    year: 2024,
+    quarter: 3,
+    media: MEDIA_ASSETS.shopQ32024,
+    team: [{ name: "Ashten Alexander", href: "https://ashten.studio" }],
+    tech: ["Swift", "UIKit"],
+  },
   ...Array.from({ length: 9 }, (_, index) => ({
     id: `shop-${String(index + 4).padStart(2, "0")}`,
     ...shop,

@@ -18,8 +18,8 @@ export function mediaUrl(path: string) {
   }
 
   const publicPath = `${path.startsWith("/") ? "" : "/"}${path}`;
-  // Committed site images live on the current origin, including when videos use Blob storage.
-  if (publicPath.startsWith("/images/")) return publicPath;
+  // Bundled images and videos stay on the current origin even when other media uses Blob.
+  if (publicPath.startsWith("/images/") || publicPath.startsWith("/videos/")) return publicPath;
   return `${MEDIA_BASE_URL}${publicPath}`;
 }
 

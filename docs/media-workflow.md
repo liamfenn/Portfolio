@@ -54,6 +54,8 @@ The first 60fps clip is approximately 1.17/1.80/2.28 MB at 800/1200/1600px for 1
 
 The old `media:upload` bulk script remains a legacy utility for existing media; new clips use `media:import` and immutable paths. Public CDN delivery supports range requests; the import manifest uses complete URLs so Preview and Production do not depend on a missing `NEXT_PUBLIC_MEDIA_BASE_URL`.
 
+The Q3 2024 Shop clip is temporarily bundled under `public/videos/shop-q3-2024/` because the cloud workspace's Blob upload credential was unavailable when Liam requested the preview push. It uses the same validated responsive encodes and posters; `/videos/` URLs stay on the current origin even with a media CDN configured. The master and processing reports remain outside Git. Once Blob access is restored, import the clip normally and replace the bundled asset URLs with its registered CDN asset.
+
 ## Repeatable browser checks
 
 `/dev/video-lab` renders twelve independently fetched copies of the current clip with density and priority controls, and returns 404 outside development. It is a synthetic concurrency check, not validation of twelve different finished clips.

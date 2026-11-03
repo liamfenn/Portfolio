@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Third Shop tile video**
+- Prepared shop-03 for Liam's supplied square, 2160px, 60fps, 18.766667s clip. Metadata is Shop / Q3 24, contributor Ashten Alexander (https://ashten.studio), and Swift/UIKit.
+- Encoded and validated 800/1200/1600px H.264 at the original 60fps (856,393 / 1,237,980 / 1,591,409 bytes) and responsive WebP posters. Local report: `public/media/shop-q3-2024/57a9f0be6088bc12-report.json`. The Blob token remains unavailable. Following Liam’s instruction to push the preview, the six optimized files are bundled under versioned public/videos/shop-q3-2024 paths as a temporary delivery fallback. Bundled /videos paths stay on the current origin even when other media uses a Blob base URL. The master, processing reports, and all other generated media remain untracked. The media asset uses these local paths; the imported CDN registry is unchanged.
+- All 62 tests, TypeScript, touched-file lint, and a production build pass. A temporary local registry entry verified real decoded playback in the third tile at 1440px and 390px, Q3 24, the sole Ashten contributor/link, Swift/UIKit without Metal, and opening/closing the overlay. Restored the original registry after these checks; the bundled fallback uses the identical tested files.
+- Final bundled-delivery validation: 63 tests (including origin delivery with a CDN configured), TypeScript, touched-file lint, production build, and diff checks pass. Real production-mode playback and exact contributor/tech/period metadata pass again at 1440px and 390px using `/videos/` URLs.
+
 **Correct the process section heading (2026-10-29)**
 - Restored “Two languages” for the editorial/terminal section, matching Liam's corrected [Figma node 544:4657](https://www.figma.com/design/nIi2Tpt2b8yYxYsuCq38OJ/New-Portfolio?node-id=544-4657). The page title remains “In the margins”; section styling and paragraphs are unchanged.
 

@@ -40,6 +40,46 @@ export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsse
 export const MEDIA_ASSETS = {
   shopProductPage: IMPORTED_MEDIA["shop-product-page"],
   shopRewardsCard: IMPORTED_MEDIA["shop-rewards-card"],
+  // Bundled preview delivery while the Blob upload credential is unavailable.
+  shopQ32024: {
+    id: "shop-q3-2024",
+    kind: "video",
+    src: "/videos/shop-q3-2024/57a9f0be6088bc12-1600.mp4",
+    poster: "/videos/shop-q3-2024/57a9f0be6088bc12-poster-1600.webp",
+    posters: [
+      {
+        width: 480,
+        src: "/videos/shop-q3-2024/57a9f0be6088bc12-poster-480.webp"
+      },
+      {
+        width: 800,
+        src: "/videos/shop-q3-2024/57a9f0be6088bc12-poster-800.webp"
+      },
+      {
+        width: 1600,
+        src: "/videos/shop-q3-2024/57a9f0be6088bc12-poster-1600.webp"
+      }
+    ],
+    alt: "Shop interaction prototype from Q3 2024",
+    width: 1600,
+    height: 1600,
+    frameRate: 60,
+    duration: 18.766667,
+    renditions: [
+      {
+        width: 800,
+        "h264": "/videos/shop-q3-2024/57a9f0be6088bc12-800.mp4"
+      },
+      {
+        width: 1200,
+        "h264": "/videos/shop-q3-2024/57a9f0be6088bc12-1200.mp4"
+      },
+      {
+        width: 1600,
+        "h264": "/videos/shop-q3-2024/57a9f0be6088bc12-1600.mp4"
+      }
+    ]
+  },
   shoppableBasketsMain: {
     id: "shop-baskets-main",
     kind: "video",
