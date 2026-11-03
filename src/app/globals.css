@@ -772,7 +772,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .homepage-identity { width: 24px; height: 24px; flex-basis: 24px; }
   .homepage-avatar { width: 24px; height: 24px; }
   .portfolio-v3 .homepage-contact { margin: 0; padding: 24px 12px 32px; }
-  .homepage-spotify { --badge-cutout-left: 12px; --badge-cutout-right: 40px; margin: 8px 0 0; padding: 20px 12px 16px; min-height: 73px; gap: calc(var(--content-padding-mobile) * 2); }
+  .homepage-spotify { --badge-cutout-left: 12px; --badge-cutout-right: 40px; margin: 8px 0 0; padding: 20px 12px 16px; min-height: 73px; gap: calc(var(--content-padding-mobile) + var(--page-frame)); }
   .homepage-album-badge { top: -10px; left: 14px; width: 24px; height: 24px; }
   .homepage-album { width: 24px; height: 24px; }
   .homepage-track-info { flex: 1; }
