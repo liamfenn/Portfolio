@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Canvas sizing refresh**
+- Replaced Canvas's video with Liam's updated-sizing export using a fresh validated responsive bundle/posters. The clip remains 12 seconds at 60fps; 800/1200/1600px videos are 1,417,592 / 2,266,562 / 3,109,466 bytes. Removed the superseded Canvas bundle. Project ID, Shop / Q3 26, Annabel Lake and Julian Kelly links, Swift/Vision, and Featured ordering remain unchanged.
+- Validation: 71 tests, TypeScript, touched-file lint, production build, full decode checks, and diff checks pass. Desktop/mobile overlay and focus checks confirm the new hashed video actually plays, duration stays 12 seconds, eleven tiles remain, and both contributor links / Swift-Vision credits retain captionSans sizing.
+
 **Shared weather-description budget**
 - Added one 10-character condition budget for desktop and mobile, independent of viewport measurement. Descriptions within the limit retain their wording. Longer descriptions reduce to their main condition (e.g. Thunderstorm with light rain → Storms, Very heavy rain → Heavy rain, Overcast clouds → Overcast); unknown descriptions use a bounded word-boundary ellipsis fallback. Full API text remains available as the weather span's title. API data, polling, fonts, and footer spacing remain unchanged.
 - Validation: 71 tests, TypeScript, touched-file lint, production build, and diff checks pass. Mocked long-weather cases with 11:59 PM and -12°F fit a single line without row overflow at 320/360/390/767/768/1024/1440px, with identical compact descriptions and retained full titles.
