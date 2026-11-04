@@ -1,6 +1,6 @@
 type Tile = { id: string };
 
-/** Keep project one out of the row directly above project seven in the same column. */
+/** Keep Top search and Collections sheet out of the row directly above Bottom suggestions. */
 export function arrangeProjectGrid<T extends Tile>(items: readonly T[], columns: number, expandedId: string | null = null): T[] {
   const normalize = (order: readonly T[]) => {
     const result = [...order];
@@ -20,8 +20,11 @@ export function arrangeProjectGrid<T extends Tile>(items: readonly T[], columns:
       positions.set(item.id, { row: Math.floor(cursor / columns), start: cursor % columns, end: cursor % columns + span });
       cursor += span;
     }
-    const one = positions.get("shop-01"), seven = positions.get("shop-07");
-    return one && seven && seven.row === one.row + 1 && one.start < seven.end && seven.start < one.end;
+    const seven = positions.get("shop-07");
+    return seven && ["shop-01", "shop-05"].some(id => {
+      const above = positions.get(id);
+      return above && seven.row === above.row + 1 && above.start < seven.end && seven.start < above.end;
+    });
   };
   const result = normalize(items);
   if (!conflicts(result)) return result;

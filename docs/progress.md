@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Collections sheet placement restriction**
+- Added Collections sheet (shop-05) to the directional restriction: neither it nor Top search (shop-01) may sit directly above Bottom suggestions (shop-07) in an overlapping column. Reverse placements remain allowed. Both rules are evaluated together when selecting a valid swap, including mobile expansion; local editing still shows the raw draft.
+- Expanded the exhaustive permutation/density/mobile-expansion checks to assert both restrictions together. All 68 tests, TypeScript, touched-file lint, production build, and diff checks pass.
+
 **Named projects, local Featured editor, and Bottom suggestions refresh**
 - Named projects 1–7 exactly as supplied: Top search, Shop card, Shop Incentives, Baskets, Collections sheet, Bottom search, Bottom suggestions. Remaining blank tiles have unique placeholder names. Company/date labels retain their existing presentation.
 - Added Reorder Featured to the avatar/debug panel. Named tile handles swap on mouse/touch drop or arrow keys. Save order locally persists in this browser; Cancel discards the draft, and Copy order exports IDs for the agent to publish later. The shared baseline is src/lib/featured-order.json; no credentials, shared write endpoint, or automatic repo writes are involved. Recent uses Featured ordering for equal year/quarter dates.

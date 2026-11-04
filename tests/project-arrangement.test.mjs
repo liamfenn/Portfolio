@@ -25,14 +25,17 @@ test('directional separation survives every order, density, and mobile expansion
         col += occupied.length;
         if (col === columns) { row++; col = 0; }
       }
-      const one = cells.get('shop-01'), seven = cells.get('shop-07');
-      assert.ok(!(seven.row === one.row + 1 && one.occupied.some(c => seven.occupied.includes(c))), JSON.stringify({order,columns,expanded,result}));
+      const seven = cells.get('shop-07');
+      for (const id of ['shop-01', 'shop-05']) {
+        const above = cells.get(id);
+        assert.ok(!(seven.row === above.row + 1 && above.occupied.some(c => seven.occupied.includes(c))), JSON.stringify({id,order,columns,expanded,result}));
+      }
       if (expanded) assert.equal(result.findIndex(t => t.id === expanded) % 2, 0);
     }
   }
 });
-test('valid orders stay stable, including seven above one and missing projects', () => {
-  for (const order of [[tiles[3],tiles[0]], [tiles[0],tiles[1],tiles[3]], [tiles[0]]]) {
+test('valid orders stay stable, including seven above restricted tiles and missing projects', () => {
+  for (const order of [[tiles[3],tiles[0]], [tiles[3],tiles[4]], [tiles[0],tiles[1],tiles[3]], [tiles[0]]]) {
     assert.deepEqual(arrangeProjectGrid(order, 1), order);
     assert.deepEqual(arrangeProjectGrid(order, 1), arrangeProjectGrid(order, 1));
   }
