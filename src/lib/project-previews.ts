@@ -91,7 +91,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     year: 2026,
     quarter: 4,
     media: MEDIA_ASSETS.shopSixthPreview,
-    team: [{ name: "Luke Dupont", href: "https://www.linkedin.com/in/lukedupont" }],
+    team: [],
     tech: ["Swift", "UIKit", "Metal"],
   },
   ...Array.from({ length: 6 }, (_, index) => ({

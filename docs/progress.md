@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Incoming video refresh: sixth project**
+- Replaced shop-06's clip with Liam's new 2160px-square, 60fps, 7.466667s export. Removed its contributors while retaining Shop / Q4 26 and Swift/UIKit/Metal. Stack naturally occupies the left column when contributors are omitted.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile overlay/focus checks verify new-source playback/duration, Q4 26, no contributor section, and the unchanged left-aligned Stack. Responsive 800/1200/1600px files are 598,125 / 912,311 / 1,186,550 bytes; superseded bundled files are removed.
+
 **Incoming video refresh: first project**
 - Replaced shop-01's video with Liam's newly supplied 6,143,672-byte, 2160px-square source. Its duration/rate stay 12.35s / 60fps; Q4 26, Luke Dupont/Julian Kelly, and existing Stack entries remain unchanged. Responsive videos/posters use a fresh content version, removing the superseded bundled files.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile overlay/focus checks verify the new baafafc4fe79623f source and retained metadata. The 800/1200/1600px videos are 1,005,126 / 1,489,229 / 1,982,624 bytes.
