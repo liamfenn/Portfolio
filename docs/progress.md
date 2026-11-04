@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**First video notch correction**
+- Replaced the first project's clip with Liam's notch-corrected export, visually confirming the phone cutout in the supplied source. The 2160px-square source remains 12.35s at 60fps; responsive videos/posters use fresh versioned URLs. Q4 26, Luke Dupont/Julian Kelly links, and Stack remain unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Verified the dark notch region in an encoded frame and new-source playback/metadata in desktop/mobile overlays and focused views. Responsive 800/1200/1600px videos are 918,311 / 1,359,394 / 1,808,376 bytes; superseded bundled files are removed.
+
 **First Shop project video replacement**
 - Replaced the first project's clip with Liam's supplied 2160px-square, 60fps, 12.35s source. Set its date to Q4 26 and contributors to Luke Dupont and Julian Kelly, reusing their existing supplied links in that order. Existing Stack entries are retained.
 - Uses the established validated responsive H.264/poster pipeline and bundled video delivery. The old imported product-page asset remains available to the independent video lab.
