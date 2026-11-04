@@ -94,8 +94,17 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     team: [],
     tech: ["Swift", "UIKit", "Metal"],
   },
-  ...Array.from({ length: 6 }, (_, index) => ({
-    id: `shop-${String(index + 7).padStart(2, "0")}`,
+  {
+    id: "shop-07", ...shop,
+    period: "Q4 2026",
+    year: 2026,
+    quarter: 4,
+    media: MEDIA_ASSETS.shopSeventhPreview,
+    team: [{ name: "Jon Rundle", href: "https://x.com/jonrundle" }],
+    tech: ["Swift", "UIKit", "Metal"],
+  },
+  ...Array.from({ length: 5 }, (_, index) => ({
+    id: `shop-${String(index + 8).padStart(2, "0")}`,
     ...shop,
   })),
 ];
