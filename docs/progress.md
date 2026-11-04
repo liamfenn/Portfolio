@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Directional project placement**
+- Project one (shop-01) cannot sit directly above project four (shop-04) in an overlapping column. The reverse direction is allowed. Apply the rule after Featured/Recent/Random ordering using the current desktop/mobile column count, including mobile full-row expansion. When needed, swap four with the nearest valid later tile, falling back to an earlier tile; otherwise preserve the selected order.
+- Added exhaustive ordering tests across column counts and mobile expansion, checking the directional rule, preservation of every project, and right-column expansion placement. All 65 tests, TypeScript, touched-file lint, production build, and diff checks pass.
+- Chromium layout checks at 390/1440/2200px confirm actual tile geometry across sorting and density controls and retain all 12 unique project IDs.
+
 **Uncapped viewport video playback**
 - Removed the desktop four-video limit and redundant playback breakpoint listener. Every visible video can play together on desktop and mobile; offscreen videos pause, and background/reduced-motion/data-saving policies still apply. Two startup load slots and one nearby warm-up tile remain.
 - Updated browser QA to require more than four desktop videos to play together and retained the mobile concurrency check.

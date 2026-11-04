@@ -9,6 +9,7 @@ import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } fro
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { arrangeProjectGrid } from "@/lib/project-arrangement";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { InspectableText } from "@/components/design-inspector";
@@ -513,15 +514,12 @@ export function ProjectWork() {
     else update();
   };
 
-  const displayedPreviews = [...sortedPreviews];
   const activeExpandedId = projectInteractionMode === "focus" ? null : expandedId;
-  const expandedIndex = displayedPreviews.findIndex(preview => preview.id === activeExpandedId);
-  if (isMobile && mobileColumns === 2 && expandedIndex % 2 === 1) {
-    // Put a right-column selection at its row's start before spanning both columns.
-    // Its left neighbour flows below it; collapsing restores the selected sort order.
-    [displayedPreviews[expandedIndex - 1], displayedPreviews[expandedIndex]] =
-      [displayedPreviews[expandedIndex], displayedPreviews[expandedIndex - 1]];
-  }
+  const displayedPreviews = arrangeProjectGrid(
+    sortedPreviews,
+    isMobile ? mobileColumns : desktopDensity,
+    isMobile && mobileColumns === 2 ? activeExpandedId : null,
+  );
 
   const navigateFocus = (direction: -1 | 1, keyboard: boolean) => {
     if (!focusSelection || displayedPreviews.length < 2) return;
