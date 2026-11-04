@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWeather } from "@/hooks/use-weather";
+import { compactWeatherCondition } from "@/lib/weather-condition";
 import { PaletteToy } from "@/components/palette-toy";
 import { InspectableText } from "@/components/design-inspector";
 import { SkeletonText } from "@/components/skeleton";
@@ -28,7 +29,8 @@ export function PortfolioFooter() {
     };
   }, []);
 
-  const condition = data?.condition ?? "Partly cloudy";
+  const fullCondition = data?.condition ?? "Partly cloudy";
+  const condition = compactWeatherCondition(fullCondition);
   const temperature = data ? Math.round(data.temperature) : 71;
 
   return (
@@ -39,7 +41,7 @@ export function PortfolioFooter() {
       </div>
       <div className="portfolio-footer-row">
         <span className="footer-highlight"><InspectableText>Atlanta, GA</InspectableText></span>
-        <span className="footer-weather text-bodySerif">
+        <span className="footer-weather text-bodySerif" title={condition !== fullCondition ? fullCondition : undefined}>
           <SkeletonText loading={!time} label="Loading local time"><InspectableText><span className={`footer-clock${time ? "" : " is-pending"}`}>{time ?? "12:00 PM"}</span></InspectableText></SkeletonText>
           <InspectableText>, </InspectableText>
           <SkeletonText loading={isLoading && !data} label="Loading weather"><InspectableText>{condition} at {temperature}°F</InspectableText></SkeletonText>

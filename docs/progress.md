@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Shared weather-description budget**
+- Added one 10-character condition budget for desktop and mobile, independent of viewport measurement. Descriptions within the limit retain their wording. Longer descriptions reduce to their main condition (e.g. Thunderstorm with light rain → Storms, Very heavy rain → Heavy rain, Overcast clouds → Overcast); unknown descriptions use a bounded word-boundary ellipsis fallback. Full API text remains available as the weather span's title. API data, polling, fonts, and footer spacing remain unchanged.
+- Validation: 71 tests, TypeScript, touched-file lint, production build, and diff checks pass. Mocked long-weather cases with 11:59 PM and -12°F fit a single line without row overflow at 320/360/390/767/768/1024/1440px, with identical compact descriptions and retained full titles.
+
 **Merged Bottom search recording**
 - Replaced the surviving shop-07 / Bottom suggestions video with Liam's merged 11.3-second, 2160px-square, 60fps clip and renamed it Bottom search. Kept Shop / Q4 26, Jon Rundle's X link, and Swift/UIKit/Metal.
 - Removed the old standalone Bottom search (shop-06), its media registry entry, responsive files, and shared Featured ID. Eleven tiles remain; all surviving IDs stay stable. Existing local orders automatically drop the removed ID. The Top search / Collections sheet placement restrictions still target shop-07, now called Bottom search.
