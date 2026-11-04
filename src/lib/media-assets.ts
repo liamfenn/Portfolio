@@ -160,81 +160,42 @@ export const MEDIA_ASSETS = {
       }
     ]
   },
-  shopSixthPreview: {
-    id: "shop-sixth-preview",
+  shopSeventhPreview: {
+    id: "shop-seventh-preview",
     kind: "video",
-    src: "/videos/shop-sixth-preview/645094b928ab5357-1600.mp4",
-    poster: "/videos/shop-sixth-preview/645094b928ab5357-poster-1600.webp",
+    src: "/videos/shop-seventh-preview/dbec9ef28a52e898-1600.mp4",
+    poster: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-1600.webp",
     posters: [
       {
         width: 480,
-        src: "/videos/shop-sixth-preview/645094b928ab5357-poster-480.webp"
+        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-480.webp"
       },
       {
         width: 800,
-        src: "/videos/shop-sixth-preview/645094b928ab5357-poster-800.webp"
+        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-800.webp"
       },
       {
         width: 1600,
-        src: "/videos/shop-sixth-preview/645094b928ab5357-poster-1600.webp"
+        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-1600.webp"
       }
     ],
-    alt: "Shop interaction prototype from Q4 2026",
+    alt: "Shop Bottom search prototype from Q4 2026",
     width: 1600,
     height: 1600,
     frameRate: 60,
-    duration: 7.466667,
+    duration: 11.3,
     renditions: [
       {
         width: 800,
-        h264: "/videos/shop-sixth-preview/645094b928ab5357-800.mp4"
+        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-800.mp4"
       },
       {
         width: 1200,
-        h264: "/videos/shop-sixth-preview/645094b928ab5357-1200.mp4"
+        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-1200.mp4"
       },
       {
         width: 1600,
-        h264: "/videos/shop-sixth-preview/645094b928ab5357-1600.mp4"
-      }
-    ]
-  },
-  shopSeventhPreview: {
-    "id": "shop-seventh-preview",
-    "kind": "video",
-    "src": "/videos/shop-seventh-preview/a8c41f6b758af8b6-1600.mp4",
-    "poster": "/videos/shop-seventh-preview/a8c41f6b758af8b6-poster-1600.webp",
-    "posters": [
-      {
-        "width": 480,
-        "src": "/videos/shop-seventh-preview/a8c41f6b758af8b6-poster-480.webp"
-      },
-      {
-        "width": 800,
-        "src": "/videos/shop-seventh-preview/a8c41f6b758af8b6-poster-800.webp"
-      },
-      {
-        "width": 1600,
-        "src": "/videos/shop-seventh-preview/a8c41f6b758af8b6-poster-1600.webp"
-      }
-    ],
-    "alt": "Shop interaction prototype from Q4 2026",
-    "width": 1600,
-    "height": 1600,
-    "frameRate": 60,
-    "duration": 7.083333,
-    "renditions": [
-      {
-        "width": 800,
-        "h264": "/videos/shop-seventh-preview/a8c41f6b758af8b6-800.mp4"
-      },
-      {
-        "width": 1200,
-        "h264": "/videos/shop-seventh-preview/a8c41f6b758af8b6-1200.mp4"
-      },
-      {
-        "width": 1600,
-        "h264": "/videos/shop-seventh-preview/a8c41f6b758af8b6-1600.mp4"
+        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-1600.mp4"
       }
     ]
   },

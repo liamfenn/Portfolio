@@ -1,6 +1,6 @@
 type Tile = { id: string };
 
-/** Keep Top search and Collections sheet out of the row directly above Bottom suggestions. */
+/** Keep Top search and Collections sheet out of the row directly above Bottom search. */
 export function arrangeProjectGrid<T extends Tile>(items: readonly T[], columns: number, expandedId: string | null = null): T[] {
   const normalize = (order: readonly T[]) => {
     const result = [...order];

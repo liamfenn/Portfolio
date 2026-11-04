@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Merged Bottom search recording**
+- Replaced the surviving shop-07 / Bottom suggestions video with Liam's merged 11.3-second, 2160px-square, 60fps clip and renamed it Bottom search. Kept Shop / Q4 26, Jon Rundle's X link, and Swift/UIKit/Metal.
+- Removed the old standalone Bottom search (shop-06), its media registry entry, responsive files, and shared Featured ID. Eleven tiles remain; all surviving IDs stay stable. Existing local orders automatically drop the removed ID. The Top search / Collections sheet placement restrictions still target shop-07, now called Bottom search.
+- New validated 800/1200/1600px H.264 files are 1,661,260 / 2,301,559 / 2,860,743 bytes, with fresh immutable URLs/posters. Removed the superseded shop-07 bundle too; source frame rate and SDR tags are preserved, and full decode checks pass.
+- Validation: 68 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlay and focus checks confirm eleven tiles, no shop-06, the renamed merged video playing for 11.3 seconds, and retained credits/company/date. A saved order containing shop-06 reconciles to eleven entries while preserving surviving order and the new debug label.
+
 **Eighth project: Canvas**
 - Replaced placeholder shop-08 with Canvas, Shop / Q3 26. Contributors are Annabel Lake (existing LinkedIn link) and Julian Kelly (existing X link), in that order; Stack is Swift/Vision. IDs/order and the remaining four placeholders stay stable, so existing local Featured orders continue to work.
 - Added Liam's 12-second, 2160px-square, 60fps clip using validated responsive H.264 encodes and posters under public/videos/shop-canvas-preview. The 800/1200/1600px versions are 1,093,565 / 1,714,943 / 2,414,637 bytes. Source frame rate and SDR tags are preserved; full decode checks pass.
