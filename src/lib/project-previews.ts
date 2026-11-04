@@ -53,6 +53,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     period: "Q4 2026",
     quarter: 4,
     media: MEDIA_ASSETS.shopRewardsCard,
+    tech: ["Javascript", "WebGL", "CSS 3D transforms"],
     team: [
       { name: "Julian Kelly", href: "https://x.com/julianfkelly" },
       { name: "Max Kaplun", href: "https://x.com/maxkaplun" },

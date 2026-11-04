@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Shop Cash card Stack**
+- Updated the second project's Rewards/Shop Cash card Stack to Javascript, WebGL, and CSS 3D transforms. Media, date, contributors, and all other project stacks are unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Overlay/focus checks at 320/390/768/1440px verify exact Stack labels, retained contributors, captionSans sizing, and no credits overflow.
+
 **Seventh Shop project**
 - Added shop-07 with Liam's supplied 2160px-square, 60fps, 7.083333s video, dated Q4 26. Jon Rundle is the sole contributor, using the supplied X URL, and Stack is Swift/UIKit/Metal. The remaining five placeholders retain their IDs/order.
 - Uses validated responsive H.264 videos/posters and existing bundled video delivery.
