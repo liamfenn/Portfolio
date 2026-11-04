@@ -1,6 +1,6 @@
 type Tile = { id: string };
 
-/** Keep project one out of the row directly above project four in the same column. */
+/** Keep project one out of the row directly above project seven in the same column. */
 export function arrangeProjectGrid<T extends Tile>(items: readonly T[], columns: number, expandedId: string | null = null): T[] {
   const normalize = (order: readonly T[]) => {
     const result = [...order];
@@ -20,16 +20,16 @@ export function arrangeProjectGrid<T extends Tile>(items: readonly T[], columns:
       positions.set(item.id, { row: Math.floor(cursor / columns), start: cursor % columns, end: cursor % columns + span });
       cursor += span;
     }
-    const one = positions.get("shop-01"), four = positions.get("shop-04");
-    return one && four && four.row === one.row + 1 && one.start < four.end && four.start < one.end;
+    const one = positions.get("shop-01"), seven = positions.get("shop-07");
+    return one && seven && seven.row === one.row + 1 && one.start < seven.end && seven.start < one.end;
   };
   const result = normalize(items);
   if (!conflicts(result)) return result;
-  const four = result.findIndex(item => item.id === "shop-04");
-  // Prefer moving four one place later; retain the selected sort everywhere else.
-  for (const index of [...result.keys()].slice(four + 1).concat([...result.keys()].slice(0, four).reverse())) {
+  const seven = result.findIndex(item => item.id === "shop-07");
+  // Prefer moving seven one place later; retain the selected sort everywhere else.
+  for (const index of [...result.keys()].slice(seven + 1).concat([...result.keys()].slice(0, seven).reverse())) {
     const candidate = [...result];
-    [candidate[four], candidate[index]] = [candidate[index], candidate[four]];
+    [candidate[seven], candidate[index]] = [candidate[index], candidate[seven]];
     const normalized = normalize(candidate);
     if (!conflicts(normalized)) return normalized;
   }

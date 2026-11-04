@@ -8,12 +8,12 @@ function* permutations(items) {
     for (const rest of permutations(items.filter((_, index) => index !== i))) yield [items[i], ...rest];
   }
 }
-const tiles = ['shop-01', 'shop-02', 'shop-03', 'shop-04', 'shop-05'].map(id => ({id}));
+const tiles = ['shop-01', 'shop-02', 'shop-03', 'shop-07', 'shop-05'].map(id => ({id}));
 test('directional separation survives every order, density, and mobile expansion', () => {
   for (const order of permutations(tiles)) for (const columns of [1,2,3,4,6]) {
     for (const expanded of [null, ...(columns === 2 ? tiles.map(tile => tile.id) : [])]) {
       const result = arrangeProjectGrid(order, columns, expanded);
-      assert.deepEqual([...result].map(t => t.id).sort(), tiles.map(t => t.id));
+      assert.deepEqual([...result].map(t => t.id).sort(), tiles.map(t => t.id).sort());
       // Simulate CSS grid placement independently, including full-row expansions.
       let row = 0, col = 0;
       const cells = new Map();
@@ -25,13 +25,13 @@ test('directional separation survives every order, density, and mobile expansion
         col += occupied.length;
         if (col === columns) { row++; col = 0; }
       }
-      const one = cells.get('shop-01'), four = cells.get('shop-04');
-      assert.ok(!(four.row === one.row + 1 && one.occupied.some(c => four.occupied.includes(c))), JSON.stringify({order,columns,expanded,result}));
+      const one = cells.get('shop-01'), seven = cells.get('shop-07');
+      assert.ok(!(seven.row === one.row + 1 && one.occupied.some(c => seven.occupied.includes(c))), JSON.stringify({order,columns,expanded,result}));
       if (expanded) assert.equal(result.findIndex(t => t.id === expanded) % 2, 0);
     }
   }
 });
-test('valid orders stay stable, including four above one and missing projects', () => {
+test('valid orders stay stable, including seven above one and missing projects', () => {
   for (const order of [[tiles[3],tiles[0]], [tiles[0],tiles[1],tiles[3]], [tiles[0]]]) {
     assert.deepEqual(arrangeProjectGrid(order, 1), order);
     assert.deepEqual(arrangeProjectGrid(order, 1), arrangeProjectGrid(order, 1));

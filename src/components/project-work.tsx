@@ -9,6 +9,7 @@ import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } fro
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import { sortProjects } from "@/lib/project-order";
 import { arrangeProjectGrid } from "@/lib/project-arrangement";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
@@ -135,7 +136,7 @@ export function ProjectWork() {
   const { projectInteractionMode } = usePortfolioExperiments();
   const [focusSelection, setFocusSelection] = useState<ProjectFocusSelection | null>(null);
   const closeFocus = useCallback(() => setFocusSelection(null), []);
-  const { desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
+  const { featuredOrder, editingOrder, swapOrder, desktopDensity, setDesktopDensity, densityChoices, mobileColumns, setMobileColumns, sortMode, setSortMode, randomSeed, reshuffle } =
     useProjectDisplayState();
   const gridRef = useRef<HTMLUListElement>(null);
   const layoutAnimations = useRef<Animation[]>([]);
@@ -143,6 +144,11 @@ export function ProjectWork() {
   const [gridSelection, setGridSelection] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!editingOrder) return;
+    const frame = requestAnimationFrame(() => { setExpandedId(null); setHoveredId(null); setFocusSelection(null); });
+    return () => cancelAnimationFrame(frame);
+  }, [editingOrder]);
   const [isGridLabelTransitioning, setIsGridLabelTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDensityMenuOpen, setIsDensityMenuOpen] = useState(false);
@@ -409,6 +415,7 @@ export function ProjectWork() {
     setSortSelection(value => value + 1);
     setHasChangedSort(true);
     // Picking Random reshuffles, including when it is already the active sort.
+    if (editingOrder) return;
     if (nextSortMode === "random") {
       reshuffle();
     }
@@ -416,7 +423,7 @@ export function ProjectWork() {
   };
 
   const cycleMobileSort = () => {
-    if (!isMobile) {
+    if (!isMobile || editingOrder) {
       return;
     }
 
@@ -448,24 +455,8 @@ export function ProjectWork() {
       return shuffleWithSeed(entries, randomSeed).map(({ preview }) => preview);
     }
 
-    return entries
-      .sort((left, right) => {
-        const leftOrder = left.preview;
-        const rightOrder = right.preview;
-
-        if (sortMode === "featured") {
-          return leftOrder.featuredOrder - rightOrder.featuredOrder || left.index - right.index;
-        }
-
-        // Recent: newest year first, then newest quarter within it.
-        return (
-          rightOrder.year - leftOrder.year ||
-          (rightOrder.quarter ?? 0) - (leftOrder.quarter ?? 0) ||
-          left.index - right.index
-        );
-      })
-      .map(({ preview }) => preview);
-  }, [randomSeed, sortMode]);
+    return sortProjects(PROJECT_PREVIEWS, featuredOrder, sortMode === "recent");
+  }, [randomSeed, sortMode, featuredOrder]);
 
   const animateGridChange = (update: () => void) => {
     const grid = gridRef.current;
@@ -515,7 +506,7 @@ export function ProjectWork() {
   };
 
   const activeExpandedId = projectInteractionMode === "focus" ? null : expandedId;
-  const displayedPreviews = arrangeProjectGrid(
+  const displayedPreviews = editingOrder ? sortedPreviews : arrangeProjectGrid(
     sortedPreviews,
     isMobile ? mobileColumns : desktopDensity,
     isMobile && mobileColumns === 2 ? activeExpandedId : null,
@@ -678,9 +669,10 @@ export function ProjectWork() {
         onPointerLeave={() => setHoveredId(null)}>
         {displayedPreviews.map((preview) => (
           <HomepageCard key={preview.id} preview={preview} isMobile={isMobile}
-            expanded={activeExpandedId === preview.id}
+            reorder={editingOrder ? { swap: swapOrder, columns: isMobile ? mobileColumns : desktopDensity, order: featuredOrder } : undefined}
+            expanded={!editingOrder && activeExpandedId === preview.id}
             cardOverlay={projectInteractionMode === "overlay"}
-            hovered={hoveredId === preview.id}
+            hovered={!editingOrder && hoveredId === preview.id}
             onHover={() => setHoveredId(preview.id)}
             onClearHover={() => setHoveredId(null)}
             focusActive={focusSelection?.preview.id === preview.id}

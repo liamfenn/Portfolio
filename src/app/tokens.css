@@ -44,6 +44,9 @@
   --skeleton-base: var(--bg-secondary-fill);
   --skeleton-highlight: var(--bg-fill);
   --skeleton-line-height: .7em;
+  --project-reorder-layer: 3;
+  --project-reorder-ghost-layer: 100;
+  --project-reorder-outline: 2px;
   --project-layout-duration: 180ms;
   --project-layout-ease: .2, 0, 0, 1;
   --project-label-delay: 40ms;

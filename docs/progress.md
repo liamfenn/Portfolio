@@ -10,6 +10,13 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Named projects, local Featured editor, and Bottom suggestions refresh**
+- Named projects 1–7 exactly as supplied: Top search, Shop card, Shop Incentives, Baskets, Collections sheet, Bottom search, Bottom suggestions. Remaining blank tiles have unique placeholder names. Company/date labels retain their existing presentation.
+- Added Reorder Featured to the avatar/debug panel. Named tile handles swap on mouse/touch drop or arrow keys. Save order locally persists in this browser; Cancel discards the draft, and Copy order exports IDs for the agent to publish later. The shared baseline is src/lib/featured-order.json; no credentials, shared write endpoint, or automatic repo writes are involved. Recent uses Featured ordering for equal year/quarter dates.
+- Corrected the directional placement rule to project one above project seven (Top search above Bottom suggestions), replacing the prior project-four rule. Editing shows the raw draft; normal views apply the layout constraint.
+- The newly supplied clip belongs to Bottom suggestions, not Baskets, per Liam's correction. Baskets' original bundle is unchanged. Replaced the seventh bundle with the validated 7.083333s, 60fps responsive H.264 encodes/posters; Q4 26, Jon Rundle's supplied X link, and Swift/UIKit/Metal remain. Video sizes are 1,184,537 / 1,612,314 / 2,065,747 bytes at 800/1200/1600px.
+- Validation: 68 tests, TypeScript, touched-file lint, production build, and diff checks pass. Chromium desktop/touch-mobile checks cover swapping, exact names, save/reload, copy, keyboard/cancel, Recent ties, and a fresh browser's unchanged baseline. Desktop/mobile playback checks confirm Baskets' original source, the seventh new source, duration, and retained credits.
+
 **Directional project placement**
 - Project one (shop-01) cannot sit directly above project four (shop-04) in an overlapping column. The reverse direction is allowed. Apply the rule after Featured/Recent/Random ordering using the current desktop/mobile column count, including mobile full-row expansion. When needed, swap four with the nearest valid later tile, falling back to an earlier tile; otherwise preserve the selected order.
 - Added exhaustive ordering tests across column counts and mobile expansion, checking the directional rule, preservation of every project, and right-column expansion placement. All 65 tests, TypeScript, touched-file lint, production build, and diff checks pass.

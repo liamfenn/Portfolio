@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ProjectReorderHandle, type ProjectReorder } from "@/components/project-reorder-handle";
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import type { ProjectPreview } from "@/lib/project-previews";
@@ -30,11 +31,11 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false, cardOverlay = false }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false, cardOverlay = false, reorder }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   hovered: boolean; onHover: () => void; onClearHover: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
-  cardOverlay?: boolean;
+  cardOverlay?: boolean; reorder?: ProjectReorder;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -69,7 +70,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         aria-controls={onOpenFocus ? "project-focus-dialog" : cardOverlay ? panelId : isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
         onClick={event => {
-          if (focusActive) return;
+          if (focusActive || reorder) return;
           if (onOpenFocus) onOpenFocus(event.currentTarget, event.detail === 0);
           else if (isMobile || cardOverlay) {
             if (cardOverlay && expanded) { onClearHover(); setFocused(false); }
@@ -93,7 +94,8 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
       </button>
-      {cardOverlay && <ProjectCardOverlay preview={preview} open={expanded} id={panelId} />}
+      {reorder && <ProjectReorderHandle id={preview.id} name={preview.label} reorder={reorder} />}
+      {cardOverlay && !reorder && <ProjectCardOverlay preview={preview} open={expanded} id={panelId} />}
     </li>
   );
 }

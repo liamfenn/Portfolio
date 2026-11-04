@@ -995,3 +995,9 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .work-option-text,
 .homepage-project-company,
 .homepage-project-period { display: block; }
+
+/* Debug-only Featured ordering handles; pointer gestures also work on touchscreens. */
+.project-reorder-handle { position: absolute; inset: auto var(--content-padding) var(--content-padding); z-index: var(--project-reorder-layer); padding: var(--content-padding-mobile); background: var(--bg-fill); color: var(--text-primary); cursor: grab; touch-action: none; user-select: none; }
+.project-reorder-handle:active { cursor: grabbing; }
+.homepage-card[data-reorder-target] { outline: var(--project-reorder-outline) solid var(--text-primary); outline-offset: calc(-1 * var(--project-reorder-outline)); }
+.project-reorder-ghost { position: fixed; z-index: var(--project-reorder-ghost-layer); pointer-events: none; background: var(--bg-fill); color: var(--text-primary); padding: var(--content-padding-mobile); transform: translate(-50%, -100%); }

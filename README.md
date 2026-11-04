@@ -58,6 +58,8 @@ that browser (it's remembered) and `?inspect` to turn it back on. When off,
 On desktop or mobile, tap the avatar to show or hide the panel (it skips the Shop link
 while the inspector is on), then choose a mode or test control. Palette-lab access lives here.
 
+**Reorder Featured** shows each project's name on a drag handle. Drag a handle onto another tile to swap them (mouse or touch), or focus a handle and use arrow keys. Editing uses the raw Featured order; placement rules resume when you leave editing. **Save order locally** remembers the draft in this browser; **Cancel reorder** discards unsaved changes. **Copy order** copies the ID list to send to an agent when ready to publish. The shared default lives in `src/lib/featured-order.json`; local saves do not change it. Recent sorts by year/quarter and uses Featured order for equal dates. Top search cannot sit directly above Bottom suggestions in an overlapping column; the reverse direction is allowed.
+
 It works on the homepage, `/process`, and the palette lab:
 
 - **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
