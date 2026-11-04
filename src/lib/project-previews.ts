@@ -117,9 +117,21 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     ],
     tech: ["Swift", "Vision"],
   },
-  ...Array.from({ length: 4 }, (_, index) => ({
-    id: `shop-${String(index + 9).padStart(2, "0")}`,
+  {
+    id: "shop-09", ...shop,
+    label: "Feed cash",
+    stackTag: "top",
+    period: "Q4 2026",
+    year: 2026,
+    quarter: 4,
+    description: undefined,
+    media: MEDIA_ASSETS.shopFeedCashPreview,
+    team: [{ name: "Ashten Alexander", href: "https://ashten.studio" }],
+    tech: ["Swift", "UIKit"],
+  },
+  ...Array.from({ length: 3 }, (_, index) => ({
+    id: `shop-${String(index + 10).padStart(2, "0")}`,
     ...shop,
-    label: `Placeholder ${index + 9}`,
+    label: `Placeholder ${index + 10}`,
   })),
 ];

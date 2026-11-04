@@ -238,6 +238,45 @@ export const MEDIA_ASSETS = {
       }
     ]
   },
+  shopFeedCashPreview: {
+    id: "shop-feed-cash-preview",
+    kind: "video",
+    src: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-1600.mp4",
+    poster: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-poster-1600.webp",
+    posters: [
+      {
+        width: 480,
+        src: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-poster-480.webp"
+      },
+      {
+        width: 800,
+        src: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-poster-800.webp"
+      },
+      {
+        width: 1600,
+        src: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-poster-1600.webp"
+      }
+    ],
+    alt: "Shop Feed cash prototype from Q4 2026",
+    width: 1600,
+    height: 1600,
+    frameRate: 60,
+    duration: 5,
+    renditions: [
+      {
+        width: 800,
+        h264: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-800.mp4"
+      },
+      {
+        width: 1200,
+        h264: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-1200.mp4"
+      },
+      {
+        width: 1600,
+        h264: "/videos/shop-feed-cash-preview/651abc80e6c18fe2-1600.mp4"
+      }
+    ]
+  },
   shopCollections: {
     id: "shop-collections",
     kind: "image",

@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Feed cash project**
+- Filled shop-09 with Feed cash, Shop / Q4 26, Ashten Alexander (existing ashten.studio link), and Swift/UIKit. Added stackTag: top so it cannot sit directly above Bottom search. All surviving IDs and shared/local Featured ordering stay stable; three blank placeholders remain, eleven tiles total.
+- Added the validated five-second, 2160px-square, 60fps clip as responsive H.264 files/posters under public/videos/shop-feed-cash-preview. The 800/1200/1600px videos are 168,924 / 264,360 / 353,647 bytes; source frame rate and SDR tags are preserved, with full decode checks passing.
+- Validation: 73 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlay and focus checks verify new-source playback/duration, Q4 26, Ashten's sole contributor link, Swift/UIKit, captionSans sizing, and eleven unique tiles. Forced Featured arrangements confirm the new top tag prevents Feed cash directly above Bottom search at desktop/mobile widths.
+
 **Asset tags for vertical stacking**
 - Replaced ID-specific restrictions with optional stackTag: top/bottom metadata. Top search and Collections sheet are top; Bottom search is bottom because its video shows a lower cropped frame during part of playback. All other assets stay untagged unless Liam specifies a tag.
 - Top-tagged tiles cannot sit directly above bottom-tagged tiles in overlapping columns, including Random and mobile grid/list layouts. Featured/Recent retain the existing protection; local order editing remains raw. A mobile tile covered by the expanded card's blur overlay is exempt while covered, while other visible pairs remain protected. Full-row expansion normalization remains intact.
