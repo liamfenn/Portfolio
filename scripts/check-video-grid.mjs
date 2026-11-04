@@ -30,12 +30,11 @@ try {
     await page.goto(`${origin}/dev/video-lab`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector('video[data-frame-ready="true"]'));
     await page.waitForTimeout(1200);
-    const limit = width < 768 ? Infinity : 4;
     const initial = await snapshots(page);
     assert.equal(initial.length, 12);
     const visible = initial.filter(video => video.visible).length;
-    assert.ok(initial.filter(video => video.playing).length <= Math.min(limit, visible));
-    assert.ok(initial.filter(video => video.src).length <= Math.min(limit, visible) + 1);
+    assert.ok(initial.filter(video => video.playing).length <= visible);
+    assert.ok(initial.filter(video => video.src).length <= visible + 1);
     assert.ok(initial.some(video => !video.src));
     if (width < 768) {
       await page.locator(".project-grid").evaluate(grid => grid.style.setProperty("--project-mobile-columns", "2"));
@@ -53,6 +52,15 @@ try {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.waitForFunction(() => document.querySelector('video[data-frame-ready="true"]'));
     await page.getByRole("button", { name: "6 columns", exact: true }).click();
+    if (width >= 768) {
+      await page.waitForFunction(() => {
+        const visible = [...document.querySelectorAll("video")].filter(video => {
+          const box = video.getBoundingClientRect();
+          return box.bottom > 0 && box.top < innerHeight;
+        });
+        return visible.length > 4 && visible.every(video => !video.paused && video.currentTime > 0);
+      });
+    }
     await page.getByRole("button", { name: "Prioritize video 12", exact: true }).hover();
     await page.waitForFunction(() => document.querySelectorAll("video")[11].dataset.frameReady === "true");
     await page.getByRole("button", { name: "1 columns", exact: true }).click();
@@ -80,7 +88,7 @@ try {
       }),
     }));
     assert.ok(stats.maxLoading <= 2, JSON.stringify(stats));
-    assert.ok(stats.maxPlaying <= limit, JSON.stringify(stats));
+    assert.ok(stats.maxPlaying <= 12, JSON.stringify(stats));
     assert.deepEqual(errors, []);
     console.log(`${width}px: twelve clips, priority, resizing, release, background policy, and clean edges`, stats);
     await context.close();

@@ -1,7 +1,6 @@
 import type { PortfolioVideoAsset, PortfolioVideoRendition } from "./media-assets";
 
 export const VIDEO_POLICY = {
-  desktopLimit: 4,
   loadLimit: 2,
   prepareMargin: 240,
   releaseDelay: 15_000,

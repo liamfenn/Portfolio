@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Uncapped viewport video playback**
+- Removed the desktop four-video limit and redundant playback breakpoint listener. Every visible video can play together on desktop and mobile; offscreen videos pause, and background/reduced-motion/data-saving policies still apply. Two startup load slots and one nearby warm-up tile remain.
+- Updated browser QA to require more than four desktop videos to play together and retained the mobile concurrency check.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Chromium at 1440/390px played all six visible videos together and verified offscreen pause, background release/resume, and reduced motion. External Blob video requests used a local H.264 fixture for this lifecycle check; actual device performance still needs observation.
+
 **Fifth project image: updated framing**
 - Replaced the fifth project's image with Liam's latest 1280px-square JPEG under shop-collections-v5.jpg, preserving its original bytes and direct delivery without additional recompression. Superseded file removed; Q3 25, Staci Kelly's link, and no Stack remain unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlay and focused-view checks confirm the image loads directly, native image context menus remain available, and credits stay unchanged.

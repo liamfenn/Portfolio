@@ -30,11 +30,10 @@ type Entry = {
 };
 type Connection = EventTarget & { saveData?: boolean };
 
-/** One coordinator owns observers, load slots, and decoder slots for the whole grid. */
+/** One coordinator owns observers, startup load slots, and viewport playback for the whole grid. */
 class VideoPlayback {
   private entries = new Map<Element, Entry>();
   private motion = matchMedia("(prefers-reduced-motion: reduce)");
-  private mobile = matchMedia("(max-width: 767px)");
   private connection = (navigator as Navigator & { connection?: Connection }).connection;
   private frame = 0;
   private active = true;
@@ -63,7 +62,6 @@ class VideoPlayback {
     window.addEventListener("pagehide", this.onPageHide);
     window.addEventListener("pageshow", this.onPolicy);
     this.motion.addEventListener("change", this.onPolicy);
-    this.mobile.addEventListener("change", this.onPolicy);
     this.connection?.addEventListener("change", this.onPolicy);
   }
 
@@ -173,8 +171,7 @@ class VideoPlayback {
       return;
     }
     const ranked = rankVideos(all);
-    const limit = this.mobile.matches ? ranked.length : VIDEO_POLICY.desktopLimit;
-    const playing = new Set(ranked.filter(entry => entry.visible > 0).slice(0, limit));
+    const playing = new Set(ranked.filter(entry => entry.visible > 0));
     // Warm just one upcoming tile, without filling the load queue with offscreen cards.
     const upcoming = ranked.find(entry => !entry.visible);
     const prepared = new Set([...playing, ...(upcoming ? [upcoming] : [])]);
@@ -302,7 +299,6 @@ class VideoPlayback {
     window.removeEventListener("pagehide", this.onPageHide);
     window.removeEventListener("pageshow", this.onPolicy);
     this.motion.removeEventListener("change", this.onPolicy);
-    this.mobile.removeEventListener("change", this.onPolicy);
     this.connection?.removeEventListener("change", this.onPolicy);
     coordinator = undefined;
   }
