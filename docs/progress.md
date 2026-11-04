@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Fifth project image: updated framing**
+- Replaced the fifth project's image with Liam's latest 1280px-square JPEG under shop-collections-v5.jpg, preserving its original bytes and direct delivery without additional recompression. Superseded file removed; Q3 25, Staci Kelly's link, and no Stack remain unchanged.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlay and focused-view checks confirm the image loads directly, native image context menus remain available, and credits stay unchanged.
+
 **Shop Cash card Stack**
 - Updated the second project's Rewards/Shop Cash card Stack to Javascript, WebGL, and CSS 3D transforms. Media, date, contributors, and all other project stacks are unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, and diff checks pass. Overlay/focus checks at 320/390/768/1440px verify exact Stack labels, retained contributors, captionSans sizing, and no credits overflow.

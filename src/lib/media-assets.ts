@@ -241,7 +241,7 @@ export const MEDIA_ASSETS = {
   shopCollections: {
     id: "shop-collections",
     kind: "image",
-    src: "/images/projects/shop-collections-v4.jpg",
+    src: "/images/projects/shop-collections-v5.jpg",
     unoptimized: true,
     alt: "Shop saved collections interface",
     width: 1280,
