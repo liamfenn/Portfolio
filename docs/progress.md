@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Eighth project: Canvas**
+- Replaced placeholder shop-08 with Canvas, Shop / Q3 26. Contributors are Annabel Lake (existing LinkedIn link) and Julian Kelly (existing X link), in that order; Stack is Swift/Vision. IDs/order and the remaining four placeholders stay stable, so existing local Featured orders continue to work.
+- Added Liam's 12-second, 2160px-square, 60fps clip using validated responsive H.264 encodes and posters under public/videos/shop-canvas-preview. The 800/1200/1600px versions are 1,093,565 / 1,714,943 / 2,414,637 bytes. Source frame rate and SDR tags are preserved; full decode checks pass.
+- Validation: 68 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile overlay and focused-view checks verify eighth position, actual 12-second video playback, Q3 26, both contributor links in the requested order, and Swift/Vision with captionSans sizing.
+
 **Secondary fill matches video backgrounds**
 - Changed the shared --bg-secondary-fill from #F6F8F9 to #F6F8FA. Browser-decoded corner samples from all five bundled clips agree on RGB 246/248/250. Token consumers inherit the change, including music surfaces/fades, footer highlights, blank preview/media backgrounds, focus controls/edges, and skeleton bases. Updated the OG reel's matching fallback and current token documentation; no per-component color overrides were added.
 - Validation: 68 tests, TypeScript, touched-file lint, production build, and diff checks pass. Color sampling and DOM verification use Chromium; native Safari color management remains device-dependent.

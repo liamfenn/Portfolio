@@ -238,6 +238,45 @@ export const MEDIA_ASSETS = {
       }
     ]
   },
+  shopCanvasPreview: {
+    id: "shop-canvas-preview",
+    kind: "video",
+    src: "/videos/shop-canvas-preview/41efe17b95a01236-1600.mp4",
+    poster: "/videos/shop-canvas-preview/41efe17b95a01236-poster-1600.webp",
+    posters: [
+      {
+        width: 480,
+        src: "/videos/shop-canvas-preview/41efe17b95a01236-poster-480.webp"
+      },
+      {
+        width: 800,
+        src: "/videos/shop-canvas-preview/41efe17b95a01236-poster-800.webp"
+      },
+      {
+        width: 1600,
+        src: "/videos/shop-canvas-preview/41efe17b95a01236-poster-1600.webp"
+      }
+    ],
+    alt: "Shop Canvas prototype from Q3 2026",
+    width: 1600,
+    height: 1600,
+    frameRate: 60,
+    duration: 12,
+    renditions: [
+      {
+        width: 800,
+        h264: "/videos/shop-canvas-preview/41efe17b95a01236-800.mp4"
+      },
+      {
+        width: 1200,
+        h264: "/videos/shop-canvas-preview/41efe17b95a01236-1200.mp4"
+      },
+      {
+        width: 1600,
+        h264: "/videos/shop-canvas-preview/41efe17b95a01236-1600.mp4"
+      }
+    ]
+  },
   shopCollections: {
     id: "shop-collections",
     kind: "image",
