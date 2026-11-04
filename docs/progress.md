@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Sixth Shop project**
+- Added shop-06 with Liam's supplied 2160px-square, 60fps, 14.716667s video, dated Q4 26. Luke Dupont is the sole contributor, using his existing LinkedIn link; Stack is Swift, UIKit, Metal. The remaining six placeholders retain their IDs/order.
+- Uses the established responsive H.264/poster pipeline and bundled video delivery while Blob upload credentials are unavailable.
+- Responsive 800/1200/1600px videos are 2,122,575 / 2,878,270 / 3,643,377 bytes, all preserving 60fps. Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile overlay/focus checks verify sixth position, new-source playback/duration, Q4 26, Luke as the sole contributor with his exact link, captionSans, and the three requested Stack entries.
+
 **First video notch correction**
 - Replaced the first project's clip with Liam's notch-corrected export, visually confirming the phone cutout in the supplied source. The 2160px-square source remains 12.35s at 60fps; responsive videos/posters use fresh versioned URLs. Q4 26, Luke Dupont/Julian Kelly links, and Stack remain unchanged.
 - Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Verified the dark notch region in an encoded frame and new-source playback/metadata in desktop/mobile overlays and focused views. Responsive 800/1200/1600px videos are 918,311 / 1,359,394 / 1,808,376 bytes; superseded bundled files are removed.

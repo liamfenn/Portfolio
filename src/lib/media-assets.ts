@@ -160,6 +160,45 @@ export const MEDIA_ASSETS = {
       }
     ]
   },
+  shopSixthPreview: {
+    id: "shop-sixth-preview",
+    kind: "video",
+    src: "/videos/shop-sixth-preview/298b0f5af0f7244f-1600.mp4",
+    poster: "/videos/shop-sixth-preview/298b0f5af0f7244f-poster-1600.webp",
+    posters: [
+      {
+        width: 480,
+        src: "/videos/shop-sixth-preview/298b0f5af0f7244f-poster-480.webp"
+      },
+      {
+        width: 800,
+        src: "/videos/shop-sixth-preview/298b0f5af0f7244f-poster-800.webp"
+      },
+      {
+        width: 1600,
+        src: "/videos/shop-sixth-preview/298b0f5af0f7244f-poster-1600.webp"
+      }
+    ],
+    alt: "Shop interaction prototype from Q4 2026",
+    width: 1600,
+    height: 1600,
+    frameRate: 60,
+    duration: 14.716667,
+    renditions: [
+      {
+        width: 800,
+        h264: "/videos/shop-sixth-preview/298b0f5af0f7244f-800.mp4"
+      },
+      {
+        width: 1200,
+        h264: "/videos/shop-sixth-preview/298b0f5af0f7244f-1200.mp4"
+      },
+      {
+        width: 1600,
+        h264: "/videos/shop-sixth-preview/298b0f5af0f7244f-1600.mp4"
+      }
+    ]
+  },
   shopCollections: {
     id: "shop-collections",
     kind: "image",
