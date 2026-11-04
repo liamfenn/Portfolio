@@ -39,6 +39,7 @@ const shop = {
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-01", ...shop,
+    label: "Top search",
     period: "Q4 2026",
     quarter: 4,
     media: MEDIA_ASSETS.shopFirstPreview,
@@ -49,7 +50,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-02", ...shop,
-    label: "Rewards card",
+    label: "Shop card",
     period: "Q4 2026",
     quarter: 4,
     media: MEDIA_ASSETS.shopRewardsCard,
@@ -62,6 +63,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-03", ...shop,
+    label: "Shop Incentives",
     period: "Q3 2026",
     year: 2026,
     quarter: 3,
@@ -71,13 +73,14 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-04", ...shop,
+    label: "Baskets",
     media: MEDIA_ASSETS.shopFourthPreview,
     team: [],
     tech: ["Swift", "Nano Banana", "Kling"],
   },
   {
     id: "shop-05", ...shop,
-    label: "Saved collections",
+    label: "Collections sheet",
     description: undefined,
     period: "Q3 2025",
     year: 2025,
@@ -88,6 +91,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-06", ...shop,
+    label: "Bottom search",
     period: "Q4 2026",
     year: 2026,
     quarter: 4,
@@ -97,6 +101,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-07", ...shop,
+    label: "Bottom suggestions",
     period: "Q4 2026",
     year: 2026,
     quarter: 4,
@@ -107,5 +112,6 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   ...Array.from({ length: 5 }, (_, index) => ({
     id: `shop-${String(index + 8).padStart(2, "0")}`,
     ...shop,
+    label: `Placeholder ${index + 8}`,
   })),
 ];
