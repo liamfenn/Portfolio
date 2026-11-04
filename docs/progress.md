@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Incoming video refresh: first project**
+- Replaced shop-01's video with Liam's newly supplied 6,143,672-byte, 2160px-square source. Its duration/rate stay 12.35s / 60fps; Q4 26, Luke Dupont/Julian Kelly, and existing Stack entries remain unchanged. Responsive videos/posters use a fresh content version, removing the superseded bundled files.
+- Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Desktop/mobile overlay/focus checks verify the new baafafc4fe79623f source and retained metadata. The 800/1200/1600px videos are 1,005,126 / 1,489,229 / 1,982,624 bytes.
+
 **Sixth Shop project**
 - Added shop-06 with Liam's supplied 2160px-square, 60fps, 14.716667s video, dated Q4 26. Luke Dupont is the sole contributor, using his existing LinkedIn link; Stack is Swift, UIKit, Metal. The remaining six placeholders retain their IDs/order.
 - Uses the established responsive H.264/poster pipeline and bundled video delivery while Blob upload credentials are unavailable.
