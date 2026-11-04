@@ -37,7 +37,16 @@ const shop = {
 };
 
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
-  { id: "shop-01", ...shop, media: MEDIA_ASSETS.shopProductPage },
+  {
+    id: "shop-01", ...shop,
+    period: "Q4 2026",
+    quarter: 4,
+    media: MEDIA_ASSETS.shopFirstPreview,
+    team: [
+      { name: "Luke Dupont", href: "https://www.linkedin.com/in/lukedupont" },
+      { name: "Julian Kelly", href: "https://x.com/julianfkelly" },
+    ],
+  },
   {
     id: "shop-02", ...shop,
     label: "Rewards card",

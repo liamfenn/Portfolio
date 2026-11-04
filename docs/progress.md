@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**First Shop project video replacement**
+- Replaced the first project's clip with Liam's supplied 2160px-square, 60fps, 12.35s source. Set its date to Q4 26 and contributors to Luke Dupont and Julian Kelly, reusing their existing supplied links in that order. Existing Stack entries are retained.
+- Uses the established validated responsive H.264/poster pipeline and bundled video delivery. The old imported product-page asset remains available to the independent video lab.
+- The 800/1200/1600px videos are 904,078 / 1,334,837 / 1,780,839 bytes, preserving 60fps. Validation: 63 tests, TypeScript, touched-file lint, production build, full output decode/rate checks, and diff checks pass. Production desktop/mobile overlay/focus checks verify the new 12.35s clip, first position, Q4 26, exact contributor names/order/links, captionSans styling, and unchanged Stack entries.
+
 **PNG export received as JPEG; preserve supplied image bytes**
 - Liam supplied a PNG export, but the actual attached file delivered to the workspace is a 1280px JPEG/JFIF (89,009 bytes). The upload path appears to have converted it; the original lossless PNG is not available. Requested a ZIP to preserve those bytes.
 - Applied this revision as shop-collections-v4.jpg, with opt-in unoptimized delivery for this small, color-sensitive asset. It avoids an additional Next image resize/recompression pass; future image assets retain the normal optimization default. Source corner RGB is (247,248,250), close to the sampled Chromium video readback (246,248,250), without claiming an exact Safari display match. Project metadata/native image actions remain unchanged.
