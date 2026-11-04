@@ -8,7 +8,7 @@ function* permutations(items) {
     for (const rest of permutations(items.filter((_, index) => index !== i))) yield [items[i], ...rest];
   }
 }
-const tiles = ['shop-01', 'shop-02', 'shop-03', 'shop-07', 'shop-05'].map(id => ({id}));
+const tiles = [{ id: 'top-a', stackTag: 'top' }, { id: 'plain' }, { id: 'bottom-b', stackTag: 'bottom' }, { id: 'bottom-a', stackTag: 'bottom' }, { id: 'top-b', stackTag: 'top' }];
 test('directional separation survives every order, density, and mobile expansion', () => {
   for (const order of permutations(tiles)) for (const columns of [1,2,3,4,6]) {
     for (const expanded of [null, ...(columns === 2 ? tiles.map(tile => tile.id) : [])]) {
@@ -25,18 +25,30 @@ test('directional separation survives every order, density, and mobile expansion
         col += occupied.length;
         if (col === columns) { row++; col = 0; }
       }
-      const seven = cells.get('shop-07');
-      for (const id of ['shop-01', 'shop-05']) {
-        const above = cells.get(id);
-        assert.ok(!(seven.row === above.row + 1 && above.occupied.some(c => seven.occupied.includes(c))), JSON.stringify({id,order,columns,expanded,result}));
+      for (const top of tiles.filter(tile => tile.stackTag === 'top')) for (const bottom of tiles.filter(tile => tile.stackTag === 'bottom')) {
+        const above = cells.get(top.id), below = cells.get(bottom.id);
+        assert.ok(!(below.row === above.row + 1 && above.occupied.some(c => below.occupied.includes(c))), JSON.stringify({top,bottom,order,columns,expanded,result}));
       }
       if (expanded) assert.equal(result.findIndex(t => t.id === expanded) % 2, 0);
     }
   }
 });
-test('valid orders stay stable, including seven above restricted tiles and missing projects', () => {
+test('valid orders stay stable, including bottom above top and missing projects', () => {
   for (const order of [[tiles[3],tiles[0]], [tiles[3],tiles[4]], [tiles[0],tiles[1],tiles[3]], [tiles[0]]]) {
     assert.deepEqual(arrangeProjectGrid(order, 1), order);
     assert.deepEqual(arrangeProjectGrid(order, 1), arrangeProjectGrid(order, 1));
   }
+});
+
+test('covered mobile tiles are exempt while other tagged pairs remain protected', () => {
+  const top = { id: 'top', stackTag: 'top' }, bottom = { id: 'bottom', stackTag: 'bottom' }, plain = { id: 'plain' };
+  assert.deepEqual(arrangeProjectGrid([top,bottom,plain], 1, null, top.id), [top,bottom,plain]);
+  assert.deepEqual(arrangeProjectGrid([top,bottom,plain], 1, null, bottom.id), [top,bottom,plain]);
+  assert.deepEqual(arrangeProjectGrid([top,bottom,plain], 2, top.id, top.id), [top,bottom,plain]);
+  assert.notDeepEqual(arrangeProjectGrid([top,bottom,plain], 1), [top,bottom,plain]);
+  assert.notDeepEqual(arrangeProjectGrid([top,bottom,plain], 1, null, plain.id), [top,bottom,plain]);
+});
+test('untagged tiles do not inherit old ID-specific restrictions', () => {
+  const order = [{id:'shop-01'}, {id:'shop-07'}];
+  assert.deepEqual(arrangeProjectGrid(order, 1), order);
 });

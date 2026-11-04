@@ -510,6 +510,7 @@ export function ProjectWork() {
     sortedPreviews,
     isMobile ? mobileColumns : desktopDensity,
     isMobile && mobileColumns === 2 ? activeExpandedId : null,
+    isMobile && projectInteractionMode === "overlay" ? activeExpandedId : null,
   );
 
   const navigateFocus = (direction: -1 | 1, keyboard: boolean) => {

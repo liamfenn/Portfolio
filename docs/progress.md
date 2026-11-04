@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Asset tags for vertical stacking**
+- Replaced ID-specific restrictions with optional stackTag: top/bottom metadata. Top search and Collections sheet are top; Bottom search is bottom because its video shows a lower cropped frame during part of playback. All other assets stay untagged unless Liam specifies a tag.
+- Top-tagged tiles cannot sit directly above bottom-tagged tiles in overlapping columns, including Random and mobile grid/list layouts. Featured/Recent retain the existing protection; local order editing remains raw. A mobile tile covered by the expanded card's blur overlay is exempt while covered, while other visible pairs remain protected. Full-row expansion normalization remains intact.
+- The arrangement prefers a small valid swap, with a stable constraint search for future layouts containing multiple tagged pairs. No source IDs or names are embedded in the arrangement logic.
+- Validation: 73 tests, TypeScript, touched-file lint, production build, and diff checks pass. Exhaustive multi-tag order/density/expansion tests cover both tags and covered-tile exceptions. Chromium at 390/1440/2200px verifies both current restrictions across sort/grid controls, all eleven IDs, and mobile overlay exemption/collapse restoration.
+
 **Canvas sizing refresh**
 - Replaced Canvas's video with Liam's updated-sizing export using a fresh validated responsive bundle/posters. The clip remains 12 seconds at 60fps; 800/1200/1600px videos are 1,417,592 / 2,266,562 / 3,109,466 bytes. Removed the superseded Canvas bundle. Project ID, Shop / Q3 26, Annabel Lake and Julian Kelly links, Swift/Vision, and Featured ordering remain unchanged.
 - Validation: 71 tests, TypeScript, touched-file lint, production build, full decode checks, and diff checks pass. Desktop/mobile overlay and focus checks confirm the new hashed video actually plays, duration stays 12 seconds, eleven tiles remain, and both contributor links / Swift-Vision credits retain captionSans sizing.

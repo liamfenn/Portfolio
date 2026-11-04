@@ -1,9 +1,11 @@
+import type { ProjectStackTag } from "@/lib/project-arrangement";
 import type { PortfolioMediaAsset } from "@/lib/media-assets";
 import { MEDIA_ASSETS } from "@/lib/media-assets";
 
 export interface ProjectPreview {
   id: string;
   label: string;
+  stackTag?: ProjectStackTag;
   company: string;
   companyLogo: string;
   companyColor: string;
@@ -39,6 +41,7 @@ const shop = {
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-01", ...shop,
+    stackTag: "top",
     label: "Top search",
     period: "Q4 2026",
     quarter: 4,
@@ -80,6 +83,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-05", ...shop,
+    stackTag: "top",
     label: "Collections sheet",
     description: undefined,
     period: "Q3 2025",
@@ -91,6 +95,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "shop-07", ...shop,
+    stackTag: "bottom",
     label: "Bottom search",
     period: "Q4 2026",
     year: 2026,
