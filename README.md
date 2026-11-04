@@ -15,7 +15,7 @@ Use these variables in component styles instead of adding raw color or type valu
 
 - Text colors: `--text-primary` (#000000), `--text-secondary` (#555555),
   `--text-muted` (#999999), and `--text-green` (#1ED760).
-- Fills: `--bg-fill` (#FFFFFF), `--bg-secondary-fill` (#F6F8F9),
+- Fills: `--bg-fill` (#FFFFFF), `--bg-secondary-fill` (#F6F8FA),
   `--bg-green-fill` (#1ED760), and `--bg-purple-fill` (#5343EB).
 - Borders, shadows, and translucent overlays derive from those roles with opacity.
   White text on filled controls uses `--bg-fill`; there is no extra inverse token.
@@ -77,7 +77,7 @@ It works on the homepage, `/process`, and the palette lab:
 - **Safari edge test** adds opaque green top and purple bottom strips above mobile project focus,
   using native fixed edges without viewport-positioning JavaScript. Liam confirmed color extension in
   all Safari tab layouts on iOS 27.2. It stays available for debugging and resets off on reload.
-  Normal focus uses the same placement with #f6f8f9 at the top and white at the bottom. A short inward
+  Normal focus uses the same placement with #f6f8fa at the top and white at the bottom. A short inward
   fade sits behind the navigation controls; the edge sampled by Safari stays solid.
 - The hidden avatar menu’s **Projects** control cycles **Card overlay → Focused view → Inline expansion** and resets to Card overlay, the default, on reload. `?projects=focus` or `?projects=inline` picks another mode on load, which the browser checks use. Focused view opens the existing full-screen project view with a white 92% backdrop and 10px blur; Close, Escape, or the backdrop returns it to the grid. Close stays 24px above the mobile safe-area bottom and 44px on desktop. Inline expansion preserves the earlier behavior: mobile taps expand tiles in the grid, while desktop retains hover previews.
 - **Card overlay** adds Contributors/Stack credits inside the selected tile over an 88% white tint and 10px background blur. The blur surface fades over 180ms; credit rows enter top to bottom and exit bottom to top within the same window. Mobile keeps tile expansion and company/quarter color glitches; desktop pins hover labels until a second click, another selection, or keyboard focus on another project. Escape closes it. Credits reuse the focused-view component and links; the original video keeps playing in place. Reduced motion shows the surface and credits immediately. There is no shader or entry-style toggle.

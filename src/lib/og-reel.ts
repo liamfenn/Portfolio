@@ -151,7 +151,7 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
   // A vertical-only blur, which CSS's own blur() can't do, on only while the grid moves fast enough to need it.
   stage.insertAdjacentHTML("beforeend", `<svg class="og-reel-filters" aria-hidden="true">
     <filter id="${filterId}" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter></svg>`);
-  const blur = stage.querySelector("feGaussianBlur")!, fill = getComputedStyle(stage).getPropertyValue("--bg-secondary-fill").trim() || "#f6f8f9";
+  const blur = stage.querySelector("feGaussianBlur")!, fill = getComputedStyle(stage).getPropertyValue("--bg-secondary-fill").trim() || "#f6f8fa";
   // Rows move as one; or, with `opposite`, two columns move apart: the left comes up from below as usual and the right,
   // its mirror, comes down from above, each carrying its own six projects.
   const rowLeft = (width - rowWidth) / 2, split = opposite && columns > 1;

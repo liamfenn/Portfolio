@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Secondary fill matches video backgrounds**
+- Changed the shared --bg-secondary-fill from #F6F8F9 to #F6F8FA. Browser-decoded corner samples from all five bundled clips agree on RGB 246/248/250. Token consumers inherit the change, including music surfaces/fades, footer highlights, blank preview/media backgrounds, focus controls/edges, and skeleton bases. Updated the OG reel's matching fallback and current token documentation; no per-component color overrides were added.
+- Validation: 68 tests, TypeScript, touched-file lint, production build, and diff checks pass. Color sampling and DOM verification use Chromium; native Safari color management remains device-dependent.
+
 **Collections sheet placement restriction**
 - Added Collections sheet (shop-05) to the directional restriction: neither it nor Top search (shop-01) may sit directly above Bottom suggestions (shop-07) in an overlapping column. Reverse placements remain allowed. Both rules are evaluated together when selecting a valid swap, including mobile expansion; local editing still shows the raw draft.
 - Expanded the exhaustive permutation/density/mobile-expansion checks to assert both restrictions together. All 68 tests, TypeScript, touched-file lint, production build, and diff checks pass.
