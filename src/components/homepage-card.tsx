@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { ProjectReorderHandle, type ProjectReorder } from "@/components/project-reorder-handle";
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import type { ProjectPreview } from "@/lib/project-previews";
@@ -31,11 +30,10 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, reorder }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, displayOrder }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
-  hovered?: boolean; onHover?: () => void; onClearHover?: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
-  cardOverlay?: boolean; priorityMedia?: boolean; reorder?: ProjectReorder;
+  cardOverlay?: boolean; priorityMedia?: boolean; displayOrder?: number;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -54,7 +52,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
   const detailsId = `${preview.id}-details`;
   const panelId = `${preview.id}-panel`;
   return (
-    <li data-project-id={preview.id}
+    <li data-project-id={preview.id} style={displayOrder === undefined ? undefined : { order: displayOrder }}
       className={`project-preview homepage-card${isMobile && expanded ? " is-expanded" : ""}${cardOverlay ? " has-card-overlay" : ""}`} data-company={preview.company}
       onKeyDown={event => {
         if (cardOverlay && expanded && event.key === "Escape") {
@@ -70,7 +68,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
         aria-controls={onOpenFocus ? "project-focus-dialog" : cardOverlay ? panelId : isMobile ? detailsId : undefined}
         aria-describedby={!isMobile && visible ? detailsId : undefined}
         onClick={event => {
-          if (focusActive || reorder) return;
+          if (focusActive) return;
           if (onOpenFocus) onOpenFocus(event.currentTarget, event.detail === 0);
           else if (isMobile || cardOverlay) onToggle();
         }}
@@ -88,8 +86,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
       </button>
-      {reorder && <ProjectReorderHandle id={preview.id} name={preview.label} reorder={reorder} />}
-      {cardOverlay && !reorder && <ProjectCardOverlay preview={preview} open={expanded} id={panelId} />}
+      {cardOverlay && <ProjectCardOverlay preview={preview} open={expanded} id={panelId} />}
     </li>
   );
 }

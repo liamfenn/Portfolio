@@ -44,9 +44,6 @@
   --skeleton-base: var(--bg-secondary-fill);
   --skeleton-highlight: var(--bg-fill);
   --skeleton-line-height: .7em;
-  --project-reorder-layer: 3;
-  --project-reorder-ghost-layer: 100;
-  --project-reorder-outline: 2px;
   --project-layout-duration: 180ms;
   --project-layout-ease: .2, 0, 0, 1;
   --project-label-delay: 40ms;
@@ -163,6 +160,7 @@ body {
 :root {
   --header-marquee-duration: 10s;
   --header-marquee-fade-width: 12px;
+  --header-narrow-inset: 48px;
   --header-filter-slot: 27px;
   --header-filter-mobile-slot: 24px;
   --header-mobile-top: 5px;

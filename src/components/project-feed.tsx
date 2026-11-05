@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { HomepageCard } from "@/components/homepage-card";
-import { ProjectFeedLabel } from "@/components/project-feed-label";
+import { ProjectSortControl } from "@/components/project-sort-control";
 import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 import { useProjectDisplayState } from "@/components/project-display-state";
@@ -14,7 +14,7 @@ import { arrangeProjectGrid } from "@/lib/project-arrangement";
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
 
 export function ProjectFeed() {
-  const { featuredOrder, editingOrder, swapOrder, setFocusedProject } = useProjectDisplayState();
+  const { featuredOrder, sortMode, randomSeed, setFocusedProject } = useProjectDisplayState();
   const { projectInteractionMode } = usePortfolioExperiments();
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -31,10 +31,20 @@ export function ProjectFeed() {
   const closeFocus = useCallback(() => setSelection(null), []);
   const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
 
-  let projects = sortProjects(FILLED_PROJECTS, featuredOrder, false);
-  if (!editingOrder) projects = arrangeProjectGrid(projects, 1);
-
+  const recent = sortProjects(FILLED_PROJECTS, featuredOrder, false);
+  let projects = recent;
+  if (sortMode === "random") {
+    const rank = (id: string) => {
+      let value = randomSeed + 1;
+      for (const character of id) value = Math.imul(value ^ character.charCodeAt(0), 0x45d9f3b);
+      return value >>> 0;
+    };
+    projects = [...recent].sort((a, b) => rank(a.id) - rank(b.id));
+  }
+  projects = arrangeProjectGrid(projects, 1);
   const overlay = projectInteractionMode === "overlay";
+  const displayOrder = new Map(projects.map((project, index) => [project.id, index]));
+
   const focusIndex = selection ? projects.findIndex(project => project.id === selection.preview.id) : -1;
   const navigate = (direction: -1 | 1, keyboard: boolean) => {
     if (!selection || projects.length < 2) return;
@@ -47,16 +57,17 @@ export function ProjectFeed() {
 
   return <section className="portfolio-feed" aria-label="Selected work">
     <div className="feed-toolbar text-bodySans">
-      <ProjectFeedLabel />
+      <ProjectSortControl />
     </div>
+    {/* The tiles keep their place in the DOM and sorting only changes their CSS order: moving a playing video makes it flash black. */}
     <ul className="feed-projects" onFocusCapture={event => {
       if (!overlay || !expandedId) return;
       const trigger = (event.target as Element).closest(".homepage-card-trigger");
       if (trigger?.matches(":focus-visible") && trigger.closest<HTMLElement>("[data-project-id]")?.dataset.projectId !== expandedId) setExpandedId(null);
     }}>
-      {projects.map((preview, index) => <HomepageCard key={preview.id} preview={preview} isMobile={isMobile} priorityMedia={index === 0}
-        reorder={editingOrder ? { swap: swapOrder, columns: 1, order: projects.map(project => project.id) } : undefined}
-        expanded={overlay && !editingOrder && expandedId === preview.id}
+      {recent.map((preview, index) => <HomepageCard key={preview.id} preview={preview} isMobile={isMobile} priorityMedia={index === 0}
+        displayOrder={displayOrder.get(preview.id)}
+        expanded={overlay && expandedId === preview.id}
         cardOverlay={overlay}
         focusActive={selection?.preview.id === preview.id}
         onOpenFocus={overlay ? undefined : (trigger, keyboard) => {

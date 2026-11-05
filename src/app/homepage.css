@@ -31,7 +31,7 @@
   z-index: var(--portfolio-header-layer); width: min(var(--portfolio-column-width), calc(100% - var(--content-padding-mobile) * 2)); height: var(--portfolio-control-size); margin-inline: auto; pointer-events: none;
   transition: width var(--header-transition);
 }
-.portfolio-header.is-scrolled { width: min(calc(var(--portfolio-column-width) - var(--content-padding-mobile) * 2), calc(100% - var(--content-padding-mobile) * 2)); }
+.portfolio-header.is-scrolled { width: min(calc(var(--portfolio-column-width) - var(--header-narrow-inset)), calc(100% - var(--content-padding-mobile) * 2)); }
 .portfolio-header > :not(.header-fill) { pointer-events: auto; }
 .portfolio-header button { border: 0; padding: 0; background: transparent; }
 .header-fill { position: absolute; inset: 0 0 0 var(--portfolio-control-size); background-color: var(--bg-secondary-fill); pointer-events: none; transition: left var(--header-transition), background-color var(--header-transition), backdrop-filter var(--header-transition), -webkit-backdrop-filter var(--header-transition); }
@@ -46,13 +46,14 @@
 .portfolio-header.is-over-images .header-label { transform: none; }
 .header-label { display: flex; align-items: center; white-space: nowrap; }
 .header-label .feed-sort-control { display: flex; align-items: center; width: auto; height: 100%; }
+.header-label .work-sort-control { width: auto; }
 .header-label .work-control-dot { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
 .portfolio-header:not(.is-over-images) .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 .portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar .feed-sort-control { visibility: hidden; }
 
 /* The focused view's details morph into this bar, so it rises above the view and stays there until it has closed. */
 body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-header-layer); }
-.portfolio-header.is-project-focus { width: min(calc(var(--project-focus-width) - var(--content-padding-mobile) * 2), calc(100% - var(--content-padding-mobile) * 2)); }
+.portfolio-header.is-project-focus { width: min(calc(var(--project-focus-width) - var(--header-narrow-inset)), calc(100% - var(--content-padding-mobile) * 2)); }
 .portfolio-header.is-project-focus .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 .portfolio-header.is-project-focus .header-avatar { visibility: hidden; opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
 .portfolio-header.is-project-focus .header-label { transform: translateX(calc(var(--content-padding-mobile) - var(--header-filter-slot))); }
@@ -94,7 +95,10 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 /* Reuse the previous sort menu's geometry, option stack and motion around the new square mark. */
 .feed-toolbar { --work-glyph-size: var(--work-glyph-desktop-size); --work-label-gap: var(--portfolio-sort-gap); }
 .feed-toolbar .feed-sort-control { margin-left: var(--portfolio-sort-inset); }
+.feed-sort-control .work-control { position: relative; padding: 0; }
 .feed-sort-control .work-label-group { gap: var(--work-label-gap); }
+/* Safari paints native character highlights only when the control's text is selectable. */
+.feed-sort-control:has([data-link-glitch-active]), .feed-sort-control [data-link-glitch-active] { -webkit-user-select: text; user-select: text; }
 /* Keyboard focus shouldn't leave a tile under the fixed header. */
 .portfolio-v4 .homepage-card-trigger { scroll-margin-top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--portfolio-control-size) + var(--page-frame)); }
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
@@ -109,10 +113,12 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
   .portfolio-header.is-scrolled, .portfolio-header.is-project-focus { width: calc(100% - var(--content-padding-mobile) * 2); }
   .portfolio-header.is-project-focus .header-action { color: var(--text-secondary); --inspect-color-token: text-secondary; }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
+  .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); width: auto; margin: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-toolbar-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); }
+  .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
   .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: 0 var(--content-padding-mobile); }

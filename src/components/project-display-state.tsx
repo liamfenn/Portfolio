@@ -5,12 +5,10 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import type { ProjectPreview } from "@/lib/project-previews";
 import sharedOrder from "@/lib/featured-order.json";
-import { placeNewProjects, swapProjects } from "@/lib/project-order";
+import { placeNewProjects } from "@/lib/project-order";
 
-const ORDER_STORAGE_KEY = "portfolio-featured-order-v1";
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
-const orderFrom = (order: readonly string[]) => placeNewProjects(FILLED_PROJECTS, order).map(project => project.id);
-const DEFAULT_ORDER = orderFrom(sharedOrder.order);
+const FEATURED_ORDER = placeNewProjects(FILLED_PROJECTS, sharedOrder.order).map(project => project.id);
 
 export type DesktopDensity = 2 | 3 | 4 | 6;
 export type MobileColumns = 1 | 2;
@@ -31,13 +29,6 @@ const WIDE_DEFAULT_DENSITY: DesktopDensity = 4;
 
 interface ProjectDisplayState {
   featuredOrder: string[];
-  editingOrder: boolean;
-  orderStatus: string;
-  beginOrderEdit: () => void;
-  cancelOrderEdit: () => void;
-  saveOrder: () => void;
-  copyOrder: () => Promise<void>;
-  swapOrder: (first: string, second: string) => void;
   desktopDensity: DesktopDensity;
   setDesktopDensity: Dispatch<SetStateAction<DesktopDensity>>;
   /** Densities offered at the current viewport width, ascending. */
@@ -57,34 +48,6 @@ interface ProjectDisplayState {
 const ProjectDisplayContext = createContext<ProjectDisplayState | null>(null);
 
 export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
-  const [savedOrder, setSavedOrder] = useState(DEFAULT_ORDER);
-  const [draftOrder, setDraftOrder] = useState(DEFAULT_ORDER);
-  const [editingOrder, setEditingOrder] = useState(false);
-  const [orderStatus, setOrderStatus] = useState("");
-  useEffect(() => {
-    let stored: unknown;
-    try { stored = JSON.parse(localStorage.getItem(ORDER_STORAGE_KEY) ?? "null"); } catch {}
-    if (!Array.isArray(stored) || !stored.every(id => typeof id === "string")) return;
-    const order = orderFrom(stored);
-    const frame = requestAnimationFrame(() => { setSavedOrder(order); setDraftOrder(order); });
-    return () => cancelAnimationFrame(frame);
-  }, []);
-  const beginOrderEdit = () => {
-    setDraftOrder(savedOrder); setEditingOrder(true); setOrderStatus("");
-  };
-  const cancelOrderEdit = () => { setDraftOrder(savedOrder); setEditingOrder(false); setOrderStatus(""); };
-  const saveOrder = () => {
-    try { localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(draftOrder)); }
-    catch { setOrderStatus("Could not save in this browser"); return; }
-    setSavedOrder(draftOrder); setEditingOrder(false); setOrderStatus("Order saved in this browser. Copy it to share with the agent");
-  };
-  const copyOrder = async () => {
-    try {
-      await navigator.clipboard.writeText(JSON.stringify({ version: 1, order: editingOrder ? draftOrder : savedOrder }, null, 2));
-      setOrderStatus("Order copied. Paste it to the agent to publish for everyone");
-    } catch { setOrderStatus("Clipboard unavailable. Your saved order is still in this browser"); }
-  };
-  const swapOrder = (first: string, second: string) => setDraftOrder(order => swapProjects(order, first, second));
   const [desktopDensity, setDensityState] = useState<DesktopDensity>(NARROW_DEFAULT_DENSITY);
   const [isWideViewport, setIsWideViewport] = useState(false);
   const [mobileColumns, setMobileColumns] = useState<MobileColumns>(1);
@@ -127,7 +90,7 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
   return (
     <ProjectDisplayContext.Provider
       value={{
-        featuredOrder: editingOrder ? draftOrder : savedOrder, editingOrder, orderStatus, beginOrderEdit, cancelOrderEdit, saveOrder, copyOrder, swapOrder,
+        featuredOrder: FEATURED_ORDER,
         desktopDensity,
         setDesktopDensity,
         densityChoices: isWideViewport ? WIDE_DENSITIES : NARROW_DENSITIES,

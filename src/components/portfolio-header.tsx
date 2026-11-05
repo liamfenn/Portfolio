@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
 import { useProjectDisplayState } from "@/components/project-display-state";
-import { ProjectFeedLabel } from "@/components/project-feed-label";
+import { ProjectSortControl } from "@/components/project-sort-control";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
@@ -71,7 +71,7 @@ export function PortfolioHeader() {
       <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
     </button>
     <div className={`header-label ${overImages || focusedProject ? "text-bodySans" : "text-bodySerif"}`} inert={!overImages || Boolean(focusedProject)}>
-      <ProjectFeedLabel idleLabel={focusedProject?.company ?? (overImages ? undefined : "Liam Fennell")} />
+      <ProjectSortControl idleLabel={focusedProject?.company ?? (overImages ? undefined : "Liam Fennell")} />
       <ProjectDetail text={focusedProject?.label ?? null} />
     </div>
     <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} inert={Boolean(focusedProject)} onClick={event => {

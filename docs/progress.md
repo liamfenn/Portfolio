@@ -32,9 +32,11 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
-**Fixed Recent order (2026-11-05)**
-- Rejected: Featured and Random sorting and the tap-to-change control. Liam asked for a single order, so the feed has one static "Recent" label, which the header shows over the images too. The order is exactly the hand-set one in `featured-order.json`, not a date sort, and Reorder Featured still edits it.
-- A project the order doesn't name slots in by date, before the first older project and after others from its quarter. Unfilled placeholder IDs came out of the JSON so filling one later places it by date instead of at the end. A browser with a saved local order that names a placeholder keeps that position locally.
+**One published order, reorder editor removed, flash fix (2026-11-05)**
+- Removed the Reorder Featured debug tool and browser-saved orders, since order changes are now published directly. Also deleted the unused previous grid (`project-work.tsx`), which was the only other user of that plumbing; it's in git history. The Recent and Random control and the Focused view / Card overlay debug toggle both stay. (The control was briefly removed after a misread of "remove the toggle".)
+- Recent shows `featured-order.json` exactly, not a date sort; Random shuffles it, still subject to the top and bottom stacking tags. A project the order doesn't name slots in by date, before the first older project and after others from its quarter. Unfilled placeholder IDs came out of the JSON so filling one later places it by date.
+- On desktop, the scrolled header is now 504px and the focused view header 672px, 48px narrower than their columns and still centered (`--header-narrow-inset`). Mobile is unchanged.
+- Liam saw brief black flashes on some previews when switching to Random. Sorting moved some tiles in the DOM, and moving a playing video can repaint black. Tiles now keep their DOM position in Recent order and sorting only changes CSS `order`. Tab order therefore follows Recent order while Random is showing.
 
 **Overlay labels on click (2026-11-05)**
 - In Card overlay, the corner company and date labels no longer appear on desktop hover or keyboard focus; they color-glitch in with the panel on click. Focused view tiles have no hover labels either, so previews have no hover state in either mode.
