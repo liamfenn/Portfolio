@@ -15,3 +15,10 @@ export function trackPositionAt(track: TrackTiming, now: number): number | null 
   const elapsed = track.isPlaying && track.fetchedAt && now ? now - new Date(track.fetchedAt).getTime() : 0;
   return Math.min(track.durationMs ?? Infinity, Math.max(0, track.progressMs + elapsed));
 }
+
+/** Seconds alone under a minute; past that, the caller separates the two parts. */
+export function trackClockParts(milliseconds: number) {
+  const total = Math.max(0, Math.floor(milliseconds / 1000));
+  const minutes = Math.floor(total / 60), seconds = total % 60;
+  return minutes ? { minutes: String(minutes), seconds: String(seconds).padStart(2, "0") } : { minutes: null, seconds: String(seconds) };
+}

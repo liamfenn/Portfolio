@@ -2,12 +2,17 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
-import { formatDuration, formatAgo, TrackText } from "@/components/homepage-identity";
+import { formatAgo, TrackText, widestDigits } from "@/components/homepage-identity";
 import { AlbumArtwork } from "@/components/album-artwork";
 import { InspectableText } from "@/components/design-inspector";
 import { SkeletonText } from "@/components/skeleton";
 import { useSpotify } from "@/hooks/use-spotify";
-import { trackPositionAt } from "@/lib/track-clock";
+import { trackClockParts, trackPositionAt } from "@/lib/track-clock";
+
+/** The colon stays in the layout so minutes and seconds keep its gap without showing it. */
+function TrackClock({ minutes, seconds }: ReturnType<typeof trackClockParts>) {
+  return minutes ? <>{minutes}<span className="player-clock-gap">:</span>{seconds}</> : seconds;
+}
 
 export function PortfolioPlayer() {
   const [now, setNow] = useState(0);
@@ -40,7 +45,8 @@ export function PortfolioPlayer() {
   }, []);
 
   const position = data ? trackPositionAt(data, now) : null;
-  const time = data?.isPlaying ? position === null ? "Now" : formatDuration(position) : formatAgo(data?.playedAt ?? cachedAt, now);
+  const clock = data?.isPlaying && position !== null ? trackClockParts(position) : null;
+  const label = data?.isPlaying ? "Now" : formatAgo(data?.playedAt ?? cachedAt, now);
 
   return <a className={`portfolio-player hover-surface${data?.isPlaying ? " is-playing" : ""}`} href={data?.songUrl ?? "https://open.spotify.com"}
     target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Open Spotify"}>
@@ -55,7 +61,10 @@ export function PortfolioPlayer() {
         </span>
         <span className="player-track-fade player-track-fade-left" aria-hidden="true" /><span className="player-track-fade player-track-fade-right" aria-hidden="true" />
       </span>
-      {data && <span className={`player-track-time text-captionSans${data.isPlaying ? " is-playing" : ""}`} data-hover-glitch-skip><InspectableText>{time}</InspectableText></span>}
+      {data && <span className={`player-track-time text-captionSans${data.isPlaying ? " is-playing" : ""}`} data-hover-glitch-skip>
+        <span className="player-track-time-reserve" aria-hidden="true">{clock ? <TrackClock minutes={clock.minutes && widestDigits(clock.minutes)} seconds={widestDigits(clock.seconds)} /> : widestDigits(label)}</span>
+        <span><InspectableText>{clock ? <TrackClock {...clock} /> : label}</InspectableText></span>
+      </span>}
     </span>
   </a>;
 }

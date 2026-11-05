@@ -34,7 +34,7 @@ export function formatDuration(milliseconds: number) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 /** 4 is the widest digit in ABC Oracle, so this copy is never narrower than the real time. */
-function widestDigits(text: string) {
+export function widestDigits(text: string) {
   return text.replace(/\d/g, "4");
 }
 export function formatAgo(timestamp: string | null | undefined, now: number) {

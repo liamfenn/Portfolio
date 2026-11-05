@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { trackPositionAt } from "../src/lib/track-clock.ts";
+import { trackClockParts, trackPositionAt } from "../src/lib/track-clock.ts";
 
 const at = ms => new Date(ms).toISOString();
 const seconds = position => Math.floor(position / 1000);
@@ -29,4 +29,13 @@ test("position is clamped to the song and frozen while paused", () => {
   assert.equal(trackPositionAt({ isPlaying: true, progressMs: 179_000, durationMs: 180_000, fetchedAt: at(0) }, 10_000), 180_000);
   assert.equal(trackPositionAt({ isPlaying: false, progressMs: 42_000, fetchedAt: at(0) }, 99_000), 42_000);
   assert.equal(trackPositionAt({ isPlaying: true }, 1_000), null);
+});
+
+test("the clock shows bare seconds under a minute, then minutes and padded seconds", () => {
+  assert.deepEqual(trackClockParts(0), { minutes: null, seconds: "0" });
+  assert.deepEqual(trackClockParts(5_900), { minutes: null, seconds: "5" });
+  assert.deepEqual(trackClockParts(59_999), { minutes: null, seconds: "59" });
+  assert.deepEqual(trackClockParts(60_000), { minutes: "1", seconds: "00" });
+  assert.deepEqual(trackClockParts(214_000), { minutes: "3", seconds: "34" });
+  assert.deepEqual(trackClockParts(-5), { minutes: null, seconds: "0" });
 });
