@@ -102,6 +102,12 @@ export function entryPoint(point: Point, width: number, height: number, inset = 
   return { x: Math.max(inset, Math.min(width - inset, point.x)), y: Math.max(inset, Math.min(height - inset, point.y)) };
 }
 
+/** Like entryPoint, but an off-screen letter enters at a random height on a random side, not the nearest edge. */
+export function sideEntryPoint(point: Point, width: number, height: number, random = Math.random, inset = 8): Point {
+  if (point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height) return entryPoint(point, width, height, inset);
+  return { x: random() < 0.5 ? inset : width - inset, y: inset + random() * (height - inset * 2) };
+}
+
 /** A hover-only letter has no permanent slot: send it fully past the nearest viewport edge. */
 export function exitPoint(point: Point, width: number, height: number, margin: number): Point {
   const edges = [

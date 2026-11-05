@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { captureStrength, closestOnSegment, touchIntent, entryPoint, exitPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
+import { captureStrength, closestOnSegment, touchIntent, entryPoint, exitPoint, sideEntryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, DEFAULT_PALETTE, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -57,6 +57,12 @@ test("off-screen letters enter from the nearest screen edge", () => {
   assert.deepEqual(entryPoint({x:200,y:-500}, 800, 600), {x:200,y:8});
   assert.deepEqual(entryPoint({x:900,y:1400}, 800, 600), {x:792,y:592});
   assert.deepEqual(entryPoint({x:300,y:300}, 800, 600), {x:300,y:300});
+  // Phones split off-screen letters between the sides, at a height inside the viewport.
+  assert.deepEqual(sideEntryPoint({x:200,y:-500}, 400, 800, () => 0), {x:8,y:8});
+  assert.deepEqual(sideEntryPoint({x:200,y:-500}, 400, 800, () => 0.75), {x:392,y:596});
+  assert.deepEqual(sideEntryPoint({x:200,y:1400}, 400, 800, () => 0.25).x, 8);
+  assert.deepEqual(sideEntryPoint({x:900,y:300}, 400, 800, () => 0.75).x, 392);
+  assert.deepEqual(sideEntryPoint({x:200,y:300}, 400, 800), {x:200,y:300});
 });
 test("hover-only letters exit completely beyond the nearest viewport edge", () => {
   assert.deepEqual(exitPoint({x:10,y:300}, 800, 600, 30), {x:-30,y:300});

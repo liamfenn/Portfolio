@@ -105,7 +105,7 @@
 .feed-details .project-focus-team, .feed-details .project-focus-tech { gap: var(--project-info-gap); }
 
 @media (max-width: 767px) {
-  .portfolio-v4 { max-width: none; padding: calc(var(--header-mobile-top) + var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-bottom); }
+  .portfolio-v4 { max-width: none; padding: calc(var(--header-mobile-top) + var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-mobile-bottom); }
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
   /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */

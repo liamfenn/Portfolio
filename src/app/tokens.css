@@ -144,6 +144,7 @@ body {
   --portfolio-header-gap: 72px;
   --portfolio-top: 24px;
   --portfolio-bottom: 60px;
+  --portfolio-mobile-bottom: 40px;
   --portfolio-paragraph-gap: 16px;
   --portfolio-feed-top: 20px;
   --portfolio-feed-gap: 8px;
@@ -175,6 +176,7 @@ body {
   --link-glitch-max-fraction: .6;
   --link-glitch-max-letters: 3;
   --link-glitch-mark-chance: .33;
+  --glyph-side-entry-share: .4;
 }
 
 :root {
@@ -196,4 +198,8 @@ body {
   --header-translucent-blur: 6px;
   --header-scroll-duration: 360ms;
   --header-scroll-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+@media (max-width: 767px) {
+  :root { --glyph-side-entry-share: 1; }
 }

@@ -1,5 +1,5 @@
 import type MatterJS from "matter-js";
-import { SPACING, captureStrength, entryPoint, exitPoint, pocketForce, smoothstep, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, exitPoint, sideEntryPoint, pocketForce, smoothstep, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 import { SHOP_COLORS, SHOP_MARK_PATH, projectShopPoint, shopPoints } from "@/lib/glyph-shop";
@@ -315,14 +315,16 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const speed = 1.2 + Math.random() * 3;
     return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
   };
+  const sideEntryShare = shop ? 0 : parseFloat(getComputedStyle(globe).getPropertyValue("--glyph-side-entry-share"));
   const prepareRelease = (source: Source, nodes: Map<Element, Text[]>) => {
     const char = resolve(source, nodes);
     if (char === null || !char.trim()) return;
     const rect = source.range.getClientRects()[0];
     if (!rect || rect.width < 1) return;
     source.rect = rect;
-    // Letters scrolled out of view stream in from the nearest edge.
-    const at = entryPoint(centerOf(rect), window.innerWidth, window.innerHeight);
+    // Letters scrolled out of view stream in from the nearest edge or from either side: on a tall page, nearest alone sends them all through the top.
+    const enter = Math.random() < sideEntryShare ? sideEntryPoint : entryPoint;
+    const at = enter(centerOf(rect), window.innerWidth, window.innerHeight);
     const style = getComputedStyle(source.node.parentElement ?? source.parent);
     return { char, rect, at, font: fontOf(style), color: style.color, source };
   };

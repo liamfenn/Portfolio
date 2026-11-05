@@ -162,7 +162,7 @@ The globe and exit ring use their own quiet ripples: a scattered subset of glyph
 A 44px globe of orbiting characters sits in the middle of the footer on desktop
 and centered below it on mobile. Tapping it bursts the globe and frees about
 70% of every letter on the page, including letters scrolled out of view, which
-enter from the screen edge. Letters pop out of their text at their own moments
+enter from the nearest screen edge or a random side: all from the sides on mobile, about 40% on desktop (`--glyph-side-entry-share`). Letters pop out of their text at their own moments
 over about a second and a half, float loose for a while, then are sucked in at
 their own pace and strength before relaxing into the swarm. Their original spots
 go blank while the text stays mounted and current. Each blank is tied to its
