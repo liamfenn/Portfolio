@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Featured order update (2026-11-05)**
+- Published Liam's exported order: Top search, Shop card, Bottom search, Shop Incentives, Baskets, Canvas, Collections sheet.
+
 **Shop sculpture removed (2026-11-05)**
 - Rejected: the long-hover Shop glyph sculpture. Liam asked to remove it everywhere, so its trigger, swarm branches, `glyph-shop.ts`, tests, check script, and `--glyph-shop-*` tokens are gone. It's in git history before this commit if it's ever wanted again. The ordinary swarm is unchanged.
 
