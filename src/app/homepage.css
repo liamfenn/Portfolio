@@ -22,11 +22,11 @@
 }
 .portfolio-v4 a[href], .portfolio-v4 button, .portfolio-v4 summary { cursor: pointer; }
 
-.portfolio-safari-edge { display: none; }
+.portfolio-safari-edge, .portfolio-safari-fade { display: none; }
 /* One bar in three states: default, narrowed once scrolled, and translucent over the images. */
 .portfolio-header {
   --header-glyph: var(--work-glyph-desktop-size);
-  --header-label-inset: calc(var(--header-filter-slot) - var(--header-glyph) - var(--portfolio-sort-gap));
+  --header-label-inset: calc(var(--header-filter-slot) - var(--header-glyph) * var(--work-dot-ratio) - var(--portfolio-sort-gap));
   --header-transition: var(--header-scroll-duration) var(--header-scroll-ease);
   position: fixed; top: calc(var(--viewport-safe-top) + var(--portfolio-top)); left: 0; right: 0;
   z-index: var(--portfolio-header-layer); width: min(var(--portfolio-column-width), calc(100% - var(--content-padding-mobile) * 2)); height: var(--portfolio-control-size); margin-inline: auto; pointer-events: none;
@@ -43,14 +43,12 @@
 :is(.header-avatar, .header-action)::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
 
 /* The same label sits past the avatar by default, then slides over as the square takes the avatar's place. */
-.header-label { position: absolute; z-index: 1; top: 0; left: var(--header-label-inset); height: 100%; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--header-filter-slot))); transition: transform var(--header-transition); }
+.header-label { position: absolute; z-index: 1; top: 0; left: var(--header-label-inset); height: 100%; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-label-gap: var(--portfolio-sort-gap); transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--header-filter-slot))); transition: transform var(--header-transition); }
 .portfolio-header.is-over-images .header-label { transform: none; }
 .header-label .feed-sort-control { display: flex; align-items: center; height: 100%; }
-.header-label .work-control-square { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
-.portfolio-header:not(.is-over-images) .header-label .work-control-square { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
+.header-label .work-control-dot { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
+.portfolio-header:not(.is-over-images) .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 .portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar .feed-sort-control { visibility: hidden; }
-/* There's no room above a bar at the top of the viewport, so its menu opens downward on the bar's own surface. */
-.header-label .work-density-menu.work-sort-menu { top: 100%; bottom: auto; left: calc(-1 * var(--header-label-inset)); padding: 0 var(--content-padding-mobile) var(--page-frame) var(--header-label-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 
 .header-action { position: absolute; z-index: 2; top: 0; right: var(--content-padding-mobile); display: flex; align-items: center; height: 100%; white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; }
 
@@ -76,14 +74,12 @@
 .player-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); }
 
 .portfolio-feed { margin-top: var(--portfolio-section-gap); padding-top: var(--portfolio-feed-top); }
-.feed-toolbar { display: flex; align-items: center; margin-bottom: var(--portfolio-feed-gap); }
+.feed-toolbar { display: flex; align-items: center; margin-bottom: var(--portfolio-toolbar-gap); }
 /* Reuse the previous sort menu's geometry, option stack and motion around the new square mark. */
-.feed-toolbar { --work-glyph-size: var(--work-glyph-desktop-size); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); }
+.feed-toolbar { --work-glyph-size: var(--work-glyph-desktop-size); --work-label-gap: var(--portfolio-sort-gap); }
 .feed-toolbar .feed-sort-control { margin-left: var(--portfolio-sort-inset); }
 .feed-sort-control .work-control { position: relative; padding: 0; }
 .feed-sort-control .work-label-group { gap: var(--work-label-gap); }
-/* Safari paints native character highlights only when the filter's text is selectable. */
-.feed-sort-control:has([data-link-glitch-active]), .feed-sort-control [data-link-glitch-active] { -webkit-user-select: text; user-select: text; }
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
 .feed-project { position: relative; width: 100%; transition: opacity var(--motion-duration) var(--motion-ease); }
 .feed-projects:has(.feed-project-disclosure[open]) > .feed-project:not(:has(.feed-project-disclosure[open])) { opacity: var(--hover-dim); }
@@ -108,7 +104,8 @@
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
   /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */
-  /* Safari tints its top bar from opaque fixed elements at the edge. This white strip wins that sampling, so the header's gray can't be pulled up; the bar starts below it. */
+  /* Safari tints its top bar from opaque fixed elements at the edge, so this solid strip keeps the header's gray from being pulled up. The fade below it lets content dissolve into the strip instead of being cut by it, as the project modal's samplers do. */
+  .portfolio-safari-fade { display: block; position: fixed; top: var(--header-edge-size); left: 0; right: 0; z-index: var(--portfolio-edge-fade-layer); height: calc(var(--header-mobile-top) + var(--portfolio-control-mobile-size)); background: linear-gradient(to bottom, var(--bg-fill), transparent); pointer-events: none; }
   .portfolio-safari-edge { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: var(--portfolio-edge-layer); height: var(--header-edge-size); background: var(--bg-fill); pointer-events: none; }
   .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--header-edge-size) + var(--header-mobile-top)); }
   .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
@@ -116,7 +113,7 @@
   .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); margin-top: var(--portfolio-mobile-section-gap); }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
-  .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-feed-gap); font: var(--type-bodySans); }
+  .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-toolbar-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); }
   .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }

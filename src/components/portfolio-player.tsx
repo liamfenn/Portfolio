@@ -54,7 +54,7 @@ export function PortfolioPlayer() {
         </span>
         <span className="player-track-fade player-track-fade-left" aria-hidden="true" /><span className="player-track-fade player-track-fade-right" aria-hidden="true" />
       </span>
-      {data && <span className={`player-track-time text-captionSans${data.isPlaying ? " is-playing" : ""}`}><InspectableText>{time}</InspectableText></span>}
+      {data && <span className={`player-track-time text-captionSans${data.isPlaying ? " is-playing" : ""}`} data-hover-glitch-skip><InspectableText>{time}</InspectableText></span>}
     </span>
   </a>;
 }

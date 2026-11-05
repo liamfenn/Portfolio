@@ -11,7 +11,7 @@ const SORT_OPTIONS = [
   { value: "random", label: "Random" },
 ] as const;
 
-export function ProjectSortControl({ menuDirection = "up", idleLabel }: { menuDirection?: "up" | "down"; idleLabel?: string }) {
+export function ProjectSortControl({ cycle = false, idleLabel }: { cycle?: boolean; idleLabel?: string }) {
   const { sortMode, setSortMode, editingOrder, reshuffle } = useProjectDisplayState();
   const control = useRef<HTMLDivElement>(null);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,8 +42,10 @@ export function ProjectSortControl({ menuDirection = "up", idleLabel }: { menuDi
     };
   }, []);
 
+  // The header's copy has no room for a menu, so it cycles like the mobile control.
+  const cycles = isMobile || cycle;
   const show = () => {
-    if (isMobile) return;
+    if (cycles) return;
     if (exitTimer.current) clearTimeout(exitTimer.current);
     if (!open) setChanged(false);
     setRendered(true);
@@ -75,7 +77,7 @@ export function ProjectSortControl({ menuDirection = "up", idleLabel }: { menuDi
     return () => document.removeEventListener("pointermove", onMove, true);
   }, [open]);
   const enter = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === "touch" || isMobile) return;
+    if (event.pointerType === "touch" || cycles) return;
     pointerOpened.current = true;
     show();
     cancelAnimationFrame(validationFrame.current);
@@ -115,23 +117,22 @@ export function ProjectSortControl({ menuDirection = "up", idleLabel }: { menuDi
     {rendered && <div className={`work-density-menu work-sort-menu${open ? "" : " is-closing"}`} role="menu" aria-label="Project sort order" aria-hidden={!open} inert={!open}>
       <AnimatePresence initial={false} mode="popLayout">
         {options.map((option, index) => <motion.button layout="position" key={option.value} type="button" role="menuitemradio"
-          aria-checked="false" tabIndex={open ? 0 : -1} data-hover-glitch
+          aria-checked="false" tabIndex={open ? 0 : -1}
           className={`work-density-option${open ? (changed ? "" : " is-opening") : " is-closing"}`}
-          // The option nearest the label enters first and leaves last, whichever way the menu opens.
-          style={{ "--density-option-index": menuDirection === "up" ? options.length - 1 - index : index, "--density-option-exit-index": menuDirection === "up" ? index : options.length - 1 - index } as CSSProperties}
+          style={{ "--density-option-index": options.length - 1 - index, "--density-option-exit-index": index } as CSSProperties}
           initial={changed ? OPTION_HIDDEN : false} animate={OPTION_VISIBLE} exit={OPTION_HIDDEN} transition={OPTION_TRANSITION}
           onClick={() => select(option.value)}>
           <MenuOptionText labelId={`sort:${option.value}`} text={option.label} />
         </motion.button>)}
       </AnimatePresence>
     </div>}
-    <button type="button" className="work-control work-sort-control" data-hover-glitch
-      aria-haspopup={isMobile ? undefined : "menu"} aria-expanded={isMobile ? undefined : open}
-      aria-label={isMobile ? `Sort projects: ${selected.label}` : "Project sort order"}
+    <button type="button" className="work-control work-sort-control"
+      aria-haspopup={cycles ? undefined : "menu"} aria-expanded={cycles ? undefined : open}
+      aria-label={cycles ? `Sort projects: ${selected.label}` : "Project sort order"}
       onClick={() => {
-        if (isMobile) select(SORT_OPTIONS[(SORT_OPTIONS.findIndex(option => option.value === sortMode) + 1) % SORT_OPTIONS.length].value);
+        if (cycles) select(SORT_OPTIONS[(SORT_OPTIONS.findIndex(option => option.value === sortMode) + 1) % SORT_OPTIONS.length].value);
       }}>
-      <WorkGlyphControl text={idleLabel ?? selected.label} variant="sort" square selection={selection} />
+      <WorkGlyphControl text={idleLabel ?? selected.label} variant="sort" selection={selection} />
     </button>
   </div>;
 }

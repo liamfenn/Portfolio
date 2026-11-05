@@ -175,7 +175,6 @@ body {
   --link-glitch-pause-max: 100ms;
   --link-glitch-max-fraction: .6;
   --link-glitch-max-letters: 3;
-  --globe-hover-extra-letters: 3;
 }
 
 :root {
@@ -186,6 +185,10 @@ body {
   --header-mobile-top: 4px;
   --header-edge-size: max(var(--project-focus-edge-size), var(--viewport-safe-top));
   --portfolio-edge-layer: calc(var(--portfolio-header-layer) + 1);
+  --portfolio-edge-fade-layer: calc(var(--portfolio-header-layer) - 1);
+  --portfolio-toolbar-gap: 12px;
+  --portfolio-mobile-toolbar-gap: 8px;
+  --work-dot-ratio: 1.1;
   --header-pop-duration: 280ms;
   --header-pop-scale: .5;
   --header-pop-blur: 3px;

@@ -1,14 +1,13 @@
 /** A fresh scattered subset, with a hard ceiling even for very short link labels. */
-export function glitchLetters(length: number, fraction: number, maxLetters: number, random = Math.random, minLetters = 1) {
+export function glitchLetters(length: number, fraction: number, maxLetters: number, random = Math.random) {
   const limit = Math.min(Math.floor(length * fraction), maxLetters);
   if (limit < 1) return [];
-  const minimum = Math.min(limit, minLetters);
-  const count = minimum + Math.floor(random() * (limit - minimum + 1));
+  const count = 1 + Math.floor(random() * limit);
   const pool = Array.from({ length }, (_, index) => index);
   return Array.from({ length: count }, () => pool.splice(Math.floor(random() * pool.length), 1)[0]);
 }
 
-/** One cadence for hovered links, filter marks, and the globe/ring. */
+/** One cadence for hovered links. */
 export function hoverGlitchSettings() {
   const tokens = getComputedStyle(document.documentElement);
   const milliseconds = (name: string) => {

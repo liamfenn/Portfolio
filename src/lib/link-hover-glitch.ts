@@ -7,7 +7,7 @@ function letterRanges(link: HTMLElement) {
   const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
     const parent = node.parentElement;
-    if (!parent || parent.closest("svg, .sr-only, .inspectable-label, .inspectable-original.is-concealed")) continue;
+    if (!parent || parent.closest("svg, .sr-only, .inspectable-label, .inspectable-original.is-concealed, [data-hover-glitch-skip]")) continue;
     if (parent.closest("[aria-hidden='true']") && !parent.closest("[data-hover-glitch-text]")) continue;
     // Inspector wrappers have no box of their own; visibility belongs to their first real ancestor.
     let box = parent;
@@ -40,7 +40,6 @@ export function installLinkHoverGlitch() {
   const name = (index: number) => `portfolio-link-glitch-${index}`;
   const clear = () => {
     highlights.forEach(highlight => highlight.clear());
-    active?.querySelector<HTMLElement>("[data-hover-glitch-mark]")?.style.removeProperty("background-color");
   };
   const stop = () => {
     window.clearTimeout(timer);
@@ -49,7 +48,7 @@ export function installLinkHoverGlitch() {
     active = null;
   };
   const linkAt = (target: EventTarget | null) => {
-    const link = target instanceof Element ? target.closest<HTMLElement>("main a[href], main [data-hover-glitch]") : null;
+    const link = target instanceof Element ? target.closest<HTMLElement>("main a[href]") : null;
     return link && !link.closest("[inert], .design-inspector, .palette-lab") ? link : null;
   };
   const wanted = () => !reducedMotion.matches && !document.hidden && document.hasFocus()
@@ -78,8 +77,6 @@ export function installLinkHoverGlitch() {
     if (!highlights.length) { stop(); return; }
     active.setAttribute("data-link-glitch-active", "");
     selected.forEach(index => highlights[Math.floor(Math.random() * highlights.length)].add(ranges[index]));
-    const mark = active.querySelector<HTMLElement>("[data-hover-glitch-mark]");
-    if (mark) mark.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
     timer = window.setTimeout(() => {
       clear();
       timer = window.setTimeout(pulse, pauseMin + Math.random() * (pauseMax - pauseMin));
@@ -103,10 +100,6 @@ export function installLinkHoverGlitch() {
   };
   const focus = (event: FocusEvent) => { focused = linkAt(event.target); update(); };
   const blur = (event: FocusEvent) => { focused = linkAt(event.relatedTarget); update(); };
-  const preventControlSelection = (event: Event) => {
-    if (event.target instanceof Element && event.target.closest("[data-hover-glitch]")) event.preventDefault();
-  };
-  document.addEventListener("selectstart", preventControlSelection);
   document.addEventListener("pointerover", over, true);
   document.addEventListener("pointerout", out, true);
   document.addEventListener("focusin", focus, true);
@@ -116,14 +109,13 @@ export function installLinkHoverGlitch() {
   window.addEventListener("focus", update);
   reducedMotion.addEventListener("change", update);
   hover.addEventListener("change", update);
-  hovered = linkAt(document.querySelector("main a[href]:hover, main [data-hover-glitch]:hover"));
+  hovered = linkAt(document.querySelector("main a[href]:hover"));
   focused = linkAt(document.activeElement);
   update();
   return () => {
     stop();
     highlights.forEach((_, index) => CSS.highlights.delete(name(index)));
     style.remove();
-    document.removeEventListener("selectstart", preventControlSelection);
     document.removeEventListener("pointerover", over, true);
     document.removeEventListener("pointerout", out, true);
     document.removeEventListener("focusin", focus, true);

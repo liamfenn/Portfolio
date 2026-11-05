@@ -43,7 +43,7 @@ The November redesign on `portfolio-v4-redesign` uses a centered 552px column wi
 
 - **Three hover patterns, one focus ring:**
   - text links flash a few random letters in the shared glyph palette for the duration of hover or keyboard-visible focus, capped at 60% and three letters at once; text buttons and reduced-motion/unsupported-browser links retain `--hover-dim`;
-  - menu choices darken from `--text-secondary` to `--text-primary`; the Featured control and its square share the text-link flashes, as do hovered globe/ring glyphs;
+  - menu choices darken from `--text-secondary` to `--text-primary`; the Featured control has no hover flash;
   - surfaces (the music player, the avatar) keep full opacity, and their badges slide out instead.
   - Every link and button shares `--focus-ring`.
 - **The playful controls** (globe, exit ring) use motion instead: faster spin, a 1.12× swell, a color glitch.
