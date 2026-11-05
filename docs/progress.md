@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Softer scroll header slide (2026-11-05)**
+- Gave the avatar/Spotify scroll relocation its own 360ms motion token and cubic-bezier(.4,0,.2,1) easing. A gradual acceleration replaces the shared curve’s abrupt initial jump, followed by a quick middle and gentle settle. Hover/tap expansion timing is unchanged; reduced motion still disables transitions.
+
 **Intro width cap (2026-11-05)**
 - Enforced the existing 480px bio-width token at all breakpoints and removed the mobile max-width:none override. The intro shrinks to the available text width on smaller screens.
 

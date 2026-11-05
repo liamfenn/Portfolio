@@ -183,4 +183,6 @@ body {
   --header-marquee-duration: 10s;
   --header-marquee-fade-width: 12px;
   --header-scrolled-width: 251px;
+  --header-scroll-duration: 360ms;
+  --header-scroll-ease: cubic-bezier(.4, 0, .2, 1);
 }

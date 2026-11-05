@@ -27,7 +27,7 @@
   --header-expanded-width: calc(100vw - var(--header-inset) * 2 - var(--portfolio-control-size) * 3);
   position: fixed; top: calc(var(--viewport-safe-top) + var(--portfolio-top)); left: var(--header-inset); right: var(--header-inset);
   z-index: var(--portfolio-header-layer); height: var(--portfolio-control-size); pointer-events: none;
-  transition: top var(--motion-duration) var(--motion-ease), left var(--motion-duration) var(--motion-ease), right var(--motion-duration) var(--motion-ease);
+  transition: top var(--header-scroll-duration) var(--header-scroll-ease), left var(--header-scroll-duration) var(--header-scroll-ease), right var(--header-scroll-duration) var(--header-scroll-ease);
 }
 .portfolio-header.is-scrolled { --header-inset: var(--portfolio-top); }
 .header-control { --header-toggle-width: var(--portfolio-control-size); position: absolute; top: 0; left: 0; width: var(--header-toggle-width); height: var(--portfolio-control-size); pointer-events: auto; transition: width var(--motion-duration) var(--motion-ease), opacity var(--hover-duration) var(--hover-ease), visibility 0s; }
