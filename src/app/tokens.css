@@ -129,7 +129,7 @@ body {
   --portfolio-header-gap: 72px;
   --portfolio-top: 24px;
   --portfolio-bottom: 60px;
-  --portfolio-mobile-bottom: 40px;
+  --portfolio-mobile-bottom: var(--portfolio-mobile-section-gap);
   --portfolio-paragraph-gap: 16px;
   --portfolio-feed-top: 20px;
   --portfolio-feed-gap: 8px;
