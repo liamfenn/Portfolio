@@ -30,7 +30,7 @@ export function ProjectFocusDetails({ preview, titleId = "project-focus-title", 
   </div>;
 }
 
-export function ProjectCredits({ preview }: { preview: ProjectPreview }) {
+export function ProjectCredits({ preview, techLabel = "Stack" }: { preview: ProjectPreview; techLabel?: string }) {
   if (!preview.team?.length && !preview.tech?.length) return null;
   return <div className="project-focus-credits text-captionSans">
     {Boolean(preview.team?.length) && <div className="project-focus-team">
@@ -40,7 +40,7 @@ export function ProjectCredits({ preview }: { preview: ProjectPreview }) {
       </li>)}</ul>
     </div>}
     {Boolean(preview.tech?.length) && <div className="project-focus-tech">
-      <h3 className="text-captionSans"><FocusText text="Stack" /></h3>
+      <h3 className="text-captionSans"><FocusText text={techLabel} /></h3>
       <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} /></li>)}</ul>
     </div>}
   </div>;

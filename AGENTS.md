@@ -12,10 +12,10 @@ Read these before changing anything:
 
 ## Branch and deploy rules
 
-- Work on **`portfolio-v3-homepage`**. It is the live work-in-progress, far ahead of `main`.
+- Work on **`portfolio-v4-redesign`**, branched from `portfolio-v3-homepage` for the November redesign. The v3 branch remains the previous version.
 - **Never push to `main`, merge into it, or open a PR against it unless Liam asks.** `main` is still the
   August version.
-- Pull before you start (`git pull origin portfolio-v3-homepage`). Liam works from several machines and
+- Pull before you start (`git pull origin portfolio-v4-redesign`). Liam works from several machines and
   agents, so the branch may have moved.
 - Commit small, focused changes. The subject says what changed; the body says why, especially for anything
   non-obvious. Reverts get their own commit (`git revert`), never a force push.
@@ -64,9 +64,9 @@ weather show placeholders. That's fine for most UI work.
 
 | Area | Files |
 | --- | --- |
-| Page shell, header, footer slot | `src/app/page.tsx`, `src/app/layout.tsx`, `src/components/portfolio-footer.tsx` |
-| Global styles, tokens, text styles | `src/app/globals.css`, `src/app/tokens.css`, `src/app/text-styles.css` |
-| Work grid, sort and grid menus | `src/components/project-work.tsx`, `src/lib/project-previews.ts` |
+| Page shell, header, footer slot | `src/app/page.tsx`, `src/app/layout.tsx`, `src/components/portfolio-header.tsx`, `src/components/portfolio-footer.tsx` |
+| Global styles, tokens, text styles | `src/app/globals.css`, `src/app/homepage.css`, `src/app/tokens.css`, `src/app/text-styles.css` |
+| Work feed, inline details and sorting | `src/components/project-feed.tsx`, `src/lib/project-previews.ts` (previous grid: `project-work.tsx`) |
 | Music player, bio, identity | `src/components/homepage-identity.tsx`, `src/components/homepage-bio.tsx` |
 | Design inspector (dev and preview only) | `src/components/design-inspector.tsx`, `src/lib/design-inspector.ts` |
 | Letter swarm engine (Matter.js) | `src/lib/glyph-swarm.ts` |

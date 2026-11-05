@@ -1,6 +1,6 @@
 # Progress and goals
 
-Last updated 2026-10-19. Branch: `portfolio-v3-homepage`. Update this file when something ships, gets
+Last updated 2026-11-05. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
@@ -9,6 +9,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
+
+**Centered homepage redesign (2026-11-05)**
+- Created `portfolio-v4-redesign` from the up-to-date `portfolio-v3-homepage` branch. Implements the desktop/mobile layouts from the Figma “new new new” page (575:20180): centered 552px feed, 480px intro, 8px desktop / 4px mobile gaps, stacked contacts, footer globe, and compact identity/Spotify controls. The desktop controls move to the viewport edges on scroll; mobile controls scroll away naturally. Live Spotify, artwork transitions, weather, and glyph effects reuse existing systems.
+- Liam confirmed all existing filled projects, with no placeholders. Seven stable project IDs remain in the feed. Native inline disclosures show each project's real title/date, contributor links, and Tech below the tile; one opens at a time, Escape closes it, and other tiles dim. Existing responsive media, video policy, Featured order editor, Recent/Random sorting, and stacking constraints are retained. Added summary support to video retry intent. The alternate 720px Project focus v2 treatment is not enabled in this first pass.
+- Added `--portfolio-*` layout tokens and scoped `homepage.css`; downloaded the exact Figma avatar/Spotify/Shop/info/close assets locally. Avatar is served as a 14KB WebP. Reused existing dynamic project media and album art, plus the interactive globe. Near-token differences: 552px shared feed rather than 553px frame rounding; existing 20/19px leading and #F6F8FA media fill rather than fractional leading / #F7F8FA.
+- Validation: 77 existing tests, TypeScript, touched-file lint, production build, and diff checks pass. Chromium and WebKit checks at 1440/393/320px cover seven filled tiles, no horizontal overflow, inline details/exclusivity/Escape, sorting/stacking constraints, identity/music expansions, scrolled desktop controls, reduced motion, and no-JS disclosure behavior. WebKit plays the real H.264 videos; this Chromium build uses the poster fallback. Optimized-production WebKit checks at 1440/393px also verify real video continuity through expansion, local asset loading, and glyph swarm entry/return.
 
 **Denser Shop sculpture with pink hues (2026-11-04)**
 - The Shop state now fills to about 840 glyphs, roughly three times the original density. Extra copies borrow existing page characters/font metrics and stream in from both viewport sides over the shared release window, without masking any additional page text. Their metrics are captured once; no extra per-frame layout reads. Extra copies fly back out through their original side on exit and share the existing cancellation cleanup.

@@ -2,6 +2,7 @@
 @import "./tokens.css";
 @import "./text-styles.css";
 @import "./design-inspector.css";
+@import "./homepage.css";
 
 /* Base styles */
 @layer base {

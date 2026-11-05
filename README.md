@@ -55,10 +55,13 @@ previews, never in production. Open a page with `?inspect=off` to turn it off in
 that browser (it's remembered) and `?inspect` to turn it back on. When off,
 `InspectableText` renders plain text.
 
-On desktop or mobile, tap the avatar to show or hide the panel (it skips the Shop link
-while the inspector is on), then choose a mode or test control. Palette-lab access lives here.
+On the redesigned homepage, expand the avatar and click the Liam Fennell name to show or hide the inspector panel in development/previews. Palette-lab access lives here. Other pages retain their existing inspector access.
 
-The homepage is planned for **12 tiles total**. Keep unused slots as blank placeholders as assets are added or removed; currently seven projects and five placeholders. Preserve existing IDs when filling slots so local Featured orders remain usable.
+The redesigned homepage displays **all seven filled projects, with no blank placeholders**, as requested on November 5, 2026. The existing project IDs, media, credits, and saved Featured ordering are retained. `ProjectFeed` filters the registry to entries with media; the previous grid components remain available on this branch.
+
+The November layout uses a centered 552px column, a 480px bio, 8px desktop / 4px mobile tile gaps, and compact top identity/music controls. Projects open native inline details beneath the media, one at a time; Escape closes the active project. The desktop header moves to the viewport edges on scroll, while the mobile header scrolls with the page. The new spacing roles live in `tokens.css` under `--portfolio-*`, with scoped layout rules in `homepage.css`. The mobile intro retains the design’s 15/20 serif style and contacts retain 14/19. Existing 20/19px leading and #F6F8FA fill are used instead of Figma’s fractional leading and #F7F8FA; the feed uses the shared 552px measure instead of the frame’s 553px rounding.
+
+The legacy full-screen/card-overlay experiment descriptions below apply to the retained v3 components; the redesigned homepage uses inline details.
 
 **Reorder Featured** shows each project's name on a drag handle. Drag a handle onto another tile to swap them (mouse or touch), or focus a handle and use arrow keys. Editing uses the raw Featured order; placement rules resume when you leave editing. **Save order locally** remembers the draft in this browser; **Cancel reorder** discards unsaved changes. **Copy order** copies the ID list to send to an agent when ready to publish. The shared default lives in `src/lib/featured-order.json`; local saves do not change it. Recent sorts by year/quarter and uses Featured order for equal dates. Projects may carry an optional `stackTag: "top" | "bottom"`. Top search and Collections sheet are `top`; Bottom search is `bottom`; other projects remain untagged until specified. A top-tagged tile cannot sit directly above a bottom-tagged tile in an overlapping column, including Random and mobile grid/list layouts; the reverse direction is allowed. Stacking rules resolve the base order when sorting or changing density. Opening/closing a tile retains that order; mobile two-column expansion only promotes a right-column selection to its existing row start. The blurred expanded layout does not rerun stacking constraints. Add tags to new assets only when Liam specifies them.
 

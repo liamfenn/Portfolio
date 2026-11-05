@@ -135,3 +135,35 @@ body {
   --font-oracle: var(--font-abc-oracle), Arial, sans-serif;
   --font-otto: var(--font-abc-otto), "Times New Roman", Times, serif;
 }
+
+/* Centered homepage: the compact feed and expanding identity/music controls. */
+:root {
+  --portfolio-column-width: 552px;
+  --portfolio-bio-width: 480px;
+  --portfolio-section-gap: 44px;
+  --portfolio-header-gap: 72px;
+  --portfolio-top: 24px;
+  --portfolio-bottom: 60px;
+  --portfolio-paragraph-gap: 16px;
+  --portfolio-feed-top: 20px;
+  --portfolio-feed-gap: 8px;
+  --portfolio-globe-gap: 32px;
+  --portfolio-control-size: 32px;
+  --portfolio-control-mobile-size: 28px;
+  --portfolio-icon-size: 16px;
+  --portfolio-hit-size: 44px;
+  --portfolio-header-layer: 20;
+  --portfolio-control-gap: 3px;
+  --portfolio-panel-padding: 10px;
+  --portfolio-sort-gap: 6px;
+  --portfolio-sort-inset: 4px;
+  --portfolio-info-size: 20px;
+  --portfolio-info-inset: 14px;
+  --portfolio-details-top: 12px;
+  --portfolio-details-bottom: 40px;
+  --portfolio-details-gap: 32px;
+  --portfolio-mobile-section-gap: 32px;
+  --portfolio-mobile-feed-top: 32px;
+  --portfolio-mobile-feed-gap: 4px;
+  --portfolio-mobile-divider: 12px;
+}

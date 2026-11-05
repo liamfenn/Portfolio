@@ -4,9 +4,9 @@ How changes get from an editor (laptop, Codex, or Claude on a phone) to somethin
 
 ## Branches and deploys
 
-- **Work branch:** `portfolio-v3-homepage`. Everything in progress lands here.
+- **Work branch:** `portfolio-v4-redesign`, branched from `portfolio-v3-homepage` on November 5, 2026. The previous v3 version remains on its original branch.
 - **`main`:** the August version, which is what production serves. Don't push or merge to it unless Liam asks.
-- **Vercel** builds every push. Pushes to `portfolio-v3-homepage` update the branch preview:
+- **Vercel** builds every push. The new redesign preview will be recorded here after its first deployment. The previous `portfolio-v3-homepage` preview remains:
 
   **https://portfolio-git-portfolio-cf6d8e-lliamfennell-gmailcoms-projects.vercel.app**
 
@@ -24,7 +24,7 @@ How changes get from an editor (laptop, Codex, or Claude on a phone) to somethin
 
 ## Working from a phone (Codex, Claude)
 
-1. Start the task on `portfolio-v3-homepage`. The agent reads `AGENTS.md` (Codex) or `CLAUDE.md`, which
+1. Start the task on `portfolio-v4-redesign`. The agent reads `AGENTS.md` (Codex) or `CLAUDE.md`, which
    imports it (Claude).
 2. Describe the change. Screenshots of the preview help a lot for visual feedback.
 3. The agent edits, runs `npm test` and `npx tsc --noEmit`, commits, and pushes to the branch.
