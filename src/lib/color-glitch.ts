@@ -7,7 +7,7 @@ export function glitchLetters(length: number, fraction: number, maxLetters: numb
   return Array.from({ length: count }, () => pool.splice(Math.floor(random() * pool.length), 1)[0]);
 }
 
-/** One cadence for hovered links and the filter control. */
+/** One cadence for hovered links. */
 export function hoverGlitchSettings() {
   const tokens = getComputedStyle(document.documentElement);
   const milliseconds = (name: string) => {

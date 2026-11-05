@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { HomepageCard } from "@/components/homepage-card";
-import { ProjectSortControl } from "@/components/project-sort-control";
+import { ProjectFeedLabel } from "@/components/project-feed-label";
 import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 import { useProjectDisplayState } from "@/components/project-display-state";
@@ -14,7 +14,7 @@ import { arrangeProjectGrid } from "@/lib/project-arrangement";
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
 
 export function ProjectFeed() {
-  const { featuredOrder, editingOrder, swapOrder, sortMode, randomSeed, setFocusedProject } = useProjectDisplayState();
+  const { featuredOrder, editingOrder, swapOrder, setFocusedProject } = useProjectDisplayState();
   const { projectInteractionMode } = usePortfolioExperiments();
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -31,16 +31,7 @@ export function ProjectFeed() {
   const closeFocus = useCallback(() => setSelection(null), []);
   const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
 
-  let projects = sortProjects(FILLED_PROJECTS, featuredOrder, sortMode === "recent" && !editingOrder);
-  // The order editor always shows the raw order it is editing.
-  if (sortMode === "random" && !editingOrder) {
-    const rank = (id: string) => {
-      let value = randomSeed + 1;
-      for (const character of id) value = Math.imul(value ^ character.charCodeAt(0), 0x45d9f3b);
-      return value >>> 0;
-    };
-    projects.sort((a, b) => rank(a.id) - rank(b.id));
-  }
+  let projects = sortProjects(FILLED_PROJECTS, featuredOrder, false);
   if (!editingOrder) projects = arrangeProjectGrid(projects, 1);
 
   const overlay = projectInteractionMode === "overlay";
@@ -56,7 +47,7 @@ export function ProjectFeed() {
 
   return <section className="portfolio-feed" aria-label="Selected work">
     <div className="feed-toolbar text-bodySans">
-      <ProjectSortControl />
+      <ProjectFeedLabel />
     </div>
     <ul className="feed-projects" onFocusCapture={event => {
       if (!overlay || !expandedId) return;

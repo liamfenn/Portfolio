@@ -5,10 +5,12 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import type { ProjectPreview } from "@/lib/project-previews";
 import sharedOrder from "@/lib/featured-order.json";
-import { reconcileProjectOrder, swapProjects } from "@/lib/project-order";
+import { placeNewProjects, swapProjects } from "@/lib/project-order";
 
 const ORDER_STORAGE_KEY = "portfolio-featured-order-v1";
-const DEFAULT_ORDER = reconcileProjectOrder(PROJECT_PREVIEWS.map(project => project.id), sharedOrder.order);
+const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
+const orderFrom = (order: readonly string[]) => placeNewProjects(FILLED_PROJECTS, order).map(project => project.id);
+const DEFAULT_ORDER = orderFrom(sharedOrder.order);
 
 export type DesktopDensity = 2 | 3 | 4 | 6;
 export type MobileColumns = 1 | 2;
@@ -63,7 +65,7 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
     let stored: unknown;
     try { stored = JSON.parse(localStorage.getItem(ORDER_STORAGE_KEY) ?? "null"); } catch {}
     if (!Array.isArray(stored) || !stored.every(id => typeof id === "string")) return;
-    const order = reconcileProjectOrder(DEFAULT_ORDER, stored);
+    const order = orderFrom(stored);
     const frame = requestAnimationFrame(() => { setSavedOrder(order); setDraftOrder(order); });
     return () => cancelAnimationFrame(frame);
   }, []);
