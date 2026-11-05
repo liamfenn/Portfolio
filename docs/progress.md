@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Mobile bodySerif correction (2026-11-05)**
+- Removed the intro-specific 15/20 mobile font bundle. Intro paragraphs now inherit shared bodySerif at 14/18 below 768px; desktop remains 15/20.
+
 **Stacked desktop header hover (2026-11-05)**
 - Applied the vertical detail-panel-over-badges treatment to the default desktop header as requested. Avatar/Spotify badges glide down to reveal their detail bar above, with the Shop mark beside the avatar. Both retain fixed horizontal anchors and the earlier slide/fade easing; scrolled panels retain their compact clock-free stack. Mobile tap expansion remains horizontal.
 

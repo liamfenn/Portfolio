@@ -113,7 +113,6 @@
 @media (max-width: 767px) {
   .portfolio-v4 { max-width: none; padding: calc(var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-bottom); }
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
-  .portfolio-v4 .portfolio-bio { --type-bodySerif: var(--font-weight-regular) var(--text-body) / var(--leading-body) var(--font-otto); }
   .portfolio-v4 .bio-desktop-break { display: none; }
   .portfolio-header { --header-badge-scale: var(--portfolio-control-mobile-scale); --portfolio-control-size: var(--portfolio-control-mobile-size); --header-inset: var(--content-padding-mobile); --header-expanded-width: calc(100vw - var(--content-padding-mobile) * 2); position: absolute; top: var(--viewport-safe-top); gap: 0; overflow-x: clip; }
   .portfolio-header.is-scrolled { --header-inset: var(--content-padding-mobile); }
