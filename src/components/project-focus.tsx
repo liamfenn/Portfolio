@@ -135,7 +135,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     const textEnterDelay = milliseconds("--project-focus-text-enter-delay");
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const textStagger = milliseconds("--project-focus-text-stagger");
-    const textExitDuration = milliseconds("--project-focus-text-exit-duration");
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
@@ -171,22 +170,19 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       focusMedia.hold(media);
       const opacity = Number(getComputedStyle(media).opacity);
       const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
-      // Preserve partially revealed rows when closing before their entrance finishes.
-      const rowOpacities = textRows.map(({ element }) => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
       backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
-      textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      // Everything leaves on the tap, since waiting for the text read as lag. The text clears first so the moving media never crosses it.
-      const textExit = textRows.map(({ element }, index) => fade(element, rowOpacities[index], 0, 0, textExitDuration));
+      // The text goes instantly: even a short fade let the returning media cross it.
+      details.style.visibility = "hidden";
       // After paging, the tile may be off screen, where a flight back only reads as a snap, so the media collapses in place.
       const from = media.getBoundingClientRect(), tile = trigger.getBoundingClientRect();
       const returns = tileOnScreen(tile, innerWidth, innerHeight);
       const collapse = parseFloat(tokens.getPropertyValue("--project-focus-collapse-scale"));
       const exit = tweenMedia(from, returns ? tile : scaledBox(from, collapse) as DOMRect);
-      animations.push(...textExit, exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
+      animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
       if (!returns) animations.push(fade(media, opacity, 0));
-      else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
-      void Promise.all([exit, ...textExit].map(animation => animation.finished)).then(() => {
+      else if (opacity < 1) animations.push(fade(media, opacity, 1));
+      void exit.finished.then(() => {
         if (disposed) return;
         root.style.visibility = "hidden";
         onClose();

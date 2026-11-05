@@ -24,10 +24,10 @@ production) is still the August version. Merging is Liam's call.
 - On mobile, a downward swipe of at least 64px exits if it starts with the view scrolled to the top and is mostly vertical. It uses touch events because native vertical scrolling cancels pointer events, and it fires on release with no drag tracking.
 
 **Immediate focused view exit (2026-11-05)**
-- Rejected: exiting in sequence (controls, then text, then media), which left about 440ms between the tap and the media moving. Controls, text, backdrop, and media now all start on the tap, finishing in 180ms, with the text gone in 80ms and the media raised above it, so fading letters never show over the returning image. This drops the earlier wait for text to clear first, which guarded against Safari retaining glyphs after paging, so recheck exits after swiping between projects. `scripts/check-focus-exit-order.mjs`, `check-project-focus.mjs`, and `check-focus-video-continuity.mjs` still wait on the old `data-exit` stages and need updating before their next use.
+- Rejected: exiting in sequence (controls, then text, then media), which left about 440ms between the tap and the media moving. Backdrop and media now start on the tap and finish in 180ms, and the text disappears instantly. Fading the text, even over 80ms with the media raised above it, still read as overlapping the returning image. This drops the earlier wait for text to clear first, which guarded against Safari retaining glyphs after paging, so recheck exits after swiping between projects. `scripts/check-focus-exit-order.mjs`, `check-project-focus.mjs`, and `check-focus-video-continuity.mjs` still wait on the old `data-exit` stages and need updating before their next use.
 
 **Overlay labels on click (2026-11-05)**
-- In Card overlay, the corner company and date labels no longer appear on desktop hover or keyboard focus; they color-glitch in with the panel on click. Focused view keeps its hover labels.
+- In Card overlay, the corner company and date labels no longer appear on desktop hover or keyboard focus; they color-glitch in with the panel on click. Focused view tiles have no hover labels either, so previews have no hover state in either mode.
 
 **Featured order update (2026-11-05)**
 - Published Liam's exported order: Top search, Shop card, Bottom search, Shop Incentives, Canvas, Baskets, Collections sheet.

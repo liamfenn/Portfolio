@@ -802,8 +802,6 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 
 .homepage-project-media { position: absolute; inset: 0; display: block; background: var(--bg-secondary-fill); transform-origin: top left; }
 .homepage-project-media[data-focus-media] { position: fixed; inset: auto; left: 0; top: 0; z-index: var(--project-focus-media-layer); pointer-events: none; }
-/* Text sits above the media while open, so the returning media has to pass over it or fading letters show on top. */
-body:has(.project-focus-root[data-phase="closing"]) .homepage-project-media[data-focus-media] { z-index: var(--project-focus-controls-layer); }
 /* Keep the wrapper out of the stacking hierarchy shared by its panels and the original grid media. */
 .project-focus-root { position: absolute; inset: 0; outline: none; }
 /* Extend only the background layers; the foreground keeps the visible viewport's height. */

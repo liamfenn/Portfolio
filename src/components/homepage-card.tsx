@@ -31,9 +31,9 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, reorder }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, reorder }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
-  hovered: boolean; onHover: () => void; onClearHover: () => void;
+  hovered?: boolean; onHover?: () => void; onClearHover?: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
   cardOverlay?: boolean; priorityMedia?: boolean; reorder?: ProjectReorder;
 }) {
@@ -48,9 +48,8 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
     });
     return () => cancelAnimationFrame(frame);
   }, []);
-  const [focused, setFocused] = useState(false);
-  // The overlay shows its labels only with the panel; the other views reveal them on desktop hover or keyboard focus.
-  const visible = isMobile || cardOverlay ? expanded : hovered || focused;
+  // Labels only ever appear with the overlay panel; tiles have no hover state.
+  const visible = expanded;
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   const detailsId = `${preview.id}-details`;
   const panelId = `${preview.id}-panel`;
@@ -61,7 +60,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         if (cardOverlay && expanded && event.key === "Escape") {
           event.preventDefault(); event.stopPropagation();
           event.currentTarget.querySelector<HTMLButtonElement>(".homepage-card-trigger")!.focus({ preventScroll: true });
-          onClearHover(); setFocused(false); onToggle();
+          onToggle();
         }
       }}>
       <button type="button" className="project-preview-link homepage-card-trigger hover-surface" data-media-kind={preview.media?.kind ?? "placeholder"}
@@ -73,15 +72,9 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         onClick={event => {
           if (focusActive || reorder) return;
           if (onOpenFocus) onOpenFocus(event.currentTarget, event.detail === 0);
-          else if (isMobile || cardOverlay) {
-            if (cardOverlay && expanded) { onClearHover(); setFocused(false); }
-            onToggle();
-          }
+          else if (isMobile || cardOverlay) onToggle();
         }}
-        onPointerEnter={event => { if (!isMobile && event.pointerType !== "touch") onHover(); }}
-        onPointerDown={() => { if (!isMobile) setFocused(false); }}
-        onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
-        onKeyDown={event => { if (!cardOverlay && event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
+        onKeyDown={event => { if (!cardOverlay && event.key === "Escape" && isMobile && expanded) onToggle(); }}>
         <span className="homepage-project-media">
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={priorityMedia || visible || focusActive} /> : null}
         {preview.media?.kind === "image" ? <>

@@ -18,7 +18,6 @@ export function ProjectFeed() {
   const { projectInteractionMode } = usePortfolioExperiments();
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selection, setSelection] = useState<ProjectFocusSelection | null>(null);
   useEffect(() => {
     const media = matchMedia("(max-width: 767px)");
@@ -58,7 +57,7 @@ export function ProjectFeed() {
     <div className="feed-toolbar text-bodySans">
       <ProjectSortControl />
     </div>
-    <ul className="feed-projects" onPointerLeave={() => setHoveredId(null)} onFocusCapture={event => {
+    <ul className="feed-projects" onFocusCapture={event => {
       if (!overlay || !expandedId) return;
       const trigger = (event.target as Element).closest(".homepage-card-trigger");
       if (trigger?.matches(":focus-visible") && trigger.closest<HTMLElement>("[data-project-id]")?.dataset.projectId !== expandedId) setExpandedId(null);
@@ -67,9 +66,6 @@ export function ProjectFeed() {
         reorder={editingOrder ? { swap: swapOrder, columns: 1, order: projects.map(project => project.id) } : undefined}
         expanded={overlay && !editingOrder && expandedId === preview.id}
         cardOverlay={overlay}
-        hovered={!editingOrder && hoveredId === preview.id}
-        onHover={() => setHoveredId(preview.id)}
-        onClearHover={() => setHoveredId(null)}
         focusActive={selection?.preview.id === preview.id}
         onOpenFocus={overlay ? undefined : (trigger, keyboard) => {
           setSelection({ preview, trigger, origin: trigger.getBoundingClientRect(), keyboard });
