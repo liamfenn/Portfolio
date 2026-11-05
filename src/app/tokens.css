@@ -176,6 +176,7 @@ body {
   --link-glitch-pause-max: 100ms;
   --link-glitch-max-fraction: .6;
   --link-glitch-max-letters: 3;
+  --globe-hover-extra-letters: 3;
 }
 
 :root {

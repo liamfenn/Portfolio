@@ -52,69 +52,27 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number, p
   });
 }
 
-// Quiet ripples at rest; hover shares the links’ short, frequent color bursts.
-function colorGlitches(glyphs: (HTMLElement | null)[], positions: Point[], colors: string[], isHot: () => boolean) {
+// Keep the cadence continuous; hovering increases the number of colored glyphs, not the rate.
+function colorGlitches(glyphs: (HTMLElement | null)[], colors: string[], isHot: () => boolean) {
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
-  const active = new Map<HTMLElement, number>();
-  const hoverTiming = hoverGlitchSettings();
-  let pending: { glyph: HTMLElement; at: number }[] = [];
-  let nextBurst = performance.now() + 1550 + Math.random() * 1200;
-  let wasHot = false;
-  let previous = 0;
+  const timing = hoverGlitchSettings();
+  const extra = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--globe-hover-extra-letters"));
+  let clearAt = 0, nextBurst = 0;
+  const clear = () => live.forEach(glyph => { glyph.style.color = ""; });
   const tick = (now: number) => {
-    if (now - previous < 25) return;
-    previous = now;
+    if (clearAt && now >= clearAt) { clear(); clearAt = 0; }
+    if (now < nextBurst || !colors.length) return;
+    clear();
     const hot = isHot();
-    for (const [glyph, until] of active) {
-      if (now >= until) { glyph.style.color = ""; active.delete(glyph); }
+    const maximum = timing.maxLetters + (hot ? extra : 0);
+    const minimum = hot ? timing.maxLetters + 1 : 1;
+    for (const index of glitchLetters(live.length, timing.fraction, maximum, Math.random, minimum)) {
+      live[index].style.color = colors[Math.floor(Math.random() * colors.length)];
     }
-    if (hot !== wasHot) {
-      live.forEach(glyph => { glyph.style.color = ""; });
-      active.clear();
-      nextBurst = hot ? now : now + 1550 + Math.random() * 1200;
-      pending = [];
-      wasHot = hot;
-    }
-    if (hot) {
-      if (now >= nextBurst && colors.length) {
-        for (const index of glitchLetters(live.length, hoverTiming.fraction, hoverTiming.maxLetters)) {
-          const glyph = live[index];
-          glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
-          active.set(glyph, now + hoverTiming.duration);
-        }
-        nextBurst = now + hoverTiming.duration + hoverTiming.pauseMin + Math.random() * (hoverTiming.pauseMax - hoverTiming.pauseMin);
-      }
-      return;
-    }
-    if (now >= nextBurst && colors.length && !pending.length) {
-      // A scattered subset ripples from a fresh origin; gaps keep it from reading as a solid band.
-      // The animation already knows these positions; measuring transformed DOM here forces style/layout work.
-      const origin = positions[Math.floor(Math.random() * live.length)];
-      const x = origin?.x ?? 0, y = origin?.y ?? 0;
-      const count = Math.min(live.length, 8 + Math.floor(Math.random() * 4));
-      const pool = [...live];
-      const selected = Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-      const ordered = selected.map(glyph => {
-        const point = positions[live.indexOf(glyph)];
-        return { glyph, position: Math.hypot(point.x - x, point.y - y) + Math.random() * 6 };
-      }).sort((a, b) => a.position - b.position);
-      let at = now;
-      pending = ordered.map(({ glyph }) => {
-        at += 40 + Math.random() * 45;
-        return { glyph, at };
-      });
-      nextBurst = at + 1150 + Math.random() * 1000;
-    }
-    // Keep a monochrome majority even when the tail of one flicker overlaps the next.
-    const limit = Math.max(1, Math.floor(live.length * 0.3));
-    while (pending.length && pending[0].at <= now) {
-      const { glyph } = pending.shift()!;
-      if (active.size >= limit && !active.has(glyph)) continue;
-      glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
-      active.set(glyph, now + 90 + Math.random() * 70);
-    }
+    clearAt = now + timing.duration;
+    nextBurst = clearAt + timing.pauseMin + Math.random() * (timing.pauseMax - timing.pauseMin);
   };
-  return { tick, clear: () => live.forEach(glyph => { glyph.style.color = ""; }) };
+  return { tick, clear };
 }
 
 /** The ring's current turn, in radians. */
@@ -224,7 +182,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     if (spent) return;
     let speed = 1, size = globe.offsetWidth;
     const positions = POINTS.map(() => ({ x: 0, y: 0 }));
-    const glitches = colorGlitches(chars, positions, colors, () => hoverRef.current);
+    const glitches = colorGlitches(chars, colors, () => hoverRef.current);
     hoverRef.current = globe.matches(":hover, :focus-visible");
     const resize = new ResizeObserver(([entry]) => {
       size = entry.contentRect.width;
@@ -247,8 +205,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     const ring = ringRef.current;
     if (!ring || (mode !== "active" && mode !== "collapsing") || reducedMotion) return;
     let angle = ringAngle(ring);
-    const size = ring.offsetWidth;
-    const glitches = colorGlitches(glyphRefs.current, RING.map(point => ({ x: point.x * size, y: point.y * size })), colors, () => ringHotRef.current);
+    const glitches = colorGlitches(glyphRefs.current, colors, () => ringHotRef.current);
     const stop = animateWhenVisible(ring, (time, dt) => {
       if (ringHaltRef.current) return false;
       // Eases toward the target speed over about 200ms, whatever the frame rate.
