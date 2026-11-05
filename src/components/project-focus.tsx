@@ -18,21 +18,21 @@ function FocusText({ text }: { text: string }) {
 export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
   return <div className="project-focus-details text-bodySans">
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
-    <ProjectCredits preview={preview} techLabel="Tech" />
+    <ProjectCredits preview={preview} techLabel="Tech" textStyle="text-bodySans" />
   </div>;
 }
 
-export function ProjectCredits({ preview, techLabel = "Stack" }: { preview: ProjectPreview; techLabel?: string }) {
+export function ProjectCredits({ preview, techLabel = "Stack", textStyle = "text-captionSans" }: { preview: ProjectPreview; techLabel?: string; textStyle?: string }) {
   if (!preview.team?.length && !preview.tech?.length) return null;
-  return <div className="project-focus-credits text-captionSans">
+  return <div className={`project-focus-credits ${textStyle}`}>
     {Boolean(preview.team?.length) && <div className="project-focus-team">
-      <h3 className="text-captionSans"><FocusText text="Contributors" /></h3>
+      <h3 className={textStyle}><FocusText text="Contributors" /></h3>
       <ul>{preview.team!.map(member => <li key={member.href}>
         <a href={member.href} target="_blank" rel="noreferrer"><FocusText text={member.name} /></a>
       </li>)}</ul>
     </div>}
     {Boolean(preview.tech?.length) && <div className="project-focus-tech">
-      <h3 className="text-captionSans"><FocusText text={techLabel} /></h3>
+      <h3 className={textStyle}><FocusText text={techLabel} /></h3>
       <ul>{preview.tech!.map(technology => <li key={technology}><FocusText text={technology} /></li>)}</ul>
     </div>}
   </div>;

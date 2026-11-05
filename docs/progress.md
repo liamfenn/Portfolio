@@ -26,6 +26,12 @@ production) is still the August version. Merging is Liam's call.
 **Immediate focused view exit (2026-11-05)**
 - Rejected: exiting in sequence (controls, then text, then media), which left about 440ms between the tap and the media moving. Backdrop and media now start on the tap and finish in 180ms, and the text disappears instantly. Fading the text, even over 80ms with the media raised above it, still read as overlapping the returning image. This drops the earlier wait for text to clear first, which guarded against Safari retaining glyphs after paging, so recheck exits after swiping between projects. `scripts/check-focus-exit-order.mjs`, `check-project-focus.mjs`, and `check-focus-video-continuity.mjs` still wait on the old `data-exit` stages and need updating before their next use.
 
+**Player marquee right fade (2026-11-05)**
+- The right fade now hides while the marquee rests fully scrolled left, using the same animation as the v3 player, which was missed when the player was rebuilt.
+
+**Focused view type (2026-11-05)**
+- All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
+
 **Fixed Recent order (2026-11-05)**
 - Rejected: Featured and Random sorting and the tap-to-change control. Liam asked for a single order, so the feed has one static "Recent" label, which the header shows over the images too. The order is exactly the hand-set one in `featured-order.json`, not a date sort, and Reorder Featured still edits it.
 - A project the order doesn't name slots in by date, before the first older project and after others from its quarter. Unfilled placeholder IDs came out of the JSON so filling one later places it by date instead of at the end. A browser with a saved local order that names a placeholder keeps that position locally.

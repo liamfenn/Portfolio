@@ -827,7 +827,6 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-focus-summary { width: 100%; max-width: var(--project-focus-description-width); }
 .project-focus-credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
 .project-focus-team a { text-decoration: none; }
-.project-focus-details .project-focus-credits :is(a, li) { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
 .project-focus-controls { position: fixed; z-index: var(--project-focus-controls-layer); left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
 .project-focus-action { position: relative; display: grid; place-items: center; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; transition: color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease); }
 .project-focus-action::before { content: ""; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100%; height: 100%; min-width: var(--project-focus-hit-size); min-height: var(--project-focus-hit-size); }
