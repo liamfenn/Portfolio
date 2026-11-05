@@ -29,7 +29,7 @@ export function HomepageIdentity() {
   </span>;
 }
 
-function formatDuration(milliseconds: number) {
+export function formatDuration(milliseconds: number) {
   const seconds = Math.max(0, Math.floor(milliseconds / 1000));
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
@@ -37,7 +37,7 @@ function formatDuration(milliseconds: number) {
 function widestDigits(text: string) {
   return text.replace(/\d/g, "4");
 }
-function formatAgo(timestamp: string | null | undefined, now: number) {
+export function formatAgo(timestamp: string | null | undefined, now: number) {
   if (!timestamp) return "Recently";
   if (!now) return "Recently";
   const minutes = Math.max(1, Math.floor((now - new Date(timestamp).getTime()) / 60_000));
@@ -55,7 +55,7 @@ function ScrambledTrackText({ text }: { text: string }) {
   return <span ref={ref}>{text}</span>;
 }
 
-function TrackText({ text, scramble }: { text: string; scramble: boolean }) {
+export function TrackText({ text, scramble }: { text: string; scramble: boolean }) {
   return <InspectableText text={text}>{scramble ? <ScrambledTrackText text={text} /> : text}</InspectableText>;
 }
 

@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Compact header player states and transitions (2026-11-05)**
+- Restored the previous playing/last-listened behavior using its shared duration/relative-time helpers and track-change scrambles: green playing badge/time, gray inactive badge with relative age, cached track fallback and whole-second clock ticks. Added measured overflow marquee with edge fades to mobile, desktop and the compact desktop scrolled player; only the scrolled desktop time is hidden. Reduced motion leaves overflowing copy manually scrollable.
+- Replaced flex/display expansion swaps with anchored controls and fixed-measure reveal panels, animated width/clipping and opacity. Hover clicks no longer immediately close an already hovered control; tap toggling, outside dismissal and Escape remain available. Scrolled tooltip hover regions are bridged, and their clock-free panels stay in the viewport.
+- Fixed the mobile Shop badge being resized twice (responsive max-width plus transform). The original SVG now scales once to the shared 28px control height, matching photo and panel. Existing 32px desktop geometry is retained. Added header marquee duration/fade, compact panel width and mobile badge ratio tokens.
+- Validation: 79 tests, TypeScript and touched-file lint pass; Chromium/WebKit checks cover playing/paused states, relative time, long/short tracks, marquee motion, desktop scrolled time suppression, mobile geometry, rapid toggles and reduced motion. The same checks pass against an optimized production build.
+
 **Contact typography correction (2026-11-05)**
 - Email and social links use text-bodySerif, as requested. Removed the mobile caption-size override so the shared bodySerif tokens control both viewport sizes and the inspector reports the correct style.
 
