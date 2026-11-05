@@ -66,6 +66,7 @@ weather show placeholders. That's fine for most UI work.
 | --- | --- |
 | Page shell, header, footer slot | `src/app/page.tsx`, `src/app/layout.tsx`, `src/components/portfolio-header.tsx`, `src/components/portfolio-footer.tsx` |
 | Global styles, tokens, text styles | `src/app/globals.css`, `src/app/homepage.css`, `src/app/tokens.css`, `src/app/text-styles.css` |
+| Header bar and filter handoff | `src/components/portfolio-header.tsx`, `src/lib/header-handoff.ts`, `tests/header-handoff.test.mjs` |
 | Work feed, inline details and sorting | `src/components/project-feed.tsx`, `src/lib/project-previews.ts` (previous grid: `project-work.tsx`) |
 | Music player, bio, identity | `src/components/homepage-identity.tsx`, `src/components/homepage-bio.tsx` |
 | Design inspector (dev and preview only) | `src/components/design-inspector.tsx`, `src/lib/design-inspector.ts` |

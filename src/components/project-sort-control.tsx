@@ -11,7 +11,7 @@ const SORT_OPTIONS = [
   { value: "random", label: "Random" },
 ] as const;
 
-export function ProjectSortControl() {
+export function ProjectSortControl({ menuDirection = "up" }: { menuDirection?: "up" | "down" }) {
   const { sortMode, setSortMode, editingOrder, reshuffle } = useProjectDisplayState();
   const control = useRef<HTMLDivElement>(null);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -117,7 +117,8 @@ export function ProjectSortControl() {
         {options.map((option, index) => <motion.button layout="position" key={option.value} type="button" role="menuitemradio"
           aria-checked="false" tabIndex={open ? 0 : -1} data-hover-glitch
           className={`work-density-option${open ? (changed ? "" : " is-opening") : " is-closing"}`}
-          style={{ "--density-option-index": options.length - 1 - index, "--density-option-exit-index": index } as CSSProperties}
+          // The option nearest the label enters first and leaves last, whichever way the menu opens.
+          style={{ "--density-option-index": menuDirection === "up" ? options.length - 1 - index : index, "--density-option-exit-index": menuDirection === "up" ? index : options.length - 1 - index } as CSSProperties}
           initial={changed ? OPTION_HIDDEN : false} animate={OPTION_VISIBLE} exit={OPTION_HIDDEN} transition={OPTION_TRANSITION}
           onClick={() => select(option.value)}>
           <MenuOptionText labelId={`sort:${option.value}`} text={option.label} />

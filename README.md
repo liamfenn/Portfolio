@@ -55,11 +55,11 @@ previews, never in production. Open a page with `?inspect=off` to turn it off in
 that browser (it's remembered) and `?inspect` to turn it back on. When off,
 `InspectableText` renders plain text.
 
-On the redesigned homepage, expand the avatar and click the Liam Fennell name to show or hide the inspector panel in development/previews. Palette-lab access lives here. Other pages retain their existing inspector access.
+On the redesigned homepage, click the avatar in the header to show or hide the inspector panel in development/previews. Palette-lab access lives here. Other pages retain their existing inspector access.
 
 The redesigned homepage displays **all seven filled projects, with no blank placeholders**, as requested on November 5, 2026. The existing project IDs, media, credits, and saved Featured ordering are retained. `ProjectFeed` filters the registry to entries with media; the previous grid components remain available on this branch.
 
-The November layout uses a centered 552px column, a 480px bio, 8px desktop / 4px mobile tile gaps, and compact top identity/music controls. Projects open native inline details beneath the media, one at a time; Escape closes the active project. The desktop header moves to the viewport edges on scroll, while the mobile header scrolls with the page. The new spacing roles live in `tokens.css` under `--portfolio-*`, with scoped layout rules in `homepage.css`. The intro and contacts use bodySerif (15/20 desktop, 14/18 mobile). Existing 20/19px leading and #F6F8FA fill are used instead of Figma’s fractional leading and #F7F8FA; the feed uses the shared 552px measure instead of the frame’s 553px rounding.
+The November layout uses a centered 552px column, a 480px bio, 8px desktop / 4px mobile tile gaps, and a fixed header bar with the avatar and current track. Projects open native inline details beneath the media, one at a time; Escape closes the active project. When the page filter reaches the bar, the bar picks it up: the music blocks push out, the panel turns translucent, desktop narrows slightly, and a Top button glitches in. Its filter menu opens downward; scrolling back reverses the handoff. The new spacing roles live in `tokens.css` under `--portfolio-*`, with scoped layout rules in `homepage.css`. The intro and contacts use bodySerif (15/20 desktop, 14/18 mobile). Existing 20/19px leading and #F6F8FA fill are used instead of Figma’s fractional leading and #F7F8FA; the feed uses the shared 552px measure instead of the frame’s 553px rounding.
 
 The legacy full-screen/card-overlay experiment descriptions below apply to the retained v3 components; the redesigned homepage uses inline details.
 

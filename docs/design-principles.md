@@ -30,7 +30,7 @@ How the site should look, move, and feel. The exact values live in `src/app/toke
 
 ## Layout and spacing
 
-The November redesign on `portfolio-v4-redesign` uses a centered 552px column with a 480px intro, 8px desktop / 4px mobile feed gaps, and compact 32px desktop / 28px mobile header controls. Mobile projects remain full bleed with 12px text insets. New roles live under `--portfolio-*`; the older frame/grid rules below remain relevant to secondary pages and retained v3 components.
+The November redesign on `portfolio-v4-redesign` uses a centered 552px column with a 480px intro, 8px desktop / 4px mobile feed gaps, and a fixed 32px desktop / 28px mobile header bar that picks up the feed filter on scroll. Mobile projects remain full bleed with 12px text insets. New roles live under `--portfolio-*`; the older frame/grid rules below remain relevant to secondary pages and retained v3 components.
 
 - **Page frame:** 8px around the page (`--page-frame`); text sections add 16px inside it
   (`--content-padding`), or 12px on mobile.

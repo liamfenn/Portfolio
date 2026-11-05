@@ -180,10 +180,13 @@ body {
 }
 
 :root {
-  --portfolio-control-mobile-scale: .875;
   --header-marquee-duration: 10s;
   --header-marquee-fade-width: 12px;
-  --header-scrolled-width: 251px;
+  --header-filter-slot: 24px;
+  --header-track-gap: 24px;
+  --header-track-mobile-gap: 20px;
+  --header-translucent-fill: color-mix(in srgb, var(--bg-fill) 72%, transparent);
+  --header-translucent-blur: 6px;
   --header-scroll-duration: 360ms;
   --header-scroll-ease: cubic-bezier(.4, 0, .2, 1);
 }

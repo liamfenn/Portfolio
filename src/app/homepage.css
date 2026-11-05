@@ -22,71 +22,67 @@
 }
 .portfolio-v4 a[href], .portfolio-v4 button, .portfolio-v4 summary { cursor: pointer; }
 
+/* Layers, bottom to top: fill, filter, music, avatar. The filter emerges from under the music blocks as they push out. */
 .portfolio-header {
-  --header-inset: max(var(--portfolio-top), calc((100vw - var(--portfolio-column-width)) / 2));
-  --header-expanded-width: calc(100vw - var(--header-inset) * 2 - var(--portfolio-control-size) * 3);
-  position: fixed; top: calc(var(--viewport-safe-top) + var(--portfolio-top)); left: var(--header-inset); right: var(--header-inset);
-  z-index: var(--portfolio-header-layer); height: var(--portfolio-control-size); pointer-events: none;
-  transition: top var(--header-scroll-duration) var(--header-scroll-ease), left var(--header-scroll-duration) var(--header-scroll-ease), right var(--header-scroll-duration) var(--header-scroll-ease);
+  --header-inset: 0px;
+  --header-glyph: var(--work-glyph-desktop-size);
+  --header-filter-inset: calc(var(--header-filter-slot) - var(--header-glyph) - var(--portfolio-sort-gap));
+  --header-transition: var(--header-scroll-duration) var(--header-scroll-ease);
+  position: fixed; top: calc(var(--viewport-safe-top) + var(--portfolio-top)); left: 0; right: 0;
+  z-index: var(--portfolio-header-layer); width: min(var(--portfolio-column-width), calc(100% - var(--content-padding-mobile) * 2)); height: var(--portfolio-control-size); margin-inline: auto; pointer-events: none;
 }
-.portfolio-header.is-scrolled { --header-inset: var(--portfolio-top); }
-.header-control { --header-toggle-width: var(--portfolio-control-size); position: absolute; top: 0; left: 0; width: var(--header-toggle-width); height: var(--portfolio-control-size); pointer-events: auto; transition: width var(--motion-duration) var(--motion-ease), opacity var(--hover-duration) var(--hover-ease), visibility 0s; }
-.header-control.is-open { width: var(--header-expanded-width); }
-.header-spotify { --header-toggle-width: calc(var(--portfolio-control-size) * 2); left: auto; right: 0; }
-.header-control button { border: 0; padding: 0; background: transparent; font: inherit; letter-spacing: inherit; color: inherit; }
-.header-avatar, .header-music-toggle { position: relative; display: flex; flex: none; height: var(--portfolio-control-size); }
-.header-avatar { width: var(--portfolio-control-size); }
+.portfolio-header.is-condensed { --header-inset: var(--content-padding-mobile); }
+.portfolio-header > :not(.header-fill) { pointer-events: auto; }
+.portfolio-header button { border: 0; padding: 0; background: transparent; }
+.header-fill { position: absolute; inset: 0 var(--portfolio-control-size) 0 calc(var(--portfolio-control-size) * 2); background-color: var(--bg-secondary-fill); pointer-events: none; transition: left var(--header-transition), right var(--header-transition), background-color var(--header-transition), backdrop-filter var(--header-transition), -webkit-backdrop-filter var(--header-transition); }
+.portfolio-header.is-condensed .header-fill { left: calc(var(--header-inset) + var(--portfolio-control-size)); right: var(--header-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
+.header-avatar { position: absolute; z-index: 3; top: 0; left: 0; display: flex; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transform: translateX(var(--header-inset)); transition: transform var(--header-transition); }
 .header-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.header-control :is(.header-avatar, .header-music-toggle)::before { content: ""; position: absolute; z-index: 1; inset: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); }
-.header-control .homepage-album { width: var(--portfolio-control-size); height: var(--portfolio-control-size); }
-.header-spotify-brand { display: grid; place-items: center; flex: none; width: var(--portfolio-control-size); height: var(--portfolio-control-size); background: var(--bg-secondary-fill); transition: background-color var(--hover-duration) var(--hover-ease); }
+:is(.header-avatar, .header-music, .header-top)::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
+
+.header-filter { position: absolute; z-index: 1; top: 0; left: calc(var(--header-inset) + var(--portfolio-control-size) + var(--header-filter-inset)); height: 100%; visibility: hidden; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); }
+.portfolio-header.is-docked .header-filter { visibility: visible; }
+.header-filter-flight, .header-filter .feed-sort-control { height: 100%; }
+.header-filter .feed-sort-control { display: flex; align-items: center; }
+.portfolio-v4:has(.portfolio-header.is-docked) .feed-toolbar .feed-sort-control { visibility: hidden; }
+/* There's no room above a bar at the top of the viewport, so its menu opens downward on the bar's own surface. */
+.header-filter .work-density-menu.work-sort-menu { top: 100%; bottom: auto; left: calc(-1 * var(--header-filter-inset)); padding: 0 var(--content-padding-mobile) var(--page-frame) var(--header-filter-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
+
+.header-music { position: absolute; z-index: 2; inset: 0 0 0 var(--portfolio-control-size); display: block; transition: visibility 0s; }
+.portfolio-header.is-condensed .header-music { visibility: hidden; pointer-events: none; transition-delay: var(--header-scroll-duration); }
+.header-music-clip { position: absolute; inset: 0; display: block; overflow: clip; }
+.header-music .homepage-album, .header-spotify-brand { position: absolute; top: 0; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transition: transform var(--header-transition), background-color var(--hover-duration) var(--hover-ease); }
+.header-music .homepage-album { left: 0; }
+.header-spotify-brand { right: 0; display: grid; place-items: center; background: var(--bg-secondary-fill); }
+.portfolio-header.is-condensed .homepage-album { transform: translateX(-100%); }
+.portfolio-header.is-condensed .header-spotify-brand { transform: translateX(100%); }
 .header-spotify-logo { display: block; width: var(--portfolio-icon-size); height: var(--portfolio-icon-size); background: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
-.header-spotify.is-playing .header-spotify-brand { background: var(--bg-green-fill); }
-.header-spotify.is-playing .header-spotify-logo { background: var(--bg-fill); }
-.header-reveal { position: absolute; top: 0; left: var(--header-toggle-width); display: flex; width: calc(var(--header-expanded-width) - var(--header-toggle-width)); height: var(--portfolio-control-size); overflow: hidden; opacity: 0; clip-path: inset(0 100% 0 0); transition: clip-path var(--motion-duration) var(--motion-ease), opacity var(--hover-duration) var(--hover-ease); }
-.header-control.is-open .header-reveal { opacity: 1; clip-path: inset(0); }
-.header-shop { flex: none; display: block; width: var(--portfolio-control-size); height: var(--portfolio-control-size); overflow: hidden; }
-/* Keep intrinsic SVG geometry before scaling: responsive max-width plus a transform shrank the mobile badge twice. */
-.header-shop img { display: block; max-width: none; transform: scale(var(--header-badge-scale, 1)); transform-origin: top left; }
-.header-panel { display: flex; min-width: 0; width: 100%; height: 100%; align-items: center; gap: var(--portfolio-control-gap); padding-inline: var(--portfolio-panel-padding); background: var(--bg-secondary-fill); white-space: nowrap; }
+.header-music.is-playing .header-spotify-brand { background: var(--bg-green-fill); }
+.header-music.is-playing .header-spotify-logo { background: var(--bg-fill); }
+.header-track { position: absolute; inset: 0 var(--portfolio-control-size); display: flex; align-items: center; gap: var(--header-track-gap); padding-inline: var(--portfolio-panel-padding) var(--content-padding-mobile); white-space: nowrap; transition: opacity var(--hover-duration) var(--hover-ease); }
+.portfolio-header.is-condensed .header-track { opacity: 0; }
 .header-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
-.header-identity .header-secondary { overflow: hidden; text-overflow: ellipsis; }
-.header-name { flex: none; }
-.header-track { justify-content: space-between; gap: var(--content-padding-mobile); }
 .header-track-copy { position: relative; display: block; min-width: 0; flex: 1; overflow: hidden; }
 .header-track-marquee { display: inline-block; width: max-content; white-space: nowrap; }
 .header-track-marquee > .header-secondary { margin-left: var(--portfolio-control-gap); }
 .header-track-time { flex: none; color: var(--text-muted); --inspect-color-token: text-muted; font-variant-numeric: tabular-nums; }
 .header-track-time.is-playing { color: var(--text-green); --inspect-color-token: text-green; }
-.header-track-copy.is-overflowing .header-track-marquee { animation: identity-song-marquee var(--header-marquee-duration) ease-in-out infinite; animation-play-state: paused; }
-.header-control.is-open .header-track-copy.is-overflowing .header-track-marquee { animation-play-state: running; }
+.header-track-copy.is-overflowing .header-track-marquee { animation: identity-song-marquee var(--header-marquee-duration) ease-in-out infinite; }
 .header-track-fade { position: absolute; inset-block: 0; width: var(--header-marquee-fade-width); pointer-events: none; opacity: 0; }
 .header-track-copy.is-overflowing .header-track-fade { opacity: 1; }
-.header-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); animation: identity-song-left-fade var(--header-marquee-duration) ease-in-out infinite; animation-play-state: paused; }
+.header-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); }
+.header-track-copy.is-overflowing .header-track-fade-left { animation: identity-song-left-fade var(--header-marquee-duration) ease-in-out infinite; }
 .header-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); }
-.header-control.is-open .header-track-fade-left { animation-play-state: running; }
-@media (min-width: 768px) {
-  .portfolio-header { --header-expanded-width: min(var(--header-scrolled-width), calc((100vw - var(--portfolio-top) * 2) / 2)); --header-stack-offset: calc(var(--portfolio-control-size) + var(--page-frame)); }
-  .portfolio-header .header-control.is-open { width: var(--header-toggle-width); }
-  .portfolio-header:not(.is-scrolled) .header-control.is-open { height: calc(var(--portfolio-control-size) + var(--header-stack-offset)); }
-  .portfolio-header .header-avatar, .portfolio-header .header-music-toggle { transition: transform var(--motion-duration) var(--motion-ease); }
-  .portfolio-header:not(.is-scrolled) .header-control.is-open > :is(.header-avatar, .header-music-toggle) { transform: translateY(var(--header-stack-offset)); }
-  .portfolio-header .header-reveal { top: 0; left: 0; width: var(--header-expanded-width); overflow: visible; clip-path: none; visibility: hidden; transform: translateY(var(--page-frame)); transition: opacity var(--hover-duration) var(--hover-ease), transform var(--motion-duration) var(--motion-ease), visibility 0s var(--motion-duration); }
-  .portfolio-header .header-control.is-open .header-reveal { clip-path: none; visibility: visible; transform: translateY(0); transition-delay: 0s; }
-  .portfolio-header .header-spotify .header-reveal { left: auto; right: 0; }
-  .portfolio-header .header-shop { position: absolute; top: var(--header-stack-offset); left: var(--portfolio-control-size); }
-  .portfolio-header.is-scrolled { top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--header-stack-offset)); }
-  .portfolio-header.is-scrolled .header-control.is-open::after { content: ""; position: absolute; bottom: 100%; left: 0; width: 100%; height: var(--page-frame); }
-  .portfolio-header.is-scrolled .header-reveal { top: auto; bottom: 100%; transform: translateY(0); }
-  .portfolio-header.is-scrolled .header-control.is-open .header-reveal { transform: translateY(calc(-1 * var(--page-frame))); }
-  .portfolio-header.is-scrolled .header-track-time { display: none; }
-}
+.portfolio-header.is-condensed :is(.header-track-marquee, .header-track-fade-left) { animation-play-state: paused; }
+
+.header-top { position: absolute; z-index: 3; top: 0; right: calc(var(--header-inset) + var(--content-padding-mobile)); height: 100%; white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; visibility: hidden; transition: right var(--header-transition), visibility 0s var(--header-scroll-duration); }
+.portfolio-header.is-condensed .header-top { visibility: visible; transition-delay: 0s; }
 
 .portfolio-feed { margin-top: var(--portfolio-section-gap); padding-top: var(--portfolio-feed-top); }
 .feed-toolbar { display: flex; align-items: center; margin-bottom: var(--portfolio-feed-gap); }
 /* Reuse the previous sort menu's geometry, option stack and motion around the new square mark. */
 .feed-toolbar { --work-glyph-size: var(--work-glyph-desktop-size); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); }
-.feed-sort-control { margin-left: var(--portfolio-sort-inset); }
+.feed-toolbar .feed-sort-control { margin-left: var(--portfolio-sort-inset); }
 .feed-sort-control .work-control { position: relative; padding: 0; }
 .feed-sort-control .work-label-group { gap: var(--work-label-gap); }
 /* Safari paints native character highlights only when the filter's text is selectable. */
@@ -94,7 +90,7 @@
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
 .feed-project { position: relative; width: 100%; transition: opacity var(--motion-duration) var(--motion-ease); }
 .feed-projects:has(.feed-project-disclosure[open]) > .feed-project:not(:has(.feed-project-disclosure[open])) { opacity: var(--hover-dim); }
-.feed-media { display: block; position: relative; width: 100%; aspect-ratio: 1; list-style: none; background: var(--bg-secondary-fill); user-select: none; }
+.feed-media { scroll-margin-top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--portfolio-control-size) + var(--page-frame)); display: block; position: relative; width: 100%; aspect-ratio: 1; list-style: none; background: var(--bg-secondary-fill); user-select: none; }
 .portfolio-feed summary::-webkit-details-marker { display: none; }
 .feed-media:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .feed-media:has(.project-preview-media) { -webkit-touch-callout: none; }
@@ -114,13 +110,11 @@
   .portfolio-v4 { max-width: none; padding: calc(var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-bottom); }
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
-  .portfolio-header { --header-badge-scale: var(--portfolio-control-mobile-scale); --portfolio-control-size: var(--portfolio-control-mobile-size); --header-inset: var(--content-padding-mobile); --header-expanded-width: calc(100vw - var(--content-padding-mobile) * 2); position: absolute; top: var(--viewport-safe-top); gap: 0; overflow-x: clip; }
-  .portfolio-header.is-scrolled { --header-inset: var(--content-padding-mobile); }
-  .header-control :is(.header-avatar, .header-music-toggle)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
-  .portfolio-header[data-open="identity"] .header-spotify, .portfolio-header[data-open="spotify"] .header-identity { opacity: 0; pointer-events: none; visibility: hidden; transition-delay: 0s, 0s, var(--hover-duration); }
-  .header-spotify-brand { width: var(--portfolio-control-mobile-size); }
-  .header-shop { overflow: hidden; }
-  .header-identity .header-panel { font: var(--type-bodySans); }
+  /* The bar already sits at the mobile gutter, so it swaps content without narrowing further. */
+  .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --header-track-gap: var(--header-track-mobile-gap); top: var(--viewport-safe-top); }
+  .portfolio-header.is-condensed { --header-inset: 0px; }
+  :is(.header-avatar, .header-music, .header-top)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
+  .header-filter .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-feed-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); }

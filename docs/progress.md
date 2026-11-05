@@ -10,6 +10,12 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Sticky header with filter handoff (2026-11-05)**
+- Replaced the separate identity and Spotify controls with Figma's single fixed bar (581:22914, 581:21327): avatar, album, track panel, Spotify block. When the page's filter reaches the bar's center line, it condenses to Figma's scrolled state (581:22775, 581:21842): desktop narrows from 552px to 528px and mobile stays at its gutters. The panel turns translucent white with a 6px blur, the album and Spotify blocks push out, the filter flies from under them into the bar, and Top color-glitches in. Scrolling back reverses this.
+- The flight follows the page filter's live position each frame and continues from its current position when reversed, so fast or reversed scrolling can't jump. The docked filter is a second `ProjectSortControl` on the same shared state; its desktop menu opens downward on a translucent surface, and mobile taps still cycle. Math lives in `src/lib/header-handoff.ts`. Reduced motion swaps states immediately.
+- Removed the name, role and Shop badge because the new frames don't include them. The avatar now carries the inspector toggle. Figma's desktop frame says "Filter" and its mobile frame says "Featured"; the bar shows the current sort label on both. Figma's desktop translucent panel stops 12px short of its frame, so it now extends to the frame edge as on mobile, with Top in the same place. Uses the 9px `--work-glyph-desktop-size` square instead of Figma's 10px, and `--bg-secondary-fill` #F6F8FA instead of #F7F8FA. New `--header-filter-slot`, `--header-track-gap`, `--header-track-mobile-gap`, `--header-translucent-fill` and `--header-translucent-blur` tokens. `shop-badge.svg` is now unused and kept in case the badge returns.
+- Validation: tests, TypeScript and touched-file lint pass. Chromium and WebKit checks at 1440px and 393px cover real-frame flight in both directions, Figma geometry, the scramble, downward menu selection, mobile tap cycling, Top returning to the start, reduced motion, no horizontal overflow, and swarm entry and cleanup in both header states. Native Safari and iPhone remain device checks.
+
 **Mobile bodySerif correction (2026-11-05)**
 - Removed the intro-specific 15/20 mobile font bundle. Intro paragraphs now inherit shared bodySerif at 14/18 below 768px; desktop remains 15/20.
 
