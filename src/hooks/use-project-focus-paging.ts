@@ -15,8 +15,8 @@ function milliseconds(tokens: CSSStyleDeclaration, property: string) {
   return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
 }
 
-export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total, focusMedia }: {
-  rootRef: RefObject<HTMLDivElement | null>; pagesRef: RefObject<HTMLDivElement | null>; scrollRef: RefObject<HTMLDivElement | null>; controlsRef: RefObject<HTMLDivElement | null>;
+export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, selection, onNavigate, total, focusMedia }: {
+  rootRef: RefObject<HTMLDivElement | null>; pagesRef: RefObject<HTMLDivElement | null>; scrollRef: RefObject<HTMLDivElement | null>;
   focusMedia: ProjectFocusMedia; selection: ProjectFocusSelection; onNavigate: (direction: Direction, keyboard: boolean) => void; total: number;
 }) {
   const current = useRef({ selection, onNavigate, total });
@@ -45,14 +45,12 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
   }, [rootRef, scrollRef, focusMedia]);
   const cancelPaging = useCallback(() => { finishPaging(); setNeighborDirection(null); }, [finishPaging]);
 
-  const navigate = useCallback((direction: Direction, keyboard: boolean, shortcut = false) => {
+  const navigate = useCallback((direction: Direction, keyboard: boolean) => {
     const root = rootRef.current, scroller = scrollRef.current;
     if (!root || !scroller || root.dataset.phase === "closing" || current.current.total < 2) return;
     const offset = gesture.current?.offset ?? 0;
     finishPaging();
     setNeighborDirection(null);
-    root.dataset.input = shortcut ? "shortcut" : keyboard ? "keyboard" : "pointer";
-    controlsRef.current!.querySelector<HTMLButtonElement>(direction === -1 ? ".project-focus-step:first-child" : ".project-focus-step:last-child")!.focus({ preventScroll: true });
     const media = current.current.selection.trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     // Copy metadata separately so the outgoing page never duplicates a media element.
     const snapshot = scroller.cloneNode(false) as HTMLElement;
@@ -73,7 +71,7 @@ export function useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRe
     focusMedia.attach(current.current.selection.trigger, slot, "outgoing");
     page.current = { snapshot, media, direction, offset, width: pagesRef.current!.clientWidth, animations: [] };
     current.current.onNavigate(direction, keyboard);
-  }, [rootRef, scrollRef, controlsRef, pagesRef, finishPaging, focusMedia]);
+  }, [rootRef, scrollRef, pagesRef, finishPaging, focusMedia]);
 
   const animatePage = useCallback((reduced: boolean) => {
     const outgoing = page.current;

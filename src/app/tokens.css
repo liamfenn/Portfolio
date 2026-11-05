@@ -75,7 +75,6 @@
   --project-focus-section-gap: 32px;
   --project-focus-description-width: var(--portfolio-bio-width);
   --project-focus-description-width-mobile: 361px;
-  --project-focus-navigation-width: 35px;
   --project-focus-controls-gap: calc(var(--project-info-gap) * 2);
   --project-focus-close-bottom: 44px;
   --project-focus-close-bottom-mobile: 24px;

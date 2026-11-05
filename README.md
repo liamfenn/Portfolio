@@ -82,7 +82,7 @@ It works on the homepage, `/process`, and the palette lab:
   all Safari tab layouts on iOS 27.2. It stays available for debugging and resets off on reload.
   Normal focus uses the same placement with #f6f8fa at the top and white at the bottom. A short inward
   fade sits behind the navigation controls; the edge sampled by Safari stays solid.
-- The hidden avatar menu’s **Projects** control cycles **Focused view → Card overlay** and resets to Focused view, the default, on reload. `?projects=overlay` picks Card overlay on load. Focused view is an opaque full-screen modal: the media keeps playing as it moves into place, the header morphs into the project's company, name, and date with a color glitch, and tapping anywhere except a link, pressing Escape, or on mobile swiping down from the top closes it. If paging left the project's tile off screen, the media collapses in place instead of flying back. P, Close, and N appear only for keyboard users.
+- The hidden avatar menu’s **Projects** control cycles **Focused view → Card overlay** and resets to Focused view, the default, on reload. `?projects=overlay` picks Card overlay on load. Focused view is an opaque full-screen modal: the media keeps playing as it moves into place, the header morphs into the project's company, name, and date with a color glitch, and tapping anywhere except a link, pressing Escape, or on mobile swiping down from the top closes it. If paging left the project's tile off screen, the media collapses in place instead of flying back. Left and Right Arrow move between projects; there are no on-screen controls.
 - **Card overlay** adds Contributors/Stack credits inside the selected tile over an 88% white tint and 10px background blur. The blur surface fades over 180ms; credit rows enter top to bottom and exit bottom to top within the same window. The company and quarter labels color-glitch in with the panel on click, with no hover state, and stay until a second click, another selection, or keyboard focus on another project. Escape closes it. Credits reuse the focused-view component and links; the original video keeps playing in place. Reduced motion shows the surface and credits immediately. There is no shader or entry-style toggle.
 - The intro uses the short copy ending “If something here resonates, get in touch”, followed by the short process paragraph. Only “process” is linked in its final sentence. The comparison variants and Intro toggle have been removed.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
@@ -105,7 +105,7 @@ Each project can provide `team: [{ name, href }]` for linked credits in the focu
 The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif. All focus
 text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
 the same height enter together. Exit reverses the row order with 180ms fades and a 12ms bottom-to-top
-stagger; the stagger scales with the exit/entry duration ratio. P, Close, and N are visible immediately with no intro animation.
+stagger; the stagger scales with the exit/entry duration ratio.
 On exit, the controls, text, backdrop, and media all start on the tap.
 Grid hover labels hide immediately for the focus session, so their reverse stream cannot linger behind the moving media.
 Linked credits appear under **Contributors**,
@@ -127,11 +127,8 @@ handling remains owned by the shared video coordinator.
 On initial playback, the native video stays visible beneath an opaque skeleton until a presented frame
 has had two paint opportunities, avoiding a simultaneous surface unhide and skeleton removal.
 
-The fixed **P / Close / N** strip works on desktop and mobile. P or Left Arrow goes to the previous project;
-N or Right Arrow goes to the next. Buttons and shortcuts loop through the displayed grid order, including
-Recent and Random sorting. Letter/arrow shortcuts keep control focus without an outline; Tab navigation
-and Enter/Space button activation retain the normal focus indicator. Alt/Ctrl/Command shortcuts are
-left to the browser. Navigation retains
+Left Arrow goes to the previous project and Right Arrow to the next, looping through the displayed order, including
+Recent and Random sorting. Alt/Ctrl/Command shortcuts are left to the browser. Navigation retains
 the overlay, page lock, and media elements, resets the focus content's scroll to the top, and announces
 the current project to screen readers. Closing restores the original page position and opener focus.
 Desktop focus also supports horizontal trackpad/wheel scrolling and Shift+wheel: right advances and left
@@ -140,7 +137,7 @@ moving the pointer; the idle reset uses the shared 150ms hover duration. On desk
 stays stationary while its panel slides inside it, preserving the wheel target across page changes. Vertical scrolling and pinch zoom remain native.
 Mobile focus also supports horizontal swipes: left advances and right goes back, with the next project
 following the drag. Short/canceled drags snap back; vertical scrolling, pinch zoom, and edge gestures
-remain available. Buttons and keys use the same directional whole-page slide on desktop and mobile.
+remain available. Arrow keys use the same directional whole-page slide on desktop and mobile.
 Paging uses the shared 300ms motion duration and focus easing, shortened for the remaining swipe
 distance. The backdrop, Safari edge strips, bottom fade, and controls stay fixed. Text fades on initial
 open and stays fully readable during page changes. Reduced motion switches pages without sliding.

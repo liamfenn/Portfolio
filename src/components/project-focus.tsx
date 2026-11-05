@@ -42,8 +42,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   const { safariEdgeTestEnabled } = usePortfolioExperiments();
   const rootRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const controlsRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const topEdgeRef = useRef<HTMLDivElement>(null);
@@ -51,7 +49,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   const dismissRef = useRef<() => void>(() => {});
   const initialSelection = useRef(selection);
   const [focusMedia] = useState(() => new ProjectFocusMedia());
-  const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total, focusMedia });
+  const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, selection, onNavigate, total, focusMedia });
 
   const animationsRef = useRef<Animation[]>([]);
 
@@ -82,13 +80,10 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     if (!previousTheme) document.head.appendChild(theme);
 
     const onKeyDown = (event: KeyboardEvent) => {
-      root.dataset.input = "keyboard";
-      const key = event.key.toLowerCase();
-      const previous = key === "p" || key === "arrowleft";
-      const next = key === "n" || key === "arrowright";
-      if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || next) && root.dataset.phase !== "closing") {
+      const previous = event.key === "ArrowLeft";
+      if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || event.key === "ArrowRight") && root.dataset.phase !== "closing") {
         event.preventDefault(); event.stopImmediatePropagation();
-        navigate(previous ? -1 : 1, true, true);
+        navigate(previous ? -1 : 1, true);
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
@@ -103,15 +98,11 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     };
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const onMotionChange = () => { if (motion.matches) animationsRef.current.forEach(animation => { if (animation.playState !== "idle") animation.finish(); }); };
-    // Native capture keeps keyboard/pointer focus treatment consistent across controls and content.
-    const onPointerDown = () => { root.dataset.input = "pointer"; };
-    root.addEventListener("pointerdown", onPointerDown, { capture: true });
     window.addEventListener("keydown", onKeyDown, { capture: true });
     motion.addEventListener("change", onMotionChange);
-    closeRef.current!.focus({ preventScroll: true });
+    root.focus({ preventScroll: true });
     return () => {
       window.removeEventListener("keydown", onKeyDown, { capture: true });
-      root.removeEventListener("pointerdown", onPointerDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
       if (!previousTheme) theme.remove();
       else if (previousThemeColor === null) theme.removeAttribute("content");
@@ -125,7 +116,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   }, [navigate, focusMedia]);
 
   useLayoutEffect(() => {
-    const root = rootRef.current!, slot = slotRef.current!, controls = controlsRef.current!;
+    const root = rootRef.current!, slot = slotRef.current!;
     const { trigger, origin, navigation } = selection;
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
@@ -167,7 +158,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
       if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
     });
-    if (!root.contains(document.activeElement)) closeRef.current!.focus({ preventScroll: true });
+    if (!root.contains(document.activeElement)) root.focus({ preventScroll: true });
 
     dismissRef.current = () => {
       if (closing || disposed) return;
@@ -181,7 +172,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       focusMedia.hold(media);
       const opacity = Number(getComputedStyle(media).opacity);
       const backgroundOpacities = backgrounds.map(element => Number(getComputedStyle(element).opacity));
-      const controlsOpacity = Number(getComputedStyle(controls).opacity);
       // Preserve partially revealed rows when closing before their entrance finishes.
       const rowOpacities = textRows.map(({ element }) => Number(getComputedStyle(element).opacity));
       animations.forEach(animation => animation.cancel());
@@ -194,7 +184,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       const returns = tileOnScreen(tile, innerWidth, innerHeight);
       const collapse = parseFloat(tokens.getPropertyValue("--project-focus-collapse-scale"));
       const exit = tweenMedia(from, returns ? tile : scaledBox(from, collapse) as DOMRect);
-      animations.push(fade(controls, controlsOpacity, 0), ...textExit, exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
+      animations.push(...textExit, exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
       if (!returns) animations.push(fade(media, opacity, 0));
       else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
       void Promise.all([exit, ...textExit].map(animation => animation.finished)).then(() => {
@@ -254,9 +244,9 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
       <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
     </>}
-    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-label={`${selection.preview.company}, ${selection.preview.label}`} data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1} onClick={event => {
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-label={`${selection.preview.company}, ${selection.preview.label}`} data-phase="opening" data-focus-project={selection.preview.id} tabIndex={-1} onClick={event => {
       // Anywhere but a link closes; finishing a text selection shouldn't.
-      if ((event.target as Element).closest("a, .project-focus-controls") || !getSelection()?.isCollapsed) return;
+      if ((event.target as Element).closest("a") || !getSelection()?.isCollapsed) return;
       dismissRef.current();
     }}>
     <div className="project-focus-blur" aria-hidden="true" />
@@ -275,11 +265,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       </div>
     </div>}
     </div>
-    <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><InspectableText>P</InspectableText></button>
-      <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>
-      <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Next project" aria-keyshortcuts="N ArrowRight" onClick={event => navigate(1, event.detail === 0)}><InspectableText>N</InspectableText></button>
-    </div>
+    {/* Pointer and touch close by tapping; this gives screen readers an explicit way out. */}
+    <button type="button" className="sr-only" onClick={() => dismissRef.current()}>Close project</button>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Project {position} of {total}: {selection.preview.label}, {selection.preview.company}, {selection.preview.period}</span>
     </div>
   </>, document.body);

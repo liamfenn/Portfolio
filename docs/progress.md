@@ -15,6 +15,9 @@ production) is still the August version. Merging is Liam's call.
 - Focused view follows Figma 597:24279 on the existing `ProjectFocus`, so it keeps continuous video, page lock, and Safari edge samplers: an opaque white modal, 720px media flush to the top, and description plus Contributors and Tech below. Tapping anywhere except a link closes it on desktop and mobile. There are no visible controls for pointer users; P, Close, and N show only after keyboard input. Swipes, wheel paging, and arrow keys still page between projects.
 - Instead of a separate bar, the header morphs on open as Liam asked: name, then Contact, color-glitch into company and date, the project name glitches in, the avatar leaves, and the bar goes translucent at 696px on desktop. It reverses as the view starts closing. The header ignores scroll changes while the page is locked, so it can't flicker through other states. Removed the bottom gradient fade, which Figma omits.
 
+**No on-screen project controls (2026-11-05)**
+- Rejected: showing P, Close, and N after keyboard input, since any key press made them appear over the content. They and the P and N shortcuts are gone from Focused view. Left and Right Arrow, Escape, tapping, and mobile swipes remain, and a visually hidden Close button stays for screen readers. `/process` keeps its own Close, which shares those styles.
+
 **Focused view as default, collapse, and swipe down (2026-11-05)**
 - Focused view is now the default project mode; the debug toggle and `?projects=overlay` still reach Card overlay.
 - When paging leaves the project's tile mostly off screen (under 25% visible), exit shrinks the media to 96% and fades it in place, because a flight back read as a snap. The page keeps its original scroll position.
