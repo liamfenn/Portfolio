@@ -49,7 +49,8 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
     return () => cancelAnimationFrame(frame);
   }, []);
   const [focused, setFocused] = useState(false);
-  const visible = isMobile ? expanded : hovered || focused || (cardOverlay && expanded);
+  // The overlay shows its labels only with the panel; the other views reveal them on desktop hover or keyboard focus.
+  const visible = isMobile || cardOverlay ? expanded : hovered || focused;
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   const detailsId = `${preview.id}-details`;
   const panelId = `${preview.id}-panel`;
@@ -68,7 +69,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         aria-haspopup={onOpenFocus ? "dialog" : undefined}
         aria-expanded={onOpenFocus ? focusActive : isMobile || cardOverlay ? expanded : undefined}
         aria-controls={onOpenFocus ? "project-focus-dialog" : cardOverlay ? panelId : isMobile ? detailsId : undefined}
-        aria-describedby={!isMobile && (hovered || focused) ? detailsId : undefined}
+        aria-describedby={!isMobile && visible ? detailsId : undefined}
         onClick={event => {
           if (focusActive || reorder) return;
           if (onOpenFocus) onOpenFocus(event.currentTarget, event.detail === 0);
