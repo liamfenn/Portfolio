@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Feed cash removed**
+- Removed Feed cash (shop-09), its responsive video/poster bundle and asset registry entry, and its shared Featured ID at Liam's request. Ten tiles remain, including three blank placeholders. Surviving IDs/order remain unchanged, and local Featured orders automatically filter the removed ID. Updated active tag and media documentation; Top search and Collections sheet remain top-tagged.
+- Validation: 74 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile checks confirm ten unique tiles, no Feed cash in the grid/debug editor, and saved orders retaining all surviving IDs while dropping shop-09.
+
 **Stable ordering while opening projects**
 - Fixed a regression from the covered-tile stacking exemption: opening Collections sheet could change Collections → Canvas → Bottom search into Collections → Bottom search → Canvas, then restore it on close. The arrangement was being recalculated from the raw order with different constraints on each open/close.
 - Resolve and memoize stacking corrections only for the base sort/order and column count. Opening/closing reuses that base order. Mobile two-column expansion uses a separate helper to exchange a right-column selection with its existing row neighbor; it never reruns stacking constraints. Blurred expanded layouts stay exempt from extra stacking-driven rearrangements, and collapsing restores the same base.
