@@ -56,7 +56,7 @@ export function PortfolioHeader() {
       <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
     </button>
     <div className="header-label text-bodySans" inert={!overImages}>
-      <ProjectSortControl cycle idleLabel={overImages ? undefined : "Liam Fennell"} />
+      <ProjectSortControl idleLabel={overImages ? undefined : "Liam Fennell"} />
     </div>
     <a className="header-action text-captionSans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} onClick={event => {
       if (!overImages) return;

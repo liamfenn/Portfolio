@@ -169,7 +169,6 @@ body {
 
 /* Frequent, short color flashes while a text link is hovered or keyboard-focused. */
 :root {
-  --work-menu-exit-duration: 110ms;
   --link-glitch-flash-duration: 90ms;
   --link-glitch-pause-min: 40ms;
   --link-glitch-pause-max: 100ms;
@@ -185,10 +184,10 @@ body {
   --header-mobile-top: 4px;
   --header-edge-size: max(var(--project-focus-edge-size), var(--viewport-safe-top));
   --portfolio-edge-layer: calc(var(--portfolio-header-layer) + 1);
-  --portfolio-edge-fade-layer: calc(var(--portfolio-header-layer) - 1);
   --portfolio-toolbar-gap: 12px;
   --portfolio-mobile-toolbar-gap: 8px;
-  --work-dot-ratio: 1.1;
+  --work-dot-ratio: 1;
+  --work-dot-mobile-ratio: 1.1;
   --header-pop-duration: 280ms;
   --header-pop-scale: .5;
   --header-pop-blur: 3px;

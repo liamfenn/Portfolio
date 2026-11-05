@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Tap-to-change Featured and plain Safari edge (2026-11-05)**
+- Removed the Featured menu: every copy now taps to change, on desktop and mobile, on the page and in the header. Hovering dims it with the shared `--hover-dim`, following the text-button rule, since v3's only hover feedback was the menu. The desktop dot drops from 9.9px to 9px; mobile stays 8.8px.
+- Rejected: the inward fade under the top strip, which Liam found odd on iPhone Safari. No gradient or blur remains. The solid white strip stays so Safari doesn't sample the header's gray, and it now runs down to the bar's top so content can't show as a sliver between them. Content is cut at that line.
+
 **Safari edge fade and filter corrections (2026-11-05)**
 - The white top strip alone left a harsh white cut on iPhone Safari. The project modal's samplers were never only a strip: its bottom edge pairs a solid sampler with a short inward fade, so Safari samples the solid color while content dissolves into it. Added the same fade under the header, below the top strip. Liam still needs to confirm this on a device.
 - Featured now uses the circle with the shared 1.1 dot ratio and the v3 gap to the first tile: 12px desktop, 8px mobile. It no longer has the link color flash, on the page or in the header. Hovering on desktop reveals the page control's menu as in v3, and the header's copy cycles on click instead of opening a menu, so the downward menu is gone. Removed the now-unused filter support from the hover controller.

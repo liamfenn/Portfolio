@@ -22,7 +22,7 @@
 }
 .portfolio-v4 a[href], .portfolio-v4 button, .portfolio-v4 summary { cursor: pointer; }
 
-.portfolio-safari-edge, .portfolio-safari-fade { display: none; }
+.portfolio-safari-edge { display: none; }
 /* One bar in three states: default, narrowed once scrolled, and translucent over the images. */
 .portfolio-header {
   --header-glyph: var(--work-glyph-desktop-size);
@@ -80,6 +80,10 @@
 .feed-toolbar .feed-sort-control { margin-left: var(--portfolio-sort-inset); }
 .feed-sort-control .work-control { position: relative; padding: 0; }
 .feed-sort-control .work-label-group { gap: var(--work-label-gap); }
+.feed-sort-control .work-sort-control { transition: opacity var(--hover-duration) var(--hover-ease); }
+@media (hover: hover) {
+  .feed-sort-control .work-sort-control:hover { opacity: var(--hover-dim); }
+}
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
 .feed-project { position: relative; width: 100%; transition: opacity var(--motion-duration) var(--motion-ease); }
 .feed-projects:has(.feed-project-disclosure[open]) > .feed-project:not(:has(.feed-project-disclosure[open])) { opacity: var(--hover-dim); }
@@ -104,17 +108,16 @@
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
   /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */
-  /* Safari tints its top bar from opaque fixed elements at the edge, so this solid strip keeps the header's gray from being pulled up. The fade below it lets content dissolve into the strip instead of being cut by it, as the project modal's samplers do. */
-  .portfolio-safari-fade { display: block; position: fixed; top: var(--header-edge-size); left: 0; right: 0; z-index: var(--portfolio-edge-fade-layer); height: calc(var(--header-mobile-top) + var(--portfolio-control-mobile-size)); background: linear-gradient(to bottom, var(--bg-fill), transparent); pointer-events: none; }
-  .portfolio-safari-edge { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: var(--portfolio-edge-layer); height: var(--header-edge-size); background: var(--bg-fill); pointer-events: none; }
-  .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--header-edge-size) + var(--header-mobile-top)); }
+  /* Safari tints its top bar from opaque fixed elements at the edge, so this solid strip keeps the header's gray from being pulled up. It runs down to the bar so content can't show as a sliver between them. */
+  .portfolio-safari-edge { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: var(--portfolio-edge-layer); height: calc(var(--header-edge-size) + var(--header-mobile-top)); background: var(--bg-fill); pointer-events: none; }
+  .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--header-edge-size) + var(--header-mobile-top)); }
   .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
   .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); margin-top: var(--portfolio-mobile-section-gap); }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-toolbar-gap); font: var(--type-bodySans); }
-  .feed-toolbar { --work-glyph-size: var(--page-frame); }
+  .feed-toolbar { --work-glyph-size: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); }
   .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
   .portfolio-feed .feed-details { padding-inline: var(--content-padding-mobile); }
