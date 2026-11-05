@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Intro width cap (2026-11-05)**
+- Enforced the existing 480px bio-width token at all breakpoints and removed the mobile max-width:none override. The intro shrinks to the available text width on smaller screens.
+
 **Compact header player states and transitions (2026-11-05)**
 - Restored the previous playing/last-listened behavior using its shared duration/relative-time helpers and track-change scrambles: green playing badge/time, gray inactive badge with relative age, cached track fallback and whole-second clock ticks. Added measured overflow marquee with edge fades to mobile, desktop and the compact desktop scrolled player; only the scrolled desktop time is hidden. Reduced motion leaves overflowing copy manually scrollable.
 - Replaced flex/display expansion swaps with anchored controls and fixed-measure reveal panels, animated width/clipping and opacity. Hover clicks no longer immediately close an already hovered control; tap toggling, outside dismissal and Escape remain available. Scrolled tooltip hover regions are bridged, and their clock-free panels stay in the viewport.
