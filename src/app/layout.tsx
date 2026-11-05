@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
+import { LinkHoverGlitch } from "@/components/link-hover-glitch";
 import { AgentationProvider } from "@/components/agentation-provider";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
 import "./globals.css";
@@ -92,6 +93,7 @@ export default function RootLayout({
         <ProjectDisplayProvider>
           {children}
         </ProjectDisplayProvider>
+        <LinkHoverGlitch />
         <Analytics />
         <AgentationProvider />
       </body>

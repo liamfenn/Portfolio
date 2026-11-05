@@ -167,3 +167,12 @@ body {
   --portfolio-mobile-feed-gap: 4px;
   --portfolio-mobile-divider: 12px;
 }
+
+/* Frequent, short color flashes while a text link is hovered or keyboard-focused. */
+:root {
+  --link-glitch-flash-duration: 90ms;
+  --link-glitch-pause-min: 40ms;
+  --link-glitch-pause-max: 100ms;
+  --link-glitch-max-fraction: .6;
+  --link-glitch-max-letters: 3;
+}
