@@ -31,8 +31,9 @@ export function ProjectFeed() {
   const closeFocus = useCallback(() => setSelection(null), []);
   const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
 
-  let projects = sortProjects(FILLED_PROJECTS, featuredOrder, sortMode === "recent");
-  if (sortMode === "random") {
+  let projects = sortProjects(FILLED_PROJECTS, featuredOrder, sortMode === "recent" && !editingOrder);
+  // The order editor always shows the raw order it is editing.
+  if (sortMode === "random" && !editingOrder) {
     const rank = (id: string) => {
       let value = randomSeed + 1;
       for (const character of id) value = Math.imul(value ^ character.charCodeAt(0), 0x45d9f3b);

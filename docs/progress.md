@@ -26,6 +26,9 @@ production) is still the August version. Merging is Liam's call.
 **Immediate focused view exit (2026-11-05)**
 - Rejected: exiting in sequence (controls, then text, then media), which left about 440ms between the tap and the media moving. Backdrop and media now start on the tap and finish in 180ms, and the text disappears instantly. Fading the text, even over 80ms with the media raised above it, still read as overlapping the returning image. This drops the earlier wait for text to clear first, which guarded against Safari retaining glyphs after paging, so recheck exits after swiping between projects. `scripts/check-focus-exit-order.mjs`, `check-project-focus.mjs`, and `check-focus-video-continuity.mjs` still wait on the old `data-exit` stages and need updating before their next use.
 
+**Recent and Random only (2026-11-05)**
+- Removed the Featured sort at Liam's request. The control switches between Recent, the new default, and Random. The published order in `featured-order.json` and the Reorder Featured editor stay, but that order now only breaks ties between projects from the same quarter, so the editor shows the raw order only while it's open.
+
 **Overlay labels on click (2026-11-05)**
 - In Card overlay, the corner company and date labels no longer appear on desktop hover or keyboard focus; they color-glitch in with the panel on click. Focused view tiles have no hover labels either, so previews have no hover state in either mode.
 

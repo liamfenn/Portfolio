@@ -12,7 +12,7 @@ const DEFAULT_ORDER = reconcileProjectOrder(PROJECT_PREVIEWS.map(project => proj
 
 export type DesktopDensity = 2 | 3 | 4 | 6;
 export type MobileColumns = 1 | 2;
-export type ProjectSortMode = "featured" | "recent" | "random";
+export type ProjectSortMode = "recent" | "random";
 
 /**
  * Above this width a 2-up grid leaves tiles absurdly large, so the ladder shifts
@@ -68,7 +68,7 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
     return () => cancelAnimationFrame(frame);
   }, []);
   const beginOrderEdit = () => {
-    setDraftOrder(savedOrder); setEditingOrder(true); setSortMode("featured"); setOrderStatus("");
+    setDraftOrder(savedOrder); setEditingOrder(true); setOrderStatus("");
   };
   const cancelOrderEdit = () => { setDraftOrder(savedOrder); setEditingOrder(false); setOrderStatus(""); };
   const saveOrder = () => {
@@ -86,7 +86,7 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
   const [desktopDensity, setDensityState] = useState<DesktopDensity>(NARROW_DEFAULT_DENSITY);
   const [isWideViewport, setIsWideViewport] = useState(false);
   const [mobileColumns, setMobileColumns] = useState<MobileColumns>(1);
-  const [sortMode, setSortMode] = useState<ProjectSortMode>("featured");
+  const [sortMode, setSortMode] = useState<ProjectSortMode>("recent");
   const [randomSeed, setRandomSeed] = useState(0);
   const [focusedProject, setFocusedProject] = useState<ProjectPreview | null>(null);
   const reshuffle = useCallback(() => setRandomSeed((current) => current + 1), []);

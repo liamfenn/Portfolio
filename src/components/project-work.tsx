@@ -16,7 +16,6 @@ import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 
 const SORT_OPTIONS = [
-  { value: "featured", label: "Featured" },
   { value: "recent", label: "Recent" },
   { value: "random", label: "Random" },
 ] as const;

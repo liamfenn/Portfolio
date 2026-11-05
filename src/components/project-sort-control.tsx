@@ -5,7 +5,6 @@ import { useProjectDisplayState } from "@/components/project-display-state";
 import { WorkGlyphControl } from "@/components/work-glyph-control";
 
 const SORT_OPTIONS = [
-  { value: "featured", label: "Featured" },
   { value: "recent", label: "Recent" },
   { value: "random", label: "Random" },
 ] as const;

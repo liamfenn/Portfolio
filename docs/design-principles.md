@@ -36,14 +36,14 @@ The November redesign on `portfolio-v4-redesign` uses a centered 552px column wi
   (`--content-padding`), or 12px on mobile.
 - **Breakpoint:** 768px. Mobile is a real layout, not a squeezed desktop: check both.
 - **Section rhythm:** large steps between sections (96 / 72 / 48 / 32px), small gaps inside them (2–16px).
-- **Alignment is deliberate.** Menus line up with what they extend: the sort options with the "Featured"
+- **Alignment is deliberate.** Menus line up with what they extend: the sort options with the current sort
   text, the grid options with the label's right edge. Measure alignment; don't eyeball it.
 
 ## Interaction
 
 - **Three hover patterns, one focus ring:**
   - text links flash a few random letters in the shared glyph palette for the duration of hover or keyboard-visible focus, capped at 60% and three letters at once; text buttons and reduced-motion/unsupported-browser links retain `--hover-dim`;
-  - menu choices darken from `--text-secondary` to `--text-primary`; the Featured control and its dot share the text-link flashes and it taps to change;
+  - menu choices darken from `--text-secondary` to `--text-primary`; the sort control and its dot share the text-link flashes and it taps to change;
   - surfaces (the music player, the avatar) keep full opacity, and their badges slide out instead.
   - Every link and button shares `--focus-ring`.
 - **The playful controls** (globe, exit ring) use motion instead: faster spin, a 1.12× swell, a color glitch.
