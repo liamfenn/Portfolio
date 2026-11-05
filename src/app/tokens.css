@@ -80,6 +80,8 @@
   --project-focus-close-bottom: 44px;
   --project-focus-close-bottom-mobile: 24px;
   --project-focus-hit-size: 44px;
+  --project-focus-collapse-scale: .96;
+  --project-focus-swipe-exit-distance: 64px;
   --project-focus-edge-size: var(--content-padding-mobile);
   --project-focus-full-height: 100lvh;
   /* Editorial page rhythm; media uses the same square shape as the project grid. */

@@ -5,7 +5,7 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 // The first mode is the default. `?projects=<mode>` picks another on load, so browser checks can reach the others
 // without the design inspector.
-export const PROJECT_INTERACTION_MODES = ["overlay", "focus"] as const;
+export const PROJECT_INTERACTION_MODES = ["focus", "overlay"] as const;
 export type ProjectInteractionMode = typeof PROJECT_INTERACTION_MODES[number];
 export const PROJECT_INTERACTION_LABELS: Record<ProjectInteractionMode, string> = {
   focus: "Focused view", overlay: "Card overlay",

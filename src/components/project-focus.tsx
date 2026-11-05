@@ -7,6 +7,7 @@ import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { ProjectFocusMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
+import { scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -188,9 +189,14 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
       // Everything leaves on the tap: waiting for the text before moving the media read as lag.
       const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
-      const exit = tweenMedia(media.getBoundingClientRect(), trigger.getBoundingClientRect());
+      // After paging, the tile may be off screen, where a flight back only reads as a snap, so the media collapses in place.
+      const from = media.getBoundingClientRect(), tile = trigger.getBoundingClientRect();
+      const returns = tileOnScreen(tile, innerWidth, innerHeight);
+      const collapse = parseFloat(tokens.getPropertyValue("--project-focus-collapse-scale"));
+      const exit = tweenMedia(from, returns ? tile : scaledBox(from, collapse) as DOMRect);
       animations.push(fade(controls, controlsOpacity, 0), ...textExit, exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
-      if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
+      if (!returns) animations.push(fade(media, opacity, 0));
+      else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
       void Promise.all([exit, ...textExit].map(animation => animation.finished)).then(() => {
         if (disposed) return;
         root.style.visibility = "hidden";
@@ -204,6 +210,32 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       if (animationsRef.current === animations) animationsRef.current = [];
     };
   }, [selection, onClose, onClosing, animatePage, retainsMedia, cancelPaging, focusMedia]);
+
+  // Vertical swipes belong to native scrolling, which cancels pointer events, so this listens to touches.
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current!;
+    const mobile = matchMedia("(max-width: 767px)");
+    let start: { x: number; y: number; scrollTop: number } | null = null;
+    const touchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      start = mobile.matches && event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY, scrollTop: scroller.scrollTop } : null;
+    };
+    const touchEnd = (event: TouchEvent) => {
+      const touch = event.changedTouches[0];
+      const distance = parseFloat(getComputedStyle(scroller).getPropertyValue("--project-focus-swipe-exit-distance"));
+      if (start && touch && swipesToDismiss(touch.clientX - start.x, touch.clientY - start.y, start.scrollTop, distance)) dismissRef.current();
+      start = null;
+    };
+    const cancel = () => { start = null; };
+    scroller.addEventListener("touchstart", touchStart, { passive: true });
+    scroller.addEventListener("touchend", touchEnd, { passive: true });
+    scroller.addEventListener("touchcancel", cancel, { passive: true });
+    return () => {
+      scroller.removeEventListener("touchstart", touchStart);
+      scroller.removeEventListener("touchend", touchEnd);
+      scroller.removeEventListener("touchcancel", cancel);
+    };
+  }, []);
 
   const neighbor = neighborDirection === -1 ? neighbors.previous : neighbors.next;
   useLayoutEffect(() => {

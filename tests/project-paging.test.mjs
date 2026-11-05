@@ -1,6 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { commitsPage, pagingIntent, restartsWheelGesture } from "../src/lib/project-paging.ts";
+import { commitsPage, pagingIntent, restartsWheelGesture, scaledBox, swipesToDismiss, tileOnScreen } from "../src/lib/project-paging.ts";
+
+test("a tile counts as on screen only when enough of it shows for a return flight to read", () => {
+  const tile = top => ({ left: 0, top, width: 400, height: 400 });
+  assert.equal(tileOnScreen(tile(100), 400, 800), true);
+  assert.equal(tileOnScreen(tile(-300), 400, 800), true);
+  assert.equal(tileOnScreen(tile(-350), 400, 800), false);
+  assert.equal(tileOnScreen(tile(790), 400, 800), false);
+  assert.equal(tileOnScreen(tile(-2000), 400, 800), false);
+  assert.equal(tileOnScreen(tile(2000), 400, 800), false);
+});
+
+test("scaling a box keeps its center", () => {
+  assert.deepEqual(scaledBox({ left: 0, top: 100, width: 200, height: 200 }, 0.5), { left: 50, top: 150, width: 100, height: 100 });
+});
+
+test("swiping down exits only from the top of the view, and only when mostly vertical", () => {
+  assert.equal(swipesToDismiss(0, 80, 0, 64), true);
+  assert.equal(swipesToDismiss(0, 40, 0, 64), false);
+  assert.equal(swipesToDismiss(0, 80, 120, 64), false);
+  assert.equal(swipesToDismiss(0, -80, 0, 64), false);
+  assert.equal(swipesToDismiss(70, 80, 0, 64), false);
+});
 
 test("paging intent waits for deliberate horizontal motion and leaves vertical gestures to scrolling", () => {
   assert.equal(pagingIntent(5, 3, 8), "pending");
