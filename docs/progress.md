@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Stable ordering while opening projects**
+- Fixed a regression from the covered-tile stacking exemption: opening Collections sheet could change Collections → Canvas → Bottom search into Collections → Bottom search → Canvas, then restore it on close. The arrangement was being recalculated from the raw order with different constraints on each open/close.
+- Resolve and memoize stacking corrections only for the base sort/order and column count. Opening/closing reuses that base order. Mobile two-column expansion uses a separate helper to exchange a right-column selection with its existing row neighbor; it never reruns stacking constraints. Blurred expanded layouts stay exempt from extra stacking-driven rearrangements, and collapsing restores the same base.
+- Validation: 74 tests, TypeScript, touched-file lint, production build, and diff checks pass. Added regression/exhaustive tests for base-order retention and row-local expansion. Chromium mobile list/grid and desktop grid checks open/close five tagged/untagged projects in overlay and full-screen focus modes, confirming unchanged ordering except the intended two-column row promotion.
+
 **Feed cash project**
 - Filled shop-09 with Feed cash, Shop / Q4 26, Ashten Alexander (existing ashten.studio link), and Swift/UIKit. Added stackTag: top so it cannot sit directly above Bottom search. All surviving IDs and shared/local Featured ordering stay stable; three blank placeholders remain, eleven tiles total.
 - Added the validated five-second, 2160px-square, 60fps clip as responsive H.264 files/posters under public/videos/shop-feed-cash-preview. The 800/1200/1600px videos are 168,924 / 264,360 / 353,647 bytes; source frame rate and SDR tags are preserved, with full decode checks passing.

@@ -10,7 +10,7 @@ import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { sortProjects } from "@/lib/project-order";
-import { arrangeProjectGrid } from "@/lib/project-arrangement";
+import { arrangeProjectGrid, expandProjectGrid } from "@/lib/project-arrangement";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { InspectableText } from "@/components/design-inspector";
@@ -506,12 +506,12 @@ export function ProjectWork() {
   };
 
   const activeExpandedId = projectInteractionMode === "focus" ? null : expandedId;
-  const displayedPreviews = editingOrder ? sortedPreviews : arrangeProjectGrid(
-    sortedPreviews,
-    isMobile ? mobileColumns : desktopDensity,
-    isMobile && mobileColumns === 2 ? activeExpandedId : null,
-    isMobile && projectInteractionMode === "overlay" ? activeExpandedId : null,
-  );
+  const columns = isMobile ? mobileColumns : desktopDensity;
+  const arrangedPreviews = useMemo(() => editingOrder ? sortedPreviews : arrangeProjectGrid(sortedPreviews, columns),
+    [sortedPreviews, columns, editingOrder]);
+  const displayedPreviews = isMobile && mobileColumns === 2 && activeExpandedId
+    ? expandProjectGrid(arrangedPreviews, mobileColumns, activeExpandedId)
+    : arrangedPreviews;
 
   const navigateFocus = (direction: -1 | 1, keyboard: boolean) => {
     if (!focusSelection || displayedPreviews.length < 2) return;
