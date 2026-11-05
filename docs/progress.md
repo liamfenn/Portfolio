@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Spotify logo in the hover glitch (2026-11-05)**
+- The player's Spotify logo now flashes palette colors with the track text on hover and keyboard focus, using the same `data-hover-glitch-mark` hook as the Featured dot.
+
 **Safari top edge (2026-11-05, open)**
 - Rejected: the solid white strip, even running down to the bar, because its hard edge still bothered Liam. Also dropped the 97% opaque bar variants. On an iPhone, Liam confirmed an opaque bar 24px below the safe area avoids the gray tint but sits too low. That 24px is now the mobile default, up from Figma's 4px, and temporary `?edge=<px>` links find the highest position Safari leaves alone. Set `--header-mobile-top` to the chosen value and remove the `edge` query handling.
 

@@ -45,7 +45,7 @@ export function PortfolioPlayer() {
   return <a className={`portfolio-player hover-surface${data?.isPlaying ? " is-playing" : ""}`} href={data?.songUrl ?? "https://open.spotify.com"}
     target="_blank" rel="noreferrer" aria-label={data ? `${data.isPlaying ? "Listening now" : "Last listened to"}: ${data.title} by ${data.artist} on Spotify` : "Open Spotify"}>
     <AlbumArtwork src={data?.albumImageUrl} />
-    <span className="player-brand"><span className="player-logo" /></span>
+    <span className="player-brand"><span className="player-logo" data-hover-glitch-mark /></span>
     <span className="player-track text-bodySans">
       <span ref={trackLine} className={`player-track-copy${overflow > 1 ? " is-overflowing" : ""}`} style={{ "--identity-song-marquee-offset": `-${overflow}px` } as CSSProperties}>
         <span ref={trackContent} className="player-track-marquee" key={`${title}-${artist}`}>
