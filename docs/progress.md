@@ -10,8 +10,8 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
-**Safari top edge comparison (2026-11-05, open)**
-- Rejected: the solid white strip, even running down to the bar, because its hard edge still bothered Liam. Removed it. Without a strip, Safari may sample the bar's gray again, so three temporary variants are up for Liam to compare on an iPhone: the default keeps the bar at 97% opacity, `?edge=low` keeps it opaque but moves it from 4px to 24px below the safe area, and `?edge=both` does both. Whether near-opaque fills escape Safari's sampling is untested. Remove the unchosen variants, the `edge` query handling, and the `data-safari-edge` rules once one is picked.
+**Safari top edge (2026-11-05, open)**
+- Rejected: the solid white strip, even running down to the bar, because its hard edge still bothered Liam. Also dropped the 97% opaque bar variants. On an iPhone, Liam confirmed an opaque bar 24px below the safe area avoids the gray tint but sits too low. That 24px is now the mobile default, up from Figma's 4px, and temporary `?edge=<px>` links find the highest position Safari leaves alone. Set `--header-mobile-top` to the chosen value and remove the `edge` query handling.
 
 **Tap-to-change Featured and plain Safari edge (2026-11-05)**
 - Removed the Featured menu: every copy now taps to change, on desktop and mobile, on the page and in the header. Hovering uses the same color flashes as text links, on the label and its dot, as Liam clarified. The desktop dot drops from 9.9px to 9px; mobile stays 8.8px.

@@ -20,10 +20,10 @@ export function PortfolioHeader() {
     ...FILTER_SCRAMBLE, text: actionLabel, ignore: [], playOnMount: false, speed: reducedMotion ? 0 : FILTER_SCRAMBLE.speed,
   });
 
-  // Temporary: lets Liam compare Safari top-edge treatments on a device with ?edge=low or ?edge=both.
+  // Temporary: lets Liam find the highest bar position Safari leaves alone, with ?edge=<px> on a device.
   useEffect(() => {
-    const edge = new URLSearchParams(window.location.search).get("edge");
-    if (edge) document.documentElement.dataset.safariEdge = edge;
+    const edge = Number(new URLSearchParams(window.location.search).get("edge"));
+    if (edge) document.documentElement.style.setProperty("--header-mobile-top", `${edge}px`);
   }, []);
 
   useEffect(() => {

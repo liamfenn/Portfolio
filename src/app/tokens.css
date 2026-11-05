@@ -181,7 +181,7 @@ body {
   --header-marquee-fade-width: 12px;
   --header-filter-slot: 27px;
   --header-filter-mobile-slot: 24px;
-  --header-mobile-top: 4px;
+  --header-mobile-top: 24px;
   --portfolio-toolbar-gap: 12px;
   --portfolio-mobile-toolbar-gap: 8px;
   --work-dot-ratio: 1;
@@ -193,7 +193,6 @@ body {
   --player-track-mobile-gap: 20px;
   --header-translucent-fill: color-mix(in srgb, var(--bg-fill) 72%, transparent);
   --header-translucent-blur: 6px;
-  --header-near-opaque-fill: color-mix(in srgb, var(--bg-secondary-fill) 97%, transparent);
   --header-scroll-duration: 360ms;
   --header-scroll-ease: cubic-bezier(.4, 0, .2, 1);
 }

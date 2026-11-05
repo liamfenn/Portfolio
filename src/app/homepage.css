@@ -105,10 +105,7 @@
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
   /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */
-  /* Temporary Safari comparison: Safari tints its top area from opaque fixed elements near the edge. "alpha" keeps the bar just short of opaque, "low" moves it further from the edge. Remove once Liam picks one. */
-  .header-fill { background-color: var(--header-near-opaque-fill); }
-  :root[data-safari-edge="low"] .portfolio-header:not(.is-over-images) .header-fill { background-color: var(--bg-secondary-fill); }
-  :root:is([data-safari-edge="low"], [data-safari-edge="both"]) { --header-mobile-top: var(--portfolio-top); }
+  /* Safari tints its top area from opaque fixed elements near the edge, so the bar sits far enough down to stay out of that sampling. */
   .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--viewport-safe-top) + var(--header-mobile-top)); }
   .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
