@@ -1,19 +1,16 @@
 "use client";
 
 import { flushSync } from "react-dom";
+import { WORK_OPTION_TRANSITION as DENSITY_TRANSITION, WORK_OPTION_HIDDEN as DENSITY_HIDDEN, WORK_OPTION_VISIBLE as DENSITY_VISIBLE, MenuOptionText, WorkGlyphControl } from "@/components/work-glyph-control";
 import { HomepageCard } from "@/components/homepage-card";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useColorScramble } from "@/hooks/use-color-scramble";
 import type { CSSProperties, FocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import type { DesktopDensity } from "@/components/project-display-state";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { sortProjects } from "@/lib/project-order";
 import { arrangeProjectGrid, expandProjectGrid } from "@/lib/project-arrangement";
-import { currentGlyphPalette } from "@/lib/palette-toy";
-import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
-import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
@@ -43,93 +40,6 @@ function shuffleWithSeed<T>(items: readonly T[], seed: number) {
   }
 
   return result;
-}
-
-const DENSITY_TRANSITION = {
-  duration: 0.28,
-  ease: [0.16, 1, 0.3, 1],
-} as const;
-
-const DENSITY_HIDDEN = {
-  opacity: 0,
-  scale: 0.74,
-  filter: "blur(5px)",
-} as const;
-
-const DENSITY_VISIBLE = {
-  opacity: 1,
-  scale: 1,
-  filter: "blur(0px)",
-} as const;
-
-function MenuOptionText({ text, labelId }: { text: string; labelId: string }) {
-  return <span className="work-option-text" data-swarm-label-id={labelId} data-final-text={text}><InspectableText>{Array.from(text).map((character, index) =>
-    <span key={index} data-swarm-menu-char>{character}</span>
-  )}</InspectableText></span>;
-}
-
-function WorkGlyphControl({
-  text,
-  reserveScrambleWidth = false,
-  variant = "grid",
-  selection = 0,
-}: {
-  text: string;
-  reserveScrambleWidth?: boolean;
-  variant?: "grid" | "sort";
-  selection?: number;
-}) {
-  const markRef = useRef<HTMLSpanElement>(null);
-  const previousSelection = useRef(selection);
-  const reducedMotion = useReducedMotion();
-  const [isScrambling, setIsScrambling] = useState(false);
-  const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
-  const { ref, replay } = useColorScramble({
-    ...FILTER_SCRAMBLE,
-    text,
-    playOnMount: false,
-    onAnimationFrame: (result) => {
-      if (result !== text) {
-        setIsScrambling(true);
-        const colors = currentGlyphPalette();
-        if (!reducedMotion && markRef.current && colors.length) {
-          markRef.current.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        }
-      }
-    },
-    onAnimationEnd: () => {
-      setIsScrambling(false);
-      markRef.current?.style.removeProperty("background-color");
-    },
-  });
-
-  useEffect(() => {
-    if (previousSelection.current === selection) return;
-    previousSelection.current = selection;
-    // Re-selecting Random still counts as a selection, even when the label stays the same.
-    if (!reducedMotion) replay();
-  }, [selection, replay, reducedMotion]);
-
-  return (
-    <span
-      className={`work-label-group work-${variant}-label-group${
-        shouldReserveScrambleWidth ? " is-scrambling" : ""
-      }`}
-    >
-      {variant === "sort" ? (
-        <span ref={markRef} className="work-control-dot" aria-hidden="true" />
-      ) : (
-        <span
-          ref={markRef}
-          className="work-control-square"
-          aria-hidden="true"
-        />
-      )}
-      <InspectableText text={text}><span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
-        {text}
-      </span></InspectableText>
-    </span>
-  );
 }
 
 export function ProjectWork() {

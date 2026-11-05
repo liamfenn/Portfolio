@@ -155,9 +155,9 @@ reruns the quiz locally: each colour is previewed as type and glyphs on white
 (Y/N or arrow keys, Backspace to undo), then a final cut; **Copy settings**
 exports the result to bake in as the new default.
 
-Text links repeatedly flash one to three random alphabetic graphemes while hovered or keyboard-focused, never more than 60% at once. The 90ms flashes have random 40–100ms pauses, use the globe’s legible palette, and stop immediately on mouse-out. Native text stays intact via CSS Custom Highlights, beneath the swarm’s masks. Reduced motion disables the flashes; unsupported browsers retain ordinary hover dimming. Timing and density live in `--link-glitch-*` tokens.
+Text links repeatedly flash one to three random alphabetic graphemes while hovered or keyboard-focused, never more than 60% at once. The 90ms flashes have random 40–100ms pauses, use the globe’s legible palette, and stop immediately on mouse-out. Native text stays intact via CSS Custom Highlights, beneath the swarm’s masks. Reduced motion disables the flashes; unsupported browsers retain ordinary hover dimming. The contact links also work with inspector display:contents wrappers enabled. Featured uses the same effect on its text and square, with the previous desktop hover menu and mobile tap-to-cycle behavior restored. Timing and density live in `--link-glitch-*` tokens, shared by links, filter controls, and globe/ring hover.
 
-The globe and exit ring use short runs of tightly staggered palette flickers rippling through scattered characters from changing origins, returning to black between bursts. Hover or keyboard focus speeds up the spin and increases the flickers, while keeping fewer than half the characters colored.
+The globe and exit ring use short runs of tightly staggered palette flickers rippling through scattered characters from changing origins, returning to black between bursts. Hover or keyboard focus speeds up the spin and switches to the links’ exact 90ms flash / 40–100ms pause cadence, coloring one to three random glyphs at once. Idle ripples remain quieter.
 
 A 44px globe of orbiting characters sits in the middle of the footer on desktop
 and centered below it on mobile. Tapping it bursts the globe and frees about

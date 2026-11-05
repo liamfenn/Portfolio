@@ -1004,4 +1004,4 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-reorder-ghost { position: fixed; z-index: var(--project-reorder-ghost-layer); pointer-events: none; background: var(--bg-fill); color: var(--text-primary); padding: var(--content-padding-mobile); transform: translate(-50%, -100%); }
 
 /* Keep the shared glyph palette legible while a text link signals hover. */
-main a[data-link-glitch-active] { opacity: 1; }
+main [data-link-glitch-active] { opacity: 1; }

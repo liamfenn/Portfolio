@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { linkGlitchLetters } from "../src/lib/link-hover-glitch.ts";
+import { glitchLetters } from "../src/lib/color-glitch.ts";
 
 test("hover flashes never exceed 60% of a label, including short links", () => {
   for (let length = 0; length < 100; length++) {
     for (const random of [() => 0, () => 0.5, () => 0.999999]) {
-      const selected = linkGlitchLetters(length, 0.6, 3, random);
+      const selected = glitchLetters(length, 0.6, 3, random);
       assert.ok(selected.length <= Math.floor(length * 0.6));
       assert.ok(selected.length <= 3);
       assert.equal(new Set(selected).size, selected.length);
@@ -16,6 +16,6 @@ test("hover flashes never exceed 60% of a label, including short links", () => {
 });
 
 test("different random choices flash different letter positions", () => {
-  assert.deepEqual(linkGlitchLetters(10, 0.6, 3, () => 0), [0]);
-  assert.deepEqual(linkGlitchLetters(10, 0.6, 3, () => 0.999999), [9, 8, 7]);
+  assert.deepEqual(glitchLetters(10, 0.6, 3, () => 0), [0]);
+  assert.deepEqual(glitchLetters(10, 0.6, 3, () => 0.999999), [9, 8, 7]);
 });

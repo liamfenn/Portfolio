@@ -170,6 +170,7 @@ body {
 
 /* Frequent, short color flashes while a text link is hovered or keyboard-focused. */
 :root {
+  --work-menu-exit-duration: 110ms;
   --link-glitch-flash-duration: 90ms;
   --link-glitch-pause-min: 40ms;
   --link-glitch-pause-max: 100ms;

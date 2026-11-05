@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
+import { glitchLetters, hoverGlitchSettings } from "@/lib/color-glitch";
 import { animateWhenVisible } from "@/lib/visible-animation";
 import type { Point } from "@/lib/glyph-physics";
 
@@ -51,10 +52,11 @@ function paint(chars: (HTMLSpanElement | null)[], angle: number, size: number, p
   });
 }
 
-// Short staggered runs pass through nearby glyphs, then return to the inherited text color.
+// Quiet ripples at rest; hover shares the links’ short, frequent color bursts.
 function colorGlitches(glyphs: (HTMLElement | null)[], positions: Point[], colors: string[], isHot: () => boolean) {
   const live = glyphs.filter((glyph): glyph is HTMLElement => glyph !== null);
   const active = new Map<HTMLElement, number>();
+  const hoverTiming = hoverGlitchSettings();
   let pending: { glyph: HTMLElement; at: number }[] = [];
   let nextBurst = performance.now() + 1550 + Math.random() * 1200;
   let wasHot = false;
@@ -67,16 +69,29 @@ function colorGlitches(glyphs: (HTMLElement | null)[], positions: Point[], color
       if (now >= until) { glyph.style.color = ""; active.delete(glyph); }
     }
     if (hot !== wasHot) {
+      live.forEach(glyph => { glyph.style.color = ""; });
+      active.clear();
       nextBurst = hot ? now : now + 1550 + Math.random() * 1200;
       pending = [];
       wasHot = hot;
+    }
+    if (hot) {
+      if (now >= nextBurst && colors.length) {
+        for (const index of glitchLetters(live.length, hoverTiming.fraction, hoverTiming.maxLetters)) {
+          const glyph = live[index];
+          glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
+          active.set(glyph, now + hoverTiming.duration);
+        }
+        nextBurst = now + hoverTiming.duration + hoverTiming.pauseMin + Math.random() * (hoverTiming.pauseMax - hoverTiming.pauseMin);
+      }
+      return;
     }
     if (now >= nextBurst && colors.length && !pending.length) {
       // A scattered subset ripples from a fresh origin; gaps keep it from reading as a solid band.
       // The animation already knows these positions; measuring transformed DOM here forces style/layout work.
       const origin = positions[Math.floor(Math.random() * live.length)];
       const x = origin?.x ?? 0, y = origin?.y ?? 0;
-      const count = Math.min(live.length, hot ? 11 + Math.floor(Math.random() * 5) : 8 + Math.floor(Math.random() * 4));
+      const count = Math.min(live.length, 8 + Math.floor(Math.random() * 4));
       const pool = [...live];
       const selected = Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
       const ordered = selected.map(glyph => {
@@ -85,18 +100,18 @@ function colorGlitches(glyphs: (HTMLElement | null)[], positions: Point[], color
       }).sort((a, b) => a.position - b.position);
       let at = now;
       pending = ordered.map(({ glyph }) => {
-        at += hot ? 20 + Math.random() * 25 : 40 + Math.random() * 45;
+        at += 40 + Math.random() * 45;
         return { glyph, at };
       });
-      nextBurst = at + (hot ? 100 + Math.random() * 200 : 1150 + Math.random() * 1000);
+      nextBurst = at + 1150 + Math.random() * 1000;
     }
     // Keep a monochrome majority even when the tail of one flicker overlaps the next.
-    const limit = Math.max(1, Math.floor(live.length * (hot ? 0.45 : 0.3)));
+    const limit = Math.max(1, Math.floor(live.length * 0.3));
     while (pending.length && pending[0].at <= now) {
       const { glyph } = pending.shift()!;
       if (active.size >= limit && !active.has(glyph)) continue;
       glyph.style.color = colors[Math.floor(Math.random() * colors.length)];
-      active.set(glyph, now + (hot ? 70 : 90) + Math.random() * 70);
+      active.set(glyph, now + 90 + Math.random() * 70);
     }
   };
   return { tick, clear: () => live.forEach(glyph => { glyph.style.color = ""; }) };

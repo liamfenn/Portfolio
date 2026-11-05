@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ProjectSortControl } from "@/components/project-sort-control";
 import { InspectableText } from "@/components/design-inspector";
 import { ProjectCredits } from "@/components/project-focus";
 import { ProjectPreviewVideo } from "@/components/project-preview-video";
@@ -14,7 +15,7 @@ import { arrangeProjectGrid } from "@/lib/project-arrangement";
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
 
 export function ProjectFeed() {
-  const { featuredOrder, editingOrder, swapOrder, sortMode, setSortMode, randomSeed, reshuffle } = useProjectDisplayState();
+  const { featuredOrder, editingOrder, swapOrder, sortMode, randomSeed } = useProjectDisplayState();
   let projects = sortProjects(FILLED_PROJECTS, featuredOrder, sortMode === "recent");
   if (sortMode === "random") {
     const rank = (id: string) => {
@@ -35,18 +36,7 @@ export function ProjectFeed() {
     }
   }}>
     <div className="feed-toolbar text-bodySans">
-      <details className="feed-sort">
-        <summary><span className="feed-sort-mark" aria-hidden="true" /><InspectableText>{sortMode === "featured" ? "Featured" : sortMode === "recent" ? "Recent" : "Random"}</InspectableText></summary>
-        <div className="feed-sort-options">
-          {(["featured", "recent", "random"] as const).map(value => <button type="button" key={value} aria-pressed={sortMode === value}
-            onClick={event => {
-              setSortMode(value);
-              if (value === "random") reshuffle();
-              event.currentTarget.closest("details")!.open = false;
-              event.currentTarget.closest("details")!.querySelector("summary")?.focus();
-            }}><InspectableText>{value === "featured" ? "Featured" : value === "recent" ? "Recent" : "Random"}</InspectableText></button>)}
-        </div>
-      </details>
+      <ProjectSortControl />
     </div>
     <ul className="feed-projects">
       {projects.map((preview, index) => <li key={preview.id} className="feed-project homepage-card" data-project-id={preview.id}>
