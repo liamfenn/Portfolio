@@ -6,7 +6,6 @@ import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES,
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
-import { SHOP_COLORS } from "@/lib/glyph-shop";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { GlyphGlobe } from "@/components/glyph-globe";
@@ -28,7 +27,6 @@ export function PaletteToy() {
   const runRef = useRef<AbortController | null>(null);
   const glyphsRef = useRef(glyphs);
   const [mode, setMode] = useState<GlyphMode>("idle");
-  const [formation, setFormation] = useState<"swarm" | "shop">("swarm");
   const modeRef = useRef(mode);
   useEffect(() => { modeRef.current = mode; }, [mode]);
   const [ready, setReady] = useState(false);
@@ -93,7 +91,7 @@ export function PaletteToy() {
   const paletteRef = useRef(glyphPaletteKey);
   useEffect(() => { paletteRef.current = glyphPaletteKey; setGlyphPalette(glyphPaletteKey.split(" ")); }, [glyphPaletteKey]);
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
-  const run = (nextFormation: "swarm" | "shop") => {
+  const toggle = () => {
     if (reducedMotion) return;
     const current = modeRef.current;
     if (current === "collapsing") return;
@@ -114,7 +112,6 @@ export function PaletteToy() {
     if (!globe || !page) return;
     const controller = new AbortController();
     runRef.current = controller;
-    setFormation(nextFormation);
     setMode("loading");
     const finish = () => {
       if (runRef.current !== controller) return;
@@ -122,15 +119,13 @@ export function PaletteToy() {
       swarmRef.current = null;
       setMode("idle");
     };
-    startSwarm(page, globe, glyphsRef.current, { formation: nextFormation, signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit"), palette: () => paletteRef.current.split(" ") })
+    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit"), palette: () => paletteRef.current.split(" ") })
       .then(next => {
         if (controller.signal.aborted) next.cancel();
         else { swarmRef.current = next; setMode("active"); }
       })
       .catch(finish);
   };
-  const toggle = () => { run("swarm"); };
-  const startShop = () => { run("shop"); };
   const onEscape = useEffectEvent(() => { toggle(); });
 
   // Esc on the keyboard collapses the swarm too, unless something else already handled the key.
@@ -194,9 +189,8 @@ export function PaletteToy() {
 
   return <>
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion}
-      shop={formation === "shop" && mode !== "idle"}
-      palette={formation === "shop" && mode !== "idle" ? SHOP_COLORS.join(" ") : glyphPaletteKey}
-      globeRef={globeRef} onToggle={toggle} onShop={startShop} />, globeHost)}
+      palette={glyphPaletteKey}
+      globeRef={globeRef} onToggle={toggle} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>

@@ -10,11 +10,14 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Shop sculpture removed (2026-11-05)**
+- Rejected: the long-hover Shop glyph sculpture. Liam asked to remove it everywhere, so its trigger, swarm branches, `glyph-shop.ts`, tests, check script, and `--glyph-shop-*` tokens are gone. It's in git history before this commit if it's ever wanted again. The ordinary swarm is unchanged.
+
 **Mobile bottom margin (2026-11-05)**
 - The page's bottom padding on mobile is now 40px instead of 60px; desktop stays 60px.
 
 **Side entry for the swarm (2026-11-05)**
-- Letters scrolled out of view can now enter at a random height on a random side instead of the nearest edge, which sent the intro's letters through the top. All do on mobile and about 40% do on desktop, set by `--glyph-side-entry-share`. They still return to their own positions on exit, and the Shop sculpture is unchanged.
+- Letters scrolled out of view can now enter at a random height on a random side instead of the nearest edge, which sent the intro's letters through the top. All do on mobile and about 40% do on desktop, set by `--glyph-side-entry-share`. They still return to their own positions on exit.
 
 **Inset mobile player (2026-11-05)**
 - The mobile player now sits inside the 12px gutters instead of running full bleed, following Figma 592:23901.

@@ -1,9 +1,7 @@
 import type MatterJS from "matter-js";
-import { SPACING, captureStrength, entryPoint, exitPoint, sideEntryPoint, pocketForce, smoothstep, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, exitPoint, sideEntryPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
-import { SHOP_COLORS, SHOP_MARK_PATH, projectShopPoint, shopPoints } from "@/lib/glyph-shop";
-import type { ShopPoint } from "@/lib/glyph-shop";
 
 const HOVER_LABELS = ".work-density-menu:not(.is-closing) .work-option-text,.homepage-project-overlay.is-visible [data-swarm-label]";
 const SKIP = ".homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
@@ -68,7 +66,6 @@ interface Glyph {
   globeChar?: HTMLElement;
   /** Hover-only letters leave the screen on exit instead of returning to a hidden label. */
   transient?: boolean;
-  side?: -1 | 1;
   escape?: Point;
   /** Intro timing: each letter floats loose for a while, then its pull fades in over its own ramp. */
   bornAt: number;
@@ -90,7 +87,6 @@ interface Glyph {
   /** A colour glitch in progress: flickering between palette colours until `end`, then settling on `to`. */
   tint?: { start: number; end: number; to: string; flickAt: number };
   landed?: boolean;
-  shop?: { point: ShopPoint; vx: number; vy: number; scale: number; opacity: number };
 }
 export interface GlyphSwarm {
   isActive(): boolean;
@@ -137,29 +133,14 @@ const fontOf = (style: CSSStyleDeclaration, size = style.fontSize) => `${style.f
  * The swarm floats in a loose zone around the pointer (or the viewport centre). The original text stays mounted; released characters are only masked.
  */
 export async function startSwarm(root: Element, globe: HTMLElement, initial: GlyphSettings,
-  options: { formation?: "swarm" | "shop"; signal: AbortSignal; onFinish: () => void; keepClear: () => Element | null; palette: () => string[] }): Promise<GlyphSwarm> {
+  options: { signal: AbortSignal; onFinish: () => void; keepClear: () => Element | null; palette: () => string[] }): Promise<GlyphSwarm> {
   const { Bodies, Body, Composite, Engine } = (await import("matter-js")).default;
   options.signal.throwIfAborted();
   let settings = initial;
-  const shop = options.formation === "shop";
-  const tokens = shop ? getComputedStyle(globe) : null;
-  const duration = (token: string) => {
-    const value = tokens!.getPropertyValue(token).trim();
-    return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
-  };
-  const shopMotion = tokens ? {
-    gather: duration("--glyph-shop-gather-duration"),
-    turn: duration("--glyph-shop-turn-duration"),
-    float: duration("--glyph-shop-float-duration"),
-    restore: duration("--motion-duration"),
-    size: parseFloat(tokens.getPropertyValue("--glyph-shop-size")),
-    drift: parseFloat(tokens.getPropertyValue("--glyph-shop-float-distance")),
-  } : null;
   const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
   engine.gravity.x = 0; engine.gravity.y = 0;
   const layer = document.createElement("div");
   layer.className = "glyph-swarm-layer"; layer.setAttribute("aria-hidden", "true");
-  layer.dataset.formation = shop ? "shop" : "swarm";
   const highlight = typeof Highlight !== "undefined" && CSS.highlights ? new Highlight() : null;
   const highlightStyle = document.createElement("style");
   if (highlight) {
@@ -193,26 +174,12 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const origin = centerOf(globe.getBoundingClientRect());
   const count = swarmCount(sources.length, settings.amount);
   const globeLetters = globe.querySelectorAll<HTMLElement>(".glyph-globe-char:not([data-ring])");
-  const sculptureCount = shop ? Math.max(count + globeLetters.length, Math.round(parseFloat(tokens!.getPropertyValue("--glyph-shop-glyph-count")))) : 0;
-  const context = shop ? document.createElement("canvas").getContext("2d") : null;
-  const path = shop ? new Path2D(SHOP_MARK_PATH) : null;
-  const sculpture = context && path ? shopPoints(sculptureCount, (x, y) => context.isPointInPath(path, x, y)) : [];
   for (let index = 0; index < count; index++) {
     const pick = index + Math.floor(Math.random() * (sources.length - index));
     [sources[index], sources[pick]] = [sources[pick], sources[index]];
   }
   const distance = (source: Source) => Math.hypot(centerOf(source.rect).x - origin.x, centerOf(source.rect).y - origin.y);
   const chosen = sources.slice(0, count);
-  // Extra copies borrow the page's characters and fonts without taking more text out of its layout.
-  // Capture their metrics once; a side-entry batch never needs to measure the page while it is spawning.
-  const fonts = new Map<HTMLElement, string>();
-  const sideSeeds = shop ? sources.slice(0, 64).map(source => {
-    let font = fonts.get(source.parent);
-    if (!font) { font = fontOf(getComputedStyle(source.parent)); fonts.set(source.parent, font); }
-    return { char: source.node.data[source.offset], rect: source.rect, font };
-  }) : [];
-  const sideCount = sideSeeds.length ? Math.max(0, sculptureCount - count - globeLetters.length) : 0;
-  let sideQueued = 0;
   for (const source of chosen) {
     for (let element: Element | null = source.parent, level = 0; element && level < ANCHOR_LEVELS && root.contains(element); element = element.parentElement, level++) {
       source.anchors.push({ element, index: indexIn(element, source.node, source.offset) });
@@ -250,7 +217,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   placeWalls();
 
   const viewportCenter = () => ({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-  let viewport = { width: window.innerWidth, height: window.innerHeight };
   const spacing = () => SPACING * settings.spacing;
   // Globe letters count too, so the zone has room for everyone.
   const radius = () => zoneRadius(Math.max(count + 22, glyphs.length), spacing());
@@ -260,18 +226,13 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
 
   const glyphs: Glyph[] = [];
   const randomColor = () => {
-    const colors = shop ? SHOP_COLORS : options.palette();
+    const colors = options.palette();
     return colors[Math.floor(Math.random() * colors.length)];
   };
   // Runs a letter's colour glitch: a quick flicker through palette colours (now and then its destination), then it settles.
   const tintStep = (glyph: Glyph, time: number) => {
     const tint = glyph.tint;
     if (!tint || time < tint.start) return;
-    if (shop) {
-      glyph.element.style.color = tint.to;
-      if (time >= tint.end) glyph.tint = undefined;
-      return;
-    }
     if (time >= tint.end) { glyph.element.style.color = tint.to; glyph.tint = undefined; return; }
     if (time - tint.flickAt < FLICKER_MS) return;
     tint.flickAt = time;
@@ -297,14 +258,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       orbit: Math.random() * Math.PI * 2, orbitSpeed: (Math.random() - 0.5) * 0.012, reach: Math.sqrt(Math.random()), departAt: 0, baseColor: color };
     // Page letters glitch into a random palette colour as the suction catches them.
     if (source) glyph.tint = { start: glyph.bornAt + floatMs, end: glyph.bornAt + floatMs + 300 + Math.random() * 450, to: randomColor(), flickAt: 0 };
-    if (shop && sculpture.length) {
-      glyph.shop = { point: sculpture[glyphs.length % sculpture.length], vx: velocity.x * 60, vy: velocity.y * 60, scale: 1, opacity: 1 };
-      // Collisions would flatten the extrusion and keep letters from reaching their exact spots.
-      body.collisionFilter.mask = 0;
-      element.style.transition = "color var(--glyph-shop-gather-duration) var(--motion-ease)";
-      element.style.setProperty("--inspect-color-token", "glyph-shop-purple");
-      glyph.tint = { start: glyph.bornAt + FLICKER_MS, end: glyph.bornAt + shopMotion!.gather, to: randomColor(), flickAt: 0 };
-    }
     glyphs.push(glyph); layer.append(element); Composite.add(engine.world, body);
     return glyph;
   };
@@ -315,7 +268,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     const speed = 1.2 + Math.random() * 3;
     return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
   };
-  const sideEntryShare = shop ? 0 : parseFloat(getComputedStyle(globe).getPropertyValue("--glyph-side-entry-share"));
+  const sideEntryShare = parseFloat(getComputedStyle(globe).getPropertyValue("--glyph-side-entry-share"));
   const prepareRelease = (source: Source, nodes: Map<Element, Text[]>) => {
     const char = resolve(source, nodes);
     if (char === null || !char.trim()) return;
@@ -352,7 +305,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     hoverLabels.forEach(clearLabelMask); hoverLabels.clear(); hoverPending = false;
   };
   const refreshHoverLabels = () => {
-    if (phase !== "loose" || shop) return;
+    if (phase !== "loose") return;
     const now = performance.now();
     // Retain masks through closing scrambles too; only new donations require an active label.
     const elements = root.querySelectorAll<HTMLElement>("[data-swarm-label-id]");
@@ -416,7 +369,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   };
   let last: Point | null = null, touchId: number | null = null, penId: number | null = null;
   const push = (from: Point, to: Point) => {
-    if (phase !== "loose" || shop) return;
+    if (phase !== "loose") return;
     for (const glyph of glyphs) {
       const impulse = pushImpulse(glyph.body.position, from, to, settings.push);
       if (!impulse.x && !impulse.y) continue;
@@ -486,7 +439,6 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   let patchesStale = true, clearStale = true;
   const onScroll = () => { patchesStale = clearStale = true; };
   const onResize = () => {
-    viewport = { width: window.innerWidth, height: window.innerHeight };
     placeWalls(); patchesStale = clearStale = true;
     for (const glyph of glyphs) {
       const { x, y } = glyph.body.position;
@@ -599,11 +551,8 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       // depth-shaded opacity, so the spot takes over without a step.
       const fade = glyph.escape || settles || flight.settle ? 1 : Math.min(1, Math.hypot(home.x - flight.x, home.y - flight.y) / 60);
       const shade = glyph.globeChar && flight.settle ? 1 + (Number(glyph.globeChar.style.opacity || 1) - 1) * Math.min(1, (time - flight.settle.at) / flight.settle.duration) : fade;
-      const restore = shopMotion ? smoothstep(elapsed / shopMotion.restore) : 1;
-      const scale = glyph.shop ? glyph.shop.scale + (1 - glyph.shop.scale) * restore : 1;
-      const opacity = glyph.shop ? glyph.shop.opacity + (1 - glyph.shop.opacity) * restore : 1;
-      glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${(0.4 + 0.6 * fade) * scale})`;
-      glyph.element.style.opacity = String(shade * opacity);
+      glyph.element.style.transform = `translate(${flight.x - glyph.width / 2}px,${flight.y - glyph.height / 2}px) rotate(${flight.angle}rad) scale(${0.4 + 0.6 * fade})`;
+      glyph.element.style.opacity = String(shade);
     }
     if (!remaining) finishLanding();
   };
@@ -634,14 +583,13 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   textObserver.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "aria-hidden"] });
 
   const startedAt = performance.now();
-  let frame = 0, previousTime = startedAt, pending = 0, ambientMs = 0;
+  let frame = 0, previousTime = startedAt, pending = 0;
   let clear: { center: Point; radius: number } | null = null;
   const render = (time: number) => {
     const dt = Math.min(64, time - previousTime) / 1000;
     // Discard excess debt after a hitch; four catch-up steps can turn one missed frame into several.
     pending = Math.min(pending + time - previousTime, STEP * 2); previousTime = time;
     const elapsed = time - startedAt, loose = phase === "loose";
-    if (loose) ambientMs += dt * 1000;
     if (loose && hoverPending) refreshHoverLabels();
     // Measure the entire release batch before appending glyphs or changing text masks.
     const releases: NonNullable<ReturnType<typeof prepareRelease>>[] = [], nodes = new Map<Element, Text[]>();
@@ -660,43 +608,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       clearStale = false;
     }
     for (const { char, rect, at, font, color, source } of releases) spawn(char, rect, at, font, color, pop(at), 300 + Math.random() * 1300, source);
-    while (loose && sideQueued < sideCount && elapsed >= RELEASE_SPREAD_MS * (0.2 + sideQueued / sideCount)) {
-      const side = sideQueued % 2 ? 1 : -1;
-      const seed = sideSeeds[sideQueued % sideSeeds.length];
-      const margin = Math.max(seed.rect.width, seed.rect.height) * 2;
-      const at = { x: side < 0 ? -margin : viewport.width + margin, y: viewport.height * (0.1 + Math.random() * 0.8) };
-      const glyph = spawn(seed.char, seed.rect, at, seed.font, randomColor(), { x: -side * (2 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, 300 + Math.random() * 900);
-      glyph.transient = true; glyph.side = side;
-      glyph.element.dataset.entrySide = side < 0 ? "left" : "right";
-      sideQueued++;
-    }
     const zone = radius(), gap = spacing(), members = floating();
-    if (shopMotion && loose) {
-      pending = 0;
-      const turn = ambientMs / shopMotion.turn * Math.PI * 2 - 0.25;
-      const bob = ambientMs / shopMotion.float * Math.PI * 2;
-      const size = Math.min(shopMotion.size, viewport.width * 0.42, viewport.height * 0.48) / 2;
-      for (const glyph of members) {
-        const pose = glyph.shop;
-        if (!pose) continue;
-        const age = time - glyph.bornAt;
-        const capture = smoothstep((age - glyph.floatMs * 0.45) / shopMotion.gather);
-        const point = projectShopPoint(pose.point, turn, 0.12 + Math.sin(bob * 0.5) * 0.08);
-        const target = { x: viewport.width / 2 + point.x * size, y: viewport.height / 2 + point.y * size + Math.sin(bob) * shopMotion.drift };
-        const omega = (3.5 + glyph.pullScale * 2) * capture;
-        const x = springStep(glyph.body.position.x, pose.vx, target.x, omega, dt);
-        const y = springStep(glyph.body.position.y, pose.vy, target.y, omega, dt);
-        pose.vx = x.velocity; pose.vy = y.velocity;
-        Body.setPosition(glyph.body, { x: x.position, y: y.position });
-        Body.setVelocity(glyph.body, { x: pose.vx / 60, y: pose.vy / 60 });
-        Body.setAngle(glyph.body, glyph.body.angle * Math.exp(-dt * 4));
-        pose.scale = 1 + (point.scale - 1) * capture;
-        pose.opacity = 1 + (0.38 + point.depth * 0.62 - 1) * capture;
-        glyph.element.style.opacity = String(pose.opacity);
-        const order = String(Math.round(point.depth * 100));
-        if (glyph.element.style.zIndex !== order) glyph.element.style.zIndex = order;
-      }
-    }
     while (pending >= STEP) {
       anchor.x += (goal.x - anchor.x) * 0.035; anchor.y += (goal.y - anchor.y) * 0.035;
       for (const glyph of members) {
@@ -740,10 +652,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       if (glyph.landed) continue;
       if (!glyph.flight) {
         const { x, y } = glyph.body.position;
-        const restore = shopMotion && !loose ? smoothstep((time - collapseStartedAt) / shopMotion.restore) : 0;
-        const scale = glyph.shop ? glyph.shop.scale + (1 - glyph.shop.scale) * restore : 1;
-        if (glyph.shop && !loose) glyph.element.style.opacity = String(glyph.shop.opacity + (1 - glyph.shop.opacity) * restore);
-        glyph.element.style.transform = `translate(${x - glyph.width / 2}px,${y - glyph.height / 2}px) rotate(${glyph.body.angle}rad) scale(${scale})`;
+        glyph.element.style.transform = `translate(${x - glyph.width / 2}px,${y - glyph.height / 2}px) rotate(${glyph.body.angle}rad)`;
       }
       if (glyph.patch && patchesStale) {
         const box = glyph.source!.range.getClientRects()[0];
@@ -781,11 +690,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     globe.querySelectorAll<HTMLElement>("[data-away]").forEach(char => { delete char.dataset.away; });
     document.removeEventListener("selectstart", preventSelection);
     options.signal.removeEventListener("abort", cleanup); finishLanding(); options.onFinish();
-    desktop.removeEventListener("change", onDesktopChange);
   };
-  const desktop = window.matchMedia("(min-width: 768px) and (hover: hover) and (pointer: fine)");
-  const onDesktopChange = () => { if (shop && !desktop.matches) cleanup(); };
-  if (shop) desktop.addEventListener("change", onDesktopChange);
   options.signal.addEventListener("abort", cleanup, { once: true });
 
   return {
@@ -802,8 +707,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       for (const glyph of glyphs) {
         if (glyph.transient) {
           const margin = Math.max(glyph.width, glyph.height) * 2;
-          glyph.escape = glyph.side ? { x: glyph.side < 0 ? -margin : window.innerWidth + margin, y: glyph.body.position.y }
-            : exitPoint(glyph.body.position, window.innerWidth, window.innerHeight, margin);
+          glyph.escape = exitPoint(glyph.body.position, window.innerWidth, window.innerHeight, margin);
         }
         // Globe letters left first on entry, so they come home last, alongside the ring folding back.
         glyph.departAt = glyph.globeChar ? LET_GO_MS * 0.8 + Math.random() * LET_GO_MS * 0.5 : Math.random() * LET_GO_MS;
