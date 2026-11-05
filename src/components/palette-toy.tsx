@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences, setGlyphPalette } from "@/lib/palette-toy";
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
@@ -27,8 +27,9 @@ export function PaletteToy() {
   const runRef = useRef<AbortController | null>(null);
   const glyphsRef = useRef(glyphs);
   const [mode, setMode] = useState<GlyphMode>("idle");
+  const [formation, setFormation] = useState<"swarm" | "shop">("swarm");
   const modeRef = useRef(mode);
-  modeRef.current = mode;
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   const [ready, setReady] = useState(false);
   const { paletteLabOpen: labEnabled, setPaletteLabOpen } = usePortfolioExperiments();
   const [globeHost, setGlobeHost] = useState<HTMLElement | null>(null);
@@ -91,7 +92,7 @@ export function PaletteToy() {
   const paletteRef = useRef(glyphPaletteKey);
   useEffect(() => { paletteRef.current = glyphPaletteKey; setGlyphPalette(glyphPaletteKey.split(" ")); }, [glyphPaletteKey]);
   // The globe bursts into the swarm; Esc balls it up and sends every letter home.
-  const toggle = useCallback(() => {
+  const run = (nextFormation: "swarm" | "shop") => {
     if (reducedMotion) return;
     const current = modeRef.current;
     if (current === "collapsing") return;
@@ -112,6 +113,7 @@ export function PaletteToy() {
     if (!globe || !page) return;
     const controller = new AbortController();
     runRef.current = controller;
+    setFormation(nextFormation);
     setMode("loading");
     const finish = () => {
       if (runRef.current !== controller) return;
@@ -119,21 +121,24 @@ export function PaletteToy() {
       swarmRef.current = null;
       setMode("idle");
     };
-    startSwarm(page, globe, glyphsRef.current, { signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit"), palette: () => paletteRef.current.split(" ") })
+    startSwarm(page, globe, glyphsRef.current, { formation: nextFormation, signal: controller.signal, onFinish: finish, keepClear: () => document.querySelector(".glyph-exit"), palette: () => paletteRef.current.split(" ") })
       .then(next => {
         if (controller.signal.aborted) next.cancel();
         else { swarmRef.current = next; setMode("active"); }
       })
       .catch(finish);
-  }, [reducedMotion]);
+  };
+  const toggle = () => { run("swarm"); };
+  const startShop = () => { run("shop"); };
+  const onEscape = useEffectEvent(() => { toggle(); });
 
   // Esc on the keyboard collapses the swarm too, unless something else already handled the key.
   useEffect(() => {
     if (mode !== "active") return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented) toggle(); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented) onEscape(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode, toggle]);
+  }, [mode]);
 
   // Leaving the page cancels both a loading module and an active or returning swarm.
   useEffect(() => () => {
@@ -187,7 +192,10 @@ export function PaletteToy() {
   };
 
   return <>
-    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion} palette={glyphPaletteKey} globeRef={globeRef} onToggle={toggle} />, globeHost)}
+    {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion}
+      shop={formation === "shop" && mode !== "idle"}
+      palette={formation === "shop" && mode !== "idle" ? "var(--glyph-shop-purple) var(--glyph-shop-purple-light) var(--glyph-shop-purple-dark)" : glyphPaletteKey}
+      globeRef={globeRef} onToggle={toggle} onShop={startShop} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
         <div className="palette-lab-heading"><span className="text-captionSans"><InspectableText>Palette lab</InspectableText></span><button type="button" onClick={() => setPanelOpen(value => !value)} aria-expanded={panelOpen}><InspectableText>{panelOpen ? "Minimize" : "Open"}</InspectableText></button></div>

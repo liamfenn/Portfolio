@@ -190,6 +190,8 @@ scrolls the page (and the finger pushes letters as it goes). A touch that starts
 on the swarm, rests before moving, or starts sideways is play: the page holds
 still for that touch so you can draw through the letters. Lifting the finger lets the swarm drift to the centre.
 
+On desktop, hovering continuously over the globe for ten seconds gathers the page’s letters into a 3D version of the existing Shop swirl. Glyphs fade into three shades derived from the Shop purple token as they float in; the shallow extrusion turns slowly and bobs in the viewport center independently of the pointer. Leaving early, scrolling, or switching away cancels the pending hover. Escape or the exit ring returns the letters, and switching to a touch/mobile layout or reduced motion clears the effect. Ordinary clicks and taps still open the free-floating swarm. Shape sampling and projection live in `src/lib/glyph-shop.ts`; its size, colors, and timing are `--glyph-shop-*` tokens. `node scripts/check-glyph-shop.mjs [origin]` checks desktop intent, assembly/return, mobile, and reduced motion.
+
 The ring (or the Esc key) mirrors the entry: each letter loosens and floats free for
 a moment, then glides home on a spring at its own speed. It arrives just off its
 slot, still a little tilted and turning, then settles the last few pixels on its own

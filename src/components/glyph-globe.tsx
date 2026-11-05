@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import { EXIT_RETURN_DELAY_MS, preloadSwarm } from "@/lib/glyph-swarm";
 import { animateWhenVisible } from "@/lib/visible-animation";
@@ -128,7 +128,7 @@ function glide(slot: HTMLElement, glyph: HTMLElement, globeChar: HTMLElement, ri
   glyph.animate([upright, along], timing);
 }
 
-export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, onToggle }: {
+export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, onToggle, onShop, shop = false }: {
   mode: GlyphMode;
   /** The palette strip's colours, space-separated, so the globe's glyphs share them. */
   palette: string;
@@ -136,6 +136,8 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
   reducedMotion: boolean;
   globeRef: RefObject<HTMLButtonElement | null>;
   onToggle: () => void;
+  onShop?: () => void;
+  shop?: boolean;
 }) {
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const colors = useMemo(() => palette.split(" "), [palette]);
@@ -158,6 +160,41 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
   // and each spot reappears as its letter arrives (see data-away).
   const [reforming, setReforming] = useState(false);
   const spent = mode === "active" || (mode === "collapsing" && !reforming);
+  const shopEnabled = Boolean(onShop);
+  const enterShop = useEffectEvent(() => { onShop?.(); });
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe || !shopEnabled || disabled || reducedMotion || mode !== "idle") return;
+    const desktop = window.matchMedia("(min-width: 768px) and (hover: hover) and (pointer: fine)");
+    const value = getComputedStyle(globe).getPropertyValue("--glyph-shop-hover-delay").trim();
+    const delay = parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+    let timer = 0;
+    const cancel = () => { window.clearTimeout(timer); timer = 0; };
+    const enter = (event: PointerEvent) => {
+      cancel();
+      if (event.pointerType !== "mouse" || !desktop.matches || document.hidden) return;
+      timer = window.setTimeout(() => {
+        if (desktop.matches && !document.hidden && globe.matches(":hover")) enterShop();
+      }, delay);
+    };
+    globe.addEventListener("pointerenter", enter);
+    globe.addEventListener("pointerleave", cancel);
+    globe.addEventListener("pointerdown", cancel);
+    desktop.addEventListener("change", cancel);
+    document.addEventListener("visibilitychange", cancel);
+    window.addEventListener("blur", cancel);
+    window.addEventListener("scroll", cancel, { passive: true });
+    return () => {
+      cancel();
+      globe.removeEventListener("pointerenter", enter);
+      globe.removeEventListener("pointerleave", cancel);
+      globe.removeEventListener("pointerdown", cancel);
+      desktop.removeEventListener("change", cancel);
+      document.removeEventListener("visibilitychange", cancel);
+      window.removeEventListener("blur", cancel);
+      window.removeEventListener("scroll", cancel);
+    };
+  }, [disabled, globeRef, mode, reducedMotion, shopEnabled]);
   useEffect(() => {
     if (mode !== "collapsing") return;
     const timer = window.setTimeout(() => setReforming(true), EXIT_RETURN_DELAY_MS + RING_STAGGER_MS * (RING_INDEX.length - 1) + RING_MS);
@@ -244,6 +281,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
 
   return <>
     <button ref={globeRef} type="button" className={`glyph-globe text-captionSans${spent ? " is-spent" : ""}`}
+      style={shop ? { color: "var(--glyph-shop-purple)", "--inspect-color-token": "glyph-shop-purple" } as CSSProperties : undefined}
       aria-label="Play with the letters" disabled={disabled || mode !== "idle"} onClick={event => { keyboardRef.current = event.detail === 0; onToggle(); }}
       onPointerEnter={warm} onPointerLeave={() => { hoverRef.current = false; }} onFocus={event => { hoverRef.current = event.currentTarget.matches(":focus-visible"); preloadSwarm(); }} onBlur={() => { hoverRef.current = false; }} onTouchStart={preloadSwarm}>
       <span className="glyph-globe-sphere" aria-hidden="true">
@@ -254,6 +292,7 @@ export function GlyphGlobe({ mode, disabled, reducedMotion, palette, globeRef, o
     {/* The ring takes the globe's place, so it sits where the swarm came from rather than over the page. */}
     {(mode === "active" || mode === "collapsing") && <button ref={exitRef} type="button"
       className={`glyph-exit text-captionSans${reforming ? " is-reformed" : ""}`}
+      style={shop ? { color: "var(--glyph-shop-purple)", "--inspect-color-token": "glyph-shop-purple" } as CSSProperties : undefined}
       aria-label="Put the letters back" aria-keyshortcuts="Escape" disabled={mode === "collapsing"} onClick={onToggle}
       onPointerEnter={() => { ringHotRef.current = true; }} onPointerLeave={() => { ringHotRef.current = false; }}
       onFocus={event => { ringHotRef.current = event.currentTarget.matches(":focus-visible"); }} onBlur={() => { ringHotRef.current = false; }}>
