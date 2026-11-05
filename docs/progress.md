@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Contact typography correction (2026-11-05)**
+- Email and social links use text-bodySerif, as requested. Removed the mobile caption-size override so the shared bodySerif tokens control both viewport sizes and the inspector reports the correct style.
+
 **Contact/filter hover parity and restored Featured menu (2026-11-05)**
 - Fixed visibility checks for text inside the inspector's display:contents wrappers. Email/social links now flash in previews as well as with the inspector off; native text and links remain intact. The hover controller also supports explicitly opted-in filter controls, with the Featured square changing palette color alongside its label. Safari selection overrides let the custom highlights paint on the control while a scoped selection guard retains its button behavior.
 - Restored the previous branch's compact sort menu: desktop hover/focus reveals only the two alternate options above the current label, with the original staggered entry/exit, option handoff, and selection scramble. Mobile taps cycle Featured → Recent → Random. The new feed retains its square mark and alignment. Shared glyph-label/option-motion components are reused by both the previous grid and the new menu. Added a pointer-bounds guard for Safari option handoffs and a 110ms menu-exit token matching the previous behavior.

@@ -113,7 +113,7 @@
   .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
   .portfolio-feed .feed-details { padding-inline: var(--content-padding-mobile); }
-  .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); font: var(--font-weight-regular) var(--text-caption) / var(--leading-caption) var(--font-otto); }
+  .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; border-top: var(--portfolio-mobile-divider) solid var(--bg-secondary-fill); }
 }
 @media (prefers-reduced-motion: reduce) {
