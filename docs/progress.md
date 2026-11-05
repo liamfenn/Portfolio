@@ -16,7 +16,7 @@ production) is still the August version. Merging is Liam's call.
 - Instead of a separate bar, the header morphs on open as Liam asked: name, then Contact, color-glitch into company and date, the project name glitches in, the avatar leaves, and the bar goes translucent at 696px on desktop. It reverses as the view starts closing. The header ignores scroll changes while the page is locked, so it can't flicker through other states. Removed the bottom gradient fade, which Figma omits.
 
 **Featured order update (2026-11-05)**
-- Published Liam's exported order: Top search, Shop card, Bottom search, Shop Incentives, Baskets, Canvas, Collections sheet.
+- Published Liam's exported order: Top search, Shop card, Bottom search, Shop Incentives, Canvas, Baskets, Collections sheet.
 
 **Shop sculpture removed (2026-11-05)**
 - Rejected: the long-hover Shop glyph sculpture. Liam asked to remove it everywhere, so its trigger, swarm branches, `glyph-shop.ts`, tests, check script, and `--glyph-shop-*` tokens are gone. It's in git history before this commit if it's ever wanted again. The ordinary swarm is unchanged.
