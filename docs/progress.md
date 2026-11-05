@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Header action text style (2026-11-05)**
+- Contact and Top now use bodySans, matching the name beside them, at Liam's request. Figma's frames show captionSans.
+
 **Song bar clock format (2026-11-05)**
 - While playing, the time shows bare seconds under a minute (5, 34), then minutes and padded seconds with a blank gap the width of the colon (3 34). Removed tabular numerals, which looked off in Oracle at this size; a hidden widest-digit copy, as on v3, keeps the width steady. The type was already captionSans.
 

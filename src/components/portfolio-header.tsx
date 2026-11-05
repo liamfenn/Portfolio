@@ -58,7 +58,7 @@ export function PortfolioHeader() {
     <div className="header-label text-bodySans" inert={!overImages}>
       <ProjectSortControl idleLabel={overImages ? undefined : "Liam Fennell"} />
     </div>
-    <a className="header-action text-captionSans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} onClick={event => {
+    <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} onClick={event => {
       if (!overImages) return;
       event.preventDefault();
       window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
