@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Quieter hover marks (2026-11-05)**
+- The Featured dot and the Spotify square or icon now flash on about one in three hover pulses instead of every one, because Liam found them too busy next to the letters. `--link-glitch-mark-chance` tunes it; letter flashes are unchanged.
+
 **Spotify logo in the hover glitch (2026-11-05)**
 - The Spotify block now flashes palette colors with the track text on hover and keyboard focus, using the same `data-hover-glitch-mark` hook as the Featured dot. While playing, the green square flashes and the icon stays white; when idle, the icon flashes and the square stays gray. The square has no color transition: the 150ms hover transition kept the 90ms flashes from reaching full color. Browser checks should read the rendered color, not the inline style, since the inline style was set correctly while the flash was barely visible.
 

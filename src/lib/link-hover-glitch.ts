@@ -29,7 +29,7 @@ export function installLinkHoverGlitch() {
   if (!globalThis.Highlight || !CSS.highlights) return () => {};
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const hover = matchMedia("(any-hover: hover)");
-  const { duration, pauseMin, pauseMax, fraction, maxLetters } = hoverGlitchSettings();
+  const { duration, pauseMin, pauseMax, fraction, maxLetters, markChance } = hoverGlitchSettings();
   const style = document.createElement("style");
   document.head.append(style);
   let hovered: HTMLElement | null = null, focused: HTMLElement | null = null;
@@ -79,7 +79,8 @@ export function installLinkHoverGlitch() {
     active.setAttribute("data-link-glitch-active", "");
     selected.forEach(index => highlights[Math.floor(Math.random() * highlights.length)].add(ranges[index]));
     const mark = active.querySelector<HTMLElement>("[data-hover-glitch-mark]");
-    if (mark) mark.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+    // A solid mark is far louder than a single letter, so it sits out most pulses.
+    if (mark && Math.random() < markChance) mark.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
     timer = window.setTimeout(() => {
       clear();
       timer = window.setTimeout(pulse, pauseMin + Math.random() * (pauseMax - pauseMin));

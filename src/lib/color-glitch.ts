@@ -20,5 +20,6 @@ export function hoverGlitchSettings() {
     pauseMax: milliseconds("--link-glitch-pause-max"),
     fraction: parseFloat(tokens.getPropertyValue("--link-glitch-max-fraction")),
     maxLetters: parseInt(tokens.getPropertyValue("--link-glitch-max-letters")),
+    markChance: parseFloat(tokens.getPropertyValue("--link-glitch-mark-chance")),
   };
 }
