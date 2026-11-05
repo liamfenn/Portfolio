@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Stacked desktop header hover (2026-11-05)**
+- Applied the vertical detail-panel-over-badges treatment to the default desktop header as requested. Avatar/Spotify badges glide down to reveal their detail bar above, with the Shop mark beside the avatar. Both retain fixed horizontal anchors and the earlier slide/fade easing; scrolled panels retain their compact clock-free stack. Mobile tap expansion remains horizontal.
+
 **Globe default glitch cadence correction (2026-11-05)**
 - Applied the links’ 90ms flash / 40–100ms pause cadence to the globe and ring by default. Hover/focus increases density from 1–3 to 4–6 glyphs without resetting or speeding up the burst clock. Both retain the 60% cap, visibility suspension, reduced motion and cleanup. Added --globe-hover-extra-letters for the density increase.
 
