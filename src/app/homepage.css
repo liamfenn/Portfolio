@@ -54,7 +54,8 @@
 .portfolio-player { position: relative; display: flex; width: 100%; height: var(--portfolio-control-size); margin-top: var(--portfolio-section-gap); }
 .portfolio-player::before { content: ""; position: absolute; inset: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2) 0; }
 .portfolio-player .homepage-album, .player-brand { flex: none; width: var(--portfolio-control-size); height: var(--portfolio-control-size); }
-.player-brand { display: grid; place-items: center; background: var(--bg-secondary-fill); transition: background-color var(--hover-duration) var(--hover-ease); }
+/* No color transition: it would blunt the hover flashes, which are shorter than the hover duration. */
+.player-brand { display: grid; place-items: center; background: var(--bg-secondary-fill); }
 .player-logo { display: block; width: var(--portfolio-icon-size); height: var(--portfolio-icon-size); background: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
 .portfolio-player.is-playing .player-brand { background: var(--bg-green-fill); }
 .portfolio-player.is-playing .player-logo { background: var(--bg-fill); }

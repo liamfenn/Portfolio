@@ -11,7 +11,7 @@ The v3 homepage is built and live on the branch preview (see [`workflow.md`](wor
 production) is still the August version. Merging is Liam's call.
 
 **Spotify logo in the hover glitch (2026-11-05)**
-- The Spotify block now flashes palette colors with the track text on hover and keyboard focus, using the same `data-hover-glitch-mark` hook as the Featured dot. While playing, the green square flashes and the icon stays white; when idle, the icon flashes and the square stays gray.
+- The Spotify block now flashes palette colors with the track text on hover and keyboard focus, using the same `data-hover-glitch-mark` hook as the Featured dot. While playing, the green square flashes and the icon stays white; when idle, the icon flashes and the square stays gray. The square has no color transition: the 150ms hover transition kept the 90ms flashes from reaching full color. Browser checks should read the rendered color, not the inline style, since the inline style was set correctly while the flash was barely visible.
 
 **Safari top edge (2026-11-05)**
 - The mobile bar now sits 5px below the safe area, 1px below Figma's 4px, and stays fully opaque. Liam tested heights on an iPhone: Safari pulled the bar's gray into its top area at 4px, and 5px stays clean. There's no strip, gradient, or blur, so content scrolls up under the status bar natively.
