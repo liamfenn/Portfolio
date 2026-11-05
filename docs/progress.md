@@ -10,8 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Inset mobile player (2026-11-05)**
+- The mobile player now sits inside the 12px gutters instead of running full bleed, following Figma 592:23901.
+
 **Header action text style (2026-11-05)**
-- Contact and Top now use bodySans, matching the name beside them, at Liam's request. Figma's frames show captionSans.
+- Contact and Top now use bodySans, at Liam's request; Figma's frames show captionSans. The name uses bodySerif. It's the same element as the sort label, so it returns to bodySans over the images, with the swap landing as the color glitch starts.
 
 **Song bar clock format (2026-11-05)**
 - While playing, the time shows bare seconds under a minute (5, 34), then minutes and padded seconds with a blank gap the width of the colon (3 34). Removed tabular numerals, which looked off in Oracle at this size; a hidden widest-digit copy, as on v3, keeps the width steady. The type was already captionSans.
@@ -39,7 +42,7 @@ production) is still the August version. Merging is Liam's call.
 **Header and music player split (2026-11-05)**
 - Follows Figma 585:23614 and 585:23615, replacing the earlier filter handoff the same day. The fixed header is the avatar, Liam Fennell, and Contact (a mailto link to info@fennell.cv). Desktop narrows from 552px to 528px on any scroll; mobile stays at its gutters, 4px below the safe area. When the page filter is fully behind the opaque bar, the bar turns translucent with a 6px blur and the avatar leaves.
 - Rejected: flying the page filter into the bar. Liam found it not smooth enough and asked not to connect the two. Now the same label scrambles with the color glitch, Liam Fennell ↔ current sort and Contact ↔ Top, and the square fades, grows, and unblurs in over 280ms. Only sort selections flash the square, so its entrance stays clean. The page filter stays hidden while over images so it can't ghost through the blur. Reduced motion swaps text and states immediately.
-- The player moved to `PortfolioPlayer`, its own row between the contacts and the footer (583:23224, 583:23515): album, Spotify block, then track panel, full bleed on mobile. Removed the mobile footer divider, which the new frames omit. Name and role are back; the Shop badge stays out, and `shop-badge.svg` is unused but kept. The avatar remains the inspector toggle.
+- The player moved to `PortfolioPlayer`, its own row between the contacts and the footer (583:23224, 583:23515): album, Spotify block, then track panel. Removed the mobile footer divider, which the new frames omit. Name and role are back; the Shop badge stays out, and `shop-badge.svg` is unused but kept. The avatar remains the inspector toggle.
 - Safari on iPhone tinted its top area from the fixed header's gray, leaving a hard color cut. Added the same opaque, topmost, fixed sampler strip the project modal used, in white, sized to the larger of 12px and the safe area. The bar starts 4px below it, which matches Figma wherever the safe area is at least 12px. It needs JavaScript for nothing, and only exists below 768px.
 - Near-token differences: `--bg-secondary-fill` #F6F8FA instead of #F7F8FA, and the frames' 14px contacts and 15px mobile intro stay on the shared bodySerif sizes. Figma's desktop frame labels the filter "Filter" and its mobile frame "Featured"; both show the current sort.
 - Validation: tests, TypeScript, touched-file lint, and browser checks in the built-in pane at 1440px and 375px. The Safari tint itself can only be confirmed on a device.

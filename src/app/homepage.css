@@ -114,7 +114,7 @@
   .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
   .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
-  .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); margin-top: var(--portfolio-mobile-section-gap); }
+  .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); width: auto; margin: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-toolbar-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); }
