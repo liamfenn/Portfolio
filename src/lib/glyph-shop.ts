@@ -3,6 +3,9 @@ export const SHOP_MARK_PATH = "M9.50358 1C6.91583 1 4.49208 1.79173 2.75173 2.93
 
 export interface ShopPoint { x: number; y: number; z: number }
 
+export const SHOP_COLORS = ["var(--glyph-shop-purple)", "var(--glyph-shop-purple-light)", "var(--glyph-shop-purple-dark)",
+  "var(--glyph-shop-pink)", "var(--glyph-shop-rose)", "var(--glyph-shop-orchid)"];
+
 /** Sample both faces and the rim; interleave them so the shape reads before every letter arrives. */
 export function shopPoints(count: number, contains: (x: number, y: number) => boolean): ShopPoint[] {
   const face: { x: number; y: number }[] = [], rim: typeof face = [];

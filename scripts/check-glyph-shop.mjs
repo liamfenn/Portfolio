@@ -28,6 +28,11 @@ try {
   await page.waitForTimeout(9000);
   assert.equal(await layer(page).count(), 0, "a fresh hover must last a full ten seconds");
   await page.waitForFunction(() => document.querySelector('.glyph-swarm-layer[data-formation="shop"]'), { timeout: 3000 });
+  await page.waitForFunction(() => {
+    const left = [...document.querySelectorAll('[data-entry-side="left"]')];
+    const right = [...document.querySelectorAll('[data-entry-side="right"]')];
+    return left.some(g => g.getBoundingClientRect().right < 0) && right.some(g => g.getBoundingClientRect().left > innerWidth);
+  });
   await page.waitForTimeout(6000);
   const pose = () => page.locator(".glyph-swarm-glyph").evaluateAll(glyphs => glyphs.map(glyph => glyph.getAttribute("style")));
   const bounds = () => page.locator(".glyph-swarm-glyph").evaluateAll(glyphs => {
@@ -37,8 +42,11 @@ try {
       width: Math.max(...boxes.map(b => b.right)) - Math.min(...boxes.map(b => b.left)),
       height: Math.max(...boxes.map(b => b.bottom)) - Math.min(...boxes.map(b => b.top)) };
   });
-  assert.ok(await page.locator(".glyph-swarm-glyph").count() > 100);
-  assert.ok(await page.locator(".glyph-swarm-glyph").evaluateAll(gs => gs.every(g => /^var\(--glyph-shop-purple(?:-light|-dark)?\)$/.test(g.style.color))), "every gathered glyph uses a Shop purple shade");
+  assert.ok(await page.locator(".glyph-swarm-glyph").count() >= 800, "extra side entries make the sculpture substantially denser");
+  assert.ok(await page.locator('[data-entry-side="left"]').count() > 100);
+  assert.ok(await page.locator('[data-entry-side="right"]').count() > 100);
+  assert.ok(await page.locator(".glyph-swarm-glyph").evaluateAll(gs => gs.every(g => /^var\(--glyph-shop-(?:purple(?:-light|-dark)?|pink|rose|orchid)\)$/.test(g.style.color))), "gathered glyphs use the pink/purple palette");
+  assert.ok(await page.locator(".glyph-swarm-glyph").evaluateAll(gs => gs.filter(g => /pink|rose|orchid/.test(g.style.color)).length > gs.length * 0.3), "pink hues have a substantial share of the sculpture");
   assert.ok(await page.evaluate(() => CSS.highlights.get("glyph-swarm-taken")?.size > 0), "original text is masked, not removed");
   const first = await pose();
   await page.mouse.move(50, 50);
@@ -56,9 +64,11 @@ try {
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector(".glyph-swarm-layer"));
   assert.equal(await page.locator("[data-away]").count(), 0);
+  assert.equal(await page.locator("[data-entry-side]").count(), 0, "extra glyphs leave with the sculpture");
   assert.equal(await page.evaluate(() => CSS.highlights.has("glyph-swarm-taken")), false);
   await globe.click();
   assert.equal(await layer(page).getAttribute("data-formation"), "swarm", "ordinary clicks retain the existing swarm");
+  assert.equal(await page.locator("[data-entry-side]").count(), 0, "the ordinary swarm does not gain extra copies");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.waitForFunction(() => !document.querySelector(".glyph-swarm-layer"));
   assert.equal(await globe.isDisabled(), true);
@@ -85,5 +95,5 @@ try {
   await mobile.page.emulateMedia({ reducedMotion: "reduce" });
   await mobile.page.waitForFunction(() => !document.querySelector(".glyph-swarm-layer"));
   assert.deepEqual(errors, []);
-  console.log("Shop checks passed: ten-second intent/reset, purple assembly, centered ambient spin, background pause, Escape/ring return, resize cleanup, click/touch swarm, reduced motion.");
+  console.log("Shop checks passed: ten-second intent/reset, dense side entries, pink/purple assembly, centered ambient spin, background pause, Escape/ring return, resize cleanup, click/touch swarm, reduced motion.");
 } finally { await browser.close(); }

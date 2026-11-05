@@ -2,7 +2,7 @@ import type MatterJS from "matter-js";
 import { SPACING, captureStrength, entryPoint, exitPoint, pocketForce, smoothstep, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
-import { SHOP_MARK_PATH, projectShopPoint, shopPoints } from "@/lib/glyph-shop";
+import { SHOP_COLORS, SHOP_MARK_PATH, projectShopPoint, shopPoints } from "@/lib/glyph-shop";
 import type { ShopPoint } from "@/lib/glyph-shop";
 
 const HOVER_LABELS = ".work-density-menu:not(.is-closing) .work-option-text,.homepage-project-overlay.is-visible [data-swarm-label]";
@@ -68,6 +68,7 @@ interface Glyph {
   globeChar?: HTMLElement;
   /** Hover-only letters leave the screen on exit instead of returning to a hidden label. */
   transient?: boolean;
+  side?: -1 | 1;
   escape?: Point;
   /** Intro timing: each letter floats loose for a while, then its pull fades in over its own ramp. */
   bornAt: number;
@@ -192,15 +193,26 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
   const origin = centerOf(globe.getBoundingClientRect());
   const count = swarmCount(sources.length, settings.amount);
   const globeLetters = globe.querySelectorAll<HTMLElement>(".glyph-globe-char:not([data-ring])");
+  const sculptureCount = shop ? Math.max(count + globeLetters.length, Math.round(parseFloat(tokens!.getPropertyValue("--glyph-shop-glyph-count")))) : 0;
   const context = shop ? document.createElement("canvas").getContext("2d") : null;
   const path = shop ? new Path2D(SHOP_MARK_PATH) : null;
-  const sculpture = context && path ? shopPoints(count + globeLetters.length, (x, y) => context.isPointInPath(path, x, y)) : [];
+  const sculpture = context && path ? shopPoints(sculptureCount, (x, y) => context.isPointInPath(path, x, y)) : [];
   for (let index = 0; index < count; index++) {
     const pick = index + Math.floor(Math.random() * (sources.length - index));
     [sources[index], sources[pick]] = [sources[pick], sources[index]];
   }
   const distance = (source: Source) => Math.hypot(centerOf(source.rect).x - origin.x, centerOf(source.rect).y - origin.y);
   const chosen = sources.slice(0, count);
+  // Extra copies borrow the page's characters and fonts without taking more text out of its layout.
+  // Capture their metrics once; a side-entry batch never needs to measure the page while it is spawning.
+  const fonts = new Map<HTMLElement, string>();
+  const sideSeeds = shop ? sources.slice(0, 64).map(source => {
+    let font = fonts.get(source.parent);
+    if (!font) { font = fontOf(getComputedStyle(source.parent)); fonts.set(source.parent, font); }
+    return { char: source.node.data[source.offset], rect: source.rect, font };
+  }) : [];
+  const sideCount = sideSeeds.length ? Math.max(0, sculptureCount - count - globeLetters.length) : 0;
+  let sideQueued = 0;
   for (const source of chosen) {
     for (let element: Element | null = source.parent, level = 0; element && level < ANCHOR_LEVELS && root.contains(element); element = element.parentElement, level++) {
       source.anchors.push({ element, index: indexIn(element, source.node, source.offset) });
@@ -248,7 +260,7 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
 
   const glyphs: Glyph[] = [];
   const randomColor = () => {
-    const colors = shop ? ["var(--glyph-shop-purple)", "var(--glyph-shop-purple-light)", "var(--glyph-shop-purple-dark)"] : options.palette();
+    const colors = shop ? SHOP_COLORS : options.palette();
     return colors[Math.floor(Math.random() * colors.length)];
   };
   // Runs a letter's colour glitch: a quick flicker through palette colours (now and then its destination), then it settles.
@@ -646,6 +658,16 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       clearStale = false;
     }
     for (const { char, rect, at, font, color, source } of releases) spawn(char, rect, at, font, color, pop(at), 300 + Math.random() * 1300, source);
+    while (loose && sideQueued < sideCount && elapsed >= RELEASE_SPREAD_MS * (0.2 + sideQueued / sideCount)) {
+      const side = sideQueued % 2 ? 1 : -1;
+      const seed = sideSeeds[sideQueued % sideSeeds.length];
+      const margin = Math.max(seed.rect.width, seed.rect.height) * 2;
+      const at = { x: side < 0 ? -margin : viewport.width + margin, y: viewport.height * (0.1 + Math.random() * 0.8) };
+      const glyph = spawn(seed.char, seed.rect, at, seed.font, randomColor(), { x: -side * (2 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, 300 + Math.random() * 900);
+      glyph.transient = true; glyph.side = side;
+      glyph.element.dataset.entrySide = side < 0 ? "left" : "right";
+      sideQueued++;
+    }
     const zone = radius(), gap = spacing(), members = floating();
     if (shopMotion && loose) {
       pending = 0;
@@ -776,7 +798,11 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
       clearHoverLabels();
       // Each letter loosens with a small nudge, floats free for its own moment, then turns for home.
       for (const glyph of glyphs) {
-        if (glyph.transient) glyph.escape = exitPoint(glyph.body.position, window.innerWidth, window.innerHeight, Math.max(glyph.width, glyph.height) * 2);
+        if (glyph.transient) {
+          const margin = Math.max(glyph.width, glyph.height) * 2;
+          glyph.escape = glyph.side ? { x: glyph.side < 0 ? -margin : window.innerWidth + margin, y: glyph.body.position.y }
+            : exitPoint(glyph.body.position, window.innerWidth, window.innerHeight, margin);
+        }
         // Globe letters left first on entry, so they come home last, alongside the ring folding back.
         glyph.departAt = glyph.globeChar ? LET_GO_MS * 0.8 + Math.random() * LET_GO_MS * 0.5 : Math.random() * LET_GO_MS;
         // Page letters glitch back to their own colour as they turn for home, well before they land.

@@ -6,6 +6,7 @@ import { DEFAULT_GLYPHS, GLYPH_CONTROLS, GLYPH_MIN_CONTRAST, PALETTE_CANDIDATES,
 import type { GlyphSettings, PaletteVotes } from "@/lib/palette-toy";
 import { startSwarm } from "@/lib/glyph-swarm";
 import type { GlyphSwarm } from "@/lib/glyph-swarm";
+import { SHOP_COLORS } from "@/lib/glyph-shop";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { GlyphGlobe } from "@/components/glyph-globe";
@@ -194,7 +195,7 @@ export function PaletteToy() {
   return <>
     {globeHost && createPortal(<GlyphGlobe mode={mode} disabled={reducedMotion} reducedMotion={reducedMotion}
       shop={formation === "shop" && mode !== "idle"}
-      palette={formation === "shop" && mode !== "idle" ? "var(--glyph-shop-purple) var(--glyph-shop-purple-light) var(--glyph-shop-purple-dark)" : glyphPaletteKey}
+      palette={formation === "shop" && mode !== "idle" ? SHOP_COLORS.join(" ") : glyphPaletteKey}
       globeRef={globeRef} onToggle={toggle} onShop={startShop} />, globeHost)}
     {ready && createPortal(<>
       {labEnabled && <aside className={`palette-lab text-captionSans${panelOpen ? "" : " is-collapsed"}`} aria-label="Palette and glyph controls">
