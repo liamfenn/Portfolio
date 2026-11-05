@@ -13,8 +13,9 @@ production) is still the August version. Merging is Liam's call.
 **Spotify logo in the hover glitch (2026-11-05)**
 - The Spotify block now flashes palette colors with the track text on hover and keyboard focus, using the same `data-hover-glitch-mark` hook as the Featured dot. While playing, the green square flashes and the icon stays white; when idle, the icon flashes and the square stays gray.
 
-**Safari top edge (2026-11-05, open)**
-- Rejected: the solid white strip, even running down to the bar, because its hard edge still bothered Liam. Also dropped the 97% opaque bar variants. On an iPhone, Liam confirmed an opaque bar 24px below the safe area avoids the gray tint but sits too low. That 24px is now the mobile default, up from Figma's 4px, and temporary `?edge=<px>` links find the highest position Safari leaves alone. Set `--header-mobile-top` to the chosen value and remove the `edge` query handling.
+**Safari top edge (2026-11-05)**
+- The mobile bar now sits 5px below the safe area, 1px below Figma's 4px, and stays fully opaque. Liam tested heights on an iPhone: Safari pulled the bar's gray into its top area at 4px, and 5px stays clean. There's no strip, gradient, or blur, so content scrolls up under the status bar natively.
+- Rejected: a solid white strip (hard cut), the same strip with an inward fade (felt odd), and a 97% opaque bar. 8px read as failing once and then clean, so results may vary between page loads; recheck if the tint returns. This is Safari's own sampling behavior and could change with an iOS update.
 
 **Tap-to-change Featured and plain Safari edge (2026-11-05)**
 - Removed the Featured menu: every copy now taps to change, on desktop and mobile, on the page and in the header. Hovering uses the same color flashes as text links, on the label and its dot, as Liam clarified. The desktop dot drops from 9.9px to 9px; mobile stays 8.8px.
