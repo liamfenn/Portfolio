@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { createPortal, flushSync } from "react-dom";
+import { createPortal } from "react-dom";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
@@ -14,8 +14,7 @@ function FocusText({ text }: { text: string }) {
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>{text}</span></InspectableText>;
 }
 
-export function ProjectFocusDetails({ preview, exitHeight }: { preview: ProjectPreview; exitHeight?: number }) {
-  if (exitHeight !== undefined) return <div className="project-focus-details text-bodySans" style={{ height: exitHeight }} />;
+export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
   return <div className="project-focus-details text-bodySans">
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
     <ProjectCredits preview={preview} techLabel="Tech" />
@@ -51,7 +50,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   const dismissRef = useRef<() => void>(() => {});
   const initialSelection = useRef(selection);
   const [focusMedia] = useState(() => new ProjectFocusMedia());
-  const [exitTextHeight, setExitTextHeight] = useState<number>();
   const { navigate, animatePage, retainsMedia, cancelPaging, neighborDirection, neighborRef } = useProjectFocusPaging({ rootRef, pagesRef, scrollRef, controlsRef, selection, onNavigate, total, focusMedia });
 
   const animationsRef = useRef<Animation[]>([]);
@@ -154,7 +152,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     const animations: Animation[] = [];
     animationsRef.current = animations;
     let closing = false, disposed = false;
-    let exitPaint = 0;
     const tweenMedia = (from: DOMRect, to: DOMRect) => focusMedia.animate(media, from, to, { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
     const bounds = slot.getBoundingClientRect();
@@ -177,7 +174,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       closing = true;
       onClosing?.();
       root.dataset.phase = "closing";
-      root.dataset.exit = "controls";
       const scroller = scrollRef.current!;
       if (scroller.scrollHeight > scroller.clientHeight) scroller.style.scrollbarGutter = "stable";
       scroller.style.overflowY = "hidden";
@@ -190,41 +186,19 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       animations.forEach(animation => animation.cancel());
       backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      const controlsExit = fade(controls, controlsOpacity, 0);
-      animations.push(controlsExit);
-      void controlsExit.finished.then(async () => {
+      // Everything leaves on the tap: waiting for the text before moving the media read as lag.
+      const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
+      const exit = tweenMedia(media.getBoundingClientRect(), trigger.getBoundingClientRect());
+      animations.push(fade(controls, controlsOpacity, 0), ...textExit, exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
+      if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
+      void Promise.all([exit, ...textExit].map(animation => animation.finished)).then(() => {
         if (disposed) return;
-        controls.style.visibility = "hidden";
-        root.dataset.exit = "text";
-        const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
-        animations.push(...textExit);
-        await Promise.all(textExit.map(animation => animation.finished));
-        if (disposed) return;
-        const height = details.getBoundingClientRect().height;
-        details.style.visibility = "hidden";
-        flushSync(() => setExitTextHeight(height));
-        root.dataset.exit = "paint";
-        const returnMedia = () => {
-          if (disposed) return;
-          root.dataset.exit = "media";
-          // Read geometry after scrolling is locked and the text's removal has actually painted.
-          const exit = tweenMedia(media.getBoundingClientRect(), trigger.getBoundingClientRect());
-          animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
-          if (opacity < 1) animations.push(fade(media, opacity, 1, 0, textExitDuration));
-          void exit.finished.then(() => {
-            if (disposed) return;
-            root.style.visibility = "hidden";
-            onClose();
-          }).catch(() => {});
-        };
-        // A timer shorter than the text fade let media cross glyphs retained by Safari after paging.
-        if (motion.matches) returnMedia();
-        else exitPaint = requestAnimationFrame(() => { exitPaint = requestAnimationFrame(returnMedia); });
+        root.style.visibility = "hidden";
+        onClose();
       }).catch(() => {});
     };
     return () => {
       disposed = true;
-      cancelAnimationFrame(exitPaint);
       animations.forEach(animation => animation.cancel());
       if (!retainsMedia(media)) focusMedia.restore(media);
       if (animationsRef.current === animations) animationsRef.current = [];
@@ -259,7 +233,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     <div ref={scrollRef} className="project-focus-scroll">
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" role={selection.preview.media ? "img" : undefined} aria-label={selection.preview.media?.alt} />
-        <ProjectFocusDetails preview={selection.preview} exitHeight={exitTextHeight} />
+        <ProjectFocusDetails preview={selection.preview} />
       </div>
     </div>
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>

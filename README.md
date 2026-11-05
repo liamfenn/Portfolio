@@ -106,7 +106,7 @@ The focus view also accepts `description` and `tech: string[]`. The description 
 text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
 the same height enter together. Exit reverses the row order with 180ms fades and a 12ms bottom-to-top
 stagger; the stagger scales with the exit/entry duration ratio. P, Close, and N are visible immediately with no intro animation.
-On exit, those buttons fade out first over 180ms; the bottom-to-top content stagger starts after they disappear, followed by the card return.
+On exit, the controls, text, backdrop, and media all start on the tap.
 Grid hover labels hide immediately for the focus session, so their reverse stream cannot linger behind the moving media.
 Linked credits appear under **Contributors**,
 beside **Stack**, and empty fields are omitted. Stack takes the left column when contributors are absent.

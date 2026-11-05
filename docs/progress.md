@@ -15,6 +15,9 @@ production) is still the August version. Merging is Liam's call.
 - Focused view follows Figma 597:24279 on the existing `ProjectFocus`, so it keeps continuous video, page lock, and Safari edge samplers: an opaque white modal, 720px media flush to the top, and description plus Contributors and Tech below. Tapping anywhere except a link closes it on desktop and mobile. There are no visible controls for pointer users; P, Close, and N show only after keyboard input. Swipes, wheel paging, and arrow keys still page between projects.
 - Instead of a separate bar, the header morphs on open as Liam asked: name, then Contact, color-glitch into company and date, the project name glitches in, the avatar leaves, and the bar goes translucent at 696px on desktop. It reverses as the view starts closing. The header ignores scroll changes while the page is locked, so it can't flicker through other states. Removed the bottom gradient fade, which Figma omits.
 
+**Immediate focused view exit (2026-11-05)**
+- Rejected: exiting in sequence (controls, then text, then media), which left about 440ms between the tap and the media moving. Controls, text, backdrop, and media now all start on the tap, finishing in about 230ms. This drops the earlier wait for text to clear first, which guarded against Safari retaining glyphs after paging, so recheck exits after swiping between projects. `scripts/check-focus-exit-order.mjs`, `check-project-focus.mjs`, and `check-focus-video-continuity.mjs` still wait on the old `data-exit` stages and need updating before their next use.
+
 **Overlay labels on click (2026-11-05)**
 - In Card overlay, the corner company and date labels no longer appear on desktop hover or keyboard focus; they color-glitch in with the panel on click. Focused view keeps its hover labels.
 
