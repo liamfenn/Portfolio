@@ -25,7 +25,7 @@ function ContactLinks() {
 
 export default function Home() {
   return (
-    <DesignInspector><div className="portfolio-safari-edge" aria-hidden="true" /><main className="portfolio-v2 portfolio-v4" data-page-frame>
+    <DesignInspector><main className="portfolio-v2 portfolio-v4" data-page-frame>
       <PortfolioHeader />
       <header className="portfolio-intro">
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>

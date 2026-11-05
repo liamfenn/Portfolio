@@ -85,15 +85,16 @@ export function WorkGlyphControl({
       }`}
     >
       {variant === "sort" && !square ? (
-        <span ref={markRef} className="work-control-dot" aria-hidden="true" />
+        <span ref={markRef} className="work-control-dot" data-hover-glitch-mark aria-hidden="true" />
       ) : (
         <span
           ref={markRef}
           className="work-control-square"
+          data-hover-glitch-mark
           aria-hidden="true"
         />
       )}
-      <InspectableText text={text}><span ref={ref} className="work-grid-label" data-final-text={text} aria-hidden="true">
+      <InspectableText text={text}><span ref={ref} className="work-grid-label" data-hover-glitch-text data-final-text={text} aria-hidden="true">
         {text}
       </span></InspectableText>
     </span>

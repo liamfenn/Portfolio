@@ -17,7 +17,7 @@ export function ProjectSortControl({ idleLabel }: { idleLabel?: string }) {
   const selected = SORT_OPTIONS[index];
 
   return <div className="work-density-control feed-sort-control">
-    <button type="button" className="work-control work-sort-control" aria-label={`Sort projects: ${selected.label}`}
+    <button type="button" className="work-control work-sort-control" data-hover-glitch aria-label={`Sort projects: ${selected.label}`}
       onClick={() => {
         if (editingOrder) return;
         const next = SORT_OPTIONS[(index + 1) % SORT_OPTIONS.length].value;

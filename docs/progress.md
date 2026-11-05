@@ -10,13 +10,16 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Safari top edge comparison (2026-11-05, open)**
+- Rejected: the solid white strip, even running down to the bar, because its hard edge still bothered Liam. Removed it. Without a strip, Safari may sample the bar's gray again, so three temporary variants are up for Liam to compare on an iPhone: the default keeps the bar at 97% opacity, `?edge=low` keeps it opaque but moves it from 4px to 24px below the safe area, and `?edge=both` does both. Whether near-opaque fills escape Safari's sampling is untested. Remove the unchosen variants, the `edge` query handling, and the `data-safari-edge` rules once one is picked.
+
 **Tap-to-change Featured and plain Safari edge (2026-11-05)**
-- Removed the Featured menu: every copy now taps to change, on desktop and mobile, on the page and in the header. Hovering dims it with the shared `--hover-dim`, following the text-button rule, since v3's only hover feedback was the menu. The desktop dot drops from 9.9px to 9px; mobile stays 8.8px.
+- Removed the Featured menu: every copy now taps to change, on desktop and mobile, on the page and in the header. Hovering uses the same color flashes as text links, on the label and its dot, as Liam clarified. The desktop dot drops from 9.9px to 9px; mobile stays 8.8px.
 - Rejected: the inward fade under the top strip, which Liam found odd on iPhone Safari. No gradient or blur remains. The solid white strip stays so Safari doesn't sample the header's gray, and it now runs down to the bar's top so content can't show as a sliver between them. Content is cut at that line.
 
 **Safari edge fade and filter corrections (2026-11-05)**
 - The white top strip alone left a harsh white cut on iPhone Safari. The project modal's samplers were never only a strip: its bottom edge pairs a solid sampler with a short inward fade, so Safari samples the solid color while content dissolves into it. Added the same fade under the header, below the top strip. Liam still needs to confirm this on a device.
-- Featured now uses the circle with the shared 1.1 dot ratio and the v3 gap to the first tile: 12px desktop, 8px mobile. It no longer has the link color flash, on the page or in the header. Hovering on desktop reveals the page control's menu as in v3, and the header's copy cycles on click instead of opening a menu, so the downward menu is gone. Removed the now-unused filter support from the hover controller.
+- Featured now uses the circle with the shared 1.1 dot ratio and the v3 gap to the first tile: 12px desktop, 8px mobile. The header's copy cycles on click instead of opening a menu, so the downward menu is gone.
 - The song timestamp opts out of link flashes with `data-hover-glitch-skip`.
 - Rejected: running the globe and ring at the links' 90ms cadence, at rest or on hover. Liam found it too fast. `glyph-globe.tsx` is restored from `portfolio-v3-homepage`, and `--globe-hover-extra-letters` and the `glitchLetters` minimum are removed.
 
