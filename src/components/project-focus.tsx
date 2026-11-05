@@ -14,19 +14,11 @@ function FocusText({ text }: { text: string }) {
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>{text}</span></InspectableText>;
 }
 
-export function ProjectFocusDetails({ preview, titleId = "project-focus-title", exitHeight }: { preview: ProjectPreview; titleId?: string; exitHeight?: number }) {
+export function ProjectFocusDetails({ preview, exitHeight }: { preview: ProjectPreview; exitHeight?: number }) {
   if (exitHeight !== undefined) return <div className="project-focus-details text-bodySans" style={{ height: exitHeight }} />;
-  const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   return <div className="project-focus-details text-bodySans">
-    <div className="project-focus-heading">
-      <div className="project-focus-name">
-        <h2 id={titleId || undefined}><FocusText text={preview.company} /></h2>
-        <p className="project-focus-description"><FocusText text={preview.label} /></p>
-      </div>
-      <p className="project-focus-period text-captionSans"><FocusText text={period} /></p>
-    </div>
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
-    <ProjectCredits preview={preview} />
+    <ProjectCredits preview={preview} techLabel="Tech" />
   </div>;
 }
 
@@ -46,7 +38,7 @@ export function ProjectCredits({ preview, techLabel = "Stack" }: { preview: Proj
   </div>;
 }
 
-export function ProjectFocus({ selection, neighbors, onClose, onNavigate, position, total }: { selection: ProjectFocusSelection; neighbors: { previous: ProjectPreview; next: ProjectPreview }; onClose: () => void; onNavigate: (direction: -1 | 1, keyboard: boolean) => void; position: number; total: number }) {
+export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavigate, position, total }: { selection: ProjectFocusSelection; neighbors: { previous: ProjectPreview; next: ProjectPreview }; onClose: () => void; onClosing?: () => void; onNavigate: (direction: -1 | 1, keyboard: boolean) => void; position: number; total: number }) {
   const { safariEdgeTestEnabled } = usePortfolioExperiments();
   const rootRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
@@ -139,9 +131,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const media = trigger.querySelector<HTMLElement>(".homepage-project-media")!;
     const backdrop = root.querySelector<HTMLElement>(".project-focus-backdrop")!;
     const blur = root.querySelector<HTMLElement>(".project-focus-blur")!;
-    const bottomFade = root.querySelector<HTMLElement>(".project-focus-bottom-fade")!;
     const details = root.querySelector<HTMLElement>(".project-focus-details")!;
-    const textRows = Array.from(details.querySelectorAll<HTMLElement>("h2, .project-focus-description, .project-focus-period, .project-focus-summary, h3, li"))
+    const textRows = Array.from(details.querySelectorAll<HTMLElement>(".project-focus-summary, h3, li"))
       .map(element => ({ element, top: element.getBoundingClientRect().top }))
       .sort((a, b) => a.top - b.top);
     const rowTops = [...new Set(textRows.map(row => row.top))];
@@ -169,7 +160,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
     const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
-    const backgrounds = [blur, backdrop, bottomFade];
+    const backgrounds = [blur, backdrop];
     animations.push(...(pageAnimations ?? [opening]));
     if (!navigation) animations.push(
       ...backgrounds.map(element => fade(element, 0, 1)),
@@ -184,6 +175,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       if (closing || disposed) return;
       cancelPaging();
       closing = true;
+      onClosing?.();
       root.dataset.phase = "closing";
       root.dataset.exit = "controls";
       const scroller = scrollRef.current!;
@@ -237,13 +229,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       if (!retainsMedia(media)) focusMedia.restore(media);
       if (animationsRef.current === animations) animationsRef.current = [];
     };
-  }, [selection, onClose, animatePage, retainsMedia, cancelPaging, focusMedia]);
+  }, [selection, onClose, onClosing, animatePage, retainsMedia, cancelPaging, focusMedia]);
 
   const neighbor = neighborDirection === -1 ? neighbors.previous : neighbors.next;
   useLayoutEffect(() => {
     const slot = neighborRef.current?.querySelector<HTMLElement>(".project-focus-media-slot");
     if (!neighborDirection || !slot) return;
-    const trigger = selection.trigger.closest(".project-grid")?.querySelector<HTMLButtonElement>(`[data-project-id="${neighbor.id}"] .homepage-card-trigger`);
+    const trigger = selection.trigger.closest("ul")?.querySelector<HTMLButtonElement>(`[data-project-id="${neighbor.id}"] .homepage-card-trigger`);
     if (!trigger) return;
     const media = focusMedia.attach(trigger, slot, "preview");
     return () => { queueMicrotask(() => focusMedia.restore(media, slot)); };
@@ -256,15 +248,15 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
       <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
       <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
     </>}
-    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-labelledby="project-focus-title" data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1}>
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-label={`${selection.preview.company}, ${selection.preview.label}`} data-phase="opening" data-focus-project={selection.preview.id} data-input={initialSelection.current.keyboard ? "keyboard" : "pointer"} tabIndex={-1} onClick={event => {
+      // Anywhere but a link closes; finishing a text selection shouldn't.
+      if ((event.target as Element).closest("a, .project-focus-controls") || !getSelection()?.isCollapsed) return;
+      dismissRef.current();
+    }}>
     <div className="project-focus-blur" aria-hidden="true" />
     <div className="project-focus-backdrop" aria-hidden="true" />
     <div ref={pagesRef} className="project-focus-pages">
-    <div ref={scrollRef} className="project-focus-scroll" onClick={event => {
-      if (event.target !== event.currentTarget) return;
-      const bounds = event.currentTarget.querySelector(".project-focus-panel")!.getBoundingClientRect();
-      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dismissRef.current();
-    }}>
+    <div ref={scrollRef} className="project-focus-scroll">
       <div className="project-focus-panel">
         <div ref={slotRef} className="project-focus-media-slot" role={selection.preview.media ? "img" : undefined} aria-label={selection.preview.media?.alt} />
         <ProjectFocusDetails preview={selection.preview} exitHeight={exitTextHeight} />
@@ -273,11 +265,10 @@ export function ProjectFocus({ selection, neighbors, onClose, onNavigate, positi
     {neighborDirection && <div ref={neighborRef} className="project-focus-paging-page" data-paging-neighbor="" aria-hidden="true" inert>
       <div className="project-focus-panel">
         <div className="project-focus-media-slot" />
-        <ProjectFocusDetails preview={neighbor} titleId="" />
+        <ProjectFocusDetails preview={neighbor} />
       </div>
     </div>}
     </div>
-    <div className="project-focus-bottom-fade" aria-hidden="true" />
     <div ref={controlsRef} className="project-focus-controls" role="group" aria-label="Project navigation">
       <button type="button" className="project-focus-action project-focus-step text-bodySans" aria-label="Previous project" aria-keyshortcuts="P ArrowLeft" onClick={event => navigate(-1, event.detail === 0)}><InspectableText>P</InspectableText></button>
       <button ref={closeRef} type="button" className="project-focus-action project-focus-close text-bodySans" onClick={() => dismissRef.current()}><InspectableText>Close</InspectableText></button>

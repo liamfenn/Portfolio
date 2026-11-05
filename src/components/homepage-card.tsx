@@ -31,11 +31,11 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false, cardOverlay = false, reorder }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, onHover, onClearHover, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, reorder }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   hovered: boolean; onHover: () => void; onClearHover: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
-  cardOverlay?: boolean; reorder?: ProjectReorder;
+  cardOverlay?: boolean; priorityMedia?: boolean; reorder?: ProjectReorder;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -82,7 +82,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, hovered, o
         onFocus={event => setFocused(event.currentTarget.matches(":focus-visible"))} onBlur={() => setFocused(false)}
         onKeyDown={event => { if (!cardOverlay && event.key === "Escape") { onClearHover(); setFocused(false); if (isMobile && expanded) onToggle(); } }}>
         <span className="homepage-project-media">
-        {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={visible || focusActive} /> : null}
+        {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={priorityMedia || visible || focusActive} /> : null}
         {preview.media?.kind === "image" ? <>
           <Skeleton active={pending} />
           <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
+import type { ProjectPreview } from "@/lib/project-previews";
 import sharedOrder from "@/lib/featured-order.json";
 import { reconcileProjectOrder, swapProjects } from "@/lib/project-order";
 
@@ -46,6 +47,9 @@ interface ProjectDisplayState {
   /** Changes on every Random selection. Keeps one shuffle stable across renders. */
   randomSeed: number;
   reshuffle: () => void;
+  /** The project the header is showing while the focused view is open. Clears as the view starts closing. */
+  focusedProject: ProjectPreview | null;
+  setFocusedProject: Dispatch<SetStateAction<ProjectPreview | null>>;
 }
 
 const ProjectDisplayContext = createContext<ProjectDisplayState | null>(null);
@@ -84,6 +88,7 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
   const [mobileColumns, setMobileColumns] = useState<MobileColumns>(1);
   const [sortMode, setSortMode] = useState<ProjectSortMode>("featured");
   const [randomSeed, setRandomSeed] = useState(0);
+  const [focusedProject, setFocusedProject] = useState<ProjectPreview | null>(null);
   const reshuffle = useCallback(() => setRandomSeed((current) => current + 1), []);
   // Once the reader picks a density we keep it across resizes rather than
   // snapping back to the width default, clamping only if it leaves the range.
@@ -130,6 +135,8 @@ export function ProjectDisplayProvider({ children }: { children: ReactNode }) {
         setSortMode,
         randomSeed,
         reshuffle,
+        focusedProject,
+        setFocusedProject,
       }}
     >
       {children}

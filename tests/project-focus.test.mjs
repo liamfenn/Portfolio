@@ -11,8 +11,8 @@ test("project focus omits the entire team field when there are no members", () =
   for (const team of [undefined, []]) {
     const html = render(team);
     assert.doesNotMatch(html, /project-focus-team|<h3|<ul/);
-    assert.match(html, /Product Page/);
-    assert.match(html, /Q2 26/);
+    // The project name and date live in the header while the view is open.
+    assert.doesNotMatch(html, /Product Page|Q2 26/);
   }
 });
 
@@ -34,7 +34,7 @@ test("description and tech render independently of optional contributors", () =>
   assert.match(html, /project-focus-summary text-bodySerif/);
   assert.match(html, /A project description\./);
   assert.match(html, /project-focus-tech/);
-  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Stack<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Tech<\/span>/);
   assert.doesNotMatch(html, /project-focus-team|Contributors/);
   for (const technology of ["Swift", "UIKit", "Metal"]) assert.match(html, new RegExp(`class="project-focus-text" data-focus-text="[^"]*">${technology}<\\/span>`));
 });

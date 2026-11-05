@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
+import { HomepageCard } from "@/components/homepage-card";
 import { ProjectSortControl } from "@/components/project-sort-control";
-import { InspectableText } from "@/components/design-inspector";
-import { ProjectCredits } from "@/components/project-focus";
-import { ProjectPreviewVideo } from "@/components/project-preview-video";
-import { ProjectReorderHandle } from "@/components/project-reorder-handle";
+import { ProjectFocus } from "@/components/project-focus";
+import type { ProjectFocusSelection } from "@/components/project-focus";
 import { useProjectDisplayState } from "@/components/project-display-state";
-import { mediaUrl } from "@/lib/media-delivery";
+import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { sortProjects } from "@/lib/project-order";
 import { arrangeProjectGrid } from "@/lib/project-arrangement";
@@ -15,7 +14,24 @@ import { arrangeProjectGrid } from "@/lib/project-arrangement";
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
 
 export function ProjectFeed() {
-  const { featuredOrder, editingOrder, swapOrder, sortMode, randomSeed } = useProjectDisplayState();
+  const { featuredOrder, editingOrder, swapOrder, sortMode, randomSeed, setFocusedProject } = useProjectDisplayState();
+  const { projectInteractionMode } = usePortfolioExperiments();
+  const [isMobile, setIsMobile] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<ProjectFocusSelection | null>(null);
+  useEffect(() => {
+    const media = matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  // The focused view restarts its animations when these change, so they stay stable across the feed's own renders.
+  const closeFocus = useCallback(() => setSelection(null), []);
+  const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
+
   let projects = sortProjects(FILLED_PROJECTS, featuredOrder, sortMode === "recent");
   if (sortMode === "random") {
     const rank = (id: string) => {
@@ -27,44 +43,42 @@ export function ProjectFeed() {
   }
   if (!editingOrder) projects = arrangeProjectGrid(projects, 1);
 
-  return <section className="portfolio-feed" aria-label="Selected work" onKeyDown={event => {
-    if (event.key !== "Escape") return;
-    const detail = event.currentTarget.querySelector<HTMLDetailsElement>("details[open]");
-    if (detail) {
-      detail.open = false;
-      detail.querySelector("summary")?.focus({ preventScroll: true });
-    }
-  }}>
+  const overlay = projectInteractionMode === "overlay";
+  const focusIndex = selection ? projects.findIndex(project => project.id === selection.preview.id) : -1;
+  const navigate = (direction: -1 | 1, keyboard: boolean) => {
+    if (!selection || projects.length < 2) return;
+    const preview = projects[(focusIndex + direction + projects.length) % projects.length];
+    const trigger = selection.trigger.closest("ul")?.querySelector<HTMLButtonElement>(`[data-project-id="${preview.id}"] .homepage-card-trigger`);
+    if (!trigger) return;
+    setSelection({ preview, trigger, origin: trigger.getBoundingClientRect(), keyboard, navigation: true });
+    setFocusedProject(preview);
+  };
+
+  return <section className="portfolio-feed" aria-label="Selected work">
     <div className="feed-toolbar text-bodySans">
       <ProjectSortControl />
     </div>
-    <ul className="feed-projects">
-      {projects.map((preview, index) => <li key={preview.id} className="feed-project homepage-card" data-project-id={preview.id}>
-        <details className="feed-project-disclosure" name="portfolio-project">
-          <summary className="feed-media hover-surface" aria-label={`${preview.label}, ${preview.company}, ${preview.period}`}>
-            {preview.media?.kind === "video" && <ProjectPreviewVideo asset={preview.media} priority={index === 0} />}
-            {preview.media?.kind === "image" && <Image src={mediaUrl(preview.media.src)} alt={preview.media.alt} unoptimized={preview.media.unoptimized}
-              fill sizes="(max-width: 767px) 100vw, 552px" style={{ objectFit: "cover" }} />}
-            <span className="feed-info-icon" aria-hidden="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="feed-icon-open" src="/images/redesign/project-info.svg" alt="" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="feed-icon-close" src="/images/redesign/project-close.svg" alt="" />
-            </span>
-          </summary>
-          <div className="feed-details project-focus-details text-bodySans">
-            <div className="project-focus-heading">
-              <div className="project-focus-name">
-                <h2><InspectableText>{preview.company}</InspectableText></h2>
-                <p className="project-focus-description"><InspectableText>{preview.label}</InspectableText></p>
-              </div>
-              <p className="project-focus-period text-captionSans"><InspectableText>{`Q${preview.quarter} ${String(preview.year).slice(-2)}`}</InspectableText></p>
-            </div>
-            <ProjectCredits preview={preview} techLabel="Tech" />
-          </div>
-        </details>
-        {editingOrder && <ProjectReorderHandle id={preview.id} name={preview.label} reorder={{ swap: swapOrder, columns: 1, order: projects.map(project => project.id) }} />}
-      </li>)}
+    <ul className="feed-projects" onPointerLeave={() => setHoveredId(null)} onFocusCapture={event => {
+      if (!overlay || !expandedId) return;
+      const trigger = (event.target as Element).closest(".homepage-card-trigger");
+      if (trigger?.matches(":focus-visible") && trigger.closest<HTMLElement>("[data-project-id]")?.dataset.projectId !== expandedId) setExpandedId(null);
+    }}>
+      {projects.map((preview, index) => <HomepageCard key={preview.id} preview={preview} isMobile={isMobile} priorityMedia={index === 0}
+        reorder={editingOrder ? { swap: swapOrder, columns: 1, order: projects.map(project => project.id) } : undefined}
+        expanded={overlay && !editingOrder && expandedId === preview.id}
+        cardOverlay={overlay}
+        hovered={!editingOrder && hoveredId === preview.id}
+        onHover={() => setHoveredId(preview.id)}
+        onClearHover={() => setHoveredId(null)}
+        focusActive={selection?.preview.id === preview.id}
+        onOpenFocus={overlay ? undefined : (trigger, keyboard) => {
+          setSelection({ preview, trigger, origin: trigger.getBoundingClientRect(), keyboard });
+          setFocusedProject(preview);
+        }}
+        onToggle={() => setExpandedId(current => current === preview.id ? null : preview.id)} />)}
     </ul>
+    {selection && <ProjectFocus selection={selection} position={focusIndex + 1} total={projects.length}
+      neighbors={{ previous: projects[(focusIndex - 1 + projects.length) % projects.length], next: projects[(focusIndex + 1) % projects.length] }}
+      onNavigate={navigate} onClosing={clearFocusedProject} onClose={closeFocus} />}
   </section>;
 }

@@ -647,7 +647,7 @@ img.loading-image-error { visibility: hidden; }
 }
 :where(a, button):focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .homepage-avatar { position: relative; z-index: 1; display: block; width: 28px; height: 28px; overflow: hidden; background: var(--bg-secondary-fill); }
-.portfolio-v3 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
+.portfolio-v3 .homepage-card, .portfolio-v4 .homepage-card { aspect-ratio: auto; overflow: visible; clip-path: none; contain: none; background: transparent; }
 .homepage-card-trigger { position: relative; aspect-ratio: 1; height: auto; border: 0; padding: 0; background: var(--bg-secondary-fill); color: inherit; cursor: pointer; overflow: visible; }
 .homepage-card-trigger, .glyph-globe, .glyph-exit, .homepage-spotify,
 .work-density-control, .portfolio-footer { -webkit-user-select: none; user-select: none; }
@@ -809,7 +809,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-focus-backdrop { position: fixed; z-index: var(--project-focus-layer); background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent); }
 .project-focus-blur { position: fixed; z-index: var(--project-focus-layer); -webkit-backdrop-filter: blur(var(--project-focus-blur)); backdrop-filter: blur(var(--project-focus-blur)); }
 .project-focus-pages { position: fixed; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
-.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: calc(var(--project-focus-top) + var(--viewport-safe-top)) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--project-focus-close-bottom) + var(--project-focus-hit-size) + var(--content-padding) * 2 + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
+.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--project-focus-close-bottom) + var(--project-focus-hit-size) + var(--content-padding) * 2 + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
@@ -819,17 +819,17 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .project-focus-scroll .project-focus-details a { pointer-events: auto; }
 }
 .project-focus-scroll, .project-focus-paging-page { overflow-x: hidden; }
-.project-focus-details { display: flex; flex-direction: column; gap: var(--project-focus-section-gap); padding-top: var(--content-padding); --inspect-color-token: text-primary; color: var(--text-primary); }
+.project-focus-details { display: flex; flex-direction: column; gap: var(--project-focus-section-gap); padding-top: var(--project-focus-section-gap); --inspect-color-token: text-primary; color: var(--text-primary); }
 .project-focus-details :where(h2, h3, p, ul) { margin: 0; padding: 0; list-style: none; }
-.project-focus-name h2 { font: inherit; }
-.project-focus-heading { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--project-focus-top); }
-.project-focus-name, .project-focus-team, .project-focus-team ul, .project-focus-tech, .project-focus-tech ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--project-info-gap); }
-.project-focus-description, .project-focus-summary, .project-focus-team a, .project-focus-tech li { --inspect-color-token: text-secondary; color: var(--text-secondary); }
-.project-focus-period, .project-focus-team h3, .project-focus-tech h3 { --inspect-color-token: text-muted; color: var(--text-muted); }
-.project-focus-period { white-space: nowrap; }
+.project-focus-team, .project-focus-team ul, .project-focus-tech, .project-focus-tech ul { display: flex; flex-direction: column; align-items: flex-start; gap: var(--project-info-gap); }
+.project-focus-summary, .project-focus-team a, .project-focus-tech li { --inspect-color-token: text-secondary; color: var(--text-secondary); }
+.project-focus-team h3, .project-focus-tech h3 { --inspect-color-token: text-muted; color: var(--text-muted); }
 .project-focus-summary { width: 100%; max-width: var(--project-focus-description-width); }
 .project-focus-credits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
 .project-focus-team a { text-decoration: none; }
+.project-focus-details .project-focus-credits :is(a, li) { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
+/* Tapping anywhere closes, so the controls only appear for keyboard users, who still need them. */
+.project-focus-root:not([data-input="keyboard"]) .project-focus-controls { opacity: 0; pointer-events: none; }
 .project-focus-controls { position: fixed; z-index: var(--project-focus-controls-layer); left: 50%; bottom: calc(var(--project-focus-close-bottom) + var(--viewport-safe-bottom)); translate: -50% 0; display: flex; align-items: center; gap: var(--project-focus-controls-gap); }
 .project-focus-action { position: relative; display: grid; place-items: center; padding: var(--page-frame); border: 0; background: var(--bg-secondary-fill); --inspect-color-token: text-primary; color: var(--text-primary); cursor: pointer; transition: color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease); }
 .project-focus-step { width: var(--project-focus-navigation-width); }
@@ -845,7 +845,6 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 }
 /* Opaque samplers stay above the overlay at native fixed edges in every Safari toolbar layout. */
 .project-focus-edge, .safari-edge-test { display: none; position: fixed; left: 0; right: 0; z-index: var(--project-focus-edge-layer); pointer-events: none; }
-.project-focus-bottom-fade { display: none; pointer-events: none; z-index: var(--project-focus-content-layer); }
 @media (max-width: 767px) {
   .project-focus-edge, .safari-edge-test { display: block; }
   .project-focus-edge-top, .safari-edge-test-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); }
@@ -854,7 +853,6 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .project-focus-edge-bottom { background: var(--bg-fill); }
   .safari-edge-test-top { background: var(--bg-green-fill); }
   .safari-edge-test-bottom { background: var(--bg-purple-fill); }
-  .project-focus-bottom-fade { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--project-focus-hit-size) + max(var(--project-focus-edge-size), var(--viewport-safe-bottom))); background: linear-gradient(to top, var(--bg-fill) max(var(--project-focus-edge-size), var(--viewport-safe-bottom)), transparent); }
   .project-focus-scroll { touch-action: pan-y pinch-zoom; }
   .project-focus-scroll, .project-focus-paging-page { padding: max(var(--project-focus-edge-size), var(--viewport-safe-top)) var(--viewport-safe-right) calc(var(--project-focus-close-bottom-mobile) + var(--project-focus-hit-size) + var(--content-padding-mobile) * 2 + var(--viewport-safe-bottom)) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-section-gap: calc(var(--content-padding) * 2); --project-focus-description-width: var(--project-focus-description-width-mobile); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }

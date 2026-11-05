@@ -10,6 +10,11 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Two project views and a morphing header (2026-11-05)**
+- The feed now uses the previous branch's `HomepageCard` with two debug modes: Card overlay (default, white blurred panel with credits in the tile) and Focused view (`?projects=focus`). Inline details and the `[i]` squares are gone, along with their assets and tokens.
+- Focused view follows Figma 597:24279 on the existing `ProjectFocus`, so it keeps continuous video, page lock, and Safari edge samplers: an opaque white modal, 720px media flush to the top, and description plus Contributors and Tech below. Tapping anywhere except a link closes it on desktop and mobile. There are no visible controls for pointer users; P, Close, and N show only after keyboard input. Swipes, wheel paging, and arrow keys still page between projects.
+- Instead of a separate bar, the header morphs on open as Liam asked: name, then Contact, color-glitch into company and date, the project name glitches in, the avatar leaves, and the bar goes translucent at 696px on desktop. It reverses as the view starts closing. The header ignores scroll changes while the page is locked, so it can't flicker through other states. Removed the bottom gradient fade, which Figma omits.
+
 **Featured order update (2026-11-05)**
 - Published Liam's exported order: Top search, Shop card, Bottom search, Shop Incentives, Baskets, Canvas, Collections sheet.
 

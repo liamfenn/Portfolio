@@ -49,7 +49,7 @@ export function installLinkHoverGlitch() {
     active = null;
   };
   const linkAt = (target: EventTarget | null) => {
-    const link = target instanceof Element ? target.closest<HTMLElement>("main a[href], main [data-hover-glitch]") : null;
+    const link = target instanceof Element ? target.closest<HTMLElement>("main a[href], main [data-hover-glitch], .project-focus-root a[href]") : null;
     return link && !link.closest("[inert], .design-inspector, .palette-lab") ? link : null;
   };
   const wanted = () => !reducedMotion.matches && !document.hidden && document.hasFocus()

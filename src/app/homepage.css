@@ -44,10 +44,22 @@
 /* The same label sits past the avatar by default, then slides over as the square takes the avatar's place. */
 .header-label { position: absolute; z-index: 1; top: 0; left: var(--header-label-inset); height: 100%; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-label-gap: var(--portfolio-sort-gap); transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--header-filter-slot))); transition: transform var(--header-transition); }
 .portfolio-header.is-over-images .header-label { transform: none; }
-.header-label .feed-sort-control { display: flex; align-items: center; height: 100%; }
+.header-label { display: flex; align-items: center; white-space: nowrap; }
+.header-label .feed-sort-control { display: flex; align-items: center; width: auto; height: 100%; }
+.header-label .work-sort-control { width: auto; }
 .header-label .work-control-dot { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
 .portfolio-header:not(.is-over-images) .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 .portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar .feed-sort-control { visibility: hidden; }
+
+/* The focused view's details morph into this bar, so it rises above the view and stays there until it has closed. */
+body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-header-layer); }
+.portfolio-header.is-project-focus { width: min(calc(var(--project-focus-width) - var(--content-padding-mobile) * 2), calc(100% - var(--content-padding-mobile) * 2)); }
+.portfolio-header.is-project-focus .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
+.portfolio-header.is-project-focus .header-avatar { visibility: hidden; opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
+.portfolio-header.is-project-focus .header-label { transform: translateX(calc(var(--content-padding-mobile) - var(--header-filter-slot))); }
+.portfolio-header.is-project-focus .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
+.portfolio-header.is-project-focus .header-action { color: var(--text-muted); --inspect-color-token: text-muted; }
+.header-project-detail { margin-left: var(--portfolio-control-gap); white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; }
 
 .header-action { position: absolute; z-index: 2; top: 0; right: var(--content-padding-mobile); display: flex; align-items: center; height: 100%; white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; }
 
@@ -85,24 +97,9 @@
 .feed-sort-control .work-label-group { gap: var(--work-label-gap); }
 /* Safari paints native character highlights only when the filter's text is selectable. */
 .feed-sort-control:has([data-link-glitch-active]), .feed-sort-control [data-link-glitch-active] { -webkit-user-select: text; user-select: text; }
+/* Keyboard focus shouldn't leave a tile under the fixed header. */
+.portfolio-v4 .homepage-card-trigger { scroll-margin-top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--portfolio-control-size) + var(--page-frame)); }
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
-.feed-project { position: relative; width: 100%; transition: opacity var(--motion-duration) var(--motion-ease); }
-.feed-projects:has(.feed-project-disclosure[open]) > .feed-project:not(:has(.feed-project-disclosure[open])) { opacity: var(--hover-dim); }
-.feed-media { scroll-margin-top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--portfolio-control-size) + var(--page-frame)); display: block; position: relative; width: 100%; aspect-ratio: 1; list-style: none; background: var(--bg-secondary-fill); user-select: none; }
-.portfolio-feed summary::-webkit-details-marker { display: none; }
-.feed-media:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-.feed-media:has(.project-preview-media) { -webkit-touch-callout: none; }
-.feed-info-icon { position: absolute; z-index: 1; top: var(--portfolio-info-inset); right: var(--portfolio-info-inset); width: var(--portfolio-info-size); height: var(--portfolio-info-size); }
-.feed-info-icon img { position: absolute; inset: 0; }
-.feed-icon-close, .feed-project-disclosure[open] .feed-icon-open { visibility: hidden; }
-.feed-project-disclosure[open] .feed-icon-close { visibility: visible; }
-@media (min-width: 768px) {
-  .feed-icon-open { opacity: 0; transition: opacity var(--hover-duration) var(--hover-ease); }
-  .feed-media:is(:hover, :focus-visible) .feed-icon-open { opacity: 1; }
-}
-.portfolio-feed .feed-details { padding: var(--portfolio-details-top) 0 var(--portfolio-details-bottom); gap: var(--portfolio-details-gap); }
-.feed-details .project-focus-credits :is(a, li) { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
-.feed-details .project-focus-team, .feed-details .project-focus-tech { gap: var(--project-info-gap); }
 
 @media (max-width: 767px) {
   .portfolio-v4 { max-width: none; padding: calc(var(--header-mobile-top) + var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-mobile-bottom); }
@@ -111,7 +108,8 @@
   /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */
   /* Safari tints its top area from opaque fixed elements near the edge. At 4px below the safe area it pulls the bar's gray; 5px, tested on an iPhone, stays clear. */
   .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--viewport-safe-top) + var(--header-mobile-top)); }
-  .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
+  .portfolio-header.is-scrolled, .portfolio-header.is-project-focus { width: calc(100% - var(--content-padding-mobile) * 2); }
+  .portfolio-header.is-project-focus .header-action { color: var(--text-secondary); --inspect-color-token: text-secondary; }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
   .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); width: auto; margin: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; }
@@ -120,7 +118,6 @@
   .feed-toolbar { --work-glyph-size: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); }
   .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
-  .portfolio-feed .feed-details { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: 0 var(--content-padding-mobile); }
 }

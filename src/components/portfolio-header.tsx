@@ -4,24 +4,39 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { InspectableText } from "@/components/design-inspector";
+import { useProjectDisplayState } from "@/components/project-display-state";
 import { ProjectSortControl } from "@/components/project-sort-control";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 
 const EMAIL_HREF = "mailto:info@fennell.cv";
 
+function ProjectDetail({ text }: { text: string | null }) {
+  const reducedMotion = useReducedMotion();
+  // Blanks of the outgoing length let it scramble out instead of clearing in one frame.
+  const [shown, setShown] = useState("");
+  if (text && text !== shown) setShown(text);
+  const { ref } = useColorScramble({
+    ...FILTER_SCRAMBLE, text: text ?? " ".repeat(shown.length), ignore: [], playOnMount: false, speed: reducedMotion ? 0 : FILTER_SCRAMBLE.speed,
+  });
+  return <InspectableText text={text ?? ""}><span ref={ref} className="header-project-detail" aria-hidden="true">{text ?? ""}</span></InspectableText>;
+}
+
 export function PortfolioHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [overImages, setOverImages] = useState(false);
   const header = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const actionLabel = overImages ? "Top" : "Contact";
+  const { focusedProject } = useProjectDisplayState();
+  const period = focusedProject && `${focusedProject.quarter ? `Q${focusedProject.quarter} ` : ""}${String(focusedProject.year).slice(-2)}`;
+  const actionLabel = period ?? (overImages ? "Top" : "Contact");
   const { ref: actionText } = useColorScramble({
     ...FILTER_SCRAMBLE, text: actionLabel, ignore: [], playOnMount: false, speed: reducedMotion ? 0 : FILTER_SCRAMBLE.speed,
   });
 
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 0);
+    // The focused view locks the page by fixing the body, which zeroes the scroll position until it closes.
+    const update = () => { if (document.body.style.position !== "fixed") setScrolled(window.scrollY > 0); };
     update();
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
@@ -38,7 +53,7 @@ export function PortfolioHeader() {
       // The swap happens while the page's filter is fully behind the opaque bar, so it never shows through the translucent one.
       const line = Math.round(bar.getBoundingClientRect().bottom);
       observer = new IntersectionObserver(([entry]) => {
-        setOverImages(!entry.isIntersecting && entry.boundingClientRect.top < line);
+        if (document.body.style.position !== "fixed") setOverImages(!entry.isIntersecting && entry.boundingClientRect.top < line);
       }, { rootMargin: `-${line}px 0px 0px 0px` });
       observer.observe(toolbar);
     };
@@ -50,15 +65,16 @@ export function PortfolioHeader() {
     };
   }, []);
 
-  return <div ref={header} className={`portfolio-header${scrolled ? " is-scrolled" : ""}${overImages ? " is-over-images" : ""}`}>
+  return <div ref={header} className={`portfolio-header${scrolled ? " is-scrolled" : ""}${overImages ? " is-over-images" : ""}${focusedProject ? " is-project-focus" : ""}`}>
     <span className="header-fill" aria-hidden="true" />
     <button className="header-avatar hover-surface" type="button" data-inspector-toggle aria-label="Open design controls" inert={overImages}>
       <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
     </button>
-    <div className={`header-label ${overImages ? "text-bodySans" : "text-bodySerif"}`} inert={!overImages}>
-      <ProjectSortControl idleLabel={overImages ? undefined : "Liam Fennell"} />
+    <div className={`header-label ${overImages || focusedProject ? "text-bodySans" : "text-bodySerif"}`} inert={!overImages || Boolean(focusedProject)}>
+      <ProjectSortControl idleLabel={focusedProject?.company ?? (overImages ? undefined : "Liam Fennell")} />
+      <ProjectDetail text={focusedProject?.label ?? null} />
     </div>
-    <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} onClick={event => {
+    <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} inert={Boolean(focusedProject)} onClick={event => {
       if (!overImages) return;
       event.preventDefault();
       window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });

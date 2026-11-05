@@ -67,7 +67,7 @@ weather show placeholders. That's fine for most UI work.
 | Page shell, header, footer slot | `src/app/page.tsx`, `src/app/layout.tsx`, `src/components/portfolio-header.tsx`, `src/components/portfolio-footer.tsx` |
 | Global styles, tokens, text styles | `src/app/globals.css`, `src/app/homepage.css`, `src/app/tokens.css`, `src/app/text-styles.css` |
 | Header bar and music player | `src/components/portfolio-header.tsx`, `src/components/portfolio-player.tsx` |
-| Work feed, inline details and sorting | `src/components/project-feed.tsx`, `src/lib/project-previews.ts` (previous grid: `project-work.tsx`) |
+| Work feed, project views and sorting | `src/components/project-feed.tsx`, `src/components/homepage-card.tsx`, `src/components/project-focus.tsx`, `src/lib/project-previews.ts` (previous grid: `project-work.tsx`) |
 | Track text helpers, bio | `src/components/homepage-identity.tsx`, `src/components/homepage-bio.tsx` |
 | Design inspector (dev and preview only) | `src/components/design-inspector.tsx`, `src/lib/design-inspector.ts` |
 | Letter swarm engine (Matter.js) | `src/lib/glyph-swarm.ts` |
