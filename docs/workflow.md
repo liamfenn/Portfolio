@@ -6,12 +6,15 @@ How changes get from an editor (laptop, Codex, or Claude on a phone) to somethin
 
 - **Work branch:** `portfolio-v4-redesign`, branched from `portfolio-v3-homepage` on November 5, 2026. The previous v3 version remains on its original branch.
 - **`main`:** the August version, which is what production serves. Don't push or merge to it unless Liam asks.
-- **Vercel** builds every push. The new redesign preview will be recorded here after its first deployment. The previous `portfolio-v3-homepage` preview remains:
+- **Vercel** builds every push. Pushes to `portfolio-v4-redesign` update the verified stable branch preview:
+
+  **https://portfolio-git-portfolio-8002bc-lliamfennell-gmailcoms-projects.vercel.app**
+
+  The previous `portfolio-v3-homepage` preview remains:
 
   **https://portfolio-git-portfolio-cf6d8e-lliamfennell-gmailcoms-projects.vercel.app**
 
-  This link stays the same for the branch, so share it rather than the per-deploy `portfolio-<hash>-…` URLs.
-  Vercel shortened the branch name and added the `cf6d8e` hash; a hand-built URL won't work.
+  Each branch link stays the same for that branch, so share it rather than the per-deploy `portfolio-<hash>-…` URLs. Vercel shortened the branch names and assigned `8002bc` to v4 and `cf6d8e` to v3; do not hand-build these URLs.
 - **The preview is behind Vercel login** (deployment protection). Open it in a browser signed in to
   Liam's Vercel account. Agents can't load it themselves.
 - **Checking a deploy:** the Vercel check on the GitHub commit reports `success` when the preview is ready.
