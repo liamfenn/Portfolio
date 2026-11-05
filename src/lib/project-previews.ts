@@ -117,9 +117,9 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     ],
     tech: ["Swift", "Vision"],
   },
-  ...Array.from({ length: 3 }, (_, index) => ({
+  ...Array.from({ length: 5 }, (_, index) => ({
     id: `shop-${String(index + 10).padStart(2, "0")}`,
     ...shop,
-    label: `Placeholder ${index + 10}`,
+    label: `Placeholder ${index + 8}`,
   })),
 ];

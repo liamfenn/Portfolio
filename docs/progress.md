@@ -10,6 +10,10 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Twelve portfolio slots restored**
+- Restored the planned twelve tiles: seven populated projects and five blank placeholders. The previous removals had reduced the count instead of retaining blank slots. Existing placeholder IDs shop-10/11/12 stay stable; new shop-13/14 slots append to shared and reconciled local orders. Placeholder debug labels now run 8–12. Keep twelve slots as assets are added/removed unless Liam changes that target.
+- Validation: 74 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile checks confirm twelve unique tiles (six videos, one image, five blanks), five named debug placeholders, and older local orders retaining their entries while appending the new slots.
+
 **Feed cash removed**
 - Removed Feed cash (shop-09), its responsive video/poster bundle and asset registry entry, and its shared Featured ID at Liam's request. Ten tiles remain, including three blank placeholders. Surviving IDs/order remain unchanged, and local Featured orders automatically filter the removed ID. Updated active tag and media documentation; Top search and Collections sheet remain top-tagged.
 - Validation: 74 tests, TypeScript, touched-file lint, production build, and diff checks pass. Desktop/mobile checks confirm ten unique tiles, no Feed cash in the grid/debug editor, and saved orders retaining all surviving IDs while dropping shop-09.
