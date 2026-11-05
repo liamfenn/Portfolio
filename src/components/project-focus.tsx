@@ -136,7 +136,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     const textEnterDuration = milliseconds("--project-focus-text-enter-duration");
     const textStagger = milliseconds("--project-focus-text-stagger");
     const textExitDuration = milliseconds("--project-focus-text-exit-duration");
-    const textExitStagger = textStagger * textExitDuration / textEnterDuration;
     const timing = { duration: milliseconds("--project-focus-duration"), easing: `cubic-bezier(${tokens.getPropertyValue("--project-focus-ease").trim()})` };
     root.dataset.phase = "opening";
     root.querySelector<HTMLElement>(".project-focus-scroll")!.scrollTop = 0;
@@ -177,8 +176,8 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       animations.forEach(animation => animation.cancel());
       backgrounds.forEach((element, index) => { element.style.opacity = String(backgroundOpacities[index]); });
       textRows.forEach(({ element }, index) => { element.style.opacity = String(rowOpacities[index]); });
-      // Everything leaves on the tap: waiting for the text before moving the media read as lag.
-      const textExit = textRows.map(({ element, top }, index) => fade(element, rowOpacities[index], 0, (rowTops.length - 1 - rowTops.indexOf(top)) * textExitStagger, textExitDuration));
+      // Everything leaves on the tap, since waiting for the text read as lag. The text clears first so the moving media never crosses it.
+      const textExit = textRows.map(({ element }, index) => fade(element, rowOpacities[index], 0, 0, textExitDuration));
       // After paging, the tile may be off screen, where a flight back only reads as a snap, so the media collapses in place.
       const from = media.getBoundingClientRect(), tile = trigger.getBoundingClientRect();
       const returns = tileOnScreen(tile, innerWidth, innerHeight);

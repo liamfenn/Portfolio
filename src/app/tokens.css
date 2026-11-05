@@ -60,7 +60,7 @@
   --project-focus-text-enter-delay: 120ms;
   --project-focus-text-enter-duration: 600ms;
   --project-focus-text-stagger: var(--project-label-delay);
-  --project-focus-text-exit-duration: var(--project-layout-duration);
+  --project-focus-text-exit-duration: 80ms;
   --project-focus-ease: .65, 0, .35, 1;
   --project-focus-layer: 2200;
   --project-focus-media-layer: calc(var(--project-focus-layer) + 1);

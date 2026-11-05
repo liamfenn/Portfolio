@@ -104,8 +104,7 @@ Only Shop previews are listed in `src/lib/project-previews.ts`; their badges use
 Each project can provide `team: [{ name, href }]` for linked credits in the focused view; the entire Contributors field is hidden when the array is absent or empty.
 The focus view also accepts `description` and `tech: string[]`. The description uses bodySerif. All focus
 text uses the same 600ms opacity fade starting 120ms after opening, staggered 40ms from top to bottom; rows at
-the same height enter together. Exit reverses the row order with 180ms fades and a 12ms bottom-to-top
-stagger; the stagger scales with the exit/entry duration ratio.
+the same height enter together. On exit, all text fades together in 80ms.
 On exit, the controls, text, backdrop, and media all start on the tap.
 Grid hover labels hide immediately for the focus session, so their reverse stream cannot linger behind the moving media.
 Linked credits appear under **Contributors**,
