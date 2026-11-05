@@ -10,6 +10,9 @@ Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesi
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and
 production) is still the August version. Merging is Liam's call.
 
+**Desktop media info affordance (2026-11-05)**
+- Hide each media tile’s info block by default on desktop, revealing it on hover or keyboard-visible focus with the shared hover fade. The open tile’s close affordance stays visible, and mobile presentation is unchanged.
+
 **Softer scroll header slide (2026-11-05)**
 - Gave the avatar/Spotify scroll relocation its own 360ms motion token and cubic-bezier(.4,0,.2,1) easing. A gradual acceleration replaces the shared curve’s abrupt initial jump, followed by a quick middle and gentle settle. Hover/tap expansion timing is unchanged; reduced motion still disables transitions.
 

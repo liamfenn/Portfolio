@@ -98,6 +98,10 @@
 .feed-info-icon img { position: absolute; inset: 0; }
 .feed-icon-close, .feed-project-disclosure[open] .feed-icon-open { visibility: hidden; }
 .feed-project-disclosure[open] .feed-icon-close { visibility: visible; }
+@media (min-width: 768px) {
+  .feed-icon-open { opacity: 0; transition: opacity var(--hover-duration) var(--hover-ease); }
+  .feed-media:is(:hover, :focus-visible) .feed-icon-open { opacity: 1; }
+}
 .portfolio-feed .feed-details { padding: var(--portfolio-details-top) 0 var(--portfolio-details-bottom); gap: var(--portfolio-details-gap); }
 .feed-details .project-focus-credits :is(a, li) { font: var(--type-bodySans); letter-spacing: var(--tracking-ui); }
 .feed-details .project-focus-team, .feed-details .project-focus-tech { gap: var(--project-info-gap); }
