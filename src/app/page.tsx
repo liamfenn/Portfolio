@@ -1,5 +1,6 @@
 import { PortfolioFooter } from "@/components/portfolio-footer";
 import { PortfolioHeader } from "@/components/portfolio-header";
+import { PortfolioPlayer } from "@/components/portfolio-player";
 import { HomepageBio } from "@/components/homepage-bio";
 import { ProjectFeed } from "@/components/project-feed";
 import { DesignInspector, InspectableText } from "@/components/design-inspector";
@@ -24,7 +25,7 @@ function ContactLinks() {
 
 export default function Home() {
   return (
-    <DesignInspector><main className="portfolio-v2 portfolio-v4" data-page-frame>
+    <DesignInspector><div className="portfolio-safari-edge" aria-hidden="true" /><main className="portfolio-v2 portfolio-v4" data-page-frame>
       <PortfolioHeader />
       <header className="portfolio-intro">
           <h1 className="sr-only">Liam Fennell — Product Designer</h1>
@@ -32,6 +33,7 @@ export default function Home() {
       </header>
       <ProjectFeed />
       <ContactLinks />
+      <PortfolioPlayer />
       <PortfolioFooter />
     </main></DesignInspector>
   );

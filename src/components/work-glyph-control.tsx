@@ -45,6 +45,8 @@ export function WorkGlyphControl({
 }) {
   const markRef = useRef<HTMLSpanElement>(null);
   const previousSelection = useRef(selection);
+  // Only a selection flashes the mark. A label swapped from outside leaves its entrance animation undisturbed.
+  const selectionPlaying = useRef(false);
   const reducedMotion = useReducedMotion();
   const [isScrambling, setIsScrambling] = useState(false);
   const shouldReserveScrambleWidth = isScrambling || reserveScrambleWidth;
@@ -52,16 +54,18 @@ export function WorkGlyphControl({
     ...FILTER_SCRAMBLE,
     text,
     playOnMount: false,
+    speed: reducedMotion ? 0 : FILTER_SCRAMBLE.speed,
     onAnimationFrame: (result) => {
       if (result !== text) {
         setIsScrambling(true);
         const colors = currentGlyphPalette();
-        if (!reducedMotion && markRef.current && colors.length) {
+        if (selectionPlaying.current && !reducedMotion && markRef.current && colors.length) {
           markRef.current.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
         }
       }
     },
     onAnimationEnd: () => {
+      selectionPlaying.current = false;
       setIsScrambling(false);
       markRef.current?.style.removeProperty("background-color");
     },
@@ -71,7 +75,7 @@ export function WorkGlyphControl({
     if (previousSelection.current === selection) return;
     previousSelection.current = selection;
     // Re-selecting Random still counts as a selection, even when the label stays the same.
-    if (!reducedMotion) replay();
+    if (!reducedMotion) { selectionPlaying.current = true; replay(); }
   }, [selection, replay, reducedMotion]);
 
   return (

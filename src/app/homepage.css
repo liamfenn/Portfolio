@@ -22,61 +22,58 @@
 }
 .portfolio-v4 a[href], .portfolio-v4 button, .portfolio-v4 summary { cursor: pointer; }
 
-/* Layers, bottom to top: fill, filter, music, avatar. The filter emerges from under the music blocks as they push out. */
+.portfolio-safari-edge { display: none; }
+/* One bar in three states: default, narrowed once scrolled, and translucent over the images. */
 .portfolio-header {
-  --header-inset: 0px;
   --header-glyph: var(--work-glyph-desktop-size);
-  --header-filter-inset: calc(var(--header-filter-slot) - var(--header-glyph) - var(--portfolio-sort-gap));
+  --header-label-inset: calc(var(--header-filter-slot) - var(--header-glyph) - var(--portfolio-sort-gap));
   --header-transition: var(--header-scroll-duration) var(--header-scroll-ease);
   position: fixed; top: calc(var(--viewport-safe-top) + var(--portfolio-top)); left: 0; right: 0;
   z-index: var(--portfolio-header-layer); width: min(var(--portfolio-column-width), calc(100% - var(--content-padding-mobile) * 2)); height: var(--portfolio-control-size); margin-inline: auto; pointer-events: none;
+  transition: width var(--header-transition);
 }
-.portfolio-header.is-condensed { --header-inset: var(--content-padding-mobile); }
+.portfolio-header.is-scrolled { width: min(calc(var(--portfolio-column-width) - var(--content-padding-mobile) * 2), calc(100% - var(--content-padding-mobile) * 2)); }
 .portfolio-header > :not(.header-fill) { pointer-events: auto; }
 .portfolio-header button { border: 0; padding: 0; background: transparent; }
-.header-fill { position: absolute; inset: 0 var(--portfolio-control-size) 0 calc(var(--portfolio-control-size) * 2); background-color: var(--bg-secondary-fill); pointer-events: none; transition: left var(--header-transition), right var(--header-transition), background-color var(--header-transition), backdrop-filter var(--header-transition), -webkit-backdrop-filter var(--header-transition); }
-.portfolio-header.is-condensed .header-fill { left: calc(var(--header-inset) + var(--portfolio-control-size)); right: var(--header-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
-.header-avatar { position: absolute; z-index: 3; top: 0; left: 0; display: flex; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transform: translateX(var(--header-inset)); transition: transform var(--header-transition); }
+.header-fill { position: absolute; inset: 0 0 0 var(--portfolio-control-size); background-color: var(--bg-secondary-fill); pointer-events: none; transition: left var(--header-transition), background-color var(--header-transition), backdrop-filter var(--header-transition), -webkit-backdrop-filter var(--header-transition); }
+.portfolio-header.is-over-images .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
+.header-avatar { position: absolute; z-index: 2; top: 0; left: 0; display: flex; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease), visibility 0s; }
 .header-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
-:is(.header-avatar, .header-music, .header-top)::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
+.portfolio-header.is-over-images .header-avatar { visibility: hidden; opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
+:is(.header-avatar, .header-action)::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
 
-.header-filter { position: absolute; z-index: 1; top: 0; left: calc(var(--header-inset) + var(--portfolio-control-size) + var(--header-filter-inset)); height: 100%; visibility: hidden; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); }
-.portfolio-header.is-docked .header-filter { visibility: visible; }
-.header-filter-flight, .header-filter .feed-sort-control { height: 100%; }
-.header-filter .feed-sort-control { display: flex; align-items: center; }
-.portfolio-v4:has(.portfolio-header.is-docked) .feed-toolbar .feed-sort-control { visibility: hidden; }
+/* The same label sits past the avatar by default, then slides over as the square takes the avatar's place. */
+.header-label { position: absolute; z-index: 1; top: 0; left: var(--header-label-inset); height: 100%; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-dot-ratio: 1; --work-label-gap: var(--portfolio-sort-gap); transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--header-filter-slot))); transition: transform var(--header-transition); }
+.portfolio-header.is-over-images .header-label { transform: none; }
+.header-label .feed-sort-control { display: flex; align-items: center; height: 100%; }
+.header-label .work-control-square { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
+.portfolio-header:not(.is-over-images) .header-label .work-control-square { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
+.portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar .feed-sort-control { visibility: hidden; }
 /* There's no room above a bar at the top of the viewport, so its menu opens downward on the bar's own surface. */
-.header-filter .work-density-menu.work-sort-menu { top: 100%; bottom: auto; left: calc(-1 * var(--header-filter-inset)); padding: 0 var(--content-padding-mobile) var(--page-frame) var(--header-filter-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
+.header-label .work-density-menu.work-sort-menu { top: 100%; bottom: auto; left: calc(-1 * var(--header-label-inset)); padding: 0 var(--content-padding-mobile) var(--page-frame) var(--header-label-inset); background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 
-.header-music { position: absolute; z-index: 2; inset: 0 0 0 var(--portfolio-control-size); display: block; transition: visibility 0s; }
-.portfolio-header.is-condensed .header-music { visibility: hidden; pointer-events: none; transition-delay: var(--header-scroll-duration); }
-.header-music-clip { position: absolute; inset: 0; display: block; overflow: clip; }
-.header-music .homepage-album, .header-spotify-brand { position: absolute; top: 0; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transition: transform var(--header-transition), background-color var(--hover-duration) var(--hover-ease); }
-.header-music .homepage-album { left: 0; }
-.header-spotify-brand { right: 0; display: grid; place-items: center; background: var(--bg-secondary-fill); }
-.portfolio-header.is-condensed .homepage-album { transform: translateX(-100%); }
-.portfolio-header.is-condensed .header-spotify-brand { transform: translateX(100%); }
-.header-spotify-logo { display: block; width: var(--portfolio-icon-size); height: var(--portfolio-icon-size); background: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
-.header-music.is-playing .header-spotify-brand { background: var(--bg-green-fill); }
-.header-music.is-playing .header-spotify-logo { background: var(--bg-fill); }
-.header-track { position: absolute; inset: 0 var(--portfolio-control-size); display: flex; align-items: center; gap: var(--header-track-gap); padding-inline: var(--portfolio-panel-padding) var(--content-padding-mobile); white-space: nowrap; transition: opacity var(--hover-duration) var(--hover-ease); }
-.portfolio-header.is-condensed .header-track { opacity: 0; }
-.header-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
-.header-track-copy { position: relative; display: block; min-width: 0; flex: 1; overflow: hidden; }
-.header-track-marquee { display: inline-block; width: max-content; white-space: nowrap; }
-.header-track-marquee > .header-secondary { margin-left: var(--portfolio-control-gap); }
-.header-track-time { flex: none; color: var(--text-muted); --inspect-color-token: text-muted; font-variant-numeric: tabular-nums; }
-.header-track-time.is-playing { color: var(--text-green); --inspect-color-token: text-green; }
-.header-track-copy.is-overflowing .header-track-marquee { animation: identity-song-marquee var(--header-marquee-duration) ease-in-out infinite; }
-.header-track-fade { position: absolute; inset-block: 0; width: var(--header-marquee-fade-width); pointer-events: none; opacity: 0; }
-.header-track-copy.is-overflowing .header-track-fade { opacity: 1; }
-.header-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); }
-.header-track-copy.is-overflowing .header-track-fade-left { animation: identity-song-left-fade var(--header-marquee-duration) ease-in-out infinite; }
-.header-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); }
-.portfolio-header.is-condensed :is(.header-track-marquee, .header-track-fade-left) { animation-play-state: paused; }
+.header-action { position: absolute; z-index: 2; top: 0; right: var(--content-padding-mobile); display: flex; align-items: center; height: 100%; white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; }
 
-.header-top { position: absolute; z-index: 3; top: 0; right: calc(var(--header-inset) + var(--content-padding-mobile)); height: 100%; white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; visibility: hidden; transition: right var(--header-transition), visibility 0s var(--header-scroll-duration); }
-.portfolio-header.is-condensed .header-top { visibility: visible; transition-delay: 0s; }
+.portfolio-player { position: relative; display: flex; width: 100%; height: var(--portfolio-control-size); margin-top: var(--portfolio-section-gap); }
+.portfolio-player::before { content: ""; position: absolute; inset: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2) 0; }
+.portfolio-player .homepage-album, .player-brand { flex: none; width: var(--portfolio-control-size); height: var(--portfolio-control-size); }
+.player-brand { display: grid; place-items: center; background: var(--bg-secondary-fill); transition: background-color var(--hover-duration) var(--hover-ease); }
+.player-logo { display: block; width: var(--portfolio-icon-size); height: var(--portfolio-icon-size); background: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
+.portfolio-player.is-playing .player-brand { background: var(--bg-green-fill); }
+.portfolio-player.is-playing .player-logo { background: var(--bg-fill); }
+.player-track { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--player-track-gap); padding-inline: var(--portfolio-panel-padding) var(--content-padding-mobile); background: var(--bg-secondary-fill); white-space: nowrap; }
+.player-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
+.player-track-copy { position: relative; display: block; min-width: 0; flex: 1; overflow: hidden; }
+.player-track-marquee { display: inline-block; width: max-content; white-space: nowrap; }
+.player-track-marquee > .player-secondary { margin-left: var(--portfolio-control-gap); }
+.player-track-time { flex: none; color: var(--text-muted); --inspect-color-token: text-muted; font-variant-numeric: tabular-nums; }
+.player-track-time.is-playing { color: var(--text-green); --inspect-color-token: text-green; }
+.player-track-copy.is-overflowing .player-track-marquee { animation: identity-song-marquee var(--header-marquee-duration) ease-in-out infinite; }
+.player-track-fade { position: absolute; inset-block: 0; width: var(--header-marquee-fade-width); pointer-events: none; opacity: 0; }
+.player-track-copy.is-overflowing .player-track-fade { opacity: 1; }
+.player-track-fade-left { left: 0; background: linear-gradient(to right, var(--bg-secondary-fill), transparent); }
+.player-track-copy.is-overflowing .player-track-fade-left { animation: identity-song-left-fade var(--header-marquee-duration) ease-in-out infinite; }
+.player-track-fade-right { right: 0; background: linear-gradient(to left, var(--bg-secondary-fill), transparent); }
 
 .portfolio-feed { margin-top: var(--portfolio-section-gap); padding-top: var(--portfolio-feed-top); }
 .feed-toolbar { display: flex; align-items: center; margin-bottom: var(--portfolio-feed-gap); }
@@ -107,14 +104,17 @@
 .feed-details .project-focus-team, .feed-details .project-focus-tech { gap: var(--project-info-gap); }
 
 @media (max-width: 767px) {
-  .portfolio-v4 { max-width: none; padding: calc(var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-bottom); }
+  .portfolio-v4 { max-width: none; padding: calc(var(--header-edge-size) - var(--viewport-safe-top) + var(--header-mobile-top) + var(--portfolio-control-mobile-size) + var(--portfolio-mobile-section-gap)) 0 var(--portfolio-bottom); }
   .portfolio-v4 .portfolio-intro { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .bio-desktop-break { display: none; }
-  /* The bar already sits at the mobile gutter, so it swaps content without narrowing further. */
-  .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --header-track-gap: var(--header-track-mobile-gap); top: var(--viewport-safe-top); }
-  .portfolio-header.is-condensed { --header-inset: 0px; }
-  :is(.header-avatar, .header-music, .header-top)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
-  .header-filter .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
+  /* The bar already sits at the mobile gutter, so scrolling doesn't narrow it further. */
+  /* Safari tints its top bar from opaque fixed elements at the edge. This white strip wins that sampling, so the header's gray can't be pulled up; the bar starts below it. */
+  .portfolio-safari-edge { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: var(--portfolio-edge-layer); height: var(--header-edge-size); background: var(--bg-fill); pointer-events: none; }
+  .portfolio-header { --portfolio-control-size: var(--portfolio-control-mobile-size); --header-glyph: var(--page-frame); --header-filter-slot: var(--header-filter-mobile-slot); top: calc(var(--header-edge-size) + var(--header-mobile-top)); }
+  .portfolio-header.is-scrolled { width: calc(100% - var(--content-padding-mobile) * 2); }
+  :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
+  .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
+  .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); margin-top: var(--portfolio-mobile-section-gap); }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-feed-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); }
@@ -122,14 +122,14 @@
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
   .portfolio-feed .feed-details { padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); }
-  .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; border-top: var(--portfolio-mobile-divider) solid var(--bg-secondary-fill); }
+  .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: 0 var(--content-padding-mobile); }
 }
 @media (prefers-reduced-motion: reduce) {
   .portfolio-v4 *, .portfolio-v4 *::before, .portfolio-v4 *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-track-copy.is-overflowing .header-track-marquee { animation: none; transform: none; }
-  .header-track-copy { overflow-x: auto; scrollbar-width: none; }
-  .header-track-fade { display: none; }
+  .player-track-copy.is-overflowing .player-track-marquee, .player-track-copy.is-overflowing .player-track-fade-left { animation: none; transform: none; }
+  .player-track-copy { overflow-x: auto; scrollbar-width: none; }
+  .player-track-fade { display: none; }
 }

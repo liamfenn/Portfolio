@@ -165,7 +165,6 @@ body {
   --portfolio-mobile-section-gap: 32px;
   --portfolio-mobile-feed-top: 32px;
   --portfolio-mobile-feed-gap: 4px;
-  --portfolio-mobile-divider: 12px;
 }
 
 /* Frequent, short color flashes while a text link is hovered or keyboard-focused. */
@@ -182,9 +181,16 @@ body {
 :root {
   --header-marquee-duration: 10s;
   --header-marquee-fade-width: 12px;
-  --header-filter-slot: 24px;
-  --header-track-gap: 24px;
-  --header-track-mobile-gap: 20px;
+  --header-filter-slot: 27px;
+  --header-filter-mobile-slot: 24px;
+  --header-mobile-top: 4px;
+  --header-edge-size: max(var(--project-focus-edge-size), var(--viewport-safe-top));
+  --portfolio-edge-layer: calc(var(--portfolio-header-layer) + 1);
+  --header-pop-duration: 280ms;
+  --header-pop-scale: .5;
+  --header-pop-blur: 3px;
+  --player-track-gap: 24px;
+  --player-track-mobile-gap: 20px;
   --header-translucent-fill: color-mix(in srgb, var(--bg-fill) 72%, transparent);
   --header-translucent-blur: 6px;
   --header-scroll-duration: 360ms;

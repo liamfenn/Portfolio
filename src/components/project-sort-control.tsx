@@ -11,7 +11,7 @@ const SORT_OPTIONS = [
   { value: "random", label: "Random" },
 ] as const;
 
-export function ProjectSortControl({ menuDirection = "up" }: { menuDirection?: "up" | "down" }) {
+export function ProjectSortControl({ menuDirection = "up", idleLabel }: { menuDirection?: "up" | "down"; idleLabel?: string }) {
   const { sortMode, setSortMode, editingOrder, reshuffle } = useProjectDisplayState();
   const control = useRef<HTMLDivElement>(null);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -131,7 +131,7 @@ export function ProjectSortControl({ menuDirection = "up" }: { menuDirection?: "
       onClick={() => {
         if (isMobile) select(SORT_OPTIONS[(SORT_OPTIONS.findIndex(option => option.value === sortMode) + 1) % SORT_OPTIONS.length].value);
       }}>
-      <WorkGlyphControl text={selected.label} variant="sort" square selection={selection} />
+      <WorkGlyphControl text={idleLabel ?? selected.label} variant="sort" square selection={selection} />
     </button>
   </div>;
 }
