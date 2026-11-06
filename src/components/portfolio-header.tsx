@@ -8,6 +8,7 @@ import { useProjectDisplayState } from "@/components/project-display-state";
 import { ProjectSortControl } from "@/components/project-sort-control";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const EMAIL_HREF = "mailto:info@fennell.cv";
 
@@ -66,6 +67,7 @@ export function PortfolioHeader() {
 
   return <div ref={header} className={`portfolio-header${scrolled ? " is-scrolled" : ""}${overImages ? " is-over-images" : ""}${focusedProject ? " is-project-focus" : ""}`}>
     <span className="header-fill" aria-hidden="true" />
+    <ThemeToggle />
     <button className="header-avatar hover-surface" type="button" data-inspector-toggle aria-label="Open design controls" inert={overImages}>
       <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
     </button>

@@ -115,6 +115,20 @@
   --bg-secondary-fill: #f6f8fa;
   --bg-green-fill: #1ed760;
   --bg-purple-fill: #5343eb;
+  /* Accent logos stay white in both themes. */
+  --text-on-accent: #ffffff;
+  --theme-toggle-icon-size: 12px;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --text-primary: #faf8fa;
+  --text-secondary: #cdc9ce;
+  --text-muted: #999999;
+  --bg-fill: #120f12;
+  --bg-secondary-fill: #1b191d;
+  --header-translucent-fill: color-mix(in srgb, var(--bg-fill) 64%, transparent);
+  color-scheme: dark;
 }
 
 @utility text-primary { color: var(--text-primary); --inspect-color-token: text-primary; }

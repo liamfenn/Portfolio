@@ -17,8 +17,9 @@ Use these variables in component styles instead of adding raw color or type valu
   `--text-muted` (#999999), and `--text-green` (#1ED760).
 - Fills: `--bg-fill` (#FFFFFF), `--bg-secondary-fill` (#F6F8FA),
   `--bg-green-fill` (#1ED760), and `--bg-purple-fill` (#5343EB).
+- The centered header circle switches light/dark mode, initially following the system and remembering an explicit choice. Dark maps the same roles to #120F12 / #1B191D surfaces and #FAF8FA / #CDC9CE primary/secondary text. Muted and accent colors retain their values.
 - Borders, shadows, and translucent overlays derive from those roles with opacity.
-  White text on filled controls uses `--bg-fill`; there is no extra inverse token.
+  White accent logos use `--text-on-accent`, which stays white in both themes.
 - Fonts: `--font-oracle` and `--font-otto` bind to the loaded font files.
 - Primitive type values: 15px body text and 14px captions on desktop;
   14px body text and 13px captions on mobile; regular weight and family tracking.

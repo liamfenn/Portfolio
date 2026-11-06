@@ -5,6 +5,13 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Light / dark theme (2026-11-05)**
+- Added a centered half-filled circle toggle to the default and scrolled header, with a 44px hit area. Its filled side flips on tap or keyboard activation. It hides in the focused header, where the project title uses the center.
+- Follows the system until a choice is made, then remembers that choice across visits and syncs it between tabs. An early head script applies the preference before paint. Reduced motion removes the flip transition.
+- Dark values from Figma `610:24963` map to the existing roles: `bg-fill` #120F12, `bg-secondary-fill` #1B191D, `text-primary` #FAF8FA, `text-secondary` #CDC9CE; muted and accent colors stay the same. The overlay header uses 64% fill and the existing 6px blur from `610:24837`. Light keeps the established tokens rather than Figma's near-match #F7F8FA.
+- New tokens: `theme-toggle-icon-size` (12px, matching the attached half-circle reference) and `text-on-accent` (invariant white, so Spotify's logo stays white in both themes). Images, videos and their asset backgrounds are untouched; Liam will rerender them separately.
+- Browser chrome color is now owned by the theme controller so focused-view cleanup cannot restore a stale light color. The focus edge-strip lifecycle and close animation are unchanged.
+
 Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesis-raw.md`](design-thesis-raw.md) for later editing.
 
 The v3 homepage is built and live on the branch preview (see [`workflow.md`](workflow.md)). `main` (and

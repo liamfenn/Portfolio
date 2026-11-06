@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { LinkHoverGlitch } from "@/components/link-hover-glitch";
 import { AgentationProvider } from "@/components/agentation-provider";
 import { ProjectDisplayProvider } from "@/components/project-display-state";
+import { ThemeController } from "@/components/theme-toggle";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const oracle = localFont({
@@ -87,7 +89,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <meta name="theme-color" content="" />
+      </head>
       <body
         className={`${oracle.variable} ${otto.variable} font-sans antialiased`}
       >
@@ -95,6 +101,7 @@ export default function RootLayout({
         <ProjectDisplayProvider>
           {children}
         </ProjectDisplayProvider>
+        <ThemeController />
         <LinkHoverGlitch />
         <Analytics />
         <AgentationProvider />

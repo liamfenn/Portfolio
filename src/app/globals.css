@@ -749,7 +749,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .homepage-album-badge.is-playing .homepage-spotify-brand { background: var(--bg-green-fill); }
 /* The logo is a mask so its color comes from tokens. */
 .homepage-spotify-logo { width: 16px; height: 16px; background-color: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
-.homepage-album-badge.is-playing .homepage-spotify-logo { background-color: var(--bg-fill); }
+.homepage-album-badge.is-playing .homepage-spotify-logo { background-color: var(--text-on-accent); }
 .homepage-track-info { display: flex; flex-direction: column; min-width: 0; }
 .homepage-listening, .homepage-track-time { --inspect-color-token: text-muted; color: var(--text-muted); }
 .homepage-listening.is-playing { --inspect-color-token: text-green; color: var(--text-green); }

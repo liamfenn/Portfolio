@@ -35,6 +35,11 @@
 .portfolio-header.is-scrolled { width: min(calc(var(--portfolio-column-width) - var(--header-narrow-inset)), calc(100% - var(--content-padding-mobile) * 2)); }
 .portfolio-header > :not(.header-fill) { pointer-events: auto; }
 .portfolio-header button { border: 0; padding: 0; background: transparent; }
+.header-theme-toggle { position: absolute; z-index: 3; left: 50%; top: 50%; translate: -50% -50%; display: grid; place-items: center; width: var(--portfolio-hit-size); height: var(--portfolio-hit-size); color: var(--text-primary); --inspect-color-token: text-primary; cursor: pointer; }
+.theme-toggle-icon { width: var(--theme-toggle-icon-size); height: var(--theme-toggle-icon-size); transition: transform var(--hover-duration) var(--hover-ease); }
+:root[data-theme="dark"] .theme-toggle-icon { transform: scaleX(-1); }
+/* Project titles occupy the center of the focused header. */
+.portfolio-header.is-project-focus .header-theme-toggle { display: none; }
 .header-fill { position: absolute; inset: 0 0 0 var(--portfolio-control-size); background-color: var(--bg-secondary-fill); pointer-events: none; transition: left var(--header-transition), background-color var(--header-transition), backdrop-filter var(--header-transition), -webkit-backdrop-filter var(--header-transition); }
 .portfolio-header.is-over-images .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 .header-avatar { position: absolute; z-index: 2; top: 0; left: 0; display: flex; width: var(--portfolio-control-size); height: var(--portfolio-control-size); transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease), visibility 0s; }
@@ -71,7 +76,7 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 .player-brand { display: grid; place-items: center; background: var(--bg-secondary-fill); }
 .player-logo { display: block; width: var(--portfolio-icon-size); height: var(--portfolio-icon-size); background: var(--text-muted); mask: url("/images/icons/spotify-white.svg") center / contain no-repeat; }
 .portfolio-player.is-playing .player-brand { background: var(--bg-green-fill); }
-.portfolio-player.is-playing .player-logo { background: var(--bg-fill); }
+.portfolio-player.is-playing .player-logo { background: var(--text-on-accent); }
 .player-track { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--player-track-gap); padding-inline: var(--portfolio-panel-padding) var(--content-padding-mobile); background: var(--bg-secondary-fill); white-space: nowrap; }
 .player-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .player-track-copy { position: relative; display: block; min-width: 0; flex: 1; overflow: hidden; }
