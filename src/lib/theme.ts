@@ -1,4 +1,5 @@
 import { startThemeGlitch } from "./theme-glitch";
+import { themeGlitchSettings } from "./color-glitch";
 
 export type Theme = "light" | "dark";
 
@@ -21,23 +22,34 @@ export function applyTheme(theme: Theme) {
 
 let activeTransition: ViewTransition | undefined;
 let stopGlitch = () => {};
+let switchRequest = 0;
 
-export function transitionTheme(theme: Theme) {
+export async function transitionTheme(theme: Theme) {
+  const request = ++switchRequest;
   stopGlitch();
   activeTransition?.skipTransition();
+  activeTransition = undefined;
+  const root = document.documentElement;
+  root.classList.remove("is-theme-switching");
   if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) {
     applyTheme(theme);
     return;
   }
-  const root = document.documentElement;
+  stopGlitch = startThemeGlitch();
+  await new Promise(resolve => window.setTimeout(resolve, themeGlitchSettings().lead));
+  if (request !== switchRequest) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    stopGlitch();
+    applyTheme(theme);
+    return;
+  }
   root.classList.add("is-theme-switching");
   const transition = document.startViewTransition(() => {
     applyTheme(theme);
-    stopGlitch = startThemeGlitch();
   });
   activeTransition = transition;
   void transition.finished.catch(() => {}).finally(() => {
-    if (activeTransition !== transition) return;
+    if (activeTransition !== transition || request !== switchRequest) return;
     root.classList.remove("is-theme-switching");
     stopGlitch();
     activeTransition = undefined;
