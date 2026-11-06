@@ -6,7 +6,7 @@ import { ProjectFeed } from "@/components/project-feed";
 import { DesignInspector, InspectableText } from "@/components/design-inspector";
 
 const CONTACT_LINKS = [
-  { label: "Twitter", href: "https://x.com/xyzfennell" },
+  { label: "Twitter", href: "https://x.com/liammm" },
   { label: "Instagram", href: "https://instagram.com/lliamfennell" },
   { label: "Cosmos", href: "https://cosmos.so/notliam" },
   { label: "Github", href: "https://github.com/lliamfennell" },
