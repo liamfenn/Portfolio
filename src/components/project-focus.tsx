@@ -160,7 +160,11 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       ...textRows.map(({ element, top }) => fade(element, 0, 1, openingDuration - timing.duration + textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
     );
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
-      if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
+      if (!closing && !disposed) {
+        edgeFade.classList.remove("is-fading");
+        focusMedia.settle(media);
+        root.dataset.phase = "open";
+      }
     });
     // Opening does its heaviest work in this frame. Held at the start until frames are flowing again, a stall can't
     // use up the short tween's clock unseen, which read as an instant snap on some opens. A limit keeps the tap answered.
@@ -178,11 +182,15 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       startFrame = requestAnimationFrame(waitForSteadyFrames);
     }
     if (!root.contains(document.activeElement)) root.focus({ preventScroll: true });
+    // Only during a fade: it sits above the content, so while open it would wash out text near the bottom.
+    const edgeFade = bottomEdgeRef.current!.querySelector<HTMLElement>(".project-focus-edge-fade")!;
+    if (!navigation) edgeFade.classList.add("is-fading");
 
     dismissRef.current = () => {
       if (closing || disposed) return;
       cancelAnimationFrame(startFrame);
       cancelPaging();
+      edgeFade.classList.add("is-fading");
       closing = true;
       onClosing?.();
       root.dataset.phase = "closing";
@@ -207,6 +215,12 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, exitDuration));
       void exit.finished.then(() => {
         if (disposed) return;
+        // Safari's band outlasts the view by a few frames as it crossfades to the page, so the softened edge has to as well.
+        const leaving = document.createElement("div");
+        leaving.className = "project-focus-edge-fade is-leaving";
+        leaving.setAttribute("aria-hidden", "true");
+        document.body.appendChild(leaving);
+        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), fill: "both" }).finished.finally(() => leaving.remove());
         root.style.visibility = "hidden";
         onClose();
       }).catch(() => {});
@@ -273,7 +287,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
 
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
-    <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
+    <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true"><div className="project-focus-edge-fade" /></div>
     {safariEdgeTestEnabled && <>
       <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
       <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
