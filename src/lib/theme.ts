@@ -1,4 +1,4 @@
-import { createThemePoolMask } from "./theme-pool";
+import { startThemeGlitch } from "./theme-glitch";
 
 export type Theme = "light" | "dark";
 
@@ -20,27 +20,26 @@ export function applyTheme(theme: Theme) {
 }
 
 let activeTransition: ViewTransition | undefined;
-
-export function themeDurationMilliseconds(value: string) {
-  return parseFloat(value) * (value.trim().endsWith("ms") ? 1 : 1000);
-}
+let stopGlitch = () => {};
 
 export function transitionTheme(theme: Theme) {
+  stopGlitch();
+  activeTransition?.skipTransition();
   if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) {
     applyTheme(theme);
     return;
   }
-  activeTransition?.skipTransition();
   const root = document.documentElement;
-  const duration = themeDurationMilliseconds(getComputedStyle(root).getPropertyValue("--theme-switch-duration"));
-  root.style.setProperty("--theme-switch-mask", createThemePoolMask(duration, innerWidth, innerHeight, Math.floor(Math.random() * 10000)));
   root.classList.add("is-theme-switching");
-  const transition = document.startViewTransition(() => applyTheme(theme));
+  const transition = document.startViewTransition(() => {
+    applyTheme(theme);
+    stopGlitch = startThemeGlitch();
+  });
   activeTransition = transition;
   void transition.finished.catch(() => {}).finally(() => {
     if (activeTransition !== transition) return;
     root.classList.remove("is-theme-switching");
-    root.style.removeProperty("--theme-switch-mask");
+    stopGlitch();
     activeTransition = undefined;
   });
 }

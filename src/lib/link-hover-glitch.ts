@@ -1,7 +1,7 @@
 import { glitchLetters, hoverGlitchSettings } from "@/lib/color-glitch";
 import { currentGlyphPalette } from "@/lib/palette-toy";
 
-function letterRanges(link: HTMLElement) {
+export function letterRanges(link: HTMLElement, visibleOnly = false) {
   const ranges: Range[] = [];
   const segments = new Intl.Segmenter(undefined, { granularity: "grapheme" });
   const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
@@ -18,6 +18,10 @@ function letterRanges(link: HTMLElement) {
       const range = document.createRange();
       range.setStart(node, index);
       range.setEnd(node, index + segment.length);
+      if (visibleOnly) {
+        const rect = range.getBoundingClientRect();
+        if (rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth) continue;
+      }
       ranges.push(range);
     }
   }

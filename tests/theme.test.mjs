@@ -1,14 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
-import { resolveTheme, themeDurationMilliseconds, THEME_INIT_SCRIPT } from "../src/lib/theme.ts";
-
-test("theme timing accepts seconds produced by the production CSS optimizer", () => {
-  assert.equal(themeDurationMilliseconds("480ms"), 480);
-  assert.equal(themeDurationMilliseconds(".48s"), 480);
-  assert.equal(themeDurationMilliseconds(" 0.48s "), 480);
-  assert.equal(themeDurationMilliseconds("0s"), 0);
-});
+import { resolveTheme, THEME_INIT_SCRIPT } from "../src/lib/theme.ts";
 
 test("explicit theme wins over the system; unset or invalid preferences follow it", () => {
   assert.equal(resolveTheme("light", true), "light");
