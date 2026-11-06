@@ -47,7 +47,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   const pagesRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const topEdgeRef = useRef<HTMLDivElement>(null);
-  const bottomEdgeRef = useRef<HTMLDivElement>(null);
   const dismissRef = useRef<() => void>(() => {});
   const initialSelection = useRef(selection);
   const [focusMedia] = useState(() => new ProjectFocusMedia());
@@ -57,17 +56,17 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
 
   // Keep the page locked for the entire focus session, including project-to-project navigation.
   useLayoutEffect(() => {
-    const root = rootRef.current!, topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
+    const root = rootRef.current!, topEdge = topEdgeRef.current!;
     const opener = initialSelection.current.trigger;
-    // Don't fix the body here: it collapses the document, and Safari then paints a few frames with the wrong scroll
-    // position, blanking the page and showing the media at its destination before the tween starts.
-    const body = document.body, html = document.documentElement;
-    const saved = { overflow: body.style.overflow, paddingRight: body.style.paddingRight }, savedHtmlOverflow = html.style.overflow;
-    const scrollbar = innerWidth - html.clientWidth;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
+    // The page lock is in CSS. Don't fix the body here: it collapses the document, and Safari then paints a few frames
+    // with the wrong scroll position, blanking the page and showing the media at its destination before the tween starts.
+    const body = document.body, saved = { paddingRight: body.style.paddingRight };
+    const scrollbar = innerWidth - document.documentElement.clientWidth;
+    const placeLayers = () => root.style.setProperty("--project-focus-scroll-y", `${scrollY}px`);
+    placeLayers();
+    window.addEventListener("resize", placeLayers, { passive: true });
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
-    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
+    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && !node.hasAttribute("data-safari-edge-test"));
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 
@@ -103,6 +102,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     motion.addEventListener("change", onMotionChange);
     root.focus({ preventScroll: true });
     return () => {
+      window.removeEventListener("resize", placeLayers);
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
       if (!previousTheme) theme.remove();
@@ -110,7 +110,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       else theme.content = previousThemeColor;
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
-      html.style.overflow = savedHtmlOverflow;
       stopMedia();
       opener.focus({ preventScroll: true });
     };
@@ -273,7 +272,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
 
   return createPortal(<>
     <div ref={topEdgeRef} className="project-focus-edge project-focus-edge-top" aria-hidden="true" />
-    <div ref={bottomEdgeRef} className="project-focus-edge project-focus-edge-bottom" aria-hidden="true" />
     {safariEdgeTestEnabled && <>
       <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
       <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
