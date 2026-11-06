@@ -234,7 +234,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
         document.body.appendChild(leaving);
         // The strip stays until React unmounts it, so its gradient has to go now or the white doubles for a frame.
         edgeFade.classList.remove("is-fading");
-        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: tokens.getPropertyValue("--project-focus-edge-fade-ease").trim(), fill: "both" }).finished.finally(() => leaving.remove());
+        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), delay: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-hold"), easing: tokens.getPropertyValue("--project-focus-edge-fade-ease").trim(), fill: "both" }).finished.finally(() => leaving.remove());
         finishClose();
       }).catch(() => {});
     };
