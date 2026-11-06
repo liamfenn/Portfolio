@@ -811,7 +811,7 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-focus-pages { position: fixed; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
 .project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--portfolio-bottom) + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
-.project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
+.project-focus-panel { width: 100%; max-width: var(--project-focus-column-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
 /* The native wheel target stays on the stationary scroller while the content pages inside it. */
 @media (min-width: 768px) {

@@ -65,6 +65,7 @@
   --project-focus-edge-layer: calc(var(--project-focus-layer) + 4);
   --project-focus-header-layer: calc(var(--project-focus-layer) + 5);
   --project-focus-width: 720px;
+  --project-focus-column-width: 684px;
   --project-focus-backdrop-opacity: 100%;
   --project-focus-blur: 10px;
   --project-focus-top: calc(var(--content-padding) + var(--page-frame));
@@ -90,6 +91,11 @@
 
 @media (max-width: 767px) {
   :root { --process-section-gap: 48px; }
+}
+
+/* XL monitors get the full column; laptops, up to the 16-inch 1728px, get the narrower one. */
+@media (min-width: 1920px) {
+  :root { --project-focus-column-width: var(--project-focus-width); }
 }
 
 /* Semantic color roles live outside Tailwind's font-size token namespace. */

@@ -32,6 +32,9 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
+**Focused view column width (2026-11-05)**
+- The focused view's column is 684px on desktop and 720px from 1920px wide (`--project-focus-column-width`, a new token). Media, text, and the header follow it, with the header still 48px narrower. `--project-focus-width` stays 720px because the process page also uses it.
+
 **Paging flash, scheme-aware favicon (2026-11-05)**
 - Paging to a project for the first time showed the pale loading surface until its video played, because the offscreen tile had no video and a lazy poster. Opening a project now warms both neighbors at the focused size and loads their posters eagerly, and focused media keeps its poster up while loading.
 - The favicon is now black on transparent in light mode and white on transparent in dark mode, using Liam's 192px files. The Apple icon stays opaque because iOS fills transparency with black.
