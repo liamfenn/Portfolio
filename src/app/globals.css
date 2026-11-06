@@ -809,7 +809,8 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .project-focus-backdrop { position: fixed; z-index: var(--project-focus-layer); background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent); }
 .project-focus-blur { position: fixed; z-index: var(--project-focus-layer); -webkit-backdrop-filter: blur(var(--project-focus-blur)); backdrop-filter: blur(var(--project-focus-blur)); }
 .project-focus-pages { position: fixed; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
-.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--project-focus-section-gap) + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
+/* No bounce: the media follows the scroll separately to keep playing, so an overscroll would pull the text away from it. */
+.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: none; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--project-focus-section-gap) + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
