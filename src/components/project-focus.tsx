@@ -232,7 +232,9 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
         // Stops at the end of the document so it can't extend the page; past that, Safari shows the white root background anyway.
         leaving.style.height = `${Math.min(fadeHeight + stripHeight + Math.max(screen.height - innerHeight, 0), document.documentElement.scrollHeight - top)}px`;
         document.body.appendChild(leaving);
-        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: timing.easing, fill: "both" }).finished.finally(() => leaving.remove());
+        // The strip stays until React unmounts it, so its gradient has to go now or the white doubles for a frame.
+        edgeFade.classList.remove("is-fading");
+        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: tokens.getPropertyValue("--project-focus-edge-fade-ease").trim(), fill: "both" }).finished.finally(() => leaving.remove());
         finishClose();
       }).catch(() => {});
     };
