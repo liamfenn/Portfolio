@@ -21,6 +21,10 @@ export function applyTheme(theme: Theme) {
 
 let activeTransition: ViewTransition | undefined;
 
+export function themeDurationMilliseconds(value: string) {
+  return parseFloat(value) * (value.trim().endsWith("ms") ? 1 : 1000);
+}
+
 export function transitionTheme(theme: Theme) {
   if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) {
     applyTheme(theme);
@@ -28,7 +32,7 @@ export function transitionTheme(theme: Theme) {
   }
   activeTransition?.skipTransition();
   const root = document.documentElement;
-  const duration = parseFloat(getComputedStyle(root).getPropertyValue("--theme-switch-duration"));
+  const duration = themeDurationMilliseconds(getComputedStyle(root).getPropertyValue("--theme-switch-duration"));
   root.style.setProperty("--theme-switch-mask", createThemePoolMask(duration, innerWidth, innerHeight, Math.floor(Math.random() * 10000)));
   root.classList.add("is-theme-switching");
   const transition = document.startViewTransition(() => applyTheme(theme));
