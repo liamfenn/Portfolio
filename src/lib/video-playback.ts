@@ -117,6 +117,7 @@ class VideoPlayback {
     if (!entry) return;
     entry.focusWidth = width;
     entry.focusMoving = moving;
+    if (width !== undefined && !entry.cover && entry.video.dataset.frameReady !== "true") entry.display?.("poster");
     this.schedule();
   }
 
@@ -200,7 +201,8 @@ class VideoPlayback {
     for (const entry of ranked.filter(entry => prepared.has(entry))) {
       const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.warmWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
       if (!rung) continue;
-      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && (!entry.focusMoving || !entry.width) && (!entry.width || rung.width > entry.width)) {
+      // Nothing new starts mid-flight: building a video surface then can stall Safari long enough to lose the tween.
+      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.focusMoving && (!entry.width || rung.width > entry.width)) {
         this.load(entry, rung.h264, rung.width);
         loading++;
       } else if (entry.ready && entry.wanted) this.play(entry);
@@ -226,6 +228,7 @@ class VideoPlayback {
 
   private play(entry: Entry) {
     if (!entry.video.paused || entry.failed || !entry.wanted) return;
+    if (entry.focusMoving && entry.video.dataset.frameReady !== "true") return;
     const generation = entry.generation;
     const reveal = () => {
       entry.frame = undefined;

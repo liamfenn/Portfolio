@@ -22,6 +22,8 @@ export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
   </div>;
 }
 
+const STEADY_FRAME_MS = 50, STEADY_FRAMES = 2, ENTRY_HOLD_LIMIT_MS = 300;
+
 export function ProjectCredits({ preview, textStyle = "text-captionSans" }: { preview: ProjectPreview; textStyle?: string }) {
   if (!preview.team?.length && !preview.tech?.length) return null;
   return <div className={`project-focus-credits ${textStyle}`}>
@@ -161,14 +163,20 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
       if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
     });
-    // Opening does its heaviest work in this frame. Held at the start until the view has painted, a slow frame can't
-    // use up the short tween's clock unseen, which read as a snap only on some opens.
+    // Opening does its heaviest work in this frame. Held at the start until frames are flowing again, a stall can't
+    // use up the short tween's clock unseen, which read as an instant snap on some opens. A limit keeps the tap answered.
     let startFrame = 0;
     if (!navigation) {
       animations.forEach(animation => animation.pause());
-      startFrame = requestAnimationFrame(() => {
-        startFrame = requestAnimationFrame(() => { startFrame = 0; animations.forEach(animation => animation.play()); });
-      });
+      const held = performance.now();
+      let previous = 0, steady = 0;
+      const waitForSteadyFrames = (now: number) => {
+        steady = previous && now - previous < STEADY_FRAME_MS ? steady + 1 : 0;
+        previous = now;
+        if (steady >= STEADY_FRAMES || now - held > ENTRY_HOLD_LIMIT_MS) { startFrame = 0; animations.forEach(animation => animation.play()); }
+        else startFrame = requestAnimationFrame(waitForSteadyFrames);
+      };
+      startFrame = requestAnimationFrame(waitForSteadyFrames);
     }
     if (!root.contains(document.activeElement)) root.focus({ preventScroll: true });
 
