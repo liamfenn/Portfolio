@@ -37,14 +37,16 @@ export const metadata: Metadata = {
   title: "Liam Fennell",
   description:
     "Liam Fennell is a designer based in Atlanta, GA, currently designing commerce and discovery experiences for Shop.",
-  // Liam's serif "LF" mark, supplied as a 192px PNG and downscaled for the smaller sizes.
+  // Liam's serif "LF" mark on transparent, black or white to suit the browser's color scheme. The Apple icon stays
+  // opaque because iOS fills transparency with black. No shortcut icon: it has no scheme and could win in dark mode.
   icons: {
     icon: [
-      { url: "/images/meta/favicon-lf-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/images/meta/favicon-lf-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/meta/favicon-lf-light-32.png", sizes: "32x32", type: "image/png", media: "(prefers-color-scheme: light)" },
+      { url: "/images/meta/favicon-lf-light-192.png", sizes: "192x192", type: "image/png", media: "(prefers-color-scheme: light)" },
+      { url: "/images/meta/favicon-lf-dark-32.png", sizes: "32x32", type: "image/png", media: "(prefers-color-scheme: dark)" },
+      { url: "/images/meta/favicon-lf-dark-192.png", sizes: "192x192", type: "image/png", media: "(prefers-color-scheme: dark)" },
     ],
     apple: { url: "/images/meta/favicon-lf-180.png", sizes: "180x180", type: "image/png" },
-    shortcut: "/images/meta/favicon-lf-32.png",
   },
   openGraph: {
     title: "Liam Fennell",
