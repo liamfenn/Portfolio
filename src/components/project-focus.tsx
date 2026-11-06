@@ -213,16 +213,27 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0, 0, exitDuration)));
       if (!returns) animations.push(fade(media, opacity, 0, 0, exitDuration));
       else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, exitDuration));
-      void exit.finished.then(() => {
-        if (disposed) return;
-        // Safari's band outlasts the view by a few frames as it crossfades to the page, so the softened edge has to as well.
-        const leaving = document.createElement("div");
-        leaving.className = "project-focus-edge-fade is-leaving";
-        leaving.setAttribute("aria-hidden", "true");
-        document.body.appendChild(leaving);
-        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: timing.easing, fill: "both" }).finished.finally(() => leaving.remove());
+      const finishClose = () => {
         root.style.visibility = "hidden";
         onClose();
+      };
+      void exit.finished.then(() => {
+        if (disposed) return;
+        // Safari can't fade the color it holds behind its toolbar, but it does paint page content there. A white layer in the
+        // page takes over as the strip goes, so nothing changes at the swap, and that layer can fade as slowly as it likes.
+        const stripHeight = bottomEdgeRef.current!.offsetHeight;
+        if (!stripHeight) return finishClose();
+        const fadeHeight = parseFloat(tokens.getPropertyValue("--project-focus-edge-fade-height"));
+        const top = scrollY + innerHeight - stripHeight - fadeHeight;
+        const leaving = document.createElement("div");
+        leaving.className = "project-focus-edge-veil";
+        leaving.setAttribute("aria-hidden", "true");
+        leaving.style.top = `${top}px`;
+        // Stops at the end of the document so it can't extend the page; past that, Safari shows the white root background anyway.
+        leaving.style.height = `${Math.min(fadeHeight + stripHeight + Math.max(screen.height - innerHeight, 0), document.documentElement.scrollHeight - top)}px`;
+        document.body.appendChild(leaving);
+        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: timing.easing, fill: "both" }).finished.finally(() => leaving.remove());
+        finishClose();
       }).catch(() => {});
     };
     return () => {

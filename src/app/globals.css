@@ -848,8 +848,8 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
   .project-focus-edge-bottom { background: var(--bg-fill); }
   /* Safari holds a solid band behind its toolbar during a fade. This softens the hard line where that band meets the page. */
   .project-focus-edge-fade { visibility: hidden; position: absolute; left: 0; right: 0; bottom: 100%; height: var(--project-focus-edge-fade-height); background: linear-gradient(to top, var(--bg-fill), color-mix(in srgb, var(--bg-fill) 72%, transparent) 25%, color-mix(in srgb, var(--bg-fill) 38%, transparent) 50%, color-mix(in srgb, var(--bg-fill) 12%, transparent) 75%, transparent); }
-  .project-focus-edge-fade.is-fading, .project-focus-edge-fade.is-leaving { visibility: visible; }
-  .project-focus-edge-fade.is-leaving { position: fixed; bottom: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); z-index: var(--project-focus-edge-layer); pointer-events: none; }
+  .project-focus-edge-fade.is-fading { visibility: visible; }
+  .project-focus-edge-veil { position: absolute; left: 0; right: 0; z-index: var(--project-focus-edge-layer); pointer-events: none; background: linear-gradient(to top, var(--bg-fill), color-mix(in srgb, var(--bg-fill) 72%, transparent) 25%, color-mix(in srgb, var(--bg-fill) 38%, transparent) 50%, color-mix(in srgb, var(--bg-fill) 12%, transparent) 75%, transparent) top / 100% var(--project-focus-edge-fade-height) no-repeat, linear-gradient(var(--bg-fill), var(--bg-fill)) bottom / 100% calc(100% - var(--project-focus-edge-fade-height)) no-repeat; }
   .safari-edge-test-top { background: var(--bg-green-fill); }
   .safari-edge-test-bottom { background: var(--bg-purple-fill); }
   .project-focus-scroll { touch-action: pan-y pinch-zoom; }

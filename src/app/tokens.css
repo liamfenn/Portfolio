@@ -82,7 +82,7 @@
   --project-focus-swipe-exit-distance: 64px;
   --project-focus-edge-size: var(--content-padding-mobile);
   --project-focus-edge-fade-height: 96px;
-  --project-focus-edge-fade-out: 280ms;
+  --project-focus-edge-fade-out: 450ms;
   --project-focus-full-height: 100lvh;
   /* Editorial page rhythm; media uses the same square shape as the project grid. */
   --process-section-gap: 72px;
