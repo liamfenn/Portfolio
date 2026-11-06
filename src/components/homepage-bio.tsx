@@ -45,10 +45,10 @@ function BioLink({ href, children }: { href: string; children: ReactNode }) {
 export function HomepageBio() {
   return <div className="portfolio-bio text-bodySerif">
     <p><InspectableText>
-      Liam Fennell is a designer based in Atlanta, currently at <BioLink href="https://shop.com">Shop</BioLink>. Previously at <BioLink href="https://s.engineering">OpenPurpose</BioLink>, designing interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others. If something here resonates, <BioLink href="mailto:info@fennell.cv">get in touch</BioLink>
+      Internet decorator based in Atlanta, currently working somewhere between code and pixels at <BioLink href="https://shop.com">Shop</BioLink>. Previously, I designed interfaces for <BioLink href="https://bird.com">Bird</BioLink>, <BioLink href="https://plasticity.xyz">Plasticity</BioLink>, and others at <BioLink href="https://s.engineering">OpenPurpose</BioLink>.
     </InspectableText></p>
     <p><InspectableText>
-      This site is an experiment in the tools, ideas, and changing ways <br className="bio-desktop-break" />we design and build. Read about the <BioLink href="/process">process</BioLink>
+      This site is an experiment in the tools, ideas, and changing ways <br className="bio-desktop-break" />we design and build. Read about the <BioLink href="/process">process</BioLink>.
     </InspectableText></p>
   </div>;
 }

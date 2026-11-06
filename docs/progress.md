@@ -5,6 +5,10 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Intro copy refresh**
+- Updated the intro to Liam's supplied “Internet decorator” copy, retaining Shop/Bird/Plasticity/OpenPurpose links and the existing second paragraph. Both paragraphs now end with periods, outside their links; only “process” is linked in the final sentence. Existing typography, width, and desktop line break remain unchanged.
+- Validation: 86 tests, TypeScript, touched-file lint, production build, and diff checks pass.
+
 **Light / dark theme (2026-11-05)**
 - The icon-only half-filled circle sits opposite Recent in the feed toolbar. Both controls hide and return together with the same fade, blur and scale at the header state swap. Only Recent joins the scrolled header; the toggle stays out, and Top remains on the right. Initially tried putting it in the scrolled header too; Liam corrected that. Its filled side flips on tap or keyboard activation, with a 44px hit area.
 - Manual theme switches crossfade in 220ms. A stronger letter glitch leads the fade by 60ms, continues through it, and lingers another 160ms afterward (`theme-glitch-tail`) for one more pulse: 48–96 visible letters per pulse, capped at 40% of available letters, plus the toggle icon. It uses the existing palette and hover effect's 90ms pulses / 40–100ms pauses. Initially the theme shared the hover's three-letter ceiling and started after the palette changed; Liam found it too subtle and late. Hover effects retain their original limits.
