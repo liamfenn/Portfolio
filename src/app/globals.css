@@ -854,6 +854,8 @@ html:has(.project-focus-root:not([data-phase="closing"])), html:has(.project-foc
   .safari-edge-test-top { background: var(--bg-green-fill); }
   .safari-edge-test-bottom { background: var(--bg-purple-fill); }
   .project-focus-scroll { touch-action: pan-y pinch-zoom; }
+  /* Always scrollable, so a drag on a short project stays here and bounces instead of moving the document and Safari's toolbar. */
+  .project-focus-scroll > .project-focus-panel { min-height: calc(100% + 1px); }
   .project-focus-scroll, .project-focus-paging-page { padding: max(var(--project-focus-edge-size), var(--viewport-safe-top)) var(--viewport-safe-right) calc(var(--project-focus-section-gap) + max(var(--project-focus-edge-size), var(--viewport-safe-bottom))) var(--viewport-safe-left); }
   .project-focus-details { --project-focus-section-gap: calc(var(--content-padding) * 2); --project-focus-description-width: var(--project-focus-description-width-mobile); padding: var(--content-padding-mobile) var(--content-padding-mobile) 0; }
   .project-focus-controls { bottom: calc(var(--project-focus-close-bottom-mobile) + var(--viewport-safe-bottom)); }
