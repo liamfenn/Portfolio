@@ -156,10 +156,20 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
       if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
     });
+    // Opening does its heaviest work in this frame. Held at the start until the view has painted, a slow frame can't
+    // use up the short tween's clock unseen, which read as a snap only on some opens.
+    let startFrame = 0;
+    if (!navigation) {
+      animations.forEach(animation => animation.pause());
+      startFrame = requestAnimationFrame(() => {
+        startFrame = requestAnimationFrame(() => { startFrame = 0; animations.forEach(animation => animation.play()); });
+      });
+    }
     if (!root.contains(document.activeElement)) root.focus({ preventScroll: true });
 
     dismissRef.current = () => {
       if (closing || disposed) return;
+      cancelAnimationFrame(startFrame);
       cancelPaging();
       closing = true;
       onClosing?.();
@@ -190,6 +200,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     };
     return () => {
       disposed = true;
+      cancelAnimationFrame(startFrame);
       animations.forEach(animation => animation.cancel());
       if (!retainsMedia(media)) focusMedia.restore(media);
       if (animationsRef.current === animations) animationsRef.current = [];
@@ -227,11 +238,16 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   useEffect(() => {
     const list = selection.trigger.closest("ul"), width = slotRef.current?.clientWidth;
     if (!list || !width) return;
-    const releases = [previousId, nextId].flatMap(id => {
-      const media = list.querySelector<HTMLElement>(`[data-project-id="${id}"] .homepage-project-media`);
-      return media ? [warmProjectMedia(media, width)] : [];
+    let stopped = false, releases: (() => void)[] = [];
+    // Waits for the tween to finish, so loading two more videos doesn't compete with it.
+    void Promise.allSettled(animationsRef.current.map(animation => animation.finished)).then(() => {
+      if (stopped) return;
+      releases = [previousId, nextId].flatMap(id => {
+        const media = list.querySelector<HTMLElement>(`[data-project-id="${id}"] .homepage-project-media`);
+        return media ? [warmProjectMedia(media, width)] : [];
+      });
     });
-    return () => releases.forEach(release => release());
+    return () => { stopped = true; releases.forEach(release => release()); };
   }, [selection.trigger, previousId, nextId]);
   useLayoutEffect(() => {
     const slot = neighborRef.current?.querySelector<HTMLElement>(".project-focus-media-slot");

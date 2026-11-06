@@ -32,6 +32,9 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
+**Focused view entry snap (2026-11-05)**
+- On iPhone Safari, opening a project sometimes looked snappy while closing was always smooth. The likely cause is that opening mounts the view, locks the page, starts the blur, and swaps the header in one frame, so a slow frame used up much of the 180ms tween unseen. The tween and text fades now hold at their start until the view has painted, and neighbor videos warm after the tween rather than during it. Needs Liam to confirm on a device.
+
 **Focused view column width (2026-11-05)**
 - The focused view's column is 684px on desktop and 720px from 1920px wide (`--project-focus-column-width`, a new token). Media, text, and the header follow it, with the header still 48px narrower. `--project-focus-width` stays 720px because the process page also uses it.
 
