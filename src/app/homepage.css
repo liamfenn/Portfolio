@@ -9,7 +9,8 @@
 .portfolio-v4 .portfolio-bio { width: 100%; max-width: var(--portfolio-bio-width); text-wrap: wrap; }
 .portfolio-v4 .portfolio-bio p + p { margin-top: var(--portfolio-paragraph-gap); }
 .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-section-gap); }
-.portfolio-v4 .portfolio-socials { display: flex; flex-direction: column; }
+.portfolio-v4 .homepage-contact, .portfolio-v4 .portfolio-socials { display: flex; flex-direction: column; gap: var(--project-info-gap); }
+.portfolio-v4 .homepage-contact a { width: 50%; }
 .portfolio-v4 .portfolio-socials a { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-section-gap); padding: 0; }
 .portfolio-v4 .footer-office-name { font: inherit; letter-spacing: inherit; }

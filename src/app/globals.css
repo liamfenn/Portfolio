@@ -993,4 +993,4 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 
 
 /* Keep the shared glyph palette legible while a text link signals hover. */
-main [data-link-glitch-active] { opacity: 1; }
+main [data-link-glitch-active], .project-focus-root [data-link-glitch-active] { opacity: 1; }

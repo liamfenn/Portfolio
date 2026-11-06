@@ -34,7 +34,7 @@ test("description and tech render independently of optional contributors", () =>
   assert.match(html, /project-focus-summary text-bodySerif/);
   assert.match(html, /A project description\./);
   assert.match(html, /project-focus-tech/);
-  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Tech<\/span>/);
+  assert.match(html, /class="project-focus-text" data-focus-text="[^"]*">Stack<\/span>/);
   assert.doesNotMatch(html, /project-focus-team|Contributors/);
   for (const technology of ["Swift", "UIKit", "Metal"]) assert.match(html, new RegExp(`class="project-focus-text" data-focus-text="[^"]*">${technology}<\\/span>`));
 });

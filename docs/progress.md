@@ -32,6 +32,11 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
+**Contact stack, focused view links (2026-11-05)**
+- The email and social links each take their own line at half the container's width, 2px apart. The gap reuses `--project-info-gap`.
+- Contributor links in the focused view no longer dim on hover, matching other links. The view is portaled outside `main`, so it missed the rule that cancels the dim during the glitch.
+- The focused view's "Tech" heading now reads "Stack", the same as the card overlay.
+
 **Player artist gap (2026-11-05)**
 - The song and artist in the music player sit 6px apart (`--player-artist-gap`, a new token, since the 3px control gap it borrowed no longer fit).
 
