@@ -1,11 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { InspectableText } from "@/components/design-inspector";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
-import { ProjectFocusMedia } from "@/lib/project-focus-media";
+import { ProjectFocusMedia, warmProjectMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 import { scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
 
@@ -223,6 +223,16 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   }, []);
 
   const neighbor = neighborDirection === -1 ? neighbors.previous : neighbors.next;
+  const previousId = neighbors.previous.id, nextId = neighbors.next.id;
+  useEffect(() => {
+    const list = selection.trigger.closest("ul"), width = slotRef.current?.clientWidth;
+    if (!list || !width) return;
+    const releases = [previousId, nextId].flatMap(id => {
+      const media = list.querySelector<HTMLElement>(`[data-project-id="${id}"] .homepage-project-media`);
+      return media ? [warmProjectMedia(media, width)] : [];
+    });
+    return () => releases.forEach(release => release());
+  }, [selection.trigger, previousId, nextId]);
   useLayoutEffect(() => {
     const slot = neighborRef.current?.querySelector<HTMLElement>(".project-focus-media-slot");
     if (!neighborDirection || !slot) return;

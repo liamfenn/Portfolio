@@ -13,6 +13,7 @@ type Entry = {
   intentPriority: boolean;
   focusWidth?: number;
   focusMoving?: boolean;
+  warmWidth?: number;
   failed: boolean;
   wanted: boolean;
   loading: boolean;
@@ -119,6 +120,15 @@ class VideoPlayback {
     this.schedule();
   }
 
+  /** Loads an offscreen video ahead of use, sized for where it's headed. Its poster stays up until it plays. */
+  warm(video: HTMLVideoElement, width?: number) {
+    const entry = this.entries.get(video);
+    if (!entry) return;
+    entry.warmWidth = width;
+    if (width !== undefined && entry.loading && !entry.cover) entry.display?.("poster");
+    this.schedule();
+  }
+
   private captureUpgrade(entry: Entry) {
     const video = entry.video;
     if (entry.cover || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
@@ -140,12 +150,12 @@ class VideoPlayback {
   }
 
   private measure(entry: Entry) {
-    entry.priority = entry.intentPriority || entry.focusWidth !== undefined;
+    entry.priority = entry.intentPriority || entry.focusWidth !== undefined || entry.warmWidth !== undefined;
     const box = entry.video.getBoundingClientRect();
     const visibleHeight = Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0));
     const visibleWidth = Math.max(0, Math.min(box.right, innerWidth) - Math.max(box.left, 0));
     entry.visible = box.width && box.height ? visibleHeight * visibleWidth / (box.width * box.height) : 0;
-    entry.near = box.bottom > -VIDEO_POLICY.prepareMargin && box.top < innerHeight + VIDEO_POLICY.prepareMargin && box.right > 0 && box.left < innerWidth;
+    entry.near = entry.warmWidth !== undefined || box.bottom > -VIDEO_POLICY.prepareMargin && box.top < innerHeight + VIDEO_POLICY.prepareMargin && box.right > 0 && box.left < innerWidth;
     entry.distance = Math.abs((box.top + box.bottom) / 2 - innerHeight / 2);
   }
 
@@ -172,9 +182,9 @@ class VideoPlayback {
     }
     const ranked = rankVideos(all);
     const playing = new Set(ranked.filter(entry => entry.visible > 0));
-    // Warm just one upcoming tile, without filling the load queue with offscreen cards.
+    // Warm just one upcoming tile, plus any requested ones, without filling the load queue with offscreen cards.
     const upcoming = ranked.find(entry => !entry.visible);
-    const prepared = new Set([...playing, ...(upcoming ? [upcoming] : [])]);
+    const prepared = new Set([...playing, ...(upcoming ? [upcoming] : []), ...ranked.filter(entry => entry.warmWidth !== undefined)]);
     for (const entry of all) {
       entry.wanted = playing.has(entry);
       if (!entry.wanted) this.pause(entry);
@@ -188,7 +198,7 @@ class VideoPlayback {
     }
     let loading = all.filter(entry => entry.loading).length;
     for (const entry of ranked.filter(entry => prepared.has(entry))) {
-      const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
+      const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.warmWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
       if (!rung) continue;
       if (loading < VIDEO_POLICY.loadLimit && !entry.loading && (!entry.focusMoving || !entry.width) && (!entry.width || rung.width > entry.width)) {
         this.load(entry, rung.h264, rung.width);
@@ -206,7 +216,8 @@ class VideoPlayback {
     entry.width = width;
     entry.loading = true;
     entry.video.dataset.playback = "loading";
-    entry.display?.(entry.cover ? "ready" : "loading");
+    // Focused media keeps its poster up while loading, so paging never reveals the loading surface.
+    entry.display?.(entry.cover ? "ready" : entry.focusWidth !== undefined || entry.warmWidth !== undefined ? "poster" : "loading");
     entry.video.preload = "auto";
     entry.video.src = mediaUrl(source);
     entry.video.load();
@@ -308,6 +319,10 @@ let coordinator: VideoPlayback | undefined;
 export function registerVideo(video: HTMLVideoElement, asset: PortfolioVideoAsset, display?: Entry["display"]) {
   coordinator ??= new VideoPlayback();
   return coordinator.register(video, asset, display);
+}
+
+export function setVideoWarm(video: HTMLVideoElement, width?: number) {
+  coordinator?.warm(video, width);
 }
 
 export function setVideoFocus(video: HTMLVideoElement, width?: number, moving = false) {

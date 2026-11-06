@@ -1,4 +1,4 @@
-import { setVideoFocus } from "./video-playback";
+import { setVideoFocus, setVideoWarm } from "./video-playback";
 
 type Role = "current" | "outgoing" | "preview";
 type Placement = {
@@ -11,6 +11,14 @@ type Placement = {
   held?: boolean;
   animation?: Animation;
 };
+
+/** Readies an offscreen tile's poster and video so paging to it shows a picture right away. Returns the release. */
+export function warmProjectMedia(media: HTMLElement, width: number) {
+  media.querySelectorAll("img").forEach(image => { image.loading = "eager"; });
+  const video = media.querySelector("video");
+  if (video) setVideoWarm(video, width);
+  return () => { if (video) setVideoWarm(video); };
+}
 
 /** Positions original grid media without changing its DOM parent or copying its pixels. */
 export class ProjectFocusMedia {
