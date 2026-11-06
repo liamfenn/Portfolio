@@ -23,9 +23,11 @@ export function applyTheme(theme: Theme) {
 let activeTransition: ViewTransition | undefined;
 let stopGlitch = () => {};
 let switchRequest = 0;
+let glitchTailTimer = 0;
 
 export async function transitionTheme(theme: Theme) {
   const request = ++switchRequest;
+  window.clearTimeout(glitchTailTimer);
   stopGlitch();
   activeTransition?.skipTransition();
   activeTransition = undefined;
@@ -36,7 +38,8 @@ export async function transitionTheme(theme: Theme) {
     return;
   }
   stopGlitch = startThemeGlitch();
-  await new Promise(resolve => window.setTimeout(resolve, themeGlitchSettings().lead));
+  const { lead, tail } = themeGlitchSettings();
+  await new Promise(resolve => window.setTimeout(resolve, lead));
   if (request !== switchRequest) return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
     stopGlitch();
@@ -51,7 +54,9 @@ export async function transitionTheme(theme: Theme) {
   void transition.finished.catch(() => {}).finally(() => {
     if (activeTransition !== transition || request !== switchRequest) return;
     root.classList.remove("is-theme-switching");
-    stopGlitch();
+    glitchTailTimer = window.setTimeout(() => {
+      if (request === switchRequest) stopGlitch();
+    }, tail);
     activeTransition = undefined;
   });
 }

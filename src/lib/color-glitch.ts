@@ -34,6 +34,7 @@ export function themeGlitchSettings() {
   return {
     ...hoverGlitchSettings(),
     lead: cssMilliseconds(tokens.getPropertyValue("--theme-glitch-lead")),
+    tail: cssMilliseconds(tokens.getPropertyValue("--theme-glitch-tail")),
     fraction: parseFloat(tokens.getPropertyValue("--theme-glitch-fraction")),
     minLetters: parseInt(tokens.getPropertyValue("--theme-glitch-min-letters")),
     maxLetters: parseInt(tokens.getPropertyValue("--theme-glitch-max-letters")),
