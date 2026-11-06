@@ -4,18 +4,18 @@
 @import "./design-inspector.css";
 @import "./homepage.css";
 
-/* Reveal the new palette through a soft edge travelling down the viewport. */
+/* The animated noise mask grows pools of the new palette across the viewport. */
 .is-theme-switching .header-fill { transition: none; }
 :root.is-theme-switching::view-transition-group(root) { animation: none; }
 :root.is-theme-switching::view-transition-old(root) { animation: none; }
 :root.is-theme-switching::view-transition-new(root) {
-  animation: theme-reveal var(--theme-switch-duration) var(--hover-ease) both;
+  animation: theme-pool-hold var(--theme-switch-duration) linear both;
   mix-blend-mode: normal;
-  mask-image: linear-gradient(to bottom, var(--text-on-accent) calc(50% - var(--theme-switch-feather)), transparent 50%);
-  mask-size: 100% calc(200% + var(--theme-switch-feather) * 2);
+  mask-image: var(--theme-switch-mask);
+  mask-size: 100% 100%;
   mask-repeat: no-repeat;
 }
-@keyframes theme-reveal { from { mask-position: 0 100%; } to { mask-position: 0 0%; } }
+@keyframes theme-pool-hold { from { opacity: 1; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   :root.is-theme-switching::view-transition-new(root) { animation: none; mask-image: none; }
 }

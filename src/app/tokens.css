@@ -118,8 +118,7 @@
   /* Accent logos stay white in both themes. */
   --text-on-accent: #ffffff;
   --theme-toggle-icon-size: 12px;
-  --theme-switch-duration: 600ms;
-  --theme-switch-feather: 96px;
+  --theme-switch-duration: 480ms;
   color-scheme: light;
 }
 

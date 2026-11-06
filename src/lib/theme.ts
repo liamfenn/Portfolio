@@ -1,3 +1,5 @@
+import { createThemePoolMask } from "./theme-pool";
+
 export type Theme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "portfolio-theme";
@@ -25,12 +27,16 @@ export function transitionTheme(theme: Theme) {
     return;
   }
   activeTransition?.skipTransition();
-  document.documentElement.classList.add("is-theme-switching");
+  const root = document.documentElement;
+  const duration = parseFloat(getComputedStyle(root).getPropertyValue("--theme-switch-duration"));
+  root.style.setProperty("--theme-switch-mask", createThemePoolMask(duration, innerWidth, innerHeight, Math.floor(Math.random() * 10000)));
+  root.classList.add("is-theme-switching");
   const transition = document.startViewTransition(() => applyTheme(theme));
   activeTransition = transition;
   void transition.finished.catch(() => {}).finally(() => {
     if (activeTransition !== transition) return;
-    document.documentElement.classList.remove("is-theme-switching");
+    root.classList.remove("is-theme-switching");
+    root.style.removeProperty("--theme-switch-mask");
     activeTransition = undefined;
   });
 }
