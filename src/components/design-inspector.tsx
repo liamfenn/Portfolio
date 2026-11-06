@@ -70,11 +70,11 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  useEffect(() => { togglePanelRef.current = togglePanel; }, [togglePanel]);
+  const modeRef = useRef(inspection.mode);
+  useEffect(() => { togglePanelRef.current = togglePanel; modeRef.current = inspection.mode; }, [togglePanel, inspection.mode]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof Element && event.target.closest(".project-focus-root")) return;
       if (event.defaultPrevented || event.repeat || event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')) return;
       const key = event.key === "Escape" ? "Escape" : event.key.toLowerCase();
@@ -89,6 +89,11 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         return;
       }
       if (!INSPECTION_KEYS.has(key)) return;
+      // In the focused view, Escape clears an active mode first and only then closes the view.
+      if (key === "Escape" && document.querySelector(".project-focus-root")) {
+        if (modeRef.current === "content") return;
+        event.stopImmediatePropagation();
+      }
       if (key !== "Escape") event.preventDefault();
       cycle(key as InspectionKey);
     };
@@ -132,7 +137,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
   return <InspectionContext.Provider value={inspection}>
     {children}
     {inspection.mode !== "content" && !isLabelMode(inspection.mode) && <SpacingOverlay mode={inspection.mode} />}
-    {isPanelVisible && <aside className="design-inspector text-captionSans" aria-label="Design inspector">
+    {isPanelVisible && <aside className="design-inspector text-captionSans" aria-label="Design inspector" data-inspector-layer>
       <span className="design-inspector-mode" role="status">{MODE_LABELS[inspection.mode]}</span>
       <div className="design-inspector-controls">
         <button type="button" aria-label="Cycle text inspection" aria-pressed={inspection.mode.startsWith("type-")} onClick={() => cycle("t")}><kbd>T</kbd> Text</button>
@@ -272,7 +277,10 @@ function measureSpacing(mode: InspectionMode): SpacingArea[] {
   const kinds = spacingKinds(mode);
   const found: Record<SpacingAreaKind, SpacingArea[]> = { frame: [], margin: [], padding: [], gap: [] };
   const vertical = mode.endsWith("-y");
-  for (const element of Array.from(document.body.querySelectorAll<HTMLElement>("*"))) {
+  // The focused view covers the page, so only it and the header above it have spacing to show.
+  const focusRoot = document.querySelector<HTMLElement>(".project-focus-root");
+  const scopes = focusRoot ? [focusRoot, document.querySelector<HTMLElement>(".portfolio-header")] : [document.body];
+  for (const element of scopes.flatMap(scope => Array.from(scope?.querySelectorAll<HTMLElement>("*") ?? []))) {
     if (element.closest(SKIPPED_ELEMENTS)) continue;
     const rect = element.getBoundingClientRect();
     if (!isVisible(element, rect)) continue;
@@ -340,12 +348,13 @@ function SpacingOverlay({ mode }: { mode: InspectionMode }) {
     };
     schedule();
     const timer = window.setInterval(schedule, 300);
-    window.addEventListener("scroll", schedule, { passive: true });
+    // Capture also catches nested scrollers such as the focused view, whose scroll events don't bubble.
+    window.addEventListener("scroll", schedule, { passive: true, capture: true });
     window.addEventListener("resize", schedule);
     return () => {
       window.cancelAnimationFrame(frame);
       window.clearInterval(timer);
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", schedule, { capture: true });
       window.removeEventListener("resize", schedule);
     };
   }, [mode]);

@@ -66,7 +66,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     body.style.width = "100%";
     body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
-    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
+    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test") && !node.hasAttribute("data-inspector-layer"));
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 

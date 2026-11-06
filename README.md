@@ -88,6 +88,7 @@ It works on the homepage, `/process`, and the palette lab:
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.
+- All of these work in the focused view too. There, Escape clears an active mode first, then closes the view, and spacing covers the view and header rather than the page behind.
 - **Escape** restores content. Switching families starts at that family's first
   view. Shortcuts ignore editable fields and modifier keys.
 
