@@ -84,7 +84,7 @@
   --project-focus-edge-fade-height: 96px;
   --project-focus-edge-fade-out: 450ms;
   /* Long enough for Safari to finish switching the color behind its toolbar, so the two read as one fade. */
-  --project-focus-edge-fade-hold: 80ms;
+  --project-focus-edge-fade-hold: 40ms;
   --project-focus-edge-fade-ease: ease-in-out;
   --project-focus-full-height: 100lvh;
   /* Editorial page rhythm; media uses the same square shape as the project grid. */
