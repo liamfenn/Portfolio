@@ -173,6 +173,7 @@ body {
   --header-pop-blur: 3px;
   --player-track-gap: 24px;
   --player-track-mobile-gap: 20px;
+  --player-artist-gap: 6px;
   --header-translucent-fill: color-mix(in srgb, var(--bg-fill) 72%, transparent);
   --header-translucent-blur: 6px;
   --header-scroll-duration: 360ms;

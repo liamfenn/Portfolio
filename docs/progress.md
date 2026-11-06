@@ -32,6 +32,9 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
+**Player artist gap (2026-11-05)**
+- The song and artist in the music player sit 6px apart (`--player-artist-gap`, a new token, since the 3px control gap it borrowed no longer fit).
+
 **Focused view bottom margin (2026-11-05)**
 - On desktop, the focused view ends with the page's 60px bottom margin (`--portfolio-bottom`) instead of 32px. Mobile is unchanged.
 

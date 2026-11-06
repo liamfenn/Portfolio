@@ -75,7 +75,7 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 .player-secondary { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .player-track-copy { position: relative; display: block; min-width: 0; flex: 1; overflow: hidden; }
 .player-track-marquee { display: inline-block; width: max-content; white-space: nowrap; }
-.player-track-marquee > .player-secondary { margin-left: var(--portfolio-control-gap); }
+.player-track-marquee > .player-secondary { margin-left: var(--player-artist-gap); }
 /* Proportional digits read better than tabular ones here, so a hidden copy in the widest digit holds the width steady as they tick. */
 .player-track-time { flex: none; display: inline-grid; white-space: nowrap; color: var(--text-muted); --inspect-color-token: text-muted; }
 .player-track-time > * { grid-area: 1 / 1; justify-self: start; }
