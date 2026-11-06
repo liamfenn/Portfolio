@@ -7,7 +7,7 @@ import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import type { ProjectPreview } from "@/lib/project-previews";
 import { ProjectFocusMedia, warmProjectMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
-import { scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
+import { focusTweenDuration, scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -142,16 +142,21 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     const animations: Animation[] = [];
     animationsRef.current = animations;
     let closing = false, disposed = false;
-    const tweenMedia = (from: DOMRect, to: DOMRect) => focusMedia.animate(media, from, to, { ...timing, duration: motion.matches ? 0 : timing.duration, fill: "both" });
+    const farDuration = milliseconds("--project-focus-far-duration");
+    const farDistance = parseFloat(tokens.getPropertyValue("--project-focus-far-distance"));
+    const tweenDuration = (from: DOMRect, to: DOMRect) => focusTweenDuration(from, to, timing.duration, farDuration, farDistance);
+    const tweenMedia = (from: DOMRect, to: DOMRect) => focusMedia.animate(media, from, to, { ...timing, duration: motion.matches ? 0 : tweenDuration(from, to), fill: "both" });
     const fade = (element: HTMLElement, from: number, to: number, delay = 0, duration = timing.duration) => element.animate([{ opacity: from }, { opacity: to }], { ...timing, duration: motion.matches ? 0 : duration, delay: motion.matches ? 0 : delay, fill: "both" });
     const bounds = slot.getBoundingClientRect();
     const pageAnimations = navigation ? animatePage(motion.matches) : null;
     const opening = pageAnimations?.[0] ?? tweenMedia(navigation ? bounds : origin, bounds);
     const backgrounds = [blur, backdrop];
     animations.push(...(pageAnimations ?? [opening]));
+    const openingDuration = tweenDuration(origin, bounds);
+    // The text waits as long as the tween stretched, so it keeps its timing against the landing and a far tile doesn't cross it.
     if (!navigation) animations.push(
-      ...backgrounds.map(element => fade(element, 0, 1)),
-      ...textRows.map(({ element, top }) => fade(element, 0, 1, textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
+      ...backgrounds.map(element => fade(element, 0, 1, 0, openingDuration)),
+      ...textRows.map(({ element, top }) => fade(element, 0, 1, openingDuration - timing.duration + textEnterDelay + rowTops.indexOf(top) * textStagger, textEnterDuration)),
     );
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => {
       if (!closing && !disposed) { focusMedia.settle(media); root.dataset.phase = "open"; }
@@ -188,10 +193,11 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       const from = media.getBoundingClientRect(), tile = trigger.getBoundingClientRect();
       const returns = tileOnScreen(tile, innerWidth, innerHeight);
       const collapse = parseFloat(tokens.getPropertyValue("--project-focus-collapse-scale"));
-      const exit = tweenMedia(from, returns ? tile : scaledBox(from, collapse) as DOMRect);
-      animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0)));
-      if (!returns) animations.push(fade(media, opacity, 0));
-      else if (opacity < 1) animations.push(fade(media, opacity, 1));
+      const to = returns ? tile : scaledBox(from, collapse) as DOMRect;
+      const exit = tweenMedia(from, to), exitDuration = tweenDuration(from, to);
+      animations.push(exit, ...backgrounds.map((element, index) => fade(element, backgroundOpacities[index], 0, 0, exitDuration)));
+      if (!returns) animations.push(fade(media, opacity, 0, 0, exitDuration));
+      else if (opacity < 1) animations.push(fade(media, opacity, 1, 0, exitDuration));
       void exit.finished.then(() => {
         if (disposed) return;
         root.style.visibility = "hidden";

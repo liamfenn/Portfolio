@@ -33,3 +33,15 @@ export function scaledBox(box: Box, scale: number) {
 export function swipesToDismiss(x: number, y: number, startScrollTop: number, distance: number) {
   return startScrollTop <= 0 && y >= distance && y > Math.abs(x) * 1.5;
 }
+
+/**
+ * Stretches a tween with the distance its box travels, up to a limit. A fixed duration made far tiles
+ * move several times faster than near ones, which read as abrupt.
+ */
+export function focusTweenDuration(from: Box, to: Box, nearDuration: number, farDuration: number, farDistance: number) {
+  const travel = Math.max(
+    Math.abs(to.left - from.left), Math.abs(to.top - from.top),
+    Math.abs(to.left + to.width - from.left - from.width), Math.abs(to.top + to.height - from.top - from.height),
+  );
+  return nearDuration + (farDuration - nearDuration) * Math.min(travel / farDistance, 1);
+}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { commitsPage, pagingIntent, restartsWheelGesture, scaledBox, swipesToDismiss, tileOnScreen } from "../src/lib/project-paging.ts";
+import { commitsPage, focusTweenDuration, pagingIntent, restartsWheelGesture, scaledBox, swipesToDismiss, tileOnScreen } from "../src/lib/project-paging.ts";
 
 test("a tile counts as on screen only when enough of it shows for a return flight to read", () => {
   const tile = top => ({ left: 0, top, width: 400, height: 400 });
@@ -52,4 +52,15 @@ test("a new trackpad stroke can interrupt momentum without waiting for complete 
   for (const [x, last, previous] of [[60, 60, 60], [20, 30, 40], [3, 2, 4], [12, 10, 14], [90, 70, 50]]) {
     assert.equal(restartsWheelGesture(x, 300, last, previous, 80, 8), false);
   }
+});
+
+test("a focus tween stretches with the distance traveled, up to a limit", () => {
+  const box = (top, width = 100) => ({ left: 0, top, width, height: width });
+  assert.equal(focusTweenDuration(box(0), box(0), 180, 320, 600), 180);
+  assert.equal(focusTweenDuration(box(300), box(0), 180, 320, 600), 250);
+  assert.equal(focusTweenDuration(box(0), box(300), 180, 320, 600), 250);
+  assert.equal(focusTweenDuration(box(600), box(0), 180, 320, 600), 320);
+  assert.equal(focusTweenDuration(box(2000), box(0), 180, 320, 600), 320);
+  // Growing in place still counts, since the far edge travels.
+  assert.equal(focusTweenDuration(box(0, 100), box(0, 400), 180, 320, 600), 250);
 });

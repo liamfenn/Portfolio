@@ -51,6 +51,8 @@
   --project-card-overlay-opacity: 88%;
   --project-card-overlay-blur: var(--project-focus-blur);
   --project-focus-duration: var(--project-layout-duration);
+  --project-focus-far-duration: 320ms;
+  --project-focus-far-distance: 600px;
   --project-focus-page-duration: var(--motion-duration);
   --project-focus-wheel-idle: var(--hover-duration);
   --project-focus-page-min-duration: 80ms;
