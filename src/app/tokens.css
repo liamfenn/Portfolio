@@ -83,8 +83,9 @@
   --project-focus-edge-size: var(--content-padding-mobile);
   --project-focus-edge-fade-height: 96px;
   --project-focus-edge-fade-out: 450ms;
-  /* Starts already moving: a slow start right after the backdrop's slow finish reads as a stall. */
-  --project-focus-edge-fade-ease: ease-out;
+  /* Long enough for Safari to finish switching the color behind its toolbar, under the layer. */
+  --project-focus-edge-fade-hold: 180ms;
+  --project-focus-edge-fade-ease: ease-in-out;
   --project-focus-full-height: 100lvh;
   /* Editorial page rhythm; media uses the same square shape as the project grid. */
   --process-section-gap: 72px;
