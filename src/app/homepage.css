@@ -56,7 +56,9 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 .portfolio-header.is-project-focus { width: min(calc(var(--project-focus-column-width) - var(--header-narrow-inset)), calc(100% - var(--content-padding-mobile) * 2)); }
 .portfolio-header.is-project-focus .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 .portfolio-header.is-project-focus .header-avatar { visibility: hidden; opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
-.portfolio-header.is-project-focus .header-label { transform: translateX(calc(var(--content-padding-mobile) - var(--header-filter-slot))); }
+.portfolio-header.is-project-focus .header-label { right: var(--header-project-action-slot); transform: translateX(calc(var(--content-padding-mobile) - var(--header-filter-slot))); }
+.portfolio-header.is-project-focus .header-label .feed-sort-control { flex: none; }
+.portfolio-header.is-project-focus .header-project-detail { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .portfolio-header.is-project-focus .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 .portfolio-header.is-project-focus .header-action { color: var(--text-muted); --inspect-color-token: text-muted; }
 .header-project-detail { margin-left: var(--content-padding-mobile); white-space: pre; color: var(--text-secondary); --inspect-color-token: text-secondary; }

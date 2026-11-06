@@ -40,6 +40,7 @@ export type PortfolioMediaAsset = PortfolioImageAsset | PortfolioVideoAsset;
 export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsset>;
 
 export const MEDIA_ASSETS = {
+  shoppingAgent: IMPORTED_MEDIA["shopping-agent"],
   shopProductPage: IMPORTED_MEDIA["shop-product-page"],
   shopRewardsCard: IMPORTED_MEDIA["shop-rewards-card"],
   // Bundled preview delivery while the Blob upload credential is unavailable.

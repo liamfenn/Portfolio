@@ -5,6 +5,12 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Shopping agent project (2026-11-06)**
+- Added Shopping agent for Office of Liam Fennell, Q1 26, with Stack entries Next.js and OpenAI API, no contributor list, and “Description coming soon.” as the temporary description.
+- Used the existing master at `~/Desktop/demos/shopping-agent.mp4`; its scene source is tracked in `scenes/shopping-agent/` on the separate `video/shopping-agent` branch. Imported validated 800/1200/1600px H.264 renditions and 480/800/1600px posters to Vercel Blob, preserving 60fps and the 21.18-second loop. Poster uses the 8-second frame. Masters and local encodes stay out of git.
+- The feed now has eight filled projects. The existing date insertion places this one after Baskets and before Collections sheet, preserving the other projects' published order.
+- The focused header reserves a date slot (`header-project-action-slot`, 48px) and truncates the project title if necessary. This keeps the longer company name from pushing Shopping agent over the date on 320px screens; wider layouts show the full title.
+
 **Twitter link update**
 - Updated the homepage Twitter link to https://x.com/liammm.
 

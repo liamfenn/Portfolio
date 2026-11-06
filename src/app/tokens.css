@@ -188,6 +188,7 @@ body {
   --header-marquee-duration: 10s;
   --header-marquee-fade-width: 12px;
   --header-narrow-inset: 48px;
+  --header-project-action-slot: 48px;
   --header-filter-slot: 27px;
   --header-filter-mobile-slot: 24px;
   --header-mobile-top: 5px;
