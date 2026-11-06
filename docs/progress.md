@@ -9,6 +9,7 @@ decided, or gets dropped.
 - Updated the homepage Twitter link to https://x.com/liammm.
 
 **Intro copy refresh**
+- Follow-up: changed the phrase to “somewhere between pixels and code.”
 - Updated the intro to Liam's supplied “Internet decorator” copy, retaining Shop/Bird/Plasticity/OpenPurpose links and the existing second paragraph. Both paragraphs now end with periods, outside their links; only “process” is linked in the final sentence. Existing typography, width, and desktop line break remain unchanged.
 - Validation: 86 tests, TypeScript, touched-file lint, production build, and diff checks pass.
 
