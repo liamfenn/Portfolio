@@ -849,8 +849,11 @@ html:has(.project-focus-root:not([data-phase="closing"])), html:has(.project-foc
 @media (max-width: 767px) {
   .project-focus-edge, .safari-edge-test { display: block; }
   .project-focus-edge-top, .safari-edge-test-top { top: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-top)); }
-  .safari-edge-test-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); }
+  .project-focus-edge-bottom, .safari-edge-test-bottom { bottom: 0; height: max(var(--project-focus-edge-size), var(--viewport-safe-bottom)); }
   .project-focus-edge-top { background: var(--bg-secondary-fill); }
+  /* Gives Safari a solid color to extend behind its toolbar, or it can sample the page beneath. Only while open: extending it during a fade holds a hard band over the page. */
+  .project-focus-edge-bottom { background: var(--bg-fill); }
+  body:not(:has(.project-focus-root[data-phase="open"])) .project-focus-edge-bottom { display: none; }
   .safari-edge-test-top { background: var(--bg-green-fill); }
   .safari-edge-test-bottom { background: var(--bg-purple-fill); }
   .project-focus-scroll { touch-action: pan-y pinch-zoom; }
