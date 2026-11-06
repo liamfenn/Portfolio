@@ -220,7 +220,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
         leaving.className = "project-focus-edge-fade is-leaving";
         leaving.setAttribute("aria-hidden", "true");
         document.body.appendChild(leaving);
-        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), fill: "both" }).finished.finally(() => leaving.remove());
+        void leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: motion.matches ? 0 : milliseconds("--project-focus-edge-fade-out"), easing: timing.easing, fill: "both" }).finished.finally(() => leaving.remove());
         root.style.visibility = "hidden";
         onClose();
       }).catch(() => {});
