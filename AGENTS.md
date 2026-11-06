@@ -94,6 +94,6 @@ weather show placeholders. That's fine for most UI work.
   MutationObserver. Components that rewrite their text (`use-scramble`, the clock, the track title) stay
   masked. Keep it that way if you touch `glyph-swarm.ts`.
 - **Don't lock the page with `position: fixed` on `body`.** It collapses the document, and Safari paints a few frames with a stale scroll position. The focused view uses `overflow: hidden` on `html` and `body` instead.
-- **Don't animate or swap the focused view's bottom edge strip.** Safari samples its color once and holds it, so a strip that starts any color but white leaves a stuck bar behind its toolbar. It also isn't safe to make the view's full-bleed layers `absolute` to avoid this; `docs/progress.md` has the history.
+- **Don't animate or swap the focused view's bottom edge strip.** Safari samples its color once and holds it, so a strip that starts any color but white leaves a stuck bar behind its toolbar. It also isn't safe to make the view's full-bleed layers `absolute` to avoid this. The close fades through `.project-focus-edge-veil`, a page layer that takes over from the strip; `docs/progress.md` has the history.
 - **CSS order matters in `globals.css`**: shared rules near the end (like `.work-density-menu`) override
   same-specificity rules above them. The sort menu uses a doubled class for that reason.
