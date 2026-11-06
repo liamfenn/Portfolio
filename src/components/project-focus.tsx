@@ -59,19 +59,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   useLayoutEffect(() => {
     const root = rootRef.current!, topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
     const opener = initialSelection.current.trigger;
-    // The page lock is in CSS. Don't fix the body here: it collapses the document, and Safari then paints a few frames
-    // with the wrong scroll position, blanking the page and showing the media at its destination before the tween starts.
-    const body = document.body, saved = { paddingRight: body.style.paddingRight };
-    const scrollbar = innerWidth - document.documentElement.clientWidth;
-    // The layers are page content, so anything that moves the document, like Safari's toolbar changing, must move them back.
-    const placeLayers = () => {
-      root.style.setProperty("--project-focus-scroll-y", `${scrollY}px`);
-      focusMedia.sync();
-    };
-    root.style.setProperty("--project-focus-scroll-y", `${scrollY}px`);
-    window.addEventListener("resize", placeLayers, { passive: true });
-    window.addEventListener("scroll", placeLayers, { passive: true });
-    visualViewport?.addEventListener("resize", placeLayers, { passive: true });
+    // Don't fix the body here: it collapses the document, and Safari then paints a few frames with the wrong scroll
+    // position, blanking the page and showing the media at its destination before the tween starts.
+    const body = document.body, html = document.documentElement;
+    const saved = { overflow: body.style.overflow, paddingRight: body.style.paddingRight }, savedHtmlOverflow = html.style.overflow;
+    const scrollbar = innerWidth - html.clientWidth;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
     const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
     const inert = siblings.map(node => ({ node, previous: node.inert }));
@@ -109,9 +103,6 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     motion.addEventListener("change", onMotionChange);
     root.focus({ preventScroll: true });
     return () => {
-      window.removeEventListener("resize", placeLayers);
-      window.removeEventListener("scroll", placeLayers);
-      visualViewport?.removeEventListener("resize", placeLayers);
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
       if (!previousTheme) theme.remove();
@@ -119,6 +110,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       else theme.content = previousThemeColor;
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
+      html.style.overflow = savedHtmlOverflow;
       stopMedia();
       opener.focus({ preventScroll: true });
     };
