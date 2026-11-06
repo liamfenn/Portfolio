@@ -32,6 +32,9 @@ production) is still the August version. Merging is Liam's call.
 **Focused view type (2026-11-05)**
 - All Focused view text is now bodySans or bodySerif, including the Contributors and Tech headings, which were captionSans in Figma. The company and project name in the header sit 12px apart instead of 3px. Card overlay keeps its caption credits.
 
+**Focused view bottom margin (2026-11-05)**
+- On desktop, the focused view ends with the page's 60px bottom margin (`--portfolio-bottom`) instead of 32px. Mobile is unchanged.
+
 **Inspector in the focused view (2026-11-05)**
 - The design inspector's shortcuts, panel, labels, and spacing overlay now work in the focused view. The view leaves the panel out of what it makes inert, and both debug layers rise above it. Spacing measures the view and header instead of the page behind, and refreshes on the view's own scroll. Escape clears an active mode first, then closes the view.
 
