@@ -46,9 +46,8 @@ production) is still the August version. Merging is Liam's call.
 **Inspector in the focused view, reverted (2026-11-05)**
 - The design inspector ran in the focused view for one debugging pass, then came back out once Liam had checked what he needed. Its shortcuts are ignored there again and Escape closes the view. If it returns, `ef27f4e` has the change. Its label reported the project name as `text-primary` while the name rendered as `text-secondary`; the rendered color is correct.
 
-**Focused view overscroll (2026-11-05)**
-- On a short screen, a hard scroll made the text jump. The likely cause is overscroll bounce: the media is positioned separately from the scrolling content to keep its video playing, so only the text bounced. Set `overscroll-behavior: none` on the focused view's scroller. Liam confirmed on a device that the jump is gone.
-- A bounce on desktop would be fine, since the homepage has one, as long as the text doesn't move on its own. A native bounce on this scroller moves only the text, so it stays off.
+**Focused view overscroll, reverted (2026-11-05)**
+- Tried `overscroll-behavior: none` on the focused view's scroller to stop the text jumping on a hard scroll on short screens. It did stop the jump, but Liam found scrolling sticky and snappy without the bounce, so it's back to `contain`. The jump can return: the media is positioned separately from the scrolling text to keep its video playing, so a bounce moves only the text. Don't turn the bounce off to fix that.
 
 **One published order, reorder editor removed, flash fix (2026-11-05)**
 - Removed the Reorder Featured debug tool and browser-saved orders, since order changes are now published directly. Also deleted the unused previous grid (`project-work.tsx`), which was the only other user of that plumbing; it's in git history. The Recent and Random control and the Focused view / Card overlay debug toggle both stay. (The control was briefly removed after a misread of "remove the toggle".)
