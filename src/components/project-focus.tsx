@@ -59,13 +59,12 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   useLayoutEffect(() => {
     const root = rootRef.current!, topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
     const opener = initialSelection.current.trigger;
-    const body = document.body, scroll = { x: scrollX, y: scrollY };
-    const saved = { position: body.style.position, top: body.style.top, left: body.style.left, width: body.style.width, overflow: body.style.overflow, paddingRight: body.style.paddingRight };
-    const scrollbar = innerWidth - document.documentElement.clientWidth;
-    body.style.position = "fixed";
-    body.style.top = `${-scroll.y}px`;
-    body.style.left = `${-scroll.x}px`;
-    body.style.width = "100%";
+    // Don't fix the body here: it collapses the document, and Safari then paints a few frames with the wrong scroll
+    // position, blanking the page and showing the media at its destination before the tween starts.
+    const body = document.body, html = document.documentElement;
+    const saved = { overflow: body.style.overflow, paddingRight: body.style.paddingRight }, savedHtmlOverflow = html.style.overflow;
+    const scrollbar = innerWidth - html.clientWidth;
+    html.style.overflow = "hidden";
     body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
     const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
@@ -111,7 +110,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       else theme.content = previousThemeColor;
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
-      window.scrollTo(scroll.x, scroll.y);
+      html.style.overflow = savedHtmlOverflow;
       stopMedia();
       opener.focus({ preventScroll: true });
     };

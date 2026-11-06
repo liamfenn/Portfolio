@@ -93,5 +93,6 @@ weather show placeholders. That's fine for most UI work.
 - **The swarm masks letters by character position**, not by text node, and re-attaches through a
   MutationObserver. Components that rewrite their text (`use-scramble`, the clock, the track title) stay
   masked. Keep it that way if you touch `glyph-swarm.ts`.
+- **Don't lock the page with `position: fixed` on `body`.** It collapses the document, and Safari paints a few frames with a stale scroll position. The focused view uses `overflow: hidden` on `html` and `body` instead.
 - **CSS order matters in `globals.css`**: shared rules near the end (like `.work-density-menu`) override
   same-specificity rules above them. The sort menu uses a doubled class for that reason.

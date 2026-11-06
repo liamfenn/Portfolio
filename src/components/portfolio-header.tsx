@@ -35,8 +35,7 @@ export function PortfolioHeader() {
   });
 
   useEffect(() => {
-    // The focused view locks the page by fixing the body, which zeroes the scroll position until it closes.
-    const update = () => { if (document.body.style.position !== "fixed") setScrolled(window.scrollY > 0); };
+    const update = () => setScrolled(window.scrollY > 0);
     update();
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
@@ -53,7 +52,7 @@ export function PortfolioHeader() {
       // The swap happens while the page's filter is fully behind the opaque bar, so it never shows through the translucent one.
       const line = Math.round(bar.getBoundingClientRect().bottom);
       observer = new IntersectionObserver(([entry]) => {
-        if (document.body.style.position !== "fixed") setOverImages(!entry.isIntersecting && entry.boundingClientRect.top < line);
+        setOverImages(!entry.isIntersecting && entry.boundingClientRect.top < line);
       }, { rootMargin: `-${line}px 0px 0px 0px` });
       observer.observe(toolbar);
     };
