@@ -6,7 +6,8 @@ decided, or gets dropped.
 ## Where things stand
 
 **Light / dark theme (2026-11-05)**
-- Added a centered half-filled circle toggle to the default and scrolled header, with a 44px hit area. Its filled side flips on tap or keyboard activation. It hides in the focused header, where the project title uses the center.
+- The icon-only half-filled circle sits opposite Recent in the feed toolbar, then takes the right side of the scrolled overlay header in place of Top. The default header retains Contact. Its filled side flips on tap or keyboard activation, with a 44px hit area. It hides in the focused header, where the project details take priority.
+- Manual theme switches reveal the new palette from top to bottom with a feathered edge, using View Transitions and new `theme-switch-duration` (600ms) / `theme-switch-feather` (96px) tokens. Reduced motion and browsers without that API switch instantly. Initially tried a centered header toggle; Liam moved it opposite the sort control.
 - Follows the system until a choice is made, then remembers that choice across visits and syncs it between tabs. An early head script applies the preference before paint. Reduced motion removes the flip transition.
 - Dark values from Figma `610:24963` map to the existing roles: `bg-fill` #120F12, `bg-secondary-fill` #1B191D, `text-primary` #FAF8FA, `text-secondary` #CDC9CE; muted and accent colors stay the same. The overlay header uses 64% fill and the existing 6px blur from `610:24837`. Light keeps the established tokens rather than Figma's near-match #F7F8FA.
 - New tokens: `theme-toggle-icon-size` (12px, matching the attached half-circle reference) and `text-on-accent` (invariant white, so Spotify's logo stays white in both themes). Images, videos and their asset backgrounds are untouched; Liam will rerender them separately.

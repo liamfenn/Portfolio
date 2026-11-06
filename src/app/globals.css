@@ -4,6 +4,22 @@
 @import "./design-inspector.css";
 @import "./homepage.css";
 
+/* Reveal the new palette through a soft edge travelling down the viewport. */
+.is-theme-switching .header-fill { transition: none; }
+:root.is-theme-switching::view-transition-group(root) { animation: none; }
+:root.is-theme-switching::view-transition-old(root) { animation: none; }
+:root.is-theme-switching::view-transition-new(root) {
+  animation: theme-reveal var(--theme-switch-duration) var(--hover-ease) both;
+  mix-blend-mode: normal;
+  mask-image: linear-gradient(to bottom, var(--text-on-accent) calc(50% - var(--theme-switch-feather)), transparent 50%);
+  mask-size: 100% calc(200% + var(--theme-switch-feather) * 2);
+  mask-repeat: no-repeat;
+}
+@keyframes theme-reveal { from { mask-position: 0 100%; } to { mask-position: 0 0%; } }
+@media (prefers-reduced-motion: reduce) {
+  :root.is-theme-switching::view-transition-new(root) { animation: none; mask-image: none; }
+}
+
 /* Base styles */
 @layer base {
   html {

@@ -16,3 +16,21 @@ export function applyTheme(theme: Theme) {
   if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg-fill").trim();
   window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
+
+let activeTransition: ViewTransition | undefined;
+
+export function transitionTheme(theme: Theme) {
+  if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    applyTheme(theme);
+    return;
+  }
+  activeTransition?.skipTransition();
+  document.documentElement.classList.add("is-theme-switching");
+  const transition = document.startViewTransition(() => applyTheme(theme));
+  activeTransition = transition;
+  void transition.finished.catch(() => {}).finally(() => {
+    if (activeTransition !== transition) return;
+    document.documentElement.classList.remove("is-theme-switching");
+    activeTransition = undefined;
+  });
+}

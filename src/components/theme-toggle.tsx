@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { applyTheme, resolveTheme, THEME_CHANGE_EVENT, THEME_STORAGE_KEY } from "@/lib/theme";
+import { applyTheme, resolveTheme, transitionTheme, THEME_CHANGE_EVENT, THEME_STORAGE_KEY } from "@/lib/theme";
 
 function readPreference() {
   try { return localStorage.getItem(THEME_STORAGE_KEY); } catch { return null; }
@@ -32,10 +32,10 @@ export function ThemeController() {
 
 export function ThemeToggle() {
   const dark = useSyncExternalStore(subscribe, () => document.documentElement.dataset.theme === "dark", () => false);
-  return <button className="header-theme-toggle" type="button" aria-label="Dark mode" aria-pressed={dark} onClick={() => {
+  return <button className="theme-toggle" type="button" aria-label="Dark mode" aria-pressed={dark} onClick={() => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch { /* The toggle still works when storage is unavailable. */ }
-    applyTheme(next);
+    transitionTheme(next);
   }}>
     <svg className="theme-toggle-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="10.5" stroke="currentColor" strokeWidth="3" />

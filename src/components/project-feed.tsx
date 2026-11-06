@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { HomepageCard } from "@/components/homepage-card";
 import { ProjectSortControl } from "@/components/project-sort-control";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 import { useProjectDisplayState } from "@/components/project-display-state";
@@ -58,6 +59,7 @@ export function ProjectFeed() {
   return <section className="portfolio-feed" aria-label="Selected work">
     <div className="feed-toolbar text-bodySans">
       <ProjectSortControl />
+      <ThemeToggle />
     </div>
     {/* The tiles keep their place in the DOM and sorting only changes their CSS order: moving a playing video makes it flash black. */}
     <ul className="feed-projects" onFocusCapture={event => {
