@@ -118,7 +118,3 @@ html[data-type-preview="sans"] .text-captionSerif { font: var(--type-captionSans
   .design-inspector-controls { flex-wrap: wrap; gap: 2px; }
   .design-inspector .design-inspector-desktop-control { display: none; }
 }
-
-/* The debug layers stay usable over the focused view and above the header it raises. */
-body:has(.project-focus-root) .spacing-overlay { z-index: calc(var(--project-focus-header-layer) + 1); }
-body:has(.project-focus-root) .design-inspector { z-index: calc(var(--project-focus-header-layer) + 2); }
