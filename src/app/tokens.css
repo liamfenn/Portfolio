@@ -117,16 +117,10 @@
   --bg-purple-fill: #5343eb;
   /* Accent logos stay white in both themes. */
   --text-on-accent: #ffffff;
-  --theme-toggle-icon-size: 12px;
-  --theme-switch-duration: 220ms;
-  --theme-glitch-lead: 60ms;
-  --theme-glitch-tail: 160ms;
-  --theme-glitch-fraction: .4;
-  --theme-glitch-min-letters: 48;
-  --theme-glitch-max-letters: 96;
   color-scheme: light;
 }
 
+/* Retained for a future dark theme; no UI or system preference activates it. */
 :root[data-theme="dark"] {
   --text-primary: #faf8fa;
   --text-secondary: #cdc9ce;

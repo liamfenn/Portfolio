@@ -73,6 +73,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
 
     const stopMedia = focusMedia.start(scrollRef.current!);
 
+    const previousTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const theme = previousTheme ?? document.createElement("meta");
+    const previousThemeColor = theme.getAttribute("content");
+    theme.name = "theme-color";
+    theme.content = getComputedStyle(root).getPropertyValue("--bg-fill").trim();
+    if (!previousTheme) document.head.appendChild(theme);
+
     const onKeyDown = (event: KeyboardEvent) => {
       const previous = event.key === "ArrowLeft";
       if (!event.altKey && !event.ctrlKey && !event.metaKey && (previous || event.key === "ArrowRight") && root.dataset.phase !== "closing") {
@@ -98,6 +105,9 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     return () => {
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       motion.removeEventListener("change", onMotionChange);
+      if (!previousTheme) theme.remove();
+      else if (previousThemeColor === null) theme.removeAttribute("content");
+      else theme.content = previousThemeColor;
       inert.forEach(({ node, previous }) => { node.inert = previous; });
       Object.assign(body.style, saved);
       html.style.overflow = savedHtmlOverflow;

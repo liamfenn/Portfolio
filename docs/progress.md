@@ -1,6 +1,6 @@
 # Progress and goals
 
-Last updated 2026-11-05. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-06. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
@@ -13,15 +13,10 @@ decided, or gets dropped.
 - Updated the intro to Liam's supplied “Internet decorator” copy, retaining Shop/Bird/Plasticity/OpenPurpose links and the existing second paragraph. Both paragraphs now end with periods, outside their links; only “process” is linked in the final sentence. Existing typography, width, and desktop line break remain unchanged.
 - Validation: 86 tests, TypeScript, touched-file lint, production build, and diff checks pass.
 
-**Light / dark theme (2026-11-05)**
-- The icon-only half-filled circle sits opposite Recent in the feed toolbar. Both controls hide and return together with the same fade, blur and scale at the header state swap. Only Recent joins the scrolled header; the toggle stays out, and Top remains on the right. Initially tried putting it in the scrolled header too; Liam corrected that. Its filled side flips on tap or keyboard activation, with a 44px hit area.
-- Manual theme switches crossfade in 220ms. A stronger letter glitch leads the fade by 60ms, continues through it, and lingers another 160ms afterward (`theme-glitch-tail`) for one more pulse: 48–96 visible letters per pulse, capped at 40% of available letters, plus the toggle icon. It uses the existing palette and hover effect's 90ms pulses / 40–100ms pauses. Initially the theme shared the hover's three-letter ceiling and started after the palette changed; Liam found it too subtle and late. Hover effects retain their original limits.
-- Native text highlights keep the original text nodes intact, and the swarm's transparent masks retain priority. Reduced motion and browsers without View Transitions switch instantly. The fade duration is entirely CSS-driven; the lead reader handles both seconds and milliseconds after production optimization.
-- Rejected: the initial downward sweep and then the organic pooling transition, which Liam felt mixed metaphors. The pooling also briefly switched instantly in production because CSS serialized 480ms as .48s and its JavaScript reader missed the unit conversion; that was fixed before replacing the effect. The pool mask and its timing reader/test are now removed.
-- Follows the system until a choice is made, then remembers that choice across visits and syncs it between tabs. An early head script applies the preference before paint. Reduced motion removes the flip transition.
-- Dark values from Figma `610:24963` map to the existing roles: `bg-fill` #120F12, `bg-secondary-fill` #1B191D, `text-primary` #FAF8FA, `text-secondary` #CDC9CE; muted and accent colors stay the same. The overlay header uses 64% fill and the existing 6px blur from `610:24837`. Light keeps the established tokens rather than Figma's near-match #F7F8FA.
-- New tokens: `theme-toggle-icon-size` (12px, matching the attached half-circle reference) and `text-on-accent` (invariant white, so Spotify's logo stays white in both themes). Images, videos and their asset backgrounds are untouched; Liam will rerender them separately.
-- Browser chrome color is now owned by the theme controller so focused-view cleanup cannot restore a stale light color. The focus edge-strip lifecycle and close animation are unchanged.
+**Dark tokens retained; toggle removed (2026-11-06)**
+- Removed the dark-mode toggle and its theme-specific letter glitch/crossfade at Liam's request. The site stays light; stored preferences and system dark mode no longer activate a theme. Existing link hover glitches and header animations remain.
+- Kept the future dark overrides in `tokens.css` under `:root[data-theme="dark"]`: `bg-fill` #120F12, `bg-secondary-fill` #1B191D, `text-primary` #FAF8FA, `text-secondary` #CDC9CE, and the 64% overlay fill. Muted/accent colors and invariant `text-on-accent` remain available.
+- Removed unused switching components, scripts, motion tokens and tests. Focused view again sets the browser chrome color only for its own session, reading `bg-fill` and restoring the previous meta value on close. Its edge-strip lifecycle is unchanged. Earlier theme experiments are in git history.
 
 Raw design-thesis conversations, prompts, and drafts are saved in [`design-thesis-raw.md`](design-thesis-raw.md) for later editing.
 
