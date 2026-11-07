@@ -8,8 +8,8 @@ decided, or gets dropped.
 **Milktooth intro paragraph (2026-11-07)**
 - Inserted Liam's approved “I also run Milktooth…” paragraph between the role and site/process paragraphs, linking only Milktooth to https://milktooth.studio with the existing external bio-link treatment. Retains the shared serif text, paragraph spacing, and inspector support.
 
-**Milktooth project (2026-11-07)**
-- Added the supplied new clip as Milktooth / Milktooth, Q4 26, with UIKit and Metal. No contributor list or description was supplied, so those fields are omitted. The existing date insertion places it after the other Q4 projects, bringing the feed to nine filled entries.
+**Blink for Milktooth (2026-11-07)**
+- Added the supplied new clip as Blink / Milktooth, Q4 26, with UIKit and Metal. Blink replaces the temporary Milktooth project title; its stable project/media IDs are retained. No contributor list or description was supplied, so those fields are omitted. The existing date insertion places it after the other Q4 projects, bringing the feed to nine filled entries.
 - The attachment is 15,895,323 bytes, 2160px square, tagged SDR sRGB/Rec.709 HEVC, 31.75 seconds at 60fps. Imported validated 800/1200/1600px H.264 renditions to Vercel Blob, preserving the frame rate and duration. Outputs are 3,864,285 / 6,196,560 / 8,176,636 bytes; responsive posters use the 2-second frame. Version: `84c349d409ce4684`. The original and local encodes remain outside Git.
 - Validation: 89 tests, TypeScript, touched-file lint, production build, and full encode/decode integrity checks pass. Browser review verifies uploaded poster/video delivery, advancing native playback, Q4 26 and the exact Stack entries, with no contributor section.
 

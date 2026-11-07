@@ -134,7 +134,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "milktooth-q4-2026",
-    label: "Milktooth",
+    label: "Blink",
     company: "Milktooth",
     companyLogo: "/images/logos/LF.png",
     companyColor: "var(--text-primary)",
