@@ -11,8 +11,8 @@ npm run media:import -- /path/to/master.mp4 --id shop-product-page --alt "Shop p
 This single command:
 
 1. Hashes the master and processing recipe to create versioned paths.
-2. Encodes silent fast-start H.264 MP4 at 800/1200/1600px, omitting upscales and including the source width when it falls between rungs.
-3. Preserves source frame rate as a constant rational rate, square pixels, even dimensions, and an SDR sRGB transfer/Rec.709 matrix. Quality settings are CRF 18/19/20 with slow encoding and one-second keyframe intervals.
+2. Encodes silent fast-start H.264 MP4 at 640/800/1200/1600px, omitting upscales and including the source width when it falls between rungs.
+3. Preserves source frame rate as a constant rational rate, square pixels, even dimensions, and an SDR sRGB transfer/Rec.709 matrix. Quality settings are CRF 17/18/19/20, with veryslow encoding at 640px and slow encoding above it and one-second keyframe intervals.
 4. Decodes each entire output to check for errors; verifies dimensions, frame rate, duration, and absence of audio. Writes a report with byte sizes and SHA-256 hashes. This checks integrity, not perceptual quality; inspect text, gradients, motion, and the loop on representative devices.
 5. Produces 480/800/largest-width WebP posters from the same processed frame.
 6. Uploads only missing files to public Vercel Blob. Paths are immutable and cached for one year. Existing output is reused only after matching the source/recipe and output hashes.
@@ -20,7 +20,7 @@ This single command:
 
 `BLOB_READ_WRITE_TOKEN` is read from the environment or `.env.local`. Never commit it. Use `--local` to encode and validate without uploading or changing the deployed registry. Refer to a newly imported clip with `IMPORTED_MEDIA["your-id"]` in `src/lib/project-previews.ts`, then review, check, commit, and push the branch. Replacing `shop-product-page` updates its existing homepage alias automatically.
 
-Options: `--fps 30` explicitly reduces the rate; it cannot exceed the source. `--widths 800,1200,1600`, `--poster-time 0.1`, `--assume-srgb` (only for a master known to be untagged SDR sRGB), and `--av1` (optional additional encodes). The grid currently selects H.264 for a consistent baseline. Optional AV1 output is reserved for later measured codec selection; there is no browser sniffing.
+Options: `--fps 30` explicitly reduces the rate; it cannot exceed the source. `--widths 640,800,1200,1600`, `--poster-time 0.1`, `--assume-srgb` (only for a master known to be untagged SDR sRGB), and `--av1` (optional additional encodes). The grid currently selects H.264 for a consistent baseline. Optional AV1 output is reserved for later measured codec selection; there is no browser sniffing.
 
 For local processing without registration:
 
@@ -38,7 +38,7 @@ Keep the original Ultramock VP9 WebM with alpha; HandBrake's AV1/H.264 conversio
 npm run media:import -- /path/to/original.webm --id project-id --alt "Project prototype" --alpha --poster-time 1
 ```
 
-The alpha path preserves source frame rate and generates 800/1200/1600px VP9 WebM and HEVC-with-alpha MOV, plus transparent WebP posters. It explicitly decodes VP9 with libvpx, converts color separately from alpha, then rejoins them before resizing. HEVC uses Apple's VideoToolbox encoder; a native AVFoundation reader decodes every output frame and checks alpha samples. Ordinary imports reject alpha-bearing masters unless `--alpha` is supplied, preventing silent flattening. A ProRes 4444 master with an alpha pixel format is also accepted. `--local` still skips uploading and registry changes.
+The alpha path preserves source frame rate and generates 640/800/1200/1600px VP9 WebM and HEVC-with-alpha MOV, plus transparent WebP posters. It explicitly decodes VP9 with libvpx, converts color separately from alpha, then rejoins them before resizing. HEVC uses Apple's VideoToolbox encoder; a native AVFoundation reader decodes every output frame and checks alpha samples. Ordinary imports reject alpha-bearing masters unless `--alpha` is supplied, preventing silent flattening. A ProRes 4444 master with an alpha pixel format is also accepted. `--local` still skips uploading and registry changes.
 
 Only alpha assets invoke the tiny local transparency probes, lazily when eligible for preparation. The player checks decoded transparent and opaque pixels, preferring HEVC when it really preserves alpha, then VP9. It does not infer alpha from codec support or browser identity. If neither format composites alpha, the transparent poster stays visible. The opaque H.264 path and its playback policy remain unchanged.
 
@@ -68,7 +68,7 @@ The first 60fps clip is approximately 1.17/1.80/2.28 MB at 800/1200/1600px for 1
 
 The old `media:upload` bulk script remains a legacy utility for existing media; new clips use `media:import` and immutable paths. Public CDN delivery supports range requests; the import manifest uses complete URLs so Preview and Production do not depend on a missing `NEXT_PUBLIC_MEDIA_BASE_URL`.
 
-The Top search, Shop Incentives, Baskets, Bottom search, and Canvas clips are temporarily bundled under `public/videos/shop-first-preview/`, `public/videos/shop-q3-2026/`, `public/videos/shop-fourth-preview/`, `public/videos/shop-seventh-preview/`, and `public/videos/shop-canvas-preview/` because the cloud workspace's Blob upload credential was unavailable when Liam requested the preview push. They use the same validated responsive encodes and posters; `/videos/` URLs stay on the current origin even with a media CDN configured. Masters and processing reports remain outside Git. Once Blob access is restored, import the clips normally and replace the bundled asset URLs with their registered CDN assets.
+Every project video and its posters now use the imported registry and immutable Vercel Blob URLs. The older bundled copies were verified against their CDN replacements and removed. The player pauses hidden grid videos during focus, while keeping current/paging media active and neighbors warm. See [the measured audit](media-audit.md) for file sizes, relative quality checks, and source limitations. `npm run media:audit` validates current delivery; `npm run media:optimize` repeats the existing-asset migration and requires FFmpeg with libvmaf. New clips use the same `media:import` entry point, with `--alpha` only when transparency is present.
 
 ## Repeatable browser checks
 

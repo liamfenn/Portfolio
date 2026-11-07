@@ -15,11 +15,14 @@ export type VideoCandidate = {
   priority: boolean;
   failed: boolean;
   distance: number;
+  focused?: boolean;
+  warm?: boolean;
 };
 
 /** Visible intent wins, then viewport coverage and distance. Stable ties avoid playback churn. */
-export function rankVideos<T extends VideoCandidate>(items: T[]): T[] {
-  return items.filter(item => item.near && !item.failed).sort((a, b) =>
+export function rankVideos<T extends VideoCandidate>(items: T[], focused = items.some(item => item.focused)): T[] {
+  return items.filter(item => item.near && !item.failed && (!focused || item.focused || item.warm)).sort((a, b) =>
+    Number(Boolean(b.focused)) - Number(Boolean(a.focused)) ||
     Number(b.visible > 0) - Number(a.visible > 0) ||
     Number(b.priority) - Number(a.priority) || b.visible - a.visible || a.distance - b.distance);
 }

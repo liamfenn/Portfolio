@@ -3,13 +3,14 @@ import { processVideo } from "./lib/video-processing.mjs";
 
 const [input, outputBase, ...flags] = process.argv.slice(2);
 if (!input || !outputBase) {
-  console.error('Usage: npm run media:video -- <source> public/media/<versioned-name> [--fps 60] [--widths 800,1200,1600] [--av1] [--assume-srgb]');
+  console.error('Usage: npm run media:video -- <source> public/media/<versioned-name> [--fps 60] [--widths 640,800,1200,1600] [--alpha] [--av1] [--assume-srgb]');
   process.exit(1);
 }
 const options = {};
 for (let index = 0; index < flags.length; index++) {
   const flag = flags[index];
   if (flag === "--av1") options.av1 = true;
+  else if (flag === "--alpha") options.alpha = true;
   else if (flag === "--assume-srgb") options.assumeSrgb = true;
   else if (flag === "--fps") options.fps = flags[++index];
   else if (flag === "--widths") options.widths = flags[++index]?.split(",").map(Number);

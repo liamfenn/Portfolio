@@ -13,6 +13,8 @@ type Entry = {
   near: boolean;
   distance: number;
   priority: boolean;
+  focused: boolean;
+  warm: boolean;
   intentPriority: boolean;
   focusWidth?: number;
   focusMoving?: boolean;
@@ -44,6 +46,7 @@ class VideoPlayback {
   private resizeTimer?: ReturnType<typeof setTimeout>;
   private alphaFormat?: AlphaVideoFormat | null;
   private probingAlpha = false;
+  private focusSession = focusSessionActive;
   private observer = new IntersectionObserver(changes => {
     for (const change of changes) {
       const entry = this.entries.get(change.target);
@@ -73,7 +76,7 @@ class VideoPlayback {
 
   register(video: HTMLVideoElement, asset: PortfolioVideoAsset, display?: Entry["display"]) {
     const entry: Entry = {
-      video, asset, visible: 0, near: false, distance: Infinity, priority: false, intentPriority: false,
+      video, asset, visible: 0, near: false, distance: Infinity, priority: false, focused: false, warm: false, intentPriority: false,
       failed: false, wanted: false, loading: false, ready: false, width: 0, retries: 0, generation: 0, display,
     };
     this.entries.set(video, entry);
@@ -126,6 +129,11 @@ class VideoPlayback {
     this.schedule();
   }
 
+  focusSessionChanged(active: boolean) {
+    this.focusSession = active;
+    this.schedule();
+  }
+
   /** Loads an offscreen video ahead of use, sized for where it's headed. Its poster stays up until it plays. */
   warm(video: HTMLVideoElement, width?: number) {
     const entry = this.entries.get(video);
@@ -165,6 +173,8 @@ class VideoPlayback {
   }
 
   private measure(entry: Entry) {
+    entry.focused = entry.focusWidth !== undefined;
+    entry.warm = entry.warmWidth !== undefined;
     entry.priority = entry.intentPriority || entry.focusWidth !== undefined || entry.warmWidth !== undefined;
     const box = entry.video.getBoundingClientRect();
     const visibleHeight = Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0));
@@ -195,8 +205,10 @@ class VideoPlayback {
       all.forEach(entry => { if (entry.video.dataset.playback !== "poster") this.release(entry); });
       return;
     }
-    const ranked = rankVideos(all);
-    const playing = new Set(ranked.filter(entry => entry.visible > 0));
+    const focused = this.focusSession || all.some(entry => entry.focused);
+    const ranked = rankVideos(all, focused);
+    // Behind an opaque focus session, the grid is not visible. Warm neighbors load but do not decode continuously.
+    const playing = new Set(ranked.filter(entry => entry.visible > 0 && (!focused || entry.focused)));
     // Warm just one upcoming tile, plus any requested ones, without filling the load queue with offscreen cards.
     const upcoming = ranked.find(entry => !entry.visible);
     const prepared = new Set([...playing, ...(upcoming ? [upcoming] : []), ...ranked.filter(entry => entry.warmWidth !== undefined)]);
@@ -344,6 +356,7 @@ class VideoPlayback {
 }
 
 let coordinator: VideoPlayback | undefined;
+let focusSessionActive = false;
 export function registerVideo(video: HTMLVideoElement, asset: PortfolioVideoAsset, display?: Entry["display"]) {
   coordinator ??= new VideoPlayback();
   return coordinator.register(video, asset, display);
@@ -355,6 +368,11 @@ export function setVideoWarm(video: HTMLVideoElement, width?: number) {
 
 export function setVideoFocus(video: HTMLVideoElement, width?: number, moving = false) {
   coordinator?.focus(video, width, moving);
+}
+
+export function setVideoFocusSession(active: boolean) {
+  focusSessionActive = active;
+  coordinator?.focusSessionChanged(active);
 }
 
 export function refreshVideoOrder() {

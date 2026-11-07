@@ -11,7 +11,9 @@
     "spotify:authorize": "node scripts/spotify-authorize.mjs",
     "media:upload": "node scripts/upload-media.mjs",
     "test": "tsx --test tests/*.mjs",
-    "media:import": "node scripts/import-video.mjs"
+    "media:import": "node scripts/import-video.mjs",
+    "media:audit": "node --import tsx scripts/audit-media.mjs",
+    "media:optimize": "node --import tsx scripts/optimize-media.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",

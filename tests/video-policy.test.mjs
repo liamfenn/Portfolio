@@ -16,7 +16,7 @@ test("60fps and fractional source rates survive the encoding plan without doubli
 });
 
 test("encoding never upscales and includes a useful rung for smaller masters", () => {
-  assert.deepEqual(encodingPlan({ ...source, width: 1080 }).widths, [800, 1080]);
+  assert.deepEqual(encodingPlan({ ...source, width: 1080 }).widths, [640, 800, 1080]);
   assert.deepEqual(encodingPlan({ ...source, width: 640 }).widths, [640]);
   assert.throws(() => encodingPlan(source, { widths: [801] }), /even integers/);
 });
@@ -39,6 +39,14 @@ test("renditions cover actual display pixels, cap DPR, upgrade expansion, and do
   assert.equal(videoRendition({ renditions: [] }, 400, 2), null);
 });
 
+test("the standard ladder avoids 800px decoding when 640px covers the actual display", () => {
+  const standard = { renditions: [640, 800, 1200, 1600].map(width => ({ width, h264: `${width}.mp4` })) };
+  assert.equal(videoRendition(standard, 552, 1).width, 640);
+  assert.equal(videoRendition(standard, 320, 3).width, 640);
+  assert.equal(videoRendition(standard, 390, 3).width, 800);
+  assert.equal(videoRendition(standard, 684, 2).width, 1600);
+});
+
 test("visible cards outrank warmups; hover and focus take a playback slot without waking distant cards", () => {
   const items = [
     { id: "warm", near: true, visible: 0, priority: true, failed: false, distance: 100 },
@@ -49,4 +57,19 @@ test("visible cards outrank warmups; hover and focus take a playback slot withou
   ];
   assert.deepEqual(rankVideos(items).map(item => item.id), ["focused", "middle", "warm"]);
   assert.equal(items[0].id, "warm");
+});
+
+test("a focus session excludes hidden grid videos and prioritizes focused media over warm neighbors", () => {
+  const candidate = (id, extra) => ({ id, near: true, visible: 1, priority: true, failed: false, distance: 0, ...extra });
+  const items = [candidate("background"), candidate("neighbor", { warm: true }), candidate("focused", { focused: true, visible: 0.5 })];
+  assert.deepEqual(rankVideos(items).map(item => item.id), ["focused", "neighbor"]);
+  assert.deepEqual(rankVideos(items.map(item => ({ ...item, focused: false }))).map(item => item.id), ["background", "neighbor", "focused"]);
+});
+
+test("an image-only focused project also keeps hidden grid videos out of playback", () => {
+  const items = [
+    { id: "grid", near: true, visible: 1, priority: false, failed: false, distance: 0 },
+    { id: "neighbor", near: true, visible: 0, priority: true, warm: true, failed: false, distance: 100 },
+  ];
+  assert.deepEqual(rankVideos(items, true).map(item => item.id), ["neighbor"]);
 });

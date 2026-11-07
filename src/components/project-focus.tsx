@@ -8,6 +8,7 @@ import type { ProjectPreview } from "@/lib/project-previews";
 import { ProjectFocusMedia, warmProjectMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 import { focusTweenDuration, scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
+import { setVideoFocusSession } from "@/lib/video-playback";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -71,6 +72,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 
+    setVideoFocusSession(true);
     const stopMedia = focusMedia.start(scrollRef.current!);
 
     const previousTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -112,6 +114,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       Object.assign(body.style, saved);
       html.style.overflow = savedHtmlOverflow;
       stopMedia();
+      setVideoFocusSession(false);
       opener.focus({ preventScroll: true });
     };
   }, [navigate, focusMedia]);

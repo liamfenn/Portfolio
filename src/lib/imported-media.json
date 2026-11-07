@@ -1,4 +1,52 @@
 {
+  "milktooth-blink-timer": {
+    "id": "milktooth-blink-timer",
+    "kind": "video",
+    "alpha": true,
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.webm",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-poster-1600.webp"
+      }
+    ],
+    "alt": "Blink timer interaction prototype for Milktooth",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 19.584,
+    "renditions": [
+      {
+        "width": 640,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-640-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-640-alpha.mov"
+      },
+      {
+        "width": 800,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-800-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-800-alpha.mov"
+      },
+      {
+        "width": 1200,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1200-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1200-alpha.mov"
+      },
+      {
+        "width": 1600,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.mov"
+      }
+    ]
+  },
   "milktooth-q4-2026": {
     "id": "milktooth-q4-2026",
     "kind": "video",
@@ -26,6 +74,11 @@
     "duration": 5.934,
     "renditions": [
       {
+        "width": 640,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/9d1e3be843b49cb6-640-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/9d1e3be843b49cb6-640-alpha.mov"
+      },
+      {
         "width": 800,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-800-alpha.webm",
         "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-800-alpha.mov"
@@ -39,6 +92,140 @@
         "width": 1600,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1600-alpha.webm",
         "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1600-alpha.mov"
+      }
+    ]
+  },
+  "shop-canvas-preview": {
+    "id": "shop-canvas-preview",
+    "kind": "video",
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-1600.mp4",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-poster-1600.webp"
+      }
+    ],
+    "alt": "Shop Canvas prototype from Q3 2026",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 12,
+    "renditions": [
+      {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/ac7044307df9ab3f-640.mp4"
+      },
+      {
+        "width": 800,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-800.mp4"
+      },
+      {
+        "width": 1200,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-1200.mp4"
+      },
+      {
+        "width": 1600,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-canvas-preview/6ea1ae4e2019c246-1600.mp4"
+      }
+    ]
+  },
+  "shop-first-preview": {
+    "id": "shop-first-preview",
+    "kind": "video",
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-1600.mp4",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-poster-1600.webp"
+      }
+    ],
+    "alt": "Shop interaction prototype from Q4 2026",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 12.35,
+    "renditions": [
+      {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/80382657483b2910-640.mp4"
+      },
+      {
+        "width": 800,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-800.mp4"
+      },
+      {
+        "width": 1200,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-1200.mp4"
+      },
+      {
+        "width": 1600,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-first-preview/baafafc4fe79623f-1600.mp4"
+      }
+    ]
+  },
+  "shop-fourth-preview": {
+    "id": "shop-fourth-preview",
+    "kind": "video",
+    "alpha": true,
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.webm",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-poster-1600.webp"
+      }
+    ],
+    "alt": "Shop baskets interaction prototype",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 13.434,
+    "renditions": [
+      {
+        "width": 640,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-640-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-640-alpha.mov"
+      },
+      {
+        "width": 800,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-800-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-800-alpha.mov"
+      },
+      {
+        "width": 1200,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1200-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1200-alpha.mov"
+      },
+      {
+        "width": 1600,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.mov"
       }
     ]
   },
@@ -68,6 +255,10 @@
     "duration": 14.783333,
     "renditions": [
       {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-product-page/68a21637f4fb97b8-640.mp4"
+      },
+      {
         "width": 800,
         "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-product-page/c17fe3984fe02b9c-800.mp4"
       },
@@ -78,6 +269,49 @@
       {
         "width": 1600,
         "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-product-page/c17fe3984fe02b9c-1600.mp4"
+      }
+    ]
+  },
+  "shop-q3-2026": {
+    "id": "shop-q3-2026",
+    "kind": "video",
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-1600.mp4",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-poster-1600.webp"
+      }
+    ],
+    "alt": "Shop interaction prototype from Q3 2026",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 18.45,
+    "renditions": [
+      {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/94d75616264da2d2-640.mp4"
+      },
+      {
+        "width": 800,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-800.mp4"
+      },
+      {
+        "width": 1200,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-1200.mp4"
+      },
+      {
+        "width": 1600,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-q3-2026/d77935b0eb47b148-1600.mp4"
       }
     ]
   },
@@ -107,6 +341,10 @@
     "duration": 27.1,
     "renditions": [
       {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/b60d0a4cd1b3f1a1-640.mp4"
+      },
+      {
         "width": 800,
         "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/089ee713120b1620-800.mp4"
       },
@@ -117,6 +355,54 @@
       {
         "width": 1600,
         "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-rewards-card/089ee713120b1620-1600.mp4"
+      }
+    ]
+  },
+  "shop-seventh-preview": {
+    "id": "shop-seventh-preview",
+    "kind": "video",
+    "alpha": true,
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.webm",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-poster-1600.webp"
+      }
+    ],
+    "alt": "Shop bottom search interaction prototype",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 11.3,
+    "renditions": [
+      {
+        "width": 640,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-640-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-640-alpha.mov"
+      },
+      {
+        "width": 800,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-800-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-800-alpha.mov"
+      },
+      {
+        "width": 1200,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1200-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1200-alpha.mov"
+      },
+      {
+        "width": 1600,
+        "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.webm",
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.mov"
       }
     ]
   },
@@ -145,6 +431,10 @@
     "frameRate": 60,
     "duration": 21.183333,
     "renditions": [
+      {
+        "width": 640,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shopping-agent/af08e155da1e75af-640.mp4"
+      },
       {
         "width": 800,
         "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shopping-agent/e4dcf3f46ef2be9c-800.mp4"

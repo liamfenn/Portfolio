@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { encodingPlan, fileHash, probe, run } from "./video-processing.mjs";
 
-export const ALPHA_RECIPE = "portfolio-alpha-v1-vp9-hevc";
+export const ALPHA_RECIPE = "portfolio-alpha-v2-vp9-hevc";
 
 /** VP9's native FFmpeg decoder drops its auxiliary alpha plane; libvpx preserves it. */
 export function alphaDecoder(stream) {

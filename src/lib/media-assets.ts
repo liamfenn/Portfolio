@@ -17,7 +17,7 @@ export interface PortfolioImageAsset extends PortfolioMediaBase {
   unoptimized?: boolean;
 }
 
-/** One rung of the encode ladder. H.264 is the grid baseline; AV1 is an optional export. */
+/** One rung of the shared ladder: H.264 for opaque video, verified HEVC/VP9 for alpha. */
 export interface PortfolioVideoRendition {
   width: number;
   av1?: string;
@@ -34,7 +34,7 @@ export interface PortfolioVideoAsset extends PortfolioMediaBase {
   posters?: { width: number; src: string }[];
   frameRate?: number;
   duration?: number;
-  /** Sorted ascending by width. `src` stays the largest H.264 rung as a fallback. */
+  /** Sorted ascending by width. `src` is the largest native file; playback chooses an appropriate rung. */
   renditions: PortfolioVideoRendition[];
 }
 
@@ -45,205 +45,15 @@ export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsse
 
 export const MEDIA_ASSETS = {
   milktoothQ42026: IMPORTED_MEDIA["milktooth-q4-2026"],
+  milktoothBlinkTimer: IMPORTED_MEDIA["milktooth-blink-timer"],
   shoppingAgent: IMPORTED_MEDIA["shopping-agent"],
   shopProductPage: IMPORTED_MEDIA["shop-product-page"],
   shopRewardsCard: IMPORTED_MEDIA["shop-rewards-card"],
-  // Bundled preview delivery while the Blob upload credential is unavailable.
-  shopFirstPreview: {
-    id: "shop-first-preview",
-    kind: "video",
-    src: "/videos/shop-first-preview/baafafc4fe79623f-1600.mp4",
-    poster: "/videos/shop-first-preview/baafafc4fe79623f-poster-1600.webp",
-    posters: [
-      {
-        width: 480,
-        src: "/videos/shop-first-preview/baafafc4fe79623f-poster-480.webp"
-      },
-      {
-        width: 800,
-        src: "/videos/shop-first-preview/baafafc4fe79623f-poster-800.webp"
-      },
-      {
-        width: 1600,
-        src: "/videos/shop-first-preview/baafafc4fe79623f-poster-1600.webp"
-      }
-    ],
-    alt: "Shop interaction prototype from Q4 2026",
-    width: 1600,
-    height: 1600,
-    frameRate: 60,
-    duration: 12.35,
-    renditions: [
-      {
-        width: 800,
-        h264: "/videos/shop-first-preview/baafafc4fe79623f-800.mp4"
-      },
-      {
-        width: 1200,
-        h264: "/videos/shop-first-preview/baafafc4fe79623f-1200.mp4"
-      },
-      {
-        width: 1600,
-        h264: "/videos/shop-first-preview/baafafc4fe79623f-1600.mp4"
-      }
-    ]
-  },
-  shopQ32026: {
-    id: "shop-q3-2026",
-    kind: "video",
-    src: "/videos/shop-q3-2026/d77935b0eb47b148-1600.mp4",
-    poster: "/videos/shop-q3-2026/d77935b0eb47b148-poster-1600.webp",
-    posters: [
-      {
-        width: 480,
-        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-480.webp"
-      },
-      {
-        width: 800,
-        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-800.webp"
-      },
-      {
-        width: 1600,
-        src: "/videos/shop-q3-2026/d77935b0eb47b148-poster-1600.webp"
-      }
-    ],
-    alt: "Shop interaction prototype from Q3 2026",
-    width: 1600,
-    height: 1600,
-    frameRate: 60,
-    duration: 18.45,
-    renditions: [
-      {
-        width: 800,
-        h264: "/videos/shop-q3-2026/d77935b0eb47b148-800.mp4"
-      },
-      {
-        width: 1200,
-        h264: "/videos/shop-q3-2026/d77935b0eb47b148-1200.mp4"
-      },
-      {
-        width: 1600,
-        h264: "/videos/shop-q3-2026/d77935b0eb47b148-1600.mp4"
-      }
-    ]
-  },
-  shopFourthPreview: {
-    id: "shop-fourth-preview",
-    kind: "video",
-    src: "/videos/shop-fourth-preview/3409f49a692266b8-1600.mp4",
-    poster: "/videos/shop-fourth-preview/3409f49a692266b8-poster-1600.webp",
-    posters: [
-      {
-        width: 480,
-        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-480.webp"
-      },
-      {
-        width: 800,
-        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-800.webp"
-      },
-      {
-        width: 1600,
-        src: "/videos/shop-fourth-preview/3409f49a692266b8-poster-1600.webp"
-      }
-    ],
-    alt: "Shop interaction prototype from Q2 2026",
-    width: 1600,
-    height: 1600,
-    frameRate: 60,
-    duration: 13.433333,
-    renditions: [
-      {
-        width: 800,
-        h264: "/videos/shop-fourth-preview/3409f49a692266b8-800.mp4"
-      },
-      {
-        width: 1200,
-        h264: "/videos/shop-fourth-preview/3409f49a692266b8-1200.mp4"
-      },
-      {
-        width: 1600,
-        h264: "/videos/shop-fourth-preview/3409f49a692266b8-1600.mp4"
-      }
-    ]
-  },
-  shopSeventhPreview: {
-    id: "shop-seventh-preview",
-    kind: "video",
-    src: "/videos/shop-seventh-preview/dbec9ef28a52e898-1600.mp4",
-    poster: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-1600.webp",
-    posters: [
-      {
-        width: 480,
-        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-480.webp"
-      },
-      {
-        width: 800,
-        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-800.webp"
-      },
-      {
-        width: 1600,
-        src: "/videos/shop-seventh-preview/dbec9ef28a52e898-poster-1600.webp"
-      }
-    ],
-    alt: "Shop Bottom search prototype from Q4 2026",
-    width: 1600,
-    height: 1600,
-    frameRate: 60,
-    duration: 11.3,
-    renditions: [
-      {
-        width: 800,
-        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-800.mp4"
-      },
-      {
-        width: 1200,
-        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-1200.mp4"
-      },
-      {
-        width: 1600,
-        h264: "/videos/shop-seventh-preview/dbec9ef28a52e898-1600.mp4"
-      }
-    ]
-  },
-  shopCanvasPreview: {
-    id: "shop-canvas-preview",
-    kind: "video",
-    src: "/videos/shop-canvas-preview/6ea1ae4e2019c246-1600.mp4",
-    poster: "/videos/shop-canvas-preview/6ea1ae4e2019c246-poster-1600.webp",
-    posters: [
-      {
-        width: 480,
-        src: "/videos/shop-canvas-preview/6ea1ae4e2019c246-poster-480.webp"
-      },
-      {
-        width: 800,
-        src: "/videos/shop-canvas-preview/6ea1ae4e2019c246-poster-800.webp"
-      },
-      {
-        width: 1600,
-        src: "/videos/shop-canvas-preview/6ea1ae4e2019c246-poster-1600.webp"
-      }
-    ],
-    alt: "Shop Canvas prototype from Q3 2026",
-    width: 1600,
-    height: 1600,
-    frameRate: 60,
-    duration: 12,
-    renditions: [
-      {
-        width: 800,
-        h264: "/videos/shop-canvas-preview/6ea1ae4e2019c246-800.mp4"
-      },
-      {
-        width: 1200,
-        h264: "/videos/shop-canvas-preview/6ea1ae4e2019c246-1200.mp4"
-      },
-      {
-        width: 1600,
-        h264: "/videos/shop-canvas-preview/6ea1ae4e2019c246-1600.mp4"
-      }
-    ]
-  },
+  shopFirstPreview: IMPORTED_MEDIA["shop-first-preview"],
+  shopQ32026: IMPORTED_MEDIA["shop-q3-2026"],
+  shopFourthPreview: IMPORTED_MEDIA["shop-fourth-preview"],
+  shopSeventhPreview: IMPORTED_MEDIA["shop-seventh-preview"],
+  shopCanvasPreview: IMPORTED_MEDIA["shop-canvas-preview"],
   shopCollections: {
     id: "shop-collections",
     kind: "image",

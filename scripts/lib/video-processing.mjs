@@ -4,8 +4,8 @@ import { createReadStream } from "node:fs";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-export const RECIPE = "portfolio-video-v1-srgb-source-fps";
-export const DEFAULT_WIDTHS = [800, 1200, 1600];
+export const RECIPE = "portfolio-video-v2-srgb-source-fps";
+export const DEFAULT_WIDTHS = [640, 800, 1200, 1600];
 
 export function rate(value) {
   const [numerator, denominator = 1] = String(value).split("/").map(Number);
@@ -107,10 +107,10 @@ export async function processVideo(input, outputBase, options = {}) {
   const gop = String(Math.round(plan.fps));
   for (const width of plan.widths) {
     const filter = `${color},scale=${width}:-2:flags=lanczos,setsar=1,fps=${plan.frameRate},format=yuv420p`;
-    const crf = width <= 800 ? 18 : width <= 1200 ? 19 : 20;
+    const crf = width <= 640 ? 17 : width <= 800 ? 18 : width <= 1200 ? 19 : 20;
     const h264 = `${outputBase}-${width}.mp4`;
     console.log(`H.264 ${width}px / ${plan.frameRate}fps / CRF ${crf}`);
-    run(["-y", "-i", input, "-map", "0:v:0", "-vf", filter, "-an", "-map_metadata", "-1", "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-profile:v", "high", "-g", gop, "-keyint_min", gop, "-sc_threshold", "0", ...tags, "-movflags", "+faststart", h264]);
+    run(["-y", "-i", input, "-map", "0:v:0", "-vf", filter, "-an", "-map_metadata", "-1", "-c:v", "libx264", "-preset", width <= 640 ? "veryslow" : "slow", "-crf", String(crf), "-profile:v", "high", "-g", gop, "-keyint_min", gop, "-sc_threshold", "0", ...tags, "-movflags", "+faststart", h264]);
     const encoded = probe(h264);
     const stream = encoded.streams[0];
     if (stream.width !== width || stream.height % 2 || stream.pix_fmt !== "yuv420p" || stream.sample_aspect_ratio !== "1:1" || stream.color_primaries !== "bt709" || stream.color_transfer !== "iec61966-2-1" || stream.color_space !== "bt709" || Math.abs(rate(stream.avg_frame_rate) - plan.fps) > 0.01 || encoded.streams.some(s => s.codec_type === "audio")) throw new Error(`Validation failed: ${h264}`);
