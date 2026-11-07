@@ -148,6 +148,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   },
   {
     id: "milktooth-blink-timer",
+    stackTag: "bottom",
     label: "Blink",
     company: "Milktooth",
     companyLogo: "/images/logos/LF.png",

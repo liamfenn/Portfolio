@@ -5,6 +5,9 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Blink timer stacking tag (2026-11-07)**
+- Tagged the separate Blink timer preview as `bottom`, so the existing arrangement rule keeps it from directly following a `top`-tagged preview, including in Random. Uses the shared arrangement logic.
+
 **iPhone Safari alpha detection fix (2026-11-07)**
 - Liam reported that every transparent clip remained on its poster on iOS 27.2 Safari while desktop Safari and the older opaque clips played. The shared probe used a detached video and waited for `loadeddata` without calling `play()`, then cached a negative result for the session. Metadata-only preload can therefore reject otherwise supported alpha formats before a project source is attached.
 - The tiny probe now mounts an inaccessible 1px transparent video, explicitly requests muted inline playback, and samples the decoded frame. Success, decode error, autoplay denial, canvas failure, and an 8-second timeout all remove the temporary element and release its source exactly once. Actual decoded alpha is still required; there is no browser sniffing or opaque fallback.
