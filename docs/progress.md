@@ -20,6 +20,7 @@ decided, or gets dropped.
 - Validation: 87 tests, TypeScript, touched-file lint, production build and the held-frame browser checks pass. Ten native iPhone 17 Pro simulator swaps also exercised the covers, retained loaded sources/DOM nodes, and left no covers behind.
 
 **Shopping agent project (2026-11-06)**
+- November 7: changed the shopping agent's company label to “Milktooth” across the preview and focused view.
 - Added Shopping agent for Office of Liam Fennell, Q1 26, with Stack entries Next.js and OpenAI API, no contributor list, and “Description coming soon.” as the temporary description.
 - Used the existing master at `~/Desktop/demos/shopping-agent.mp4`; its scene source is tracked in `scenes/shopping-agent/` on the separate `video/shopping-agent` branch. Imported validated 800/1200/1600px H.264 renditions and 480/800/1600px posters to Vercel Blob, preserving 60fps and the 21.18-second loop. Poster uses the 8-second frame. Masters and local encodes stay out of git.
 - The feed now has eight filled projects. The existing date insertion places this one after Baskets and before Collections sheet, preserving the other projects' published order.

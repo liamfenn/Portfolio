@@ -120,7 +120,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shopping-agent",
     label: "Shopping agent",
-    company: "Office of Liam Fennell",
+    company: "Milktooth",
     companyLogo: "/images/logos/LF.png",
     companyColor: "var(--text-primary)",
     period: "Q1 2026",
