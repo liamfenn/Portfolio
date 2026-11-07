@@ -2,6 +2,8 @@ import type { PortfolioVideoAsset } from "./media-assets";
 import { mediaUrl } from "./media-delivery";
 import { rankVideos, VIDEO_POLICY, videoRendition } from "./video-policy";
 import { preserveReorderedVideoFrames } from "./video-reorder";
+import { alphaVideoFormat, videoSource } from "./video-alpha";
+import type { AlphaVideoFormat } from "./video-alpha";
 
 export type VideoDisplayState = "loading" | "ready" | "poster";
 type Entry = {
@@ -40,6 +42,8 @@ class VideoPlayback {
   private frame = 0;
   private active = true;
   private resizeTimer?: ReturnType<typeof setTimeout>;
+  private alphaFormat?: AlphaVideoFormat | null;
+  private probingAlpha = false;
   private observer = new IntersectionObserver(changes => {
     for (const change of changes) {
       const entry = this.entries.get(change.target);
@@ -211,9 +215,20 @@ class VideoPlayback {
     for (const entry of ranked.filter(entry => prepared.has(entry))) {
       const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.warmWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
       if (!rung) continue;
+      if (entry.asset.alpha && this.alphaFormat === undefined) {
+        if (!this.probingAlpha) {
+          this.probingAlpha = true;
+          void alphaVideoFormat().then(format => { this.alphaFormat = format; this.schedule(); });
+        }
+        entry.display?.("poster");
+        continue;
+      }
+      const source = videoSource(rung, Boolean(entry.asset.alpha), this.alphaFormat ?? null);
+      if (!source) { entry.failed = true; entry.display?.("poster"); continue; }
+      if (entry.asset.alpha) entry.video.dataset.alphaFormat = this.alphaFormat!;
       // Nothing new starts mid-flight: building a video surface then can stall Safari long enough to lose the tween.
       if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.focusMoving && (!entry.width || rung.width > entry.width)) {
-        this.load(entry, rung.h264, rung.width);
+        this.load(entry, source, rung.width);
         loading++;
       } else if (entry.ready && entry.wanted) this.play(entry);
     }

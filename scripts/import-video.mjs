@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir, rename } from "node:fs/promises";
 import { BlobNotFoundError, head, put } from "@vercel/blob";
 import { fileHash, processVideo, RECIPE } from "./lib/video-processing.mjs";
+import { ALPHA_RECIPE } from "./lib/alpha-video-processing.mjs";
 
 const [input, ...flags] = process.argv.slice(2);
 const options = {};
@@ -15,6 +16,7 @@ for (let index = 0; index < flags.length; index++) {
   else if (flag === "--widths") options.widths = flags[++index]?.split(",").map(Number);
   else if (flag === "--poster-time") options.posterTime = Number(flags[++index]);
   else if (flag === "--av1") options.av1 = true;
+  else if (flag === "--alpha") options.alpha = true;
   else if (flag === "--assume-srgb") options.assumeSrgb = true;
   else if (flag === "--local") local = true;
   else throw new Error(`Unknown option: ${flag}`);
@@ -26,7 +28,7 @@ async function main() {
     try { process.loadEnvFile(".env.local"); } catch {}
     if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error("BLOB_READ_WRITE_TOKEN is required to publish. Use --local for an unpublished encode.");
   }
-  const hash = createHash("sha256").update(await fileHash(input)).update(JSON.stringify({ recipe: RECIPE, options })).digest("hex").slice(0, 16);
+  const hash = createHash("sha256").update(await fileHash(input)).update(JSON.stringify({ recipe: options.alpha ? ALPHA_RECIPE : RECIPE, options })).digest("hex").slice(0, 16);
   const base = `public/media/${options.id}/${hash}`;
   const report = await processVideo(input, base, options);
   if (local) {
@@ -50,7 +52,8 @@ async function main() {
   }
   const asset = { ...report.asset, src: urls.get(report.asset.src), poster: urls.get(report.asset.poster),
     posters: report.asset.posters.map(poster => ({ ...poster, src: urls.get(poster.src) })),
-    renditions: report.asset.renditions.map(rung => ({ ...rung, h264: urls.get(rung.h264), ...(rung.av1 ? { av1: urls.get(rung.av1) } : {}) })) };
+    renditions: report.asset.renditions.map(rung => ({ width: rung.width,
+      ...Object.fromEntries(["h264", "av1", "webmAlpha", "hevcAlpha"].filter(codec => rung[codec]).map(codec => [codec, urls.get(rung[codec])])) })) };
   const manifestPath = "src/lib/imported-media.json";
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   manifest[options.id] = asset;

@@ -5,6 +5,13 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Transparent Blink preview (2026-11-07)**
+- Replaced Blink's combined clip with the first split preview from the original `3d-shake.webm`: 28,370,349 bytes, 2160px square, VP9 with alpha, about 5.93 seconds at 60fps. The earlier HandBrake AV1 export had no alpha. Blink / Milktooth, Q4 26, UIKit and Metal, and the stable project ID remain unchanged; the second split preview has not been supplied yet.
+- Added the repeatable `media:import --alpha` path on macOS: responsive VP9 plus HEVC-with-alpha and transparent WebP posters, full output decode checks, native AVFoundation alpha validation, immutable Blob uploads, and separate alpha recipe versioning. Alpha-bearing masters are rejected by the opaque path to prevent accidental flattening. The original and local outputs stay out of Git.
+- Version `6c7a1a6f24c6d20e` has 800/1200/1600px WebM files of 996,782 / 1,785,555 / 2,680,310 bytes; HEVC files are approximately 1.02 / 1.81 / 2.69 MB. All retain 60fps. Each HEVC output decodes 355 frames with transparent and opaque alpha samples. Posters use the 1-second frame.
+- The player lazily probes actual decoded alpha with tiny local HEVC/VP9 clips, without browser sniffing. Unsupported alpha playback retains the transparent poster. Opaque videos keep their existing H.264 behavior. On desktop, a new `project-focus-alpha-media-layer` token raises the phone above the header; a separate empty gray plane follows the same transforms below the header. Mobile keeps its existing layer order. Paging/close/disposal remove the extra plane, and the native video never changes parent.
+- Validation: 96 tests, TypeScript, touched-file lint, production build, full encode/decode checks, native HEVC alpha verification, and diff checks pass. In-app browser checks verify HEVC playback, transparent backgrounds, desktop layer ordering, mobile ordering/no overflow, and cleanup after paging and closing. Native Chrome visually verifies the phone compositing over the bar and animating. Physical iPhone Safari remains a device check.
+
 **Milktooth intro paragraph (2026-11-07)**
 - Inserted Liam's approved “I also run Milktooth…” paragraph between the role and site/process paragraphs, linking only Milktooth to https://milktooth.studio with the existing external bio-link treatment. Retains the shared serif text, paragraph spacing, and inspector support.
 

@@ -802,6 +802,16 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 
 .homepage-project-media { position: absolute; inset: 0; display: block; background: var(--bg-secondary-fill); transform-origin: top left; }
 .homepage-project-media[data-focus-media] { position: fixed; inset: auto; left: 0; top: 0; z-index: var(--project-focus-media-layer); pointer-events: none; }
+/* Alpha pixels composite over the tile's backing plane, never a second opaque video background. */
+.homepage-project-media[data-media-alpha] :is(.project-preview-media, .project-preview-video, .project-preview-upgrade) { background: transparent; }
+.homepage-project-media[data-media-alpha] .project-preview-media:has(.project-preview-upgrade) > .project-preview-poster { visibility: hidden; }
+.project-focus-media-backdrop { display: none; position: fixed; left: 0; top: 0; transform-origin: top left; z-index: var(--project-focus-media-layer); background: var(--bg-secondary-fill); pointer-events: none; }
+@media (min-width: 768px) {
+  .project-focus-media-backdrop { display: block; }
+  .homepage-project-media[data-media-alpha][data-focus-media] { z-index: var(--project-focus-alpha-media-layer); background: transparent; }
+  .homepage-project-media[data-media-alpha][data-focus-media] .skeleton { visibility: hidden; }
+  .homepage-project-media[data-media-alpha][data-focus-media] .project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: visible; }
+}
 /* Keep the wrapper out of the stacking hierarchy shared by its panels and the original grid media. */
 .project-focus-root { position: absolute; inset: 0; outline: none; }
 /* Extend only the background layers; the foreground keeps the visible viewport's height. */

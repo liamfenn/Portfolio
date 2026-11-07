@@ -66,6 +66,7 @@
   --project-focus-controls-layer: calc(var(--project-focus-layer) + 3);
   --project-focus-edge-layer: calc(var(--project-focus-layer) + 4);
   --project-focus-header-layer: calc(var(--project-focus-layer) + 5);
+  --project-focus-alpha-media-layer: calc(var(--project-focus-header-layer) + 1);
   --project-focus-width: 720px;
   --project-focus-column-width: 684px;
   --project-focus-backdrop-opacity: 100%;

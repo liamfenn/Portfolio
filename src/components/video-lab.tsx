@@ -13,7 +13,7 @@ const clips = Array.from({ length: 12 }, (_, index) => {
   const url = (value: string) => `${value}?video-lab=${index}`;
   return { ...asset, id: `video-lab-${index}`, alt: `Video test ${index + 1}`,
     poster: url(asset.poster), posters: asset.posters?.map(poster => ({ ...poster, src: url(poster.src) })),
-    renditions: asset.renditions.map(rung => ({ ...rung, h264: url(rung.h264) })) };
+    renditions: asset.renditions.map(rung => ({ ...rung, h264: rung.h264 && url(rung.h264) })) };
 });
 
 export function VideoLab() {

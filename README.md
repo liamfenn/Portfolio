@@ -220,4 +220,6 @@ The color strip and its placement controls have been removed. The music player a
 
 Keep the original high-quality, tagged SDR master and its frame rate. `npm run media:import -- /path/to/master.mp4 --id project-id --alt "Project interaction prototype"` preserves 60fps sources, generates responsive H.264 and posters, validates and uploads immutable files, and updates the imported registry. Use `--local` for an unpublished check. See [`docs/media-workflow.md`](docs/media-workflow.md) for options, playback limits, and device validation.
 
+For transparent Ultramock exports, keep the original VP9 WebM and add `--alpha` on macOS. This produces VP9 and HEVC alpha videos plus transparent posters. Blink's first preview uses this path: the phone sits above the focused desktop header while its gray backdrop stays below it. The player verifies actual alpha decoding before selecting a format; mobile retains its existing layer order. Full workflow and validation notes are in the media guide.
+
 Video tiles suppress native long-press callouts and text selection; there is no custom media menu. Real image tiles retain native image callouts and hit testing. Ordinary mobile taps still expand tiles. Text selection is also disabled on the globe/exit control and Spotify bar, while the intro and other page text remain selectable.

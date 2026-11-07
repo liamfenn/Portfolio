@@ -73,7 +73,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
           else if (isMobile || cardOverlay) onToggle();
         }}
         onKeyDown={event => { if (!cardOverlay && event.key === "Escape" && isMobile && expanded) onToggle(); }}>
-        <span className="homepage-project-media">
+        <span className="homepage-project-media" data-media-alpha={preview.media?.kind === "video" && preview.media.alpha ? "" : undefined}>
         {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={priorityMedia || visible || focusActive} /> : null}
         {preview.media?.kind === "image" ? <>
           <Skeleton active={pending} />

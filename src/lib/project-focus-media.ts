@@ -10,6 +10,8 @@ type Placement = {
   moving: boolean;
   held?: boolean;
   animation?: Animation;
+  backdrop?: HTMLElement;
+  backdropAnimation?: Animation;
 };
 
 /** Readies an offscreen tile's poster and video so paging to it shows a picture right away. Returns the release. */
@@ -52,6 +54,14 @@ export class ProjectFocusMedia {
     if (!placement) {
       const bounds = media.getBoundingClientRect();
       placement = { media, slot, style: media.getAttribute("style"), width: bounds.width, height: bounds.height, moving: true };
+      if (media.hasAttribute("data-media-alpha")) {
+        const backdrop = document.createElement("div");
+        backdrop.className = "project-focus-media-backdrop";
+        backdrop.setAttribute("aria-hidden", "true");
+        Object.assign(backdrop.style, { width: `${bounds.width}px`, height: `${bounds.height}px` });
+        document.body.appendChild(backdrop);
+        placement.backdrop = backdrop;
+      }
       this.placements.set(media, placement);
       Object.assign(media.style, { width: `${bounds.width}px`, height: `${bounds.height}px` });
       this.observer?.observe(slot);
@@ -73,6 +83,7 @@ export class ProjectFocusMedia {
 
   private position(placement: Placement, bounds: DOMRect) {
     placement.media.style.transform = this.transform(placement, bounds);
+    if (placement.backdrop) placement.backdrop.style.transform = placement.media.style.transform;
   }
 
   private videoFocus(placement: Placement, moving: boolean) {
@@ -84,14 +95,17 @@ export class ProjectFocusMedia {
   animate(media: HTMLElement, from: DOMRect, to: DOMRect, timing: KeyframeAnimationOptions) {
     const placement = this.placements.get(media)!;
     placement.animation?.cancel();
+    placement.backdropAnimation?.cancel();
     this.position(placement, to);
     this.videoFocus(placement, true);
     const animation = media.animate([{ transform: this.transform(placement, from) }, { transform: this.transform(placement, to) }], timing);
+    placement.backdropAnimation = placement.backdrop?.animate([{ transform: this.transform(placement, from) }, { transform: this.transform(placement, to) }], timing);
     placement.animation = animation;
     void animation.finished.then(() => {
       if (placement.animation !== animation) return;
       placement.animation = undefined;
       animation.cancel();
+      placement.backdropAnimation?.cancel();
       this.position(placement, placement.held ? placement.media.parentElement!.getBoundingClientRect() : placement.slot.getBoundingClientRect());
     }).catch(() => {});
     return animation;
@@ -106,6 +120,7 @@ export class ProjectFocusMedia {
     const placement = this.placements.get(media)!;
     const bounds = media.getBoundingClientRect();
     placement.animation?.cancel();
+    placement.backdropAnimation?.cancel();
     placement.animation = undefined;
     placement.held = true;
     this.position(placement, bounds);
@@ -137,6 +152,8 @@ export class ProjectFocusMedia {
     const placement = this.placements.get(media);
     if (!placement || (slot && placement.slot !== slot)) return;
     placement.animation?.cancel();
+    placement.backdropAnimation?.cancel();
+    placement.backdrop?.remove();
     this.observer?.unobserve(placement.slot);
     delete media.dataset.focusMedia;
     if (placement.style === null) media.removeAttribute("style");

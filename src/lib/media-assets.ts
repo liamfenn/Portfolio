@@ -21,11 +21,15 @@ export interface PortfolioImageAsset extends PortfolioMediaBase {
 export interface PortfolioVideoRendition {
   width: number;
   av1?: string;
-  h264: string;
+  h264?: string;
+  webmAlpha?: string;
+  hevcAlpha?: string;
 }
 
 export interface PortfolioVideoAsset extends PortfolioMediaBase {
   kind: "video";
+  /** Transparent clips keep their backdrop separate when raised above the focused header. */
+  alpha?: boolean;
   poster: string;
   posters?: { width: number; src: string }[];
   frameRate?: number;

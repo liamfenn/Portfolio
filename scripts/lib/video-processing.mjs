@@ -50,11 +50,16 @@ export async function fileHash(path) {
 }
 
 export async function processVideo(input, outputBase, options = {}) {
+  if (options.alpha) {
+    const { processAlphaVideo } = await import("./alpha-video-processing.mjs");
+    return processAlphaVideo(input, outputBase, options);
+  }
   if (!resolve(outputBase).startsWith(`${resolve("public")}/`)) throw new Error("Output must be inside public/.");
   if (options.posterTime !== undefined && (!Number.isFinite(options.posterTime) || options.posterTime < 0)) throw new Error("Poster time must be a non-negative number.");
   const source = probe(input);
   const video = source.streams.find(stream => stream.codec_type === "video");
   if (!video) throw new Error("Source has no video stream.");
+  if ((video.tags?.alpha_mode ?? video.tags?.ALPHA_MODE) === "1" || /^(yuva|gbrap|rgba|bgra|argb|abgr)/.test(video.pix_fmt ?? "")) throw new Error("Source contains alpha. Use --alpha to preserve transparency.");
   if (Number(video.tags?.rotate) || video.side_data_list?.some(data => data.rotation)) throw new Error("Bake rotation into the master before importing.");
   const plan = encodingPlan(video, options);
   const sourceHash = await fileHash(input);
