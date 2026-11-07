@@ -5,6 +5,13 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Mobile sort video flashes (2026-11-06)**
+- Recent/Random already keeps video nodes in a fixed DOM order, but CSS order still relocates native video surfaces. After each sort commit, visible decoded videos now get a temporary copy of their current frame, kept until the next presented frame and two paint opportunities. Playback continues underneath; sources and video parents stay unchanged. Cold videos retain their existing loading/poster behavior.
+- Sorting also explicitly refreshes the playback coordinator. A tile can become visible without crossing the observer's 240px preparation boundary, so IntersectionObserver alone is insufficient after CSS reordering.
+- Only visible ready videos are captured, at no more than the displayed size at 2x DPR. Retained pictures release their pixel buffers on completion, source release/error, rapid re-sort or unmount; a 500ms safety timeout prevents a stuck cover. Focus transitions do not trigger these captures.
+- `scripts/check-video-sort.mjs` holds real video-frame callbacks to verify the opaque picture handoff, unchanged source/parent identity, rapid toggles and reduced motion on mobile/desktop WebKit and Chrome. Physical iPhone compositing remains a device check.
+- Validation: 87 tests, TypeScript, touched-file lint, production build and the held-frame browser checks pass. Ten native iPhone 17 Pro simulator swaps also exercised the covers, retained loaded sources/DOM nodes, and left no covers behind.
+
 **Shopping agent project (2026-11-06)**
 - Added Shopping agent for Office of Liam Fennell, Q1 26, with Stack entries Next.js and OpenAI API, no contributor list, and “Description coming soon.” as the temporary description.
 - Used the existing master at `~/Desktop/demos/shopping-agent.mp4`; its scene source is tracked in `scenes/shopping-agent/` on the separate `video/shopping-agent` branch. Imported validated 800/1200/1600px H.264 renditions and 480/800/1600px posters to Vercel Blob, preserving 60fps and the 21.18-second loop. Poster uses the 8-second frame. Masters and local encodes stay out of git.

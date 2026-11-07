@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HomepageCard } from "@/components/homepage-card";
 import { ProjectSortControl } from "@/components/project-sort-control";
 import { ProjectFocus } from "@/components/project-focus";
@@ -10,6 +10,7 @@ import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
 import { sortProjects } from "@/lib/project-order";
 import { arrangeProjectGrid } from "@/lib/project-arrangement";
+import { refreshVideoOrder } from "@/lib/video-playback";
 
 const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
 
@@ -19,6 +20,13 @@ export function ProjectFeed() {
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selection, setSelection] = useState<ProjectFocusSelection | null>(null);
+  const sortRevision = `${sortMode}:${randomSeed}`;
+  const previousSort = useRef(sortRevision);
+  useLayoutEffect(() => {
+    if (previousSort.current === sortRevision) return;
+    previousSort.current = sortRevision;
+    return refreshVideoOrder();
+  }, [sortRevision]);
   useEffect(() => {
     const media = matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(media.matches);

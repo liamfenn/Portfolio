@@ -6,6 +6,7 @@ export const VIDEO_POLICY = {
   releaseDelay: 15_000,
   loadTimeout: 15_000,
   resizeDelay: 250,
+  reorderPaintTimeout: 500,
 } as const;
 
 export type VideoCandidate = {

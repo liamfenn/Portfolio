@@ -78,6 +78,8 @@ The [focus media audit](focus-media-audit.md) records the investigated lifecycle
 
 `node scripts/check-video-startup-paint.mjs [origin]` holds a real WebKit video-frame callback across initial load and repeated reloads. It checks opaque skeleton coverage over a visible video surface, two paint opportunities before reveal, and policy cancellation of a stale reveal. This checks the lifecycle, not a physical iPhone compositor flash.
 
+`node scripts/check-video-sort.mjs [origin]` verifies ready video pictures stay covered through sorting until a new frame presents and paints, with stable video nodes/sources, refreshed visibility, rapid toggles, and reduced-motion cleanup. It uses WebKit and installed Chrome for H.264 playback. Sort covers are one-off captures limited to visible videos and release their backing pixels after use; they do not run during focused-view motion.
+
 `node scripts/check-focus-video-continuity.mjs [origin]` checks real WebKit frames through repeated rapid/scrolled exits and both paging directions. It asserts unchanged media parents, no close-time pause/source load/canvas/duplicate, scroll/resize alignment, resize during return, and reduced-motion/background/foreground cleanup. The former clock-hold/handoff tests and isolated probe have been replaced by this integrated check.
 
 `node scripts/check-focus-stacking.mjs [origin]` checks focus panels above background menus and globe glyphs on desktop/mobile, including a scrolled footer. It briefly enables inert background hit testing to detect incorrect paint order that normal interaction checks miss. Set `FOCUS_BROWSER=chromium` to repeat the default WebKit check in Chromium.

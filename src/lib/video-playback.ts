@@ -1,6 +1,7 @@
 import type { PortfolioVideoAsset } from "./media-assets";
 import { mediaUrl } from "./media-delivery";
 import { rankVideos, VIDEO_POLICY, videoRendition } from "./video-policy";
+import { preserveReorderedVideoFrames } from "./video-reorder";
 
 export type VideoDisplayState = "loading" | "ready" | "poster";
 type Entry = {
@@ -128,6 +129,15 @@ class VideoPlayback {
     entry.warmWidth = width;
     if (width !== undefined && entry.loading && !entry.cover) entry.display?.("poster");
     this.schedule();
+  }
+
+  reorder() {
+    const clear = !this.active || document.hidden || this.motion.matches || this.connection?.saveData
+      ? () => {}
+      : preserveReorderedVideoFrames([...this.entries.values()].map(entry => entry.video));
+    // CSS order can change visibility without crossing an IntersectionObserver threshold.
+    this.schedule();
+    return clear;
   }
 
   private captureUpgrade(entry: Entry) {
@@ -330,4 +340,8 @@ export function setVideoWarm(video: HTMLVideoElement, width?: number) {
 
 export function setVideoFocus(video: HTMLVideoElement, width?: number, moving = false) {
   coordinator?.focus(video, width, moving);
+}
+
+export function refreshVideoOrder() {
+  return coordinator?.reorder();
 }
