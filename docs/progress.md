@@ -16,7 +16,7 @@ decided, or gets dropped.
 - Added Shopping agent for Office of Liam Fennell, Q1 26, with Stack entries Next.js and OpenAI API, no contributor list, and “Description coming soon.” as the temporary description.
 - Used the existing master at `~/Desktop/demos/shopping-agent.mp4`; its scene source is tracked in `scenes/shopping-agent/` on the separate `video/shopping-agent` branch. Imported validated 800/1200/1600px H.264 renditions and 480/800/1600px posters to Vercel Blob, preserving 60fps and the 21.18-second loop. Poster uses the 8-second frame. Masters and local encodes stay out of git.
 - The feed now has eight filled projects. The existing date insertion places this one after Baskets and before Collections sheet, preserving the other projects' published order.
-- Replaced the clip with Liam's updated `shopping-agent.mp4` master on November 6. Regenerated all three 60fps renditions and posters at new immutable Blob URLs, keeping the project metadata, 8-second poster frame, and feed position unchanged.
+- Latest video refresh on November 6 uses media version `e4dcf3f46ef2be9c` from Liam's new `shopping-agent.mp4` master. Regenerated all three 60fps renditions and posters at new immutable Blob URLs, keeping the project metadata, 8-second poster frame, and feed position unchanged.
 - The focused header reserves a date slot (`header-project-action-slot`, 48px) and truncates the project title if necessary. This keeps the longer company name from pushing Shopping agent over the date on 320px screens; wider layouts show the full title.
 
 **Twitter link update**
