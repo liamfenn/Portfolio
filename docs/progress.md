@@ -1,9 +1,14 @@
 # Progress and goals
 
-Last updated 2026-11-06. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-07. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**V4 404 page (2026-11-07)**
+- Replaced the legacy error page with the v4 column, shared compact header, footer, and letter globe. A small 404 label sits above a serif message and a Back home link with a 44px hit area.
+- Uses existing spacing, color, and type tokens throughout, with inspectable text and a page-specific title. The message and native home link remain server rendered; no new dependencies or motion.
+- Validation: 87 tests, TypeScript, touched-file lint, production build, and diff checks pass. Local browser checks cover 1440px desktop and 320px mobile without horizontal overflow, the link's 44px height, and navigation home and back. The server returns HTTP 404 for an unknown route.
 
 **Mobile sort video flashes (2026-11-06)**
 - Recent/Random already keeps video nodes in a fixed DOM order, but CSS order still relocates native video surfaces. After each sort commit, visible decoded videos now get a temporary copy of their current frame, kept until the next presented frame and two paint opportunities. Playback continues underneath; sources and video parents stay unchanged. Cold videos retain their existing loading/poster behavior.
