@@ -3,16 +3,12 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { encodingPlan, fileHash, probe, run } from "./video-processing.mjs";
+import { alphaDecoder, encodingPlan, fileHash, probe, run } from "./video-processing.mjs";
+import { ALPHA_MOBILE_RECIPE, processAlphaMobileVideo } from "./alpha-mobile-processing.mjs";
 
-export const ALPHA_RECIPE = "portfolio-alpha-v2-vp9-hevc";
+export const ALPHA_RECIPE = `portfolio-alpha-v3-vp9-hevc-${ALPHA_MOBILE_RECIPE}`;
 
-/** VP9's native FFmpeg decoder drops its auxiliary alpha plane; libvpx preserves it. */
-export function alphaDecoder(stream) {
-  if (stream.codec_name === "vp9" && (stream.tags?.alpha_mode ?? stream.tags?.ALPHA_MODE) === "1") return ["-c:v", "libvpx-vp9"];
-  if (/^(yuva|gbrap|rgba|bgra|argb|abgr)/.test(stream.pix_fmt ?? "")) return [];
-  throw new Error("No decodable alpha channel. Supply the original VP9 WebM with alpha or a ProRes 4444 master.");
-}
+export { alphaDecoder } from "./video-processing.mjs";
 
 export async function processAlphaVideo(input, outputBase, options) {
   if (process.platform !== "darwin") throw new Error("Alpha imports require macOS for the HEVC-with-alpha encoder and native validation.");
@@ -72,8 +68,10 @@ export async function processAlphaVideo(input, outputBase, options) {
     run(["-y", "-c:v", "libvpx-vp9", "-ss", String(time), "-i", `public${largest.webmAlpha}`, "-frames:v", "1", "-vf", `scale=${width}:-2:flags=lanczos,format=rgba`, "-c:v", "libwebp", "-quality", "88", path]);
     await record(path, "image/webp"); posters.push({ width, src: publicPath(path) });
   }
+  const mobile = await processAlphaMobileVideo(input, `${outputBase}-mobile`, options);
+  files.push(...mobile.files);
   const report = { signature, recipe: ALPHA_RECIPE, sourceHash, source: { width: video.width, height: video.height, frameRate: video.avg_frame_rate }, alphaValidation,
-    asset: { id: options.id, kind: "video", alpha: true, src: largest.webmAlpha, poster: posters.at(-1).src, posters, alt: options.alt, width: largestStream.width, height: largestStream.height, frameRate: plan.fps, duration: Number(source.format.duration), renditions }, files };
+    asset: { id: options.id, kind: "video", alpha: true, mobileBackdrop: mobile.backdrop, src: largest.webmAlpha, poster: posters.at(-1).src, posters, alt: options.alt, width: largestStream.width, height: largestStream.height, frameRate: plan.fps, duration: Number(source.format.duration), renditions: renditions.map(rung => ({ ...rung, h264: mobile.renditions.find(item => item.width === rung.width).h264 })) }, files };
   await writeFile(`${reportPath}.tmp`, `${JSON.stringify(report, null, 2)}\n`); await rename(`${reportPath}.tmp`, reportPath);
   console.table(files.map(file => ({ file: file.publicPath, KB: Math.round(file.bytes / 1000) })));
   return report;

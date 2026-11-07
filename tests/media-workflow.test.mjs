@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { fastStart, publishedVideos } from "../scripts/audit-media.mjs";
 import { DEFAULT_WIDTHS } from "../scripts/lib/video-processing.mjs";
 import { mapMediaSources } from "../scripts/lib/media-publishing.mjs";
+import { ALPHA_MOBILE_BACKDROP, ALPHA_MOBILE_RECIPE } from "../scripts/lib/alpha-mobile-processing.mjs";
 
 test("every published project video follows the shared ladder and CDN delivery policy", () => {
   for (const { asset, label } of publishedVideos()) {
@@ -15,10 +16,15 @@ test("every published project video follows the shared ladder and CDN delivery p
     assert.match(asset.src, /^https:\/\//, label);
     assert.match(asset.poster, /^https:\/\//, label);
     for (const rung of asset.renditions) {
-      if (asset.alpha) { assert.match(rung.hevcAlpha, /^https:\/\//); assert.match(rung.webmAlpha, /^https:\/\//); }
+      if (asset.alpha) { assert.match(rung.hevcAlpha, /^https:\/\//); assert.match(rung.webmAlpha, /^https:\/\//); assert.match(rung.h264, /^https:\/\//); assert.equal(asset.mobileBackdrop, ALPHA_MOBILE_BACKDROP); }
       else assert.match(rung.h264, /^https:\/\//);
     }
   }
+});
+
+test("the mobile encoding recipe is versioned with its resolved tile background token", () => {
+  assert.match(ALPHA_MOBILE_BACKDROP, /^#[\da-f]{6}$/i);
+  assert.ok(ALPHA_MOBILE_RECIPE.includes(ALPHA_MOBILE_BACKDROP));
 });
 
 test("publication maps every codec and poster without discarding alpha metadata", () => {

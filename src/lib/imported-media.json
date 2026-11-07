@@ -28,24 +28,29 @@
       {
         "width": 640,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-640-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-640-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-640-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/abca65c0b290913f-mobile-640.mp4"
       },
       {
         "width": 800,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-800-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-800-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-800-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/abca65c0b290913f-mobile-800.mp4"
       },
       {
         "width": 1200,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1200-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1200-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1200-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/abca65c0b290913f-mobile-1200.mp4"
       },
       {
         "width": 1600,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/e8079f986f258c18-1600-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-blink-timer/abca65c0b290913f-mobile-1600.mp4"
       }
-    ]
+    ],
+    "mobileBackdrop": "#f6f8fa"
   },
   "milktooth-q4-2026": {
     "id": "milktooth-q4-2026",
@@ -76,24 +81,29 @@
       {
         "width": 640,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/9d1e3be843b49cb6-640-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/9d1e3be843b49cb6-640-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/9d1e3be843b49cb6-640-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/bd7ec1600ad1ef3a-mobile-640.mp4"
       },
       {
         "width": 800,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-800-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-800-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-800-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/bd7ec1600ad1ef3a-mobile-800.mp4"
       },
       {
         "width": 1200,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1200-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1200-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1200-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/bd7ec1600ad1ef3a-mobile-1200.mp4"
       },
       {
         "width": 1600,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1600-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1600-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/6c7a1a6f24c6d20e-1600-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/bd7ec1600ad1ef3a-mobile-1600.mp4"
       }
-    ]
+    ],
+    "mobileBackdrop": "#f6f8fa"
   },
   "shop-canvas-preview": {
     "id": "shop-canvas-preview",
@@ -210,24 +220,29 @@
       {
         "width": 640,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-640-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-640-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-640-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/9f9d9f247f14d26c-mobile-640.mp4"
       },
       {
         "width": 800,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-800-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-800-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-800-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/9f9d9f247f14d26c-mobile-800.mp4"
       },
       {
         "width": 1200,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1200-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1200-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1200-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/9f9d9f247f14d26c-mobile-1200.mp4"
       },
       {
         "width": 1600,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/0123b286d11feae4-1600-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-fourth-preview/9f9d9f247f14d26c-mobile-1600.mp4"
       }
-    ]
+    ],
+    "mobileBackdrop": "#f6f8fa"
   },
   "shop-product-page": {
     "id": "shop-product-page",
@@ -387,24 +402,29 @@
       {
         "width": 640,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-640-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-640-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-640-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/1dc73f41c467f36c-mobile-640.mp4"
       },
       {
         "width": 800,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-800-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-800-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-800-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/1dc73f41c467f36c-mobile-800.mp4"
       },
       {
         "width": 1200,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1200-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1200-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1200-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/1dc73f41c467f36c-mobile-1200.mp4"
       },
       {
         "width": 1600,
         "webmAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.webm",
-        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.mov"
+        "hevcAlpha": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/e41f63dd93a7ad5a-1600-alpha.mov",
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/shop-seventh-preview/1dc73f41c467f36c-mobile-1600.mp4"
       }
-    ]
+    ],
+    "mobileBackdrop": "#f6f8fa"
   },
   "shopping-agent": {
     "id": "shopping-agent",

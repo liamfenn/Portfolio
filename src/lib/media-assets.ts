@@ -30,6 +30,8 @@ export interface PortfolioVideoAsset extends PortfolioMediaBase {
   kind: "video";
   /** Transparent clips keep their backdrop separate when raised above the focused header. */
   alpha?: boolean;
+  /** Mobile H.264 is composited against the shared tile color; desktop retains native alpha. */
+  mobileBackdrop?: string;
   poster: string;
   posters?: { width: number; src: string }[];
   frameRate?: number;

@@ -7,6 +7,19 @@ import { dirname, resolve } from "node:path";
 export const RECIPE = "portfolio-video-v2-srgb-source-fps";
 export const DEFAULT_WIDTHS = [640, 800, 1200, 1600];
 
+export function h264EncodingArgs(width, fps) {
+  const crf = width <= 640 ? 17 : width <= 800 ? 18 : width <= 1200 ? 19 : 20;
+  const gop = String(Math.round(fps));
+  return ["-c:v", "libx264", "-preset", width <= 640 ? "veryslow" : "slow", "-crf", String(crf), "-profile:v", "high", "-g", gop, "-keyint_min", gop, "-sc_threshold", "0"];
+}
+
+/** VP9's native FFmpeg decoder drops its auxiliary alpha plane; libvpx preserves it. */
+export function alphaDecoder(stream) {
+  if (stream.codec_name === "vp9" && (stream.tags?.alpha_mode ?? stream.tags?.ALPHA_MODE) === "1") return ["-c:v", "libvpx-vp9"];
+  if (/^(yuva|gbrap|rgba|bgra|argb|abgr)/.test(stream.pix_fmt ?? "")) return [];
+  throw new Error("No decodable alpha channel. Supply the original VP9 WebM with alpha or a ProRes 4444 master.");
+}
+
 export function rate(value) {
   const [numerator, denominator = 1] = String(value).split("/").map(Number);
   return numerator / denominator;
@@ -110,7 +123,7 @@ export async function processVideo(input, outputBase, options = {}) {
     const crf = width <= 640 ? 17 : width <= 800 ? 18 : width <= 1200 ? 19 : 20;
     const h264 = `${outputBase}-${width}.mp4`;
     console.log(`H.264 ${width}px / ${plan.frameRate}fps / CRF ${crf}`);
-    run(["-y", "-i", input, "-map", "0:v:0", "-vf", filter, "-an", "-map_metadata", "-1", "-c:v", "libx264", "-preset", width <= 640 ? "veryslow" : "slow", "-crf", String(crf), "-profile:v", "high", "-g", gop, "-keyint_min", gop, "-sc_threshold", "0", ...tags, "-movflags", "+faststart", h264]);
+    run(["-y", "-i", input, "-map", "0:v:0", "-vf", filter, "-an", "-map_metadata", "-1", ...h264EncodingArgs(width, plan.fps), ...tags, "-movflags", "+faststart", h264]);
     const encoded = probe(h264);
     const stream = encoded.streams[0];
     if (stream.width !== width || stream.height % 2 || stream.pix_fmt !== "yuv420p" || stream.sample_aspect_ratio !== "1:1" || stream.color_primaries !== "bt709" || stream.color_transfer !== "iec61966-2-1" || stream.color_space !== "bt709" || Math.abs(rate(stream.avg_frame_rate) - plan.fps) > 0.01 || encoded.streams.some(s => s.codec_type === "audio")) throw new Error(`Validation failed: ${h264}`);
