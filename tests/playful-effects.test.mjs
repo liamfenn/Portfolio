@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Matter from "matter-js";
-import { captureStrength, closestOnSegment, touchIntent, entryPoint, exitPoint, sideEntryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
+import { captureStrength, closestOnSegment, touchIntent, entryPoint, exitPoint, sideEntryPoint, pocketForce, smoothstep, pushImpulse, releaseDelay, segmentDistance, selectSwarmSources, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "../src/lib/glyph-physics.ts";
 import { DEFAULT_GLYPHS, DEFAULT_PALETTE, PALETTE_CANDIDATES, colorsFromVotes, contrastOnWhite, glyphColors, parsePalettePreferences } from "../src/lib/palette-toy.ts";
 
 test("the swarm takes its share of on-screen letters, capped for long pages", () => {
@@ -9,6 +9,22 @@ test("the swarm takes its share of on-screen letters, capped for long pages", ()
   assert.equal(swarmCount(100, 0.7), 70);
   assert.equal(swarmCount(5000, 0.7), 520);
   assert.equal(swarmCount(100, 2), 100);
+});
+test("full-text regions donate every source without changing the navigation's share", () => {
+  const body = Array.from({ length: 20 }, (_, id) => ({ id, body: true }));
+  const navigation = Array.from({ length: 100 }, (_, id) => ({ id, body: false }));
+  const sources = [...body, ...navigation];
+  const chosen = selectSwarmSources(sources, 0.7, source => source.body, () => 0.5);
+  assert.ok(body.every(source => chosen.includes(source)));
+  assert.equal(chosen.filter(source => !source.body).length, 70);
+  assert.equal(new Set(chosen).size, chosen.length);
+  assert.deepEqual(sources, [...body, ...navigation], "sampling preserves the original source order");
+  assert.deepEqual(selectSwarmSources(sources, 0, source => source.body), body);
+});
+test("ordinary pages retain their shared sampling cap", () => {
+  const sources = Array.from({ length: 1000 }, (_, id) => id);
+  assert.equal(selectSwarmSources(sources, 0.7, () => false).length, 520);
+  assert.equal(selectSwarmSources(sources.slice(0, 100), 0.7, () => false).length, 70);
 });
 test("letters nearest the globe are released first", () => {
   assert.equal(releaseDelay(0, 800), 0);

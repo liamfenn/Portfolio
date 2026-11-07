@@ -1,33 +1,51 @@
-.not-found-page {
+.not-found-page.portfolio-v4 {
   display: flex;
   flex-direction: column;
   min-height: calc(100svh - var(--viewport-safe-top) - var(--viewport-safe-bottom));
+  padding-block: var(--portfolio-top) var(--portfolio-bottom);
 }
+
+.not-found-music {
+  display: flex;
+  flex: none;
+  width: 100%;
+}
+
+.not-found-avatar {
+  position: relative;
+  flex: none;
+  width: var(--portfolio-control-size);
+  height: var(--portfolio-control-size);
+  padding: 0;
+  border: 0;
+  background: var(--bg-secondary-fill);
+}
+
+.not-found-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.not-found-avatar::before { content: ""; position: absolute; inset: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2) 0; }
+.not-found-music .portfolio-player { flex: 1; min-width: 0; width: auto; margin: 0; }
+.not-found-music .player-brand { order: 1; }
 
 .not-found-content {
-  display: flex;
+  display: grid;
   flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: var(--portfolio-paragraph-gap);
+  place-items: center;
   padding-block: var(--portfolio-section-gap);
+  text-align: left;
 }
 
-.not-found-copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--project-info-gap);
-}
-
-.not-found-home {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--portfolio-hit-size);
-}
+.not-found-copy { display: flex; align-items: baseline; justify-content: space-between; gap: var(--content-padding); width: calc(100% - var(--content-padding-mobile) * 2); }
+.not-found-copy p { text-align: right; }
+.not-found-home { position: relative; }
+.not-found-home::before { content: ""; position: absolute; top: 50%; left: 50%; width: 100%; min-width: var(--portfolio-hit-size); height: var(--portfolio-hit-size); transform: translate(-50%, -50%); }
+.not-found-page .glyph-globe-row { flex: none; min-height: var(--portfolio-hit-size); margin-top: 0; }
 
 @media (max-width: 767px) {
-  .not-found-content {
-    padding: var(--portfolio-mobile-section-gap) var(--content-padding-mobile);
+  .not-found-page.portfolio-v4 {
+    --portfolio-control-size: var(--portfolio-control-mobile-size);
+    padding: var(--header-mobile-top) var(--content-padding-mobile) var(--portfolio-mobile-bottom);
   }
+
+  .not-found-content { padding-block: var(--portfolio-mobile-section-gap); }
+  .not-found-copy { width: 100%; }
 }

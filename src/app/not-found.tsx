@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { DesignInspector, InspectableText } from "@/components/design-inspector";
-import { PortfolioFooter } from "@/components/portfolio-footer";
-import { PortfolioHeader } from "@/components/portfolio-header";
+import { PaletteToy } from "@/components/palette-toy";
+import { PortfolioPlayer } from "@/components/portfolio-player";
 import "./not-found.css";
 
 export const metadata: Metadata = {
@@ -13,18 +14,20 @@ export default function NotFound() {
   return (
     <DesignInspector>
       <main className="portfolio-v2 portfolio-v4 not-found-page" data-page-frame>
-        <PortfolioHeader />
-        <section className="not-found-content" aria-labelledby="not-found-title">
-          <p className="text-captionSans text-muted"><InspectableText>404</InspectableText></p>
-          <div className="not-found-copy text-bodySerif">
-            <h1 id="not-found-title" className="text-primary"><InspectableText>This page doesn&apos;t exist.</InspectableText></h1>
-            <p className="text-secondary"><InspectableText>There&apos;s more to see back home.</InspectableText></p>
+        <header className="not-found-music">
+          <button className="not-found-avatar hover-surface" type="button" data-inspector-toggle aria-label="Open design controls">
+            <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
+          </button>
+          <PortfolioPlayer />
+        </header>
+        <section className="not-found-content text-bodySerif text-secondary" aria-labelledby="not-found-title" data-swarm-take="all">
+          <div className="not-found-copy">
+            <h1 id="not-found-title"><InspectableText>Looks like you’re lost.</InspectableText></h1>
+            <p><InspectableText>Get back <Link href="/" className="not-found-home text-primary" data-swarm-skip>home</Link>.</InspectableText></p>
           </div>
-          <Link href="/" className="not-found-home text-bodySans text-primary">
-            <InspectableText>Back home</InspectableText>
-          </Link>
         </section>
-        <PortfolioFooter />
+        <PaletteToy />
+        <div id="glyph-globe-slot" className="glyph-globe-row" />
       </main>
     </DesignInspector>
   );

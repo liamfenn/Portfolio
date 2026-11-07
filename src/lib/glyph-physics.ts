@@ -14,6 +14,18 @@ export function swarmCount(visibleLetters: number, share: number, cap = 520) {
   return Math.min(cap, Math.round(Math.max(0, visibleLetters) * Math.max(0, Math.min(1, share))));
 }
 
+/** Explicit full-text regions leave together; other content keeps its usual independent share. */
+export function selectSwarmSources<T>(sources: readonly T[], share: number, takeAll: (source: T) => boolean, random = Math.random) {
+  const required: T[] = [], candidates: T[] = [];
+  for (const source of sources) (takeAll(source) ? required : candidates).push(source);
+  const count = swarmCount(candidates.length, share, Math.max(0, 520 - required.length));
+  for (let index = 0; index < count; index++) {
+    const pick = index + Math.floor(random() * (candidates.length - index));
+    [candidates[index], candidates[pick]] = [candidates[pick], candidates[index]];
+  }
+  return [...required, ...candidates.slice(0, count)];
+}
+
 /** Letters nearest the globe leave first, so the pull ripples outward across the page. */
 export function releaseDelay(distance: number, farthest: number, spread = 280) {
   return spread * Math.min(1, Math.max(0, distance) / Math.max(1, farthest));

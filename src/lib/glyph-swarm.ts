@@ -1,10 +1,10 @@
 import type MatterJS from "matter-js";
-import { SPACING, captureStrength, entryPoint, exitPoint, sideEntryPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, separationForce, springStep, swarmCount, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
+import { SPACING, captureStrength, entryPoint, exitPoint, sideEntryPoint, pocketForce, touchIntent, pushImpulse, releaseDelay, selectSwarmSources, separationForce, springStep, wanderForce, zoneForce, zoneRadius } from "@/lib/glyph-physics";
 import type { Point } from "@/lib/glyph-physics";
 import type { GlyphSettings } from "@/lib/palette-toy";
 
 const HOVER_LABELS = ".work-density-menu:not(.is-closing) .work-option-text,.homepage-project-overlay.is-visible [data-swarm-label]";
-const SKIP = ".homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
+const SKIP = "[data-swarm-skip],.homepage-project-overlay,.glyph-globe,.glyph-exit,.homepage-project-tooltip,.design-inspector,.spacing-overlay,.palette-lab,.inspectable-label,.sr-only,.homepage-track-time-reserve,[role='menu'],script,style";
 const STEP = 1000 / 60;
 const AIR = 0.035;
 /**
@@ -172,14 +172,10 @@ export async function startSwarm(root: Element, globe: HTMLElement, initial: Gly
     }
   }
   const origin = centerOf(globe.getBoundingClientRect());
-  const count = swarmCount(sources.length, settings.amount);
+  const chosen = selectSwarmSources(sources, settings.amount, source => Boolean(source.parent.closest('[data-swarm-take="all"]')));
+  const count = chosen.length;
   const globeLetters = globe.querySelectorAll<HTMLElement>(".glyph-globe-char:not([data-ring])");
-  for (let index = 0; index < count; index++) {
-    const pick = index + Math.floor(Math.random() * (sources.length - index));
-    [sources[index], sources[pick]] = [sources[pick], sources[index]];
-  }
   const distance = (source: Source) => Math.hypot(centerOf(source.rect).x - origin.x, centerOf(source.rect).y - origin.y);
-  const chosen = sources.slice(0, count);
   for (const source of chosen) {
     for (let element: Element | null = source.parent, level = 0; element && level < ANCHOR_LEVELS && root.contains(element); element = element.parentElement, level++) {
       source.anchors.push({ element, index: indexIn(element, source.node, source.offset) });
