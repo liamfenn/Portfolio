@@ -5,6 +5,11 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Desktop alpha plays in the grid again (2026-11-07)**
+- After a refresh, focusing an alpha clip on desktop showed it under the title bar for about a second, then above it: the grid played the H.264 matte, so focus had to download the alpha file before raising the clip. Desktop grid tiles now play real alpha (HEVC in Safari, VP9 in Chrome), as they did before the iPhone fix; phones keep the matte. Focus only upgrades the rung, under a transparent still, so the clip is above the bar from the first frame. If the tile hasn't loaded yet, the transparent poster stands in, also above the bar.
+- Checked by sampling every 50ms after the click at 0, 400 and 4000ms after scrolling to Blink, in WebKit and Chrome: always above the bar. Clicking before the tile's own poster has loaded leaves about 100ms with nothing shown.
+- Cost: Chrome held 60fps on both 1200px alpha tiles (0–1 dropped frames in 5s). Headless WebKit's dropped-frame counts are noise (its H.264 copy "dropped" more than HEVC alpha under the same conditions); both decoded the same frame counts.
+
 **Sort and focus blanks after retention (2026-11-07)**
 - Liam saw a black flash in iPhone Safari on some clips when switching to Random. The focused view's swipe order wasn't involved (it isn't mounted during a sort). Since clips are now retained, a shuffle can move a clip that was paused offscreen straight into view, and iOS may have torn down that video's layer, so both the frame copy and the surface can show black. Paused relocated clips now hold their poster until they play and present a new frame (`video-reorder.ts`); playing ones keep the frame copy. The iPhone 18 Pro simulator showed no black frames either before or after the fix: it composites like the Mac, so the flash is a device check.
 - On desktop, focusing an alpha clip early after a refresh showed an empty tile for about a second. `.project-focus-media-backdrop` shared the media's z-index and is appended to `body` later, so it covered the media whenever it showed the H.264 copy (the grid video, then the upgrade cover) until the first alpha frame raised it above the header. The backdrop now sits on `--project-focus-layer`, under the media in every state.

@@ -1,7 +1,7 @@
 // Optional browser QA for the real homepage media mix. Start npm run dev, then:
 //   node scripts/check-media-stress.mjs [origin]
 // MEDIA_BROWSER=chromium with CHROMIUM_PATH (an installed Chrome, for H.264) repeats it in Chrome.
-// Checks source choice per clip (matte vs alpha), one load per clip across repeated scroll passes, no skeleton on
+// Checks source choice per clip (alpha on desktop, matte on phones), one load per clip across repeated scroll passes, no skeleton on
 // return, background-tab pause without release, and that no unrevealed video shows beneath a transparent poster.
 // MEDIA_REPORT_ONLY=1 prints the measurements without failing, for comparing against another build.
 import assert from "node:assert/strict";
@@ -79,7 +79,8 @@ try {
     }
     check.equal(result.skeletonAfterReady, 0, "a clip that already played must not show its skeleton again");
     check.equal(result.ghost, 0, "an unrevealed video must not show beneath a transparent poster");
-    check.ok(result.alphaFormats.every(format => format === null || format === "h264"), "grid tiles use the composited H.264 copy");
+    // Desktop tiles play real alpha, so focusing never swaps formats; phones play the composited H.264 copy.
+    check.ok(result.alphaFormats.every(format => format === null || (width >= 768 ? /^(hevcAlpha|webmAlpha)$/.test(format) : format === "h264")), `alpha tiles at ${width}px: ${result.alphaFormats}`);
     check.ok(result.visiblePlaying.every(Boolean), "visible clips play after repeated passes");
 
     // A background tab pauses but keeps its sources.
@@ -93,7 +94,7 @@ try {
     await page.waitForFunction(() => [...document.querySelectorAll(".homepage-project-media video")].some(video => !video.paused));
 
     if (width >= 768) {
-      // Desktop focus is the one place real alpha shows, above the header.
+      // Desktop focus raises real alpha above the header.
       const tile = page.locator("button:has(.homepage-project-media[data-media-alpha])").first();
       await tile.scrollIntoViewIfNeeded();
       await wait(600);

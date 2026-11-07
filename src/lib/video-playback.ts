@@ -265,12 +265,11 @@ class VideoPlayback {
   }
 
   /**
-   * Real alpha only where the clip leaves its tile: the desktop focused view raises it above the header. Once
-   * loaded it stays until released, so closing a project doesn't swap sources mid-return.
+   * Desktop plays real alpha in the grid too, so opening a project never swaps in a new format: the focused view
+   * raises it above the header from the first frame. Phones keep the matte, which is all iPhone plays reliably.
    */
   private transparent(entry: Entry) {
-    if (!entry.asset.alpha || this.mobile.matches) return false;
-    return entry.focusWidth !== undefined || entry.warmWidth !== undefined || Boolean(entry.source && entry.alphaFormat !== "h264");
+    return entry.asset.alpha && !this.mobile.matches;
   }
 
   private probeAlpha() {
