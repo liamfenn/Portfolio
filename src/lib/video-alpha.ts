@@ -53,7 +53,10 @@ export function alphaVideoFormat() {
   })();
 }
 
-export function videoSource(rendition: PortfolioVideoRendition, alpha: boolean, format: AlphaVideoFormat | null) {
-  if (!alpha) return rendition.h264 ?? null;
-  return format ? rendition[format] ?? null : null;
+/**
+ * Alpha clips also carry an H.264 copy composited onto the tile color. It looks identical wherever the tile
+ * backdrop shows through, and decodes in hardware everywhere, so true alpha is reserved for where it's visible.
+ */
+export function videoSource(rendition: PortfolioVideoRendition, format: AlphaVideoFormat | null) {
+  return (format && rendition[format]) || rendition.h264 || null;
 }

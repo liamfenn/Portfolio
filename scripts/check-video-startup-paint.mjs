@@ -8,7 +8,8 @@ try {
   for (const width of [393, 1440]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 2, isMobile: width < 768, hasTouch: width < 768 });
     const errors = [];
-    page.on("pageerror", error => errors.push(error.message));
+    // The dev-only Agentation overlay polls its own local server, unrelated to media.
+    page.on("pageerror", error => { if (!error.message.includes("localhost:4747")) errors.push(error.message); });
     await page.addInitScript(() => {
       const native = HTMLVideoElement.prototype.requestVideoFrameCallback;
       HTMLVideoElement.prototype.requestVideoFrameCallback = function(callback) {

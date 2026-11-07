@@ -2,8 +2,14 @@ import type { PortfolioVideoAsset, PortfolioVideoRendition } from "./media-asset
 
 export const VIDEO_POLICY = {
   loadLimit: 2,
-  prepareMargin: 240,
-  releaseDelay: 15_000,
+  prepareMargin: 480,
+  /** Offscreen tiles loaded ahead of the scroll, so arriving tiles are already decoding. */
+  upcoming: 2,
+  /**
+   * Paused offscreen sources kept attached (on their last frame), so scrolling back never reloads behind a
+   * skeleton. Covers the whole feed; past this, the least recently prepared release first.
+   */
+  retain: 12,
   loadTimeout: 15_000,
   resizeDelay: 250,
   reorderPaintTimeout: 500,

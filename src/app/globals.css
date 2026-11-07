@@ -805,10 +805,13 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 /* Alpha pixels composite over the tile's backing plane, never a second opaque video background. */
 .homepage-project-media[data-media-alpha] :is(.project-preview-media, .project-preview-video, .project-preview-upgrade) { background: transparent; }
 .homepage-project-media[data-media-alpha] .project-preview-media:has(.project-preview-upgrade) > .project-preview-poster { visibility: hidden; }
+/* A transparent poster can't cover the video beneath it, so an unrevealed frame would show through as a second phone. */
+.homepage-project-media[data-media-alpha] .project-preview-video:not([data-frame-ready="true"]) { opacity: 0; }
 .project-focus-media-backdrop { display: none; position: fixed; left: 0; top: 0; transform-origin: top left; z-index: var(--project-focus-media-layer); background: var(--bg-secondary-fill); pointer-events: none; }
 @media (min-width: 768px) {
   .project-focus-media-backdrop { display: block; }
-  .homepage-project-media[data-media-alpha][data-focus-media] { z-index: var(--project-focus-alpha-media-layer); background: transparent; }
+  /* A retained mobile matte stays below the bar until the first transparent desktop frame arrives. */
+  .homepage-project-media[data-media-alpha][data-focus-media]:not(:has(video[data-alpha-format="h264"])) { z-index: var(--project-focus-alpha-media-layer); background: transparent; }
   .homepage-project-media[data-media-alpha][data-focus-media] .skeleton { visibility: hidden; }
   .homepage-project-media[data-media-alpha][data-focus-media] .project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: visible; }
 }

@@ -10,13 +10,16 @@ test("alpha imports require the alpha-aware VP9 decoder or an alpha pixel format
   assert.throws(() => alphaDecoder({ codec_name: "av1", pix_fmt: "yuv420p" }), /No decodable alpha/);
 });
 
-test("transparent video chooses a verified format and never an opaque fallback", () => {
-  const rung = { width: 800, h264: "opaque.mp4", hevcAlpha: "alpha.mov", webmAlpha: "alpha.webm" };
-  assert.equal(videoSource(rung, true, "hevcAlpha"), "alpha.mov");
-  assert.equal(videoSource(rung, true, "webmAlpha"), "alpha.webm");
-  assert.equal(videoSource(rung, true, null), null);
-  assert.equal(videoSource({ width: 800, h264: "opaque.mp4" }, true, "webmAlpha"), null);
-  assert.equal(videoSource(rung, false, "hevcAlpha"), "opaque.mp4");
+test("alpha clips use a verified alpha format only when asked, otherwise their composited H.264", () => {
+  const rung = { width: 800, h264: "matte.mp4", hevcAlpha: "alpha.mov", webmAlpha: "alpha.webm" };
+  assert.equal(videoSource(rung, "hevcAlpha"), "alpha.mov");
+  assert.equal(videoSource(rung, "webmAlpha"), "alpha.webm");
+  // No verified alpha decoder: the matte plays instead of leaving a frozen poster.
+  assert.equal(videoSource(rung, null), "matte.mp4");
+  assert.equal(videoSource({ width: 800, h264: "matte.mp4" }, "webmAlpha"), "matte.mp4");
+  // Without any playable file the poster remains.
+  assert.equal(videoSource({ width: 800 }, null), null);
+  assert.equal(videoSource({ width: 800, hevcAlpha: "alpha.mov" }, "webmAlpha"), null);
 });
 
 function browserProbe(t, getMode) {

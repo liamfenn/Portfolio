@@ -5,6 +5,14 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Video playback: iPhone alpha, reloads, and ghosting (2026-11-07)**
+- Liam reported transparent clips not playing in iPhone Safari (fine on desktop Safari and Chrome), freezing and flashing with the poster, and skeletons on every scroll back. CDN delivery was already right (1-year immutable cache, byte ranges); the player was the cause.
+- **Grid tiles now play an H.264 copy of each alpha clip composited onto the light `bg-secondary-fill` (246,248,250), on every screen.** It's identical against the tile, decodes in hardware everywhere, and needs no alpha probe, which is what failed on iPhone. Real alpha (HEVC, then VP9) is used only in the desktop focused view, where the phone rises above the header, and for its warm neighbors; if neither format works there, the H.264 copy plays below the header instead of a frozen poster. The desktop probe runs once, early. The composited files were generated and uploaded by Codex (`scripts/add-alpha-mobile-previews.mjs`), and `media:import --alpha` now produces them for new clips.
+- **Sources stay attached when tiles leave the screen** (up to `VIDEO_POLICY.retain`, 12, the whole feed), replacing the 15-second release that made every return reload behind a skeleton. **Background tabs pause instead of releasing.** Two tiles ahead of the scroll (480px) load in advance instead of one (240px).
+- **Ghosting fix:** alpha posters are transparent, so a warming or paused video beneath one showed as a second phone. An alpha tile's video now stays at zero opacity until its first frame is revealed.
+- Stress check (`scripts/check-media-stress.mjs`: three full scroll passes 16s apart, background tab, desktop focus), old build → new. WebKit desktop: 30 loads → 9, 75.3 → 19.9 MB, skeleton re-shows everywhere → none. WebKit mobile: 27 loads → 9, 39.3 → 12.8 MB. Chrome: 23 → 9 desktop, 21 → 9 mobile. Every clip still plays 60fps at the same rung (Chrome decoded 300 frames per 5s on four visible tiles in both builds, with 0–3 drops). The composited background samples 246,248,250 in WebKit and Chrome.
+- Not yet confirmed on a physical iPhone, and iPhone memory with the whole feed attached should be watched as clips are added. Liam plans to replace the two remaining opaque phone clips with transparent exports; import them with `media:import --alpha`.
+
 **Blink timer stacking tag (2026-11-07)**
 - Tagged the separate Blink timer preview as `bottom`, so the existing arrangement rule keeps it from directly following a `top`-tagged preview, including in Random. Uses the shared arrangement logic.
 

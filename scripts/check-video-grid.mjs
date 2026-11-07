@@ -17,7 +17,8 @@ try {
     const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 2 });
     const page = await context.newPage();
     const errors = [];
-    page.on("pageerror", error => errors.push(error.message));
+    // The dev-only Agentation overlay polls its own local server, unrelated to media.
+    page.on("pageerror", error => { if (!error.message.includes("localhost:4747")) errors.push(error.message); });
     await page.addInitScript(() => {
       window.__videoStats = { maxLoading: 0, maxPlaying: 0, firstFrameMs: null };
       setInterval(() => {
@@ -34,7 +35,8 @@ try {
     assert.equal(initial.length, 12);
     const visible = initial.filter(video => video.visible).length;
     assert.ok(initial.filter(video => video.playing).length <= visible);
-    assert.ok(initial.filter(video => video.src).length <= visible + 1);
+    // Visible clips plus VIDEO_POLICY.upcoming (2) tiles ahead of the scroll.
+    assert.ok(initial.filter(video => video.src).length <= visible + 2);
     assert.ok(initial.some(video => !video.src));
     if (width < 768) {
       await page.locator(".project-grid").evaluate(grid => grid.style.setProperty("--project-mobile-columns", "2"));
@@ -63,14 +65,20 @@ try {
     }
     await page.getByRole("button", { name: "Prioritize video 12", exact: true }).hover();
     await page.waitForFunction(() => document.querySelectorAll("video")[11].dataset.frameReady === "true");
+    // Clips that already played before scrolling away; tiles skipped over were never loaded.
+    const played = (await snapshots(page)).map(video => video.ready === "true");
     await page.getByRole("button", { name: "1 columns", exact: true }).click();
     const last = page.locator("video").last();
     await last.scrollIntoViewIfNeeded();
     await page.waitForFunction(expected => document.querySelectorAll("video")[11].videoWidth === expected && document.querySelectorAll("video")[11].dataset.frameReady === "true", width < 768 ? 800 : 1600);
     await page.waitForTimeout(16_000);
-    assert.equal((await snapshots(page))[0].src, null, "far-away decoder source must be released");
+    // Loaded clips stay attached while offscreen (up to VIDEO_POLICY.retain), so returning never reloads.
+    // A load interrupted by the column change may release, so allow one.
+    const after = await snapshots(page), far = after.filter((video, index) => !video.visible && played[index]);
+    assert.ok(after.filter(video => !video.visible).every(video => !video.playing), "offscreen clips pause");
+    assert.ok(far.filter(video => video.src).length >= far.length - 1, `offscreen played clips stay attached: ${JSON.stringify(far.map(video => [video.state, video.width]))}`);
     await page.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange")); });
-    assert.ok((await snapshots(page)).every(video => !video.src && !video.playing));
+    assert.ok((await snapshots(page)).every(video => !video.playing), "a background tab pauses every clip and keeps its sources");
     await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event("visibilitychange")); });
     await page.waitForFunction(() => document.querySelector('video[data-frame-ready="true"]'));
     // Check the actual rendered edge at fractional scroll positions, not just encoded pixels.

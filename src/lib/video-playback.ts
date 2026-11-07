@@ -24,13 +24,16 @@ type Entry = {
   loading: boolean;
   ready: boolean;
   width: number;
+  source?: string;
+  alphaFormat?: AlphaVideoFormat | "h264";
   retries: number;
   generation: number;
   resumeTime?: number;
   frame?: number;
   paint?: number;
   timer?: ReturnType<typeof setTimeout>;
-  release?: ReturnType<typeof setTimeout>;
+  /** When this entry was last prepared; the least recently used offscreen sources release first. */
+  used: number;
   cover?: HTMLCanvasElement;
   display?: (state: VideoDisplayState) => void;
 };
@@ -40,6 +43,7 @@ type Connection = EventTarget & { saveData?: boolean };
 class VideoPlayback {
   private entries = new Map<Element, Entry>();
   private motion = matchMedia("(prefers-reduced-motion: reduce)");
+  private mobile = matchMedia("(max-width: 767px)");
   private connection = (navigator as Navigator & { connection?: Connection }).connection;
   private frame = 0;
   private active = true;
@@ -71,13 +75,14 @@ class VideoPlayback {
     window.addEventListener("pagehide", this.onPageHide);
     window.addEventListener("pageshow", this.onPolicy);
     this.motion.addEventListener("change", this.onPolicy);
+    this.mobile.addEventListener("change", this.onPolicy);
     this.connection?.addEventListener("change", this.onPolicy);
   }
 
   register(video: HTMLVideoElement, asset: PortfolioVideoAsset, display?: Entry["display"]) {
     const entry: Entry = {
       video, asset, visible: 0, near: false, distance: Infinity, priority: false, focused: false, warm: false, intentPriority: false,
-      failed: false, wanted: false, loading: false, ready: false, width: 0, retries: 0, generation: 0, display,
+      failed: false, wanted: false, loading: false, ready: false, width: 0, retries: 0, generation: 0, used: 0, display,
     };
     this.entries.set(video, entry);
     this.observer.observe(video);
@@ -191,9 +196,9 @@ class VideoPlayback {
   private onScroll = () => this.schedule();
   private onPolicy = (event?: Event) => {
     if (event?.type === "pageshow") this.active = true;
-    if (document.hidden || this.motion.matches || this.connection?.saveData) {
-      this.entries.forEach(entry => this.release(entry));
-    }
+    if (this.motion.matches || this.connection?.saveData) this.entries.forEach(entry => this.release(entry));
+    // A background tab only pauses: the browser already idles paused media, and returning shouldn't reload every clip.
+    else if (document.hidden) this.entries.forEach(entry => this.pause(entry));
     this.schedule();
   };
   private onPageHide = () => { this.active = false; this.entries.forEach(entry => this.release(entry)); };
@@ -205,63 +210,85 @@ class VideoPlayback {
   private update() {
     const all = [...this.entries.values()];
     all.forEach(entry => this.measure(entry));
-    if (!this.active || document.hidden || this.motion.matches || this.connection?.saveData) {
+    if (!this.active || this.motion.matches || this.connection?.saveData) {
       all.forEach(entry => { if (entry.video.dataset.playback !== "poster") this.release(entry); });
       return;
     }
+    if (document.hidden) { all.forEach(entry => this.pause(entry)); return; }
+    // Probe early on desktop, so a focused clip can switch to real alpha without waiting.
+    if (!this.mobile.matches && all.some(entry => entry.asset.alpha)) this.probeAlpha();
     const focused = this.focusSession || all.some(entry => entry.focused);
     const ranked = rankVideos(all, focused);
     // Behind an opaque focus session, the grid is not visible. Warm neighbors load but do not decode continuously.
     const playing = new Set(ranked.filter(entry => entry.visible > 0 && (!focused || entry.focused)));
-    // Warm just one upcoming tile, plus any requested ones, without filling the load queue with offscreen cards.
-    const upcoming = ranked.find(entry => !entry.visible);
-    const prepared = new Set([...playing, ...(upcoming ? [upcoming] : []), ...ranked.filter(entry => entry.warmWidth !== undefined)]);
+    // Warm the next few tiles, plus any requested ones, without filling the load queue with far-off cards.
+    const upcoming = ranked.filter(entry => !entry.visible).slice(0, VIDEO_POLICY.upcoming);
+    const prepared = new Set([...playing, ...upcoming, ...ranked.filter(entry => entry.warmWidth !== undefined)]);
+    const now = performance.now();
     for (const entry of all) {
       entry.wanted = playing.has(entry);
       if (!entry.wanted) this.pause(entry);
-      if (!prepared.has(entry)) {
+      if (prepared.has(entry)) entry.used = now;
+      else {
         if (!entry.width) entry.display?.("poster");
         if (entry.loading) this.release(entry);
-        if (entry.width && !entry.release) entry.release = setTimeout(() => {
-          this.release(entry); this.schedule();
-        }, VIDEO_POLICY.releaseDelay);
-      } else { clearTimeout(entry.release); entry.release = undefined; }
+      }
     }
+    // Loaded clips stay attached (paused, on their last frame) up to a cap, so scrolling back resumes instantly.
+    all.filter(entry => entry.width && !prepared.has(entry)).sort((a, b) => b.used - a.used)
+      .slice(VIDEO_POLICY.retain).forEach(entry => this.release(entry));
     let loading = all.filter(entry => entry.loading).length;
     for (const entry of ranked.filter(entry => prepared.has(entry))) {
       const rung = videoRendition(entry.asset, entry.focusWidth ?? entry.warmWidth ?? entry.video.clientWidth, devicePixelRatio, entry.width);
       if (!rung) continue;
-      if (entry.asset.alpha && this.alphaFormat === undefined) {
-        if (!this.probingAlpha) {
-          this.probingAlpha = true;
-          void alphaVideoFormat().then(format => { this.alphaFormat = format; this.schedule(); });
-        }
-        entry.display?.("poster");
+      const transparent = this.transparent(entry);
+      if (transparent && this.alphaFormat === undefined) {
+        // Keep whatever is already playing rather than loading the matte and then the alpha file.
+        this.probeAlpha();
+        if (!entry.source) entry.display?.("poster");
+        else if (entry.ready && entry.wanted) this.play(entry);
         continue;
       }
-      const source = videoSource(rung, Boolean(entry.asset.alpha), this.alphaFormat ?? null);
+      const format = transparent ? this.alphaFormat ?? null : null;
+      const source = videoSource(rung, format);
       if (!source) {
-        // An inconclusive shared probe must not permanently fail every alpha card.
-        entry.failed = !entry.asset.alpha || this.alphaFormat !== null;
+        entry.failed = true;
         entry.display?.("poster");
         continue;
       }
-      if (entry.asset.alpha) entry.video.dataset.alphaFormat = this.alphaFormat!;
       // Nothing new starts mid-flight: building a video surface then can stall Safari long enough to lose the tween.
-      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.focusMoving && (!entry.width || rung.width > entry.width)) {
-        this.load(entry, source, rung.width);
+      if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.focusMoving && (!entry.width || rung.width > entry.width || entry.source !== source)) {
+        this.load(entry, source, rung.width, format && source === rung[format] ? format : "h264");
         loading++;
       } else if (entry.ready && entry.wanted) this.play(entry);
     }
   }
 
-  private load(entry: Entry, source: string, width: number) {
+  /**
+   * Real alpha only where the clip leaves its tile: the desktop focused view raises it above the header. Once
+   * loaded it stays until released, so closing a project doesn't swap sources mid-return.
+   */
+  private transparent(entry: Entry) {
+    if (!entry.asset.alpha || this.mobile.matches) return false;
+    return entry.focusWidth !== undefined || entry.warmWidth !== undefined || Boolean(entry.source && entry.alphaFormat !== "h264");
+  }
+
+  private probeAlpha() {
+    if (this.alphaFormat !== undefined || this.probingAlpha) return;
+    this.probingAlpha = true;
+    void alphaVideoFormat().then(format => { this.probingAlpha = false; this.alphaFormat = format; this.schedule(); });
+  }
+
+  private load(entry: Entry, source: string, width: number, format: AlphaVideoFormat | "h264") {
     const resumeTime = entry.video.currentTime;
     // Resolution upgrades retain the current picture instead of briefly revealing an unrelated poster.
     if (entry.video.dataset.frameReady === "true") this.captureUpgrade(entry);
     this.release(entry, Boolean(entry.cover));
     entry.resumeTime = resumeTime;
     entry.width = width;
+    entry.source = source;
+    entry.alphaFormat = format;
+    if (!entry.cover) entry.video.dataset.alphaFormat = format;
     entry.loading = true;
     entry.video.dataset.playback = "loading";
     // Focused media keeps its poster up while loading, so paging never reveals the loading surface.
@@ -280,6 +307,7 @@ class VideoPlayback {
       entry.frame = undefined;
       entry.paint = undefined;
       if (generation === entry.generation && entry.wanted && !entry.video.paused) {
+        entry.video.dataset.alphaFormat = entry.alphaFormat;
         entry.video.dataset.frameReady = "true";
         entry.video.dataset.playback = "playing";
         entry.display?.("ready");
@@ -327,10 +355,11 @@ class VideoPlayback {
     this.pause(entry);
     delete entry.video.dataset.frameReady;
     clearTimeout(entry.timer);
-    clearTimeout(entry.release);
-    entry.timer = entry.release = undefined;
+    entry.timer = undefined;
     entry.loading = entry.ready = false;
     entry.width = 0;
+    entry.source = undefined;
+    if (!keepCover) delete entry.video.dataset.alphaFormat;
     if (entry.video.hasAttribute("src")) {
       entry.video.removeAttribute("src");
       entry.video.load();
@@ -359,6 +388,7 @@ class VideoPlayback {
     window.removeEventListener("pagehide", this.onPageHide);
     window.removeEventListener("pageshow", this.onPolicy);
     this.motion.removeEventListener("change", this.onPolicy);
+    this.mobile.removeEventListener("change", this.onPolicy);
     this.connection?.removeEventListener("change", this.onPolicy);
     coordinator = undefined;
   }
