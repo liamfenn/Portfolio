@@ -48,6 +48,9 @@ export function HomepageBio() {
       I&apos;m a Staff Product Designer at <BioLink href="https://shopify.com">Shopify</BioLink> working somewhere between pixels and code on <BioLink href="https://shop.com/">Shop</BioLink>. Previously, I spent time at <BioLink href="https://s.engineering">OpenPurpose</BioLink> where I designed interfaces for <BioLink href="https://bird.com/">Bird</BioLink>, <BioLink href="https://plasticity.xyz/">Plasticity</BioLink>, and others.
     </InspectableText></p>
     <p><InspectableText>
+      I also run <BioLink href="https://milktooth.studio">Milktooth</BioLink>, a small creative practice and idea incubator. At this time, we’re not open for new business.
+    </InspectableText></p>
+    <p><InspectableText>
       This site is an experiment in the tools, ideas, and changing ways <br className="bio-desktop-break" />we design and build. Read about the <BioLink href="/process">process</BioLink>.
     </InspectableText></p>
   </div>;
