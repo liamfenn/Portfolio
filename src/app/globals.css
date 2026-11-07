@@ -373,6 +373,9 @@
 .project-preview-media[data-video-display="loading"] > .project-preview-poster { visibility: hidden; }
 .project-preview-upgrade { z-index: 1; }
 .project-preview-video[data-frame-ready="true"] + .project-preview-poster { visibility: hidden; }
+/* A paused video relocated by sorting shows its poster until it presents again (see video-reorder.ts). */
+.project-preview-video[data-reorder-hold] { opacity: 0; }
+.project-preview-video[data-reorder-hold] + .project-preview-poster { visibility: visible; }
 
 /* Shared loading surfaces sit behind real media, so cached and no-JS images remain visible. */
 .skeleton {

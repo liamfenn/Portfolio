@@ -13,6 +13,8 @@ export const VIDEO_POLICY = {
   loadTimeout: 15_000,
   resizeDelay: 250,
   reorderPaintTimeout: 500,
+  /** A held poster is a safe picture, so it can wait longer for a paused video to resume and present. */
+  reorderHoldTimeout: 3000,
 } as const;
 
 export type VideoCandidate = {

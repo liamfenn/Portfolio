@@ -28,7 +28,7 @@ function environment(t) {
   }
   const video = (overrides = {}) => Object.assign(new EventTarget(), {
     dataset: { frameReady: "true" }, readyState: 4, videoWidth: 1200, videoHeight: 1200,
-    currentTime: 8, src: "unchanged.mp4", paused: true,
+    currentTime: 8, src: "unchanged.mp4", paused: false,
     getBoundingClientRect: () => ({ top: 100, bottom: 493, left: 0, right: 393, width: 393, height: 393 }),
     parentElement: { querySelector: () => null, appendChild: () => {} },
     requestVideoFrameCallback(callback) { this.present = callback; return 1; },
@@ -99,4 +99,28 @@ test("a video that never presents cannot leave a stuck cover", async t => {
   assert.equal(env.canvases[0].removed, true);
   assert.equal(env.canvases[0].width, 0);
   assert.equal(video.cancelled, true);
+});
+
+test("a paused video relocated into view holds its poster, not a frame copy, until it presents again", t => {
+  const env = environment(t), video = env.video({ paused: true });
+  const clear = preserveReorderedVideoFrames([video]);
+  t.after(clear);
+  assert.equal(env.canvases.length, 0, "a suspended surface could copy as black");
+  assert.equal(video.dataset.reorderHold, "");
+  video.present();
+  env.paint();
+  assert.equal(video.dataset.reorderHold, "");
+  env.paint();
+  assert.equal("reorderHold" in video.dataset, false);
+  assert.equal(video.src, "unchanged.mp4");
+});
+
+test("a held poster clears on source release and on repeat sorts", t => {
+  const env = environment(t), released = env.video({ paused: true }), resorted = env.video({ paused: true });
+  const clear = preserveReorderedVideoFrames([released, resorted]);
+  released.dispatchEvent(new Event("emptied"));
+  assert.equal("reorderHold" in released.dataset, false);
+  clear();
+  assert.equal("reorderHold" in resorted.dataset, false);
+  assert.equal(resorted.cancelled, true);
 });
