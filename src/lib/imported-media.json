@@ -1,4 +1,43 @@
 {
+  "milktooth-q4-2026": {
+    "id": "milktooth-q4-2026",
+    "kind": "video",
+    "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-1600.mp4",
+    "poster": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-poster-1600.webp",
+    "posters": [
+      {
+        "width": 480,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-poster-480.webp"
+      },
+      {
+        "width": 800,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-poster-800.webp"
+      },
+      {
+        "width": 1600,
+        "src": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-poster-1600.webp"
+      }
+    ],
+    "alt": "Milktooth interaction prototype from Q4 2026",
+    "width": 1600,
+    "height": 1600,
+    "frameRate": 60,
+    "duration": 31.75,
+    "renditions": [
+      {
+        "width": 800,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-800.mp4"
+      },
+      {
+        "width": 1200,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-1200.mp4"
+      },
+      {
+        "width": 1600,
+        "h264": "https://el220fg1tsh8udeh.public.blob.vercel-storage.com/media/milktooth-q4-2026/84c349d409ce4684-1600.mp4"
+      }
+    ]
+  },
   "shop-product-page": {
     "id": "shop-product-page",
     "kind": "video",
