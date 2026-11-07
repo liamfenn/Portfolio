@@ -5,6 +5,12 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**iPhone Safari alpha detection fix (2026-11-07)**
+- Liam reported that every transparent clip remained on its poster on iOS 27.2 Safari while desktop Safari and the older opaque clips played. The shared probe used a detached video and waited for `loadeddata` without calling `play()`, then cached a negative result for the session. Metadata-only preload can therefore reject otherwise supported alpha formats before a project source is attached.
+- The tiny probe now mounts an inaccessible 1px transparent video, explicitly requests muted inline playback, and samples the decoded frame. Success, decode error, autoplay denial, canvas failure, and an 8-second timeout all remove the temporary element and release its source exactly once. Actual decoded alpha is still required; there is no browser sniffing or opaque fallback.
+- Inconclusive format checks are no longer permanently cached. A project tap can retry detection, and a shared probe failure leaves alpha cards retryable rather than marking all of them as failed decodes. Verified support remains cached.
+- Regression tests model iPhone’s metadata-only preload, playback rejection, missing alpha, corrupt media, canvas read failure, timeout cleanup, and retry after an inconclusive check. 106 tests, TypeScript, touched-file lint, production build, and diff checks pass. Browser review confirms HEVC selection, advancing playback in all four alpha clips, and probe cleanup in WebKit. Physical iPhone confirmation is still needed; the running Simulator could not be controlled because its application bundle is missing.
+
 **Transparent Baskets, Bottom search, and second Blink preview (2026-11-07)**
 - Replaced Baskets and Bottom search with Liam’s original transparent VP9 exports, keeping project IDs, credits, stack, and order. Added `Timer-shake.webm` as a separate Blink / Milktooth tile (`milktooth-blink-timer`), Q4 26, UIKit and Metal, immediately after the existing Blink. The reattached `3d-shake.webm` was identical to the existing first preview; Liam confirmed the timer was the intended second export. The feed now has ten filled projects.
 - All three masters are 2160px square at 60fps with tagged SDR sRGB/Rec.709 and alpha. Imported four sizes of VP9 and HEVC-with-alpha plus transparent posters directly from the originals. Every output fully decodes; native HEVC checks validate 805 / 677 / 1174 frames per rendition respectively, with transparent and opaque alpha samples. Originals remain untouched and outside Git.

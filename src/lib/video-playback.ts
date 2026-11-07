@@ -95,7 +95,11 @@ class VideoPlayback {
       this.schedule();
     };
     const error = () => this.fail(entry);
-    const intent = () => { entry.failed = false; entry.retries = 0; this.schedule(); };
+    const intent = () => {
+      entry.failed = false; entry.retries = 0;
+      if (entry.asset.alpha && this.alphaFormat === null) this.alphaFormat = undefined;
+      this.schedule();
+    };
     video.addEventListener("loadeddata", ready);
     video.addEventListener("error", error);
     const intentTarget = video.closest("a, button, summary") ?? video.parentElement!;
@@ -236,7 +240,12 @@ class VideoPlayback {
         continue;
       }
       const source = videoSource(rung, Boolean(entry.asset.alpha), this.alphaFormat ?? null);
-      if (!source) { entry.failed = true; entry.display?.("poster"); continue; }
+      if (!source) {
+        // An inconclusive shared probe must not permanently fail every alpha card.
+        entry.failed = !entry.asset.alpha || this.alphaFormat !== null;
+        entry.display?.("poster");
+        continue;
+      }
       if (entry.asset.alpha) entry.video.dataset.alphaFormat = this.alphaFormat!;
       // Nothing new starts mid-flight: building a video surface then can stall Safari long enough to lose the tween.
       if (loading < VIDEO_POLICY.loadLimit && !entry.loading && !entry.focusMoving && (!entry.width || rung.width > entry.width)) {

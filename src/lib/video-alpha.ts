@@ -6,12 +6,18 @@ export type AlphaVideoFormat = "hevcAlpha" | "webmAlpha";
 export function probeAlphaVideo(source: string): Promise<boolean> {
   return new Promise(resolve => {
     const video = document.createElement("video");
-    video.muted = true; video.playsInline = true; video.preload = "auto";
+    video.muted = video.defaultMuted = true; video.playsInline = true; video.preload = "auto";
+    video.setAttribute("aria-hidden", "true");
+    video.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";
+    let finished = false;
     const finish = (supported: boolean) => {
+      if (finished) return;
+      finished = true;
       clearTimeout(timeout);
       video.removeEventListener("loadeddata", ready);
       video.removeEventListener("error", failed);
       video.pause(); video.removeAttribute("src"); video.load();
+      video.remove();
       resolve(supported);
     };
     const ready = () => {
@@ -26,10 +32,13 @@ export function probeAlphaVideo(source: string): Promise<boolean> {
       canvas.width = canvas.height = 0;
     };
     const failed = () => finish(false);
-    const timeout = setTimeout(failed, 2000);
+    const timeout = setTimeout(failed, 8000);
     video.addEventListener("loadeddata", ready, { once: true });
     video.addEventListener("error", failed, { once: true });
+    // iPhone Safari may preload only metadata. A mounted, muted inline play requests a decoded frame.
+    document.body.appendChild(video);
     video.src = source; video.load();
+    void video.play().catch(failed);
   });
 }
 
@@ -38,6 +47,8 @@ export function alphaVideoFormat() {
   return support ??= (async () => {
     if (await probeAlphaVideo("/videos/support/alpha-hevc.mov")) return "hevcAlpha";
     if (await probeAlphaVideo("/videos/support/alpha-vp9.webm")) return "webmAlpha";
+    // A timeout or autoplay denial is not permanent evidence that neither codec works.
+    support = undefined;
     return null;
   })();
 }
