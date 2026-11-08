@@ -15,7 +15,28 @@ export const VIDEO_POLICY = {
   reorderPaintTimeout: 500,
   /** A held poster is a safe picture, so it can wait longer for a paused video to resume and present. */
   reorderHoldTimeout: 3000,
+  /** The desktop grid's alpha rung, asked about before the grid plays real alpha. */
+  alphaGridDecode: { size: 1200, framerate: 60 },
+  /** How long a grid alpha clip plays before its dropped frames are judged. */
+  alphaWatchDelay: 3000,
+  alphaWatchMinFrames: 120,
+  alphaWatchDropLimit: 0.25,
+  /** Chrome's connection estimates slow enough that video can't arrive before it's needed. */
+  slowConnections: ["slow-2g", "2g"],
 } as const;
+
+/** Save-Data, or a connection too slow for video: posters only. */
+export function limitsVideo(connection?: { saveData?: boolean; effectiveType?: string }) {
+  return Boolean(connection?.saveData) || (VIDEO_POLICY.slowConnections as readonly string[]).includes(connection?.effectiveType ?? "");
+}
+
+/**
+ * A machine dropping this share of frames can't keep up with alpha decoding; occasional drops are normal. Undefined
+ * until enough frames have been counted (WebKit updates its counts only every couple of seconds).
+ */
+export function decodeStruggles(total: number, dropped: number) {
+  return total < VIDEO_POLICY.alphaWatchMinFrames ? undefined : dropped / total > VIDEO_POLICY.alphaWatchDropLimit;
+}
 
 export type VideoCandidate = {
   visible: number;

@@ -53,6 +53,26 @@ export function alphaVideoFormat() {
   })();
 }
 
+// The imported alpha files: HEVC Main level 4.0 and VP9 profile 0, about 4 Mbps at the 1200 rung.
+const ALPHA_DECODING = {
+  hevcAlpha: 'video/mp4; codecs="hvc1.1.6.L120.B0"',
+  webmAlpha: 'video/webm; codecs="vp09.00.40.08"',
+} as const;
+
+/**
+ * Whether this machine can keep alpha playing in the grid. Old Macs decode HEVC in software, which the browser reports
+ * as not power efficient. Chrome decodes VP9 alpha in software on every machine, so only its smoothness estimate counts.
+ */
+export async function alphaDecodesSmoothly(format: AlphaVideoFormat, { size, framerate }: { size: number; framerate: number }) {
+  if (!navigator.mediaCapabilities?.decodingInfo) return false;
+  try {
+    const info = await navigator.mediaCapabilities.decodingInfo({
+      type: "file", video: { contentType: ALPHA_DECODING[format], width: size, height: size, framerate, bitrate: 4_000_000 },
+    });
+    return info.supported && info.smooth && (format === "webmAlpha" || info.powerEfficient);
+  } catch { return false; }
+}
+
 /**
  * Alpha clips also carry an H.264 copy composited onto the tile color. It looks identical wherever the tile
  * backdrop shows through, and decodes in hardware everywhere, so true alpha is reserved for where it's visible.

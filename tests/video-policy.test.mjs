@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { rankVideos, videoRendition } from "../src/lib/video-policy.ts";
+import { decodeStruggles, limitsVideo, rankVideos, videoRendition } from "../src/lib/video-policy.ts";
 import { encodingPlan, rate } from "../scripts/lib/video-processing.mjs";
 
 const asset = { renditions: [800, 1200, 1600].map(width => ({ width, h264: `${width}.mp4` })) };
@@ -72,4 +72,18 @@ test("an image-only focused project also keeps hidden grid videos out of playbac
     { id: "neighbor", near: true, visible: 0, priority: true, warm: true, failed: false, distance: 100 },
   ];
   assert.deepEqual(rankVideos(items, true).map(item => item.id), ["neighbor"]);
+});
+
+test("Save-Data and Chrome's 2G estimates get posters; 3G and unknown connections still play", () => {
+  assert.equal(limitsVideo({ saveData: true, effectiveType: "4g" }), true);
+  assert.equal(limitsVideo({ effectiveType: "2g" }), true);
+  assert.equal(limitsVideo({ effectiveType: "slow-2g" }), true);
+  assert.equal(limitsVideo({ effectiveType: "3g" }), false);
+  assert.equal(limitsVideo(undefined), false, "Safari has no connection API");
+});
+
+test("only sustained frame loss counts as a machine that can't keep up with alpha", () => {
+  assert.equal(decodeStruggles(180, 20), false, "occasional drops are normal");
+  assert.equal(decodeStruggles(180, 60), true);
+  assert.equal(decodeStruggles(40, 30), undefined, "too few frames to judge yet");
 });

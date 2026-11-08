@@ -101,12 +101,13 @@ try {
     console.log(`${width}px: twelve clips, priority, resizing, release, background policy, and clean edges`, stats);
     await context.close();
   }
-  for (const mode of ["reduced-motion", "save-data", "no-js", "blocked", "failed"]) {
+  for (const mode of ["reduced-motion", "save-data", "slow-connection", "no-js", "blocked", "failed"]) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: mode === "reduced-motion" ? "reduce" : "no-preference", javaScriptEnabled: mode !== "no-js" });
     const page = await context.newPage();
     let mediaRequests = 0;
     page.on("request", request => { if (request.url().includes(".mp4")) mediaRequests++; });
     if (mode === "save-data") await page.addInitScript(() => { const connection = new EventTarget(); connection.saveData = true; Object.defineProperty(navigator, "connection", { value: connection }); });
+    if (mode === "slow-connection") await page.addInitScript(() => { const connection = new EventTarget(); connection.effectiveType = "2g"; Object.defineProperty(navigator, "connection", { value: connection }); });
     if (mode === "blocked") await page.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException("Test autoplay denial", "NotAllowedError")); });
     if (mode === "failed") await page.route("**/*.mp4*", route => route.abort());
     await page.goto(`${origin}/dev/video-lab`, { waitUntil: "domcontentloaded" });
@@ -114,7 +115,7 @@ try {
     const videos = await snapshots(page);
     assert.equal(videos.length, 12);
     assert.ok(videos.every(video => !video.playing && video.ready !== "true"));
-    if (["reduced-motion", "save-data", "no-js"].includes(mode)) assert.equal(mediaRequests, 0);
+    if (["reduced-motion", "save-data", "slow-connection", "no-js"].includes(mode)) assert.equal(mediaRequests, 0);
     else {
       assert.ok(videos.some(video => video.state === (mode === "blocked" ? "blocked" : "error")));
       const before = mediaRequests;

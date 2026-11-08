@@ -5,6 +5,12 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Intro copy, process page, and playback safeguards (2026-11-07)**
+- The intro now says Milk Tooth (still one link) and drops the site/process paragraph. `/process` is gone with everything only it used: the essay data, its media component and styles, two images in `public/images/process`, `--process-section-gap`, and the desktop line break. The live site (`main`) never had it. Project labels in the feed still say Milktooth.
+- **Slow connections:** Chrome's `2g` and `slow-2g` estimates now get posters, like Save-Data (`limitsVideo`). Safari exposes neither, so there a slow load still falls back to the poster after 15 seconds. `check-video-grid` covers it with zero media requests.
+- **Machines that can't keep up with alpha:** the desktop grid asks Media Capabilities before playing alpha and falls back to the matte if the answer is no (HEVC must be smooth and power efficient; VP9 only smooth). A grid alpha clip dropping over 25% of its frames moves the grid to the matte for the visit. The focused view keeps real alpha either way. Verified by faking each answer in WebKit and Chrome; the real answers on this Mac are yes, and the full desktop stress run didn't trip the backstop. Headless WebKit updates frame counts only every ~2 seconds, so the backstop keeps watching until it has 120 frames to judge.
+- Not added: a lower clip cap for low-memory devices. Safari doesn't report memory, so it wouldn't reach the iPhones that are the real risk.
+
 **Desktop alpha plays in the grid again (2026-11-07)**
 - After a refresh, focusing an alpha clip on desktop showed it under the title bar for about a second, then above it: the grid played the H.264 matte, so focus had to download the alpha file before raising the clip. Desktop grid tiles now play real alpha (HEVC in Safari, VP9 in Chrome), as they did before the iPhone fix; phones keep the matte. Focus only upgrades the rung, under a transparent still, so the clip is above the bar from the first frame. If the tile hasn't loaded yet, the transparent poster stands in, also above the bar.
 - Checked by sampling every 50ms after the click at 0, 400 and 4000ms after scrolling to Blink, in WebKit and Chrome: always above the bar. Clicking before the tile's own poster has loaded leaves about 100ms with nothing shown.

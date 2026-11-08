@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { alphaDecoder } from "../scripts/lib/alpha-video-processing.mjs";
-import { alphaVideoFormat, probeAlphaVideo, videoSource } from "../src/lib/video-alpha.ts";
+import { alphaDecodesSmoothly, alphaVideoFormat, probeAlphaVideo, videoSource } from "../src/lib/video-alpha.ts";
 
 test("alpha imports require the alpha-aware VP9 decoder or an alpha pixel format", () => {
   assert.deepEqual(alphaDecoder({ codec_name: "vp9", tags: { alpha_mode: "1" } }), ["-c:v", "libvpx-vp9"]);
@@ -100,4 +100,20 @@ test("an inconclusive alpha check can retry rather than caching static posters f
   assert.equal(await alphaVideoFormat(), "hevcAlpha");
   assert.equal(videos.length, 3);
   videos.forEach(assertReleased);
+});
+
+test("the desktop grid needs smooth hardware HEVC, smooth VP9, or it plays the matte", async t => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  t.after(() => original ? Object.defineProperty(globalThis, "navigator", original) : delete globalThis.navigator);
+  const answer = info => Object.defineProperty(globalThis, "navigator", { configurable: true, value: { mediaCapabilities: { decodingInfo: async () => info } } });
+  const size = { size: 1200, framerate: 60 };
+  answer({ supported: true, smooth: true, powerEfficient: true });
+  assert.equal(await alphaDecodesSmoothly("hevcAlpha", size), true);
+  answer({ supported: true, smooth: true, powerEfficient: false });
+  assert.equal(await alphaDecodesSmoothly("hevcAlpha", size), false, "software HEVC on an older Mac");
+  assert.equal(await alphaDecodesSmoothly("webmAlpha", size), true, "Chrome's VP9 alpha is always software");
+  answer({ supported: true, smooth: false, powerEfficient: false });
+  assert.equal(await alphaDecodesSmoothly("webmAlpha", size), false);
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: {} });
+  assert.equal(await alphaDecodesSmoothly("webmAlpha", size), false, "no Media Capabilities: assume an older browser");
 });

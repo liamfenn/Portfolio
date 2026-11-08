@@ -1,8 +1,8 @@
 import type { PortfolioVideoAsset } from "./media-assets";
 import { mediaUrl } from "./media-delivery";
-import { rankVideos, VIDEO_POLICY, videoRendition } from "./video-policy";
+import { decodeStruggles, limitsVideo, rankVideos, VIDEO_POLICY, videoRendition } from "./video-policy";
 import { preserveReorderedVideoFrames } from "./video-reorder";
-import { alphaVideoFormat, videoSource } from "./video-alpha";
+import { alphaDecodesSmoothly, alphaVideoFormat, videoSource } from "./video-alpha";
 import type { AlphaVideoFormat } from "./video-alpha";
 
 export type VideoDisplayState = "loading" | "ready" | "poster";
@@ -32,12 +32,13 @@ type Entry = {
   frame?: number;
   paint?: number;
   timer?: ReturnType<typeof setTimeout>;
+  alphaWatch?: ReturnType<typeof setTimeout>;
   /** When this entry was last prepared; the least recently used offscreen sources release first. */
   used: number;
   cover?: HTMLCanvasElement;
   display?: (state: VideoDisplayState) => void;
 };
-type Connection = EventTarget & { saveData?: boolean };
+type Connection = EventTarget & { saveData?: boolean; effectiveType?: string };
 
 /** One coordinator owns observers, startup load slots, and viewport playback for the whole grid. */
 class VideoPlayback {
@@ -49,6 +50,8 @@ class VideoPlayback {
   private active = true;
   private resizeTimer?: ReturnType<typeof setTimeout>;
   private alphaFormat?: AlphaVideoFormat | null;
+  /** Whether the desktop grid plays real alpha; undefined until the probe and decode check finish. */
+  private alphaGrid?: boolean;
   private probingAlpha = false;
   private focusSession = focusSessionActive;
   private observer = new IntersectionObserver(changes => {
@@ -153,7 +156,7 @@ class VideoPlayback {
   }
 
   reorder() {
-    const clear = !this.active || document.hidden || this.motion.matches || this.connection?.saveData
+    const clear = !this.active || document.hidden || this.motion.matches || limitsVideo(this.connection)
       ? () => {}
       : preserveReorderedVideoFrames([...this.entries.values()].map(entry => entry.video));
     // CSS order can change visibility without crossing an IntersectionObserver threshold.
@@ -196,7 +199,7 @@ class VideoPlayback {
   private onScroll = () => this.schedule();
   private onPolicy = (event?: Event) => {
     if (event?.type === "pageshow") this.active = true;
-    if (this.motion.matches || this.connection?.saveData) this.entries.forEach(entry => this.release(entry));
+    if (this.motion.matches || limitsVideo(this.connection)) this.entries.forEach(entry => this.release(entry));
     // A background tab only pauses: the browser already idles paused media, and returning shouldn't reload every clip.
     else if (document.hidden) this.entries.forEach(entry => this.pause(entry));
     this.schedule();
@@ -210,7 +213,7 @@ class VideoPlayback {
   private update() {
     const all = [...this.entries.values()];
     all.forEach(entry => this.measure(entry));
-    if (!this.active || this.motion.matches || this.connection?.saveData) {
+    if (!this.active || this.motion.matches || limitsVideo(this.connection)) {
       all.forEach(entry => { if (entry.video.dataset.playback !== "poster") this.release(entry); });
       return;
     }
@@ -265,17 +268,42 @@ class VideoPlayback {
   }
 
   /**
-   * Desktop plays real alpha in the grid too, so opening a project never swaps in a new format: the focused view
-   * raises it above the header from the first frame. Phones keep the matte, which is all iPhone plays reliably.
+   * Desktop plays real alpha in the grid too where it decodes smoothly, so opening a project never swaps in a new
+   * format: the focused view raises it above the header from the first frame. Slower machines play the matte in the
+   * grid and switch to alpha only in focus. Phones keep the matte, which is all iPhone plays reliably.
    */
   private transparent(entry: Entry) {
-    return entry.asset.alpha && !this.mobile.matches;
+    if (!entry.asset.alpha || this.mobile.matches) return false;
+    return this.alphaGrid !== false || entry.focusWidth !== undefined || entry.warmWidth !== undefined;
   }
 
   private probeAlpha() {
     if (this.alphaFormat !== undefined || this.probingAlpha) return;
     this.probingAlpha = true;
-    void alphaVideoFormat().then(format => { this.probingAlpha = false; this.alphaFormat = format; this.schedule(); });
+    void alphaVideoFormat().then(async format => {
+      const smooth = format ? await alphaDecodesSmoothly(format, VIDEO_POLICY.alphaGridDecode) : undefined;
+      this.probingAlpha = false;
+      this.alphaFormat = format;
+      if (this.alphaGrid === undefined) this.alphaGrid = smooth;
+      this.schedule();
+    });
+  }
+
+  /** A grid alpha clip that drops too many frames moves the grid to the matte for the rest of the visit. */
+  private watchAlpha(entry: Entry) {
+    if (!this.alphaGrid || entry.alphaWatch !== undefined || !entry.alphaFormat || entry.alphaFormat === "h264"
+      || entry.focusWidth !== undefined || entry.warmWidth !== undefined) return;
+    const start = entry.video.getVideoPlaybackQuality(), generation = entry.generation;
+    const check = () => {
+      entry.alphaWatch = undefined;
+      // Only uninterrupted grid playback counts: a pause, release or focus restarts the clock.
+      if (generation !== entry.generation || entry.video.paused || document.hidden || entry.focusWidth !== undefined) return;
+      const end = entry.video.getVideoPlaybackQuality();
+      const struggles = decodeStruggles(end.totalVideoFrames - start.totalVideoFrames, end.droppedVideoFrames - start.droppedVideoFrames);
+      if (struggles === undefined) entry.alphaWatch = setTimeout(check, VIDEO_POLICY.alphaWatchDelay);
+      else if (struggles) { this.alphaGrid = false; this.schedule(); }
+    };
+    entry.alphaWatch = setTimeout(check, VIDEO_POLICY.alphaWatchDelay);
   }
 
   private load(entry: Entry, source: string, width: number, format: AlphaVideoFormat | "h264") {
@@ -311,6 +339,7 @@ class VideoPlayback {
         entry.video.dataset.playback = "playing";
         entry.display?.("ready");
         this.clearCover(entry);
+        this.watchAlpha(entry);
       }
     };
     void entry.video.play().then(() => {
@@ -351,6 +380,8 @@ class VideoPlayback {
   private release(entry: Entry, keepCover = false) {
     if (!keepCover) this.clearCover(entry);
     entry.generation++;
+    clearTimeout(entry.alphaWatch);
+    entry.alphaWatch = undefined;
     this.pause(entry);
     delete entry.video.dataset.frameReady;
     clearTimeout(entry.timer);
