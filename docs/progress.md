@@ -5,6 +5,14 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Focus/header rendering work (2026-11-07)**
+- Liam reports lag during the title glitch and bar expansion in macOS Safari; Chrome is smooth and iPhone feels okay. The Safari alpha/compositor path is a suspect, not an established root cause.
+- Tried a transform-based header expansion instead of animating width. Layout counts fell, but native smoothness was unproven and the new animation owner added complexity. Held it back after learning about the background Blender render; the existing CSS header motion remains.
+- `useColorScramble` keeps the third-party hook's uncoloured HTML writes detached from the page. Each coloured frame reaches the live page once, replacing the previous two complete live HTML writes per frame; settled labels remain plain text.
+- Neighbors warm at tile resolution instead of focused resolution. In the real Blink timer check, both neighbors stay at 1200px rather than upgrading to 1600px (44% fewer pixels per neighbor); the opened project still upgrades to 1600px. Source frame rates, transparency, media layering, playback continuity, and the blur treatment remain unchanged.
+- Added `scripts/check-focus-performance.mjs` for real-asset comparisons and `scripts/check-header-motion.mjs` for desktop/mobile geometry, text settlement, paging, interrupted closes, background return/fast scroll, cleanup and reduced motion. Liam reported Blender rendering in the background and Chrome slowing too; timing comparisons are therefore confounded and do not establish a native Safari FPS improvement. A blur-only experiment did not establish a sustained timing improvement; no blur change shipped. Native macOS Safari confirmation with the Blender render paused/finished remains needed.
+- Validation: 112 tests, TypeScript, touched-file lint and the production build pass. Final WebKit and Chrome desktop/mobile checks pass, including simulated hidden-page pause/source retention and playback recovery after fast scrolling; this does not simulate native GPU reclamation or establish smoothness under a competing render.
+
 **Mobile H.264 for transparent-source previews (2026-11-07)**
 - Liam confirmed static alpha previews on iOS 27.2 Safari despite the first probe fix; older H.264 previews play, and alpha plays on both older and current macOS Safari. The precise iOS alpha failure is still unconfirmed.
 - Added four original-source H.264 sizes for both Blink previews, Baskets, and Bottom search, composited over the light `bg-secondary-fill` token. At 767px and below the player selects these directly and never waits for the alpha probe. Desktop retains the existing transparent files and layering. This uses the extra mobile header clearance Liam described when supplying the originals.

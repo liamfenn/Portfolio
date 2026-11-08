@@ -14,11 +14,11 @@ type Placement = {
   backdropAnimation?: Animation;
 };
 
-/** Readies an offscreen tile's poster and video so paging to it shows a picture right away. Returns the release. */
+/** Warm neighbors at tile resolution; only the project actually opened needs the larger focused decoder. */
 export function warmProjectMedia(media: HTMLElement, width: number) {
   media.querySelectorAll("img").forEach(image => { image.loading = "eager"; });
   const video = media.querySelector("video");
-  if (video) setVideoWarm(video, width);
+  if (video) setVideoWarm(video, Math.min(width, media.clientWidth));
   return () => { if (video) setVideoWarm(video); };
 }
 
