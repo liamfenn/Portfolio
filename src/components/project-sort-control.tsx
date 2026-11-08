@@ -10,14 +10,16 @@ const SORT_OPTIONS = [
   { value: "random", label: "Random" },
 ] as const;
 
-export function ProjectSortControl({ idleLabel }: { idleLabel?: string }) {
+export function ProjectSortControl({ idleLabel, companyHref }: { idleLabel?: string; companyHref?: string }) {
   const { sortMode, setSortMode, reshuffle } = useProjectDisplayState();
   const [selection, setSelection] = useState(0);
   const index = SORT_OPTIONS.findIndex(option => option.value === sortMode);
   const selected = SORT_OPTIONS[index];
 
   return <div className="work-density-control feed-sort-control">
-    <button type="button" className="work-control work-sort-control" data-hover-glitch aria-label={`Sort projects: ${selected.label}`}
+    {companyHref ? <a className="work-control work-sort-control" href={companyHref} target="_blank" rel="noreferrer">
+      <WorkGlyphControl text={idleLabel ?? selected.label} variant="sort" />
+    </a> : <button type="button" className="work-control work-sort-control" data-hover-glitch aria-label={`Sort projects: ${selected.label}`}
       onMouseDown={event => { if (event.detail > 1) event.preventDefault(); }}
       onClick={() => {
         prepareVideoOrder();
@@ -27,6 +29,6 @@ export function ProjectSortControl({ idleLabel }: { idleLabel?: string }) {
         setSortMode(next);
       }}>
       <WorkGlyphControl text={idleLabel ?? selected.label} variant="sort" selection={selection} />
-    </button>
+    </button>}
   </div>;
 }

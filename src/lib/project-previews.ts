@@ -7,6 +7,7 @@ export interface ProjectPreview {
   label: string;
   stackTag?: ProjectStackTag;
   company: string;
+  companyHref: string;
   companyLogo: string;
   companyColor: string;
   period: string;
@@ -23,6 +24,7 @@ export interface ProjectPreview {
 const shop = {
   label: "Product details page",
   company: "Shop",
+  companyHref: "https://shop.com/",
   companyLogo: "/images/icons/shop-swirl.svg",
   companyColor: "var(--bg-purple-fill)",
   period: "Q2 2026",
@@ -120,7 +122,8 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shopping-agent",
     label: "Shopping agent",
-    company: "Milktooth",
+    company: "Milk Tooth",
+    companyHref: "https://milktooth.studio",
     companyLogo: "/images/logos/LF.png",
     companyColor: "var(--text-primary)",
     period: "Q1 2026",
@@ -135,7 +138,8 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "milktooth-q4-2026",
     label: "Blink",
-    company: "Milktooth",
+    company: "Milk Tooth",
+    companyHref: "https://milktooth.studio",
     companyLogo: "/images/logos/LF.png",
     companyColor: "var(--text-primary)",
     period: "Q4 2026",
@@ -150,7 +154,8 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     id: "milktooth-blink-timer",
     stackTag: "bottom",
     label: "Blink",
-    company: "Milktooth",
+    company: "Milk Tooth",
+    companyHref: "https://milktooth.studio",
     companyLogo: "/images/logos/LF.png",
     companyColor: "var(--text-primary)",
     period: "Q4 2026",

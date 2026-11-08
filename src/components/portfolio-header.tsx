@@ -69,8 +69,8 @@ export function PortfolioHeader() {
     <button className="header-avatar hover-surface" type="button" data-inspector-toggle aria-label="Open design controls" inert={overImages}>
       <Image src="/images/redesign/avatar.webp" width={384} height={384} alt="Liam Fennell" priority unoptimized />
     </button>
-    <div className={`header-label ${overImages || focusedProject ? "text-bodySans" : "text-bodySerif"}`} inert={!overImages || Boolean(focusedProject)}>
-      <ProjectSortControl idleLabel={focusedProject?.company ?? (overImages ? undefined : "Liam Fennell")} />
+    <div id="project-focus-header" className={`header-label ${overImages || focusedProject ? "text-bodySans" : "text-bodySerif"}`} inert={!overImages && !focusedProject}>
+      <ProjectSortControl idleLabel={focusedProject?.company ?? (overImages ? undefined : "Liam Fennell")} companyHref={focusedProject?.companyHref} />
       <ProjectDetail text={focusedProject?.label ?? null} />
     </div>
     <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} inert={Boolean(focusedProject)} onClick={event => {

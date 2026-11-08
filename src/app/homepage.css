@@ -48,6 +48,8 @@
 .header-label { display: flex; align-items: center; white-space: nowrap; }
 .header-label .feed-sort-control { display: flex; align-items: center; width: auto; height: 100%; }
 .header-label .work-sort-control { width: auto; }
+.header-label a.work-sort-control { position: relative; height: 100%; }
+.header-label a.work-sort-control::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
 .header-label .work-control-dot { transition: opacity var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease); }
 .portfolio-header:not(.is-over-images) .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 

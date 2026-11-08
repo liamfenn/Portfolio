@@ -5,6 +5,11 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Company links in the project header (2026-11-08)**
+- Milk Tooth project labels now match the intro. The focused header links Shop to `https://shop.com/` and Milk Tooth to `https://milktooth.studio`, opening a new tab and using the existing link hover flashes and reduced-motion fallback.
+- The shared header participates in the dialog's keyboard focus loop and accessibility ownership. Background content stays inert while the company link remains interactive; closing restores the previous inert state.
+- Validation: 116 tests, TypeScript, touched-file lint and the production build pass. Chrome and WebKit checks at 1440px/393px cover all four company-link instances, hover, keyboard focus wrapping, close cleanup, sorting, paging and reduced motion. Chrome also verifies native new-tab opening; WebKit navigation is intercepted because closing popup windows crashes its test runtime.
+
 **iPhone Safari sort handoff follow-up (2026-11-08)**
 - Liam still sees an intermittent roughly one-second black flash when changing Recent to Random on iPhone Safari. Focus navigation remains tied to the visible feed order; it is not involved in this grid sort.
 - Playing clips now capture their retained picture in the sort click handler, before React changes CSS order. The existing layout-effect pass then covers paused clips that the sort brings into view. Previously all captures happened after the move, leaving a window in which Safari could already have invalidated a native surface. Rapid sorts use posters for surfaces still recovering from the previous move instead of sampling them again.

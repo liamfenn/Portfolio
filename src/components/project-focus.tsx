@@ -68,7 +68,13 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
     if (scrollbar) body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + scrollbar}px`;
-    const siblings = Array.from(body.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node !== root && node !== topEdge && node !== bottomEdge && !node.hasAttribute("data-safari-edge-test"));
+    const header = document.querySelector<HTMLElement>(".portfolio-header");
+    // The shared header belongs to the dialog while focused; keep only its ancestor path interactive.
+    const background = (parent: HTMLElement): HTMLElement[] => Array.from(parent.children).flatMap(node => {
+      if (!(node instanceof HTMLElement) || node === root || node === topEdge || node === bottomEdge || node === header || node.hasAttribute("data-safari-edge-test")) return [];
+      return header && node.contains(header) ? background(node) : [node];
+    });
+    const siblings = background(body);
     const inert = siblings.map(node => ({ node, previous: node.inert }));
     inert.forEach(({ node }) => { node.inert = true; });
 
@@ -90,11 +96,14 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       } else if (event.key === "Escape") {
         event.preventDefault(); event.stopImmediatePropagation(); dismissRef.current();
       } else if (event.key === "Tab") {
-        const targets = Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(node => !node.closest("[inert]"));
+        const targets = [
+          ...Array.from(header?.querySelectorAll<HTMLElement>('a[href]') ?? []),
+          ...Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')),
+        ].filter(node => !node.closest("[inert]"));
         const first = targets[0], last = targets.at(-1)!;
         if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
           event.preventDefault(); last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
+        } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === root)) {
           event.preventDefault(); first.focus();
         }
       }
@@ -303,7 +312,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
       <div className="safari-edge-test safari-edge-test-top" data-safari-edge-test="top" aria-hidden="true" />
       <div className="safari-edge-test safari-edge-test-bottom" data-safari-edge-test="bottom" aria-hidden="true" />
     </>}
-    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-label={`${selection.preview.company}, ${selection.preview.label}`} data-phase="opening" data-focus-project={selection.preview.id} tabIndex={-1} onClick={event => {
+    <div ref={rootRef} id="project-focus-dialog" className="project-focus-root" role="dialog" aria-modal="true" aria-owns="project-focus-header" aria-label={`${selection.preview.company}, ${selection.preview.label}`} data-phase="opening" data-focus-project={selection.preview.id} tabIndex={-1} onClick={event => {
       // Anywhere but a link closes; finishing a text selection shouldn't.
       if ((event.target as Element).closest("a") || !getSelection()?.isCollapsed) return;
       dismissRef.current();
