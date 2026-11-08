@@ -5,6 +5,9 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**First-pass project descriptions (2026-11-08)**
+- Added two-sentence overview drafts for all ten filled projects, including Collections sheet and separate descriptions for the two Blink clips. Renamed Shop card to Rewards card and Shop Incentives to Incentives system. Copy remains in the project registry for individual revision.
+
 **Physical iPhone sort recording and isolated test (2026-11-08)**
 - Liam's 60fps recording confirms the flash persists after `b50342f`. Frame analysis finds several full-tile black runs lasting 2–3 frames (about 33–50ms) at sort changes. This is briefer than the reported one-second estimate and does not establish a slow decoder or timeout as the cause. The recording cannot distinguish a bad video-to-canvas copy from native compositing blanking the combined media layer; desktop browser checks do not reproduce it.
 - Added `?sort-covers=posters` on mobile only: all sort coverage uses the existing poster path, bypassing live video-frame copies. Ordinary preview URLs keep their current behavior. This is a controlled device test, not a claimed fix. If the flash remains, canvas copies are not required to cause it; if it disappears, the capture path needs further isolation.
