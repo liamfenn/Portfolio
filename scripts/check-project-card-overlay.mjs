@@ -27,7 +27,6 @@ try {
     assert.ok(paragraphs[0].includes('If something here resonates, get in touch'));
     assert.ok(paragraphs[1].trim().startsWith('This site is an experiment'));
     assert.ok(paragraphs.every(text => !text.trim().endsWith('.')));
-    assert.equal(await page.locator('.portfolio-bio a[href="https://fennell.cv/process"]').textContent(), 'process');
     await page.locator(".homepage-identity").click();
     const first = page.locator('[data-project-id="shop-03"]');
     const next = page.locator('[data-project-id="shop-04"]');

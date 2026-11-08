@@ -64,7 +64,7 @@ The November layout uses a centered 552px column, a 480px bio, 8px desktop / 4px
 
 The feed order lives in `src/lib/featured-order.json`. Recent, the default sort, shows exactly that order rather than sorting by date; Random shuffles it. A project the order doesn't name yet slots in by date, after others from its quarter. Projects may carry an optional `stackTag: "top" | "bottom"`: Top search and Collections sheet are `top`; Bottom search and Blink timer are `bottom`. A top-tagged tile can't sit directly above a bottom-tagged one, including in Random; a small swap resolves it.
 
-It works on the homepage, `/process`, and the palette lab:
+It works on the homepage and the palette lab:
 
 - **T** cycles content → text style → font size / line height → content (for example, `15 / 20`, in pixels).
 - **O** cycles content → color token → hex → content. (C is taken by the Vercel
@@ -85,7 +85,7 @@ It works on the homepage, `/process`, and the palette lab:
   fade sits behind the navigation controls; the edge sampled by Safari stays solid.
 - The hidden avatar menu’s **Projects** control cycles **Focused view → Card overlay** and resets to Focused view, the default, on reload. `?projects=overlay` picks Card overlay on load. Focused view is an opaque full-screen modal: the media keeps playing as it moves into place, the header morphs into the project's company, name, and date with a color glitch, and tapping anywhere except a link, pressing Escape, or on mobile swiping down from the top closes it. If paging left the project's tile off screen, the media collapses in place instead of flying back. Left and Right Arrow move between projects; there are no on-screen controls.
 - **Card overlay** adds Contributors/Stack credits inside the selected tile over an 88% white tint and 10px background blur. The blur surface fades over 180ms; credit rows enter top to bottom and exit bottom to top within the same window. The company and quarter labels color-glitch in with the panel on click, with no hover state, and stay until a second click, another selection, or keyboard focus on another project. Escape closes it. Credits reuse the focused-view component and links; the original video keeps playing in place. Reduced motion shows the surface and credits immediately. There is no shader or entry-style toggle.
-- The intro has three paragraphs: the Shopify role, Milktooth creative practice (linked to https://milktooth.studio), and the site/process paragraph. Only “process” is linked in the final sentence. The comparison variants and Intro toggle have been removed.
+- The intro has two paragraphs: the Shopify role and the Milk Tooth creative practice (one link, to https://milktooth.studio). The site/process paragraph and the `/process` page were removed on 2026-11-07. The comparison variants and Intro toggle have been removed.
 - **Extra bottom space** in the avatar menu sets desktop page bottom padding to 32px instead of 8px
   (48px below the footer content instead of 24px).
   It starts off on each page load and does not affect mobile.

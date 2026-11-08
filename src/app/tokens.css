@@ -88,17 +88,11 @@
   --project-focus-edge-fade-hold: 40ms;
   --project-focus-edge-fade-ease: ease-in-out;
   --project-focus-full-height: 100lvh;
-  /* Editorial page rhythm; media uses the same square shape as the project grid. */
-  --process-section-gap: 72px;
   --album-swap-duration: 200ms;
   --album-glitch-flash-duration: 32ms;
   --motion-ease: cubic-bezier(.16, 1, .3, 1);
   --focus-ring: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
   --focus-offset: 2px;
-}
-
-@media (max-width: 767px) {
-  :root { --process-section-gap: 48px; }
 }
 
 /* XL monitors get the full column; laptops, up to the 16-inch 1728px, get the narrower one. */
