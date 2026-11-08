@@ -5,6 +5,14 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Mobile H.264 for transparent-source previews (2026-11-07)**
+- Liam confirmed static alpha previews on iOS 27.2 Safari despite the first probe fix; older H.264 previews play, and alpha plays on both older and current macOS Safari. The precise iOS alpha failure is still unconfirmed.
+- Added four original-source H.264 sizes for both Blink previews, Baskets, and Bottom search, composited over the light `bg-secondary-fill` token. At 767px and below the player selects these directly and never waits for the alpha probe. Desktop retains the existing transparent files and layering. This uses the extra mobile header clearance Liam described when supplying the originals.
+- Breakpoint changes can switch codec without increasing resolution, preserve the playhead, and retain a frame through loading. An opaque retained mobile frame stays below the desktop bar until its transparent replacement is presented. Fixed the probe-in-flight flag so an inconclusive desktop alpha check can actually retry.
+- Future alpha imports include H.264 automatically with the same quality/source-fps policy. The resolved backdrop participates in immutable recipe hashes; existing assets gain mobile files through `scripts/add-alpha-mobile-previews.mjs` without changing desktop URLs.
+- H.264 copies remain rendered at startup beneath an opaque token-colored poster, following the ordinary H.264 path. This avoids using zero opacity while waiting for the first presented video frame; true desktop alpha still uses transparent startup coverage. Browser review checks a warmed paused H.264 clip with no revealed frame: video opacity 1, solid poster visible, then poster hidden after playback starts.
+- Validation: 112 tests, TypeScript, touched-file lint, production build, a full 72-rendition/30-poster audit, original-source encoding checks, and a complete local alpha-import smoke check pass. Browser review verifies all four mobile MP4s playing, desktop HEVC playback, same-resolution resize handoffs, header ordering, and no retained-frame leaks. Physical iPhone confirmation remains pending.
+
 **Intro copy, process page, and playback safeguards (2026-11-07)**
 - The intro now says Milk Tooth (still one link) and drops the site/process paragraph. `/process` is gone with everything only it used: the essay data, its media component and styles, two images in `public/images/process`, `--process-section-gap`, and the desktop line break. The live site (`main`) never had it. Project labels in the feed still say Milktooth.
 - **Slow connections:** Chrome's `2g` and `slow-2g` estimates now get posters, like Save-Data (`limitsVideo`). Safari exposes neither, so there a slow load still falls back to the poster after 15 seconds. `check-video-grid` covers it with zero media requests.

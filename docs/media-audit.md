@@ -46,3 +46,18 @@ The current delivery audit covers 56 project/reel renditions and 30 posters, plu
 While a focused view is open, hidden grid clips pause. Current/outgoing/swipe-preview media remain eligible; neighbors may preload but do not play until focused. Closing restores ordinary visibility-based playback, without capping visible grid clips. Background-tab, reduced-motion, data-saving, source-release, and native-video continuity policies remain.
 
 Run `npm run media:audit` to repeat the delivery audit. Detailed results live in ignored `out/media-audit/`. The existing-asset migration is repeatable with `npm run media:optimize`; already-normalized assets are retained. New content uses `npm run media:import` with the original master, adding `--alpha` for transparency. Physical iPhone/macOS Safari performance and power use still require device checks.
+
+## Mobile compatibility delivery
+
+Liam confirmed that all transparent clips play in Safari on both older and current macOS, but remain static in iOS 27.2 Safari; older H.264 clips still play. The preload/probe change did not fix the physical-phone failure. Its exact alpha-specific cause remains unconfirmed.
+
+Mobile now uses a separate H.264 ladder composited directly from each original over the light `bg-secondary-fill` token. Desktop VP9/HEVC files and transparent posters remain unchanged. This avoids the alpha probe and decoder on mobile, where the extra top bar means alpha is unnecessary for header overlap. Source 60fps, the shared encoding quality policy, and fast-start delivery are retained.
+
+| Clip | 640px MB | 800px MB | 1200px MB | 1600px MB |
+| --- | ---: | ---: | ---: | ---: |
+| Blink first | 0.521 | 0.712 | 1.137 | 1.491 |
+| Baskets | 1.475 | 2.047 | 3.114 | 3.828 |
+| Bottom search | 1.366 | 1.811 | 2.449 | 2.999 |
+| Blink timer | 2.392 | 3.312 | 5.287 | 6.887 |
+
+The current full audit covers 72 project/reel renditions and 30 posters, plus the social preview. Browser review verifies all four mobile MP4s playing, and a mobile → desktop → mobile resize selecting H.264 → HEVC alpha → H.264 at the same 800px rung, preserving the playhead and clearing retained frames. Desktop media returns above the header only when the transparent frame is ready. Physical iPhone confirmation is still required. Future alpha imports automatically include mobile H.264; a local 640px alpha import smoke check verifies all three codec outputs and native alpha validation.

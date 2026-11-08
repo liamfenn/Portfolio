@@ -810,6 +810,9 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 .homepage-project-media[data-media-alpha] .project-preview-media:has(.project-preview-upgrade) > .project-preview-poster { visibility: hidden; }
 /* A transparent poster can't cover the video beneath it, so an unrevealed frame would show through as a second phone. */
 .homepage-project-media[data-media-alpha] .project-preview-video:not([data-frame-ready="true"]) { opacity: 0; }
+/* The mobile matte can stay rendered under an opaque poster, just like ordinary H.264 startup. */
+.homepage-project-media[data-media-alpha] .project-preview-video[data-alpha-format="h264"] { opacity: 1; }
+.homepage-project-media[data-media-alpha]:has(video[data-alpha-format="h264"]) .project-preview-poster { background: var(--bg-secondary-fill); }
 /* Beneath the media in every state: sharing its layer, this later body child covered a retained matte until the alpha frame arrived. It stays above the page backdrop by document order. */
 .project-focus-media-backdrop { display: none; position: fixed; left: 0; top: 0; transform-origin: top left; z-index: var(--project-focus-layer); background: var(--bg-secondary-fill); pointer-events: none; }
 @media (min-width: 768px) {
