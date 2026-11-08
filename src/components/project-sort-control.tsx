@@ -17,6 +17,7 @@ export function ProjectSortControl({ idleLabel }: { idleLabel?: string }) {
 
   return <div className="work-density-control feed-sort-control">
     <button type="button" className="work-control work-sort-control" data-hover-glitch aria-label={`Sort projects: ${selected.label}`}
+      onMouseDown={event => { if (event.detail > 1) event.preventDefault(); }}
       onClick={() => {
         const next = SORT_OPTIONS[(index + 1) % SORT_OPTIONS.length].value;
         setSelection(count => count + 1);

@@ -105,7 +105,8 @@ export function installLinkHoverGlitch() {
   const focus = (event: FocusEvent) => { focused = linkAt(event.target); update(); };
   const blur = (event: FocusEvent) => { focused = linkAt(event.relatedTarget); update(); };
   const preventControlSelection = (event: Event) => {
-    if (event.target instanceof Element && event.target.closest("[data-hover-glitch]")) event.preventDefault();
+    const target = event.target instanceof Element ? event.target : event.target instanceof Node ? event.target.parentElement : null;
+    if (target?.closest("[data-hover-glitch]")) event.preventDefault();
   };
   document.addEventListener("selectstart", preventControlSelection);
   document.addEventListener("pointerover", over, true);

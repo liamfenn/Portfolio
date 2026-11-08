@@ -5,6 +5,11 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Repeated clicks on the sort label (2026-11-07)**
+- Repeated mouse presses on Recent/Random now cancel native word/line selection while ordinary clicks and keyboard activation still sort. The existing selection guard also handles events originating from a text node inside the control.
+- Retained Safari's selectable-text override for native color highlights and the swarm masks; no color-glitch, video, or focus-motion changes. Developed separately from the paused performance revert so that rollback stays staged and unpushed.
+- Validation: 112 tests, TypeScript and touched-file lint pass. WebKit/Chrome checks cover repeated clicks on both sort controls, text-node selection cancellation, native color highlights, Space/Enter sorting, normal bio text selection and reduced motion. Video requests are blocked for these UI checks.
+
 **Focus/header rendering work (2026-11-07)**
 - Liam reports lag during the title glitch and bar expansion in macOS Safari; Chrome is smooth and iPhone feels okay. The Safari alpha/compositor path is a suspect, not an established root cause.
 - Tried a transform-based header expansion instead of animating width. Layout counts fell, but native smoothness was unproven and the new animation owner added complexity. Held it back after learning about the background Blender render; the existing CSS header motion remains.
