@@ -13,7 +13,7 @@ export const VIDEO_POLICY = {
   loadTimeout: 15_000,
   resizeDelay: 250,
   reorderPaintTimeout: 500,
-  /** A held poster is a safe picture, so it can wait longer for a paused video to resume and present. */
+  /** Release abandoned offscreen poster holds; visible holds wait for a presented frame. */
   reorderHoldTimeout: 3000,
   /** The desktop grid's alpha rung, asked about before the grid plays real alpha. */
   alphaGridDecode: { size: 1200, framerate: 60 },

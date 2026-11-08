@@ -376,6 +376,11 @@
 /* A paused video relocated by sorting shows its poster until it presents again (see video-reorder.ts). */
 .project-preview-video[data-reorder-hold] { opacity: 0; }
 .project-preview-video[data-reorder-hold] + .project-preview-poster { visibility: visible; }
+@media (max-width: 767px) {
+  /* Keep iPhone's H.264 surface rendered so it can resume beneath an opaque cover. */
+  .project-preview-video[data-reorder-hold] { opacity: 1; }
+  .project-preview-video[data-reorder-hold] + .project-preview-poster { z-index: 1; background: var(--media-backdrop, var(--bg-secondary-fill)); }
+}
 
 /* Shared loading surfaces sit behind real media, so cached and no-JS images remain visible. */
 .skeleton {

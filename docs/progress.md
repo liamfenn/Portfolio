@@ -1,9 +1,17 @@
 # Progress and goals
 
-Last updated 2026-11-07. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-08. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**iPhone Safari sort handoff follow-up (2026-11-08)**
+- Liam still sees an intermittent roughly one-second black flash when changing Recent to Random on iPhone Safari. Focus navigation remains tied to the visible feed order; it is not involved in this grid sort.
+- Playing clips now capture their retained picture in the sort click handler, before React changes CSS order. The existing layout-effect pass then covers paused clips that the sort brings into view. Previously all captures happened after the move, leaving a window in which Safari could already have invalidated a native surface. Rapid sorts use posters for surfaces still recovering from the previous move instead of sampling them again.
+- On mobile, held posters now have an explicit opaque token background and foreground layer, with native video still rendered underneath so Safari can present its resumed frame. The former opacity rule hid ordinary held videos but was overridden for the mobile H.264 copies of alpha clips. Desktop keeps its existing alpha/poster layering. No changes to video files, frame rate, sort order or focus motion.
+- A retained-frame bitmap still releases after 500ms, but now falls back to the poster if no fresh frame has arrived. Poster coverage clears on actual presentation, source release/error, a new sort or unmount; the old 3-second forced reveal is removed. Slow resumption can therefore keep a static picture without exposing an unready native surface or retaining a canvas bitmap indefinitely.
+- Expanded `check-video-sort.mjs` to verify capture before order mutation, actual nonblank pictures (including transparent desktop edges), solid held posters over rendered video, both mobile matte and ordinary clips, rapid sorting, stable sources/parents and reduced motion. Streaming checks now wait for DOM content plus explicit video readiness, with bounded timeouts, rather than waiting for network idle.
+- Validation: 116 tests, TypeScript, touched-file lint and the production build pass. WebKit/Chrome checks pass at 393px and 1440px. These verify the corrected handoff and coverage; the physical iPhone flash did not reproduce in desktop WebKit, so native iPhone confirmation remains needed. The earlier performance revert stays paused and separate.
 
 **Repeated clicks on the sort label (2026-11-07)**
 - Repeated mouse presses on Recent/Random now cancel native word/line selection while ordinary clicks and keyboard activation still sort. The existing selection guard also handles events originating from a text node inside the control.

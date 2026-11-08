@@ -49,6 +49,8 @@ class VideoPlayback {
   private frame = 0;
   private active = true;
   private resizeTimer?: ReturnType<typeof setTimeout>;
+  private reorderCover?: () => void;
+  private reorderPosters = new Set<HTMLVideoElement>();
   private alphaFormat?: AlphaVideoFormat | null;
   /** Whether the desktop grid plays real alpha; undefined until the probe and decode check finish. */
   private alphaGrid?: boolean;
@@ -155,10 +157,30 @@ class VideoPlayback {
     this.schedule();
   }
 
-  reorder() {
-    const clear = !this.active || document.hidden || this.motion.matches || limitsVideo(this.connection)
+  private protectReorder() {
+    return !this.active || document.hidden || this.motion.matches || limitsVideo(this.connection)
       ? () => {}
-      : preserveReorderedVideoFrames([...this.entries.values()].map(entry => entry.video));
+      : preserveReorderedVideoFrames([...this.entries.values()].map(entry => entry.video), this.reorderPosters);
+  }
+
+  prepareReorder() {
+    // A rapid second sort must not sample a surface still covered while recovering from the first.
+    const posters = new Set([...this.entries.values()].map(entry => entry.video).filter(video =>
+      "reorderHold" in video.dataset || video.parentElement?.querySelector("[data-video-reorder]")));
+    this.reorderCover?.();
+    this.reorderPosters = posters;
+    // Capture before CSS order changes can invalidate Safari's currently playing surfaces.
+    this.reorderCover = this.protectReorder();
+  }
+
+  reorder() {
+    const before = this.reorderCover, after = this.protectReorder();
+    const clear = () => {
+      before?.();
+      after();
+      if (this.reorderCover === clear) { this.reorderCover = undefined; this.reorderPosters.clear(); }
+    };
+    this.reorderCover = clear;
     // CSS order can change visibility without crossing an IntersectionObserver threshold.
     this.schedule();
     return clear;
@@ -408,6 +430,7 @@ class VideoPlayback {
   }
 
   private destroy() {
+    this.reorderCover?.();
     this.observer.disconnect();
     this.resize.disconnect();
     cancelAnimationFrame(this.frame);
@@ -446,4 +469,8 @@ export function setVideoFocusSession(active: boolean) {
 
 export function refreshVideoOrder() {
   return coordinator?.reorder();
+}
+
+export function prepareVideoOrder() {
+  coordinator?.prepareReorder();
 }

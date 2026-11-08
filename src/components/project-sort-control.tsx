@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import { WorkGlyphControl } from "@/components/work-glyph-control";
+import { prepareVideoOrder } from "@/lib/video-playback";
 
 const SORT_OPTIONS = [
   { value: "recent", label: "Recent" },
@@ -19,6 +20,7 @@ export function ProjectSortControl({ idleLabel }: { idleLabel?: string }) {
     <button type="button" className="work-control work-sort-control" data-hover-glitch aria-label={`Sort projects: ${selected.label}`}
       onMouseDown={event => { if (event.detail > 1) event.preventDefault(); }}
       onClick={() => {
+        prepareVideoOrder();
         const next = SORT_OPTIONS[(index + 1) % SORT_OPTIONS.length].value;
         setSelection(count => count + 1);
         if (next === "random") reshuffle();

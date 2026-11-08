@@ -99,6 +99,11 @@ test("a video that never presents cannot leave a stuck cover", async t => {
   assert.equal(env.canvases[0].removed, true);
   assert.equal(env.canvases[0].width, 0);
   assert.equal(video.cancelled, true);
+  assert.equal(video.dataset.reorderHold, "", "the bitmap timeout falls back to a poster instead of exposing the native surface");
+  video.present();
+  env.paint();
+  env.paint();
+  assert.equal("reorderHold" in video.dataset, false, "the fallback clears when a new frame actually presents");
 });
 
 test("a paused video relocated into view holds its poster, not a frame copy, until it presents again", t => {
@@ -123,4 +128,51 @@ test("a held poster clears on source release and on repeat sorts", t => {
   clear();
   assert.equal("reorderHold" in resorted.dataset, false);
   assert.equal(resorted.cancelled, true);
+});
+
+test("the post-sort pass preserves a poster hold already prepared before sorting", t => {
+  const env = environment(t), video = env.video({ paused: true });
+  const before = preserveReorderedVideoFrames([video]);
+  t.after(before);
+  const after = preserveReorderedVideoFrames([video]);
+  after();
+  assert.equal(video.dataset.reorderHold, "", "the second pass must not own or clear the existing hold");
+  video.present();
+  env.paint();
+  env.paint();
+  assert.equal("reorderHold" in video.dataset, false);
+});
+
+test("a rapid sort uses the poster for a playing surface still recovering from its previous move", t => {
+  const env = environment(t), video = env.video();
+  const clear = preserveReorderedVideoFrames([video], new Set([video]));
+  t.after(clear);
+  assert.equal(env.canvases.length, 0, "do not resample a surface whose last presentation is still pending");
+  assert.equal(video.dataset.reorderHold, "");
+  video.present();
+  env.paint();
+  env.paint();
+  assert.equal("reorderHold" in video.dataset, false);
+});
+
+test("poster cleanup may expire offscreen holds but never reveals a visible video without presentation", async t => {
+  const env = environment(t), visible = env.video({ paused: true }), offscreen = env.video({ paused: true });
+  const clear = preserveReorderedVideoFrames([visible, offscreen]);
+  t.after(clear);
+  offscreen.getBoundingClientRect = () => ({ top: 900, bottom: 1293, left: 0, right: 393, width: 393, height: 393 });
+  await new Promise(resolve => setTimeout(resolve, VIDEO_POLICY.reorderHoldTimeout + 30));
+  assert.equal(visible.dataset.reorderHold, "", "a visible poster stays until presentation, regardless of elapsed time");
+  assert.equal("reorderHold" in offscreen.dataset, false, "an abandoned offscreen hold releases its callback");
+  assert.equal(offscreen.cancelled, true);
+});
+
+test("moving a protected video offscreen and pausing clears its coverage immediately", t => {
+  const env = environment(t), video = env.video();
+  const clear = preserveReorderedVideoFrames([video]);
+  t.after(clear);
+  video.getBoundingClientRect = () => ({ top: 900, bottom: 1293, left: 0, right: 393, width: 393, height: 393 });
+  video.dispatchEvent(new Event("pause"));
+  assert.equal(env.canvases[0].removed, true);
+  assert.equal(env.canvases[0].width, 0);
+  assert.equal(video.cancelled, true);
 });
