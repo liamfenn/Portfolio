@@ -158,9 +158,12 @@ class VideoPlayback {
   }
 
   private protectReorder() {
-    return !this.active || document.hidden || this.motion.matches || limitsVideo(this.connection)
-      ? () => {}
-      : preserveReorderedVideoFrames([...this.entries.values()].map(entry => entry.video), this.reorderPosters);
+    if (!this.active || document.hidden || this.motion.matches || limitsVideo(this.connection)) return () => {};
+    const videos = [...this.entries.values()].map(entry => entry.video);
+    // Device-only diagnostic: isolate canvas readback from native layer relocation without changing normal playback.
+    const posters = this.mobile.matches && new URLSearchParams(window.location.search).get("sort-covers") === "posters"
+      ? new Set(videos) : this.reorderPosters;
+    return preserveReorderedVideoFrames(videos, posters);
   }
 
   prepareReorder() {

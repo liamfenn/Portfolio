@@ -5,6 +5,11 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Physical iPhone sort recording and isolated test (2026-11-08)**
+- Liam's 60fps recording confirms the flash persists after `b50342f`. Frame analysis finds several full-tile black runs lasting 2–3 frames (about 33–50ms) at sort changes. This is briefer than the reported one-second estimate and does not establish a slow decoder or timeout as the cause. The recording cannot distinguish a bad video-to-canvas copy from native compositing blanking the combined media layer; desktop browser checks do not reproduce it.
+- Added `?sort-covers=posters` on mobile only: all sort coverage uses the existing poster path, bypassing live video-frame copies. Ordinary preview URLs keep their current behavior. This is a controlled device test, not a claimed fix. If the flash remains, canvas copies are not required to cause it; if it disappears, the capture path needs further isolation.
+- Validation: 116 tests, TypeScript and touched-file lint pass. WebKit/Chrome verify zero sort frame copies with the mobile test URL, poster holds instead, and unchanged capture behavior for ordinary mobile URLs and for desktop with the query flag.
+
 **Company links in the project header (2026-11-08)**
 - Milk Tooth project labels now match the intro. The focused header links Shop to `https://shop.com/` and Milk Tooth to `https://milktooth.studio`, opening a new tab and using the existing link hover flashes and reduced-motion fallback.
 - The shared header participates in the dialog's keyboard focus loop and accessibility ownership. Background content stays inert while the company link remains interactive; closing restores the previous inert state.
