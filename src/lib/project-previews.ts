@@ -82,7 +82,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-04", ...shop,
     label: "Baskets",
-    description: "Extended an early creative direction for Shop Week, exploring how users could create and share personalized baskets of products selected from a canvas. Each card is generated on device, with a different arrangement and physical behavior every time.",
+    description: "Extended an early creative direction for Shop Week, exploring how users could create and share personalized baskets of products. Each card is generated on device, with a different arrangement and physical behavior every time.",
     media: MEDIA_ASSETS.shopFourthPreview,
     team: [],
     tech: ["Swift", "Nano Banana", "Kling"],
