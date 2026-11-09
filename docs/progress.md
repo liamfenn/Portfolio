@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy refinements**
+- Collections: split the final clause into its own sentence: “Helped guide the project to completion.”
 - Canvas: changed “Visual shopping exploration” to “Visual shopping concept.”
 - Bottom-search Navigation: removed “for Shop” from the opening sentence.
 - Incentives: replaced the description with Liam’s supplied “Reimagined how incentives show up throughout the funnel” copy, using offer type and communicating value/progress/eligibility.

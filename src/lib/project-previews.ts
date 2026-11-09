@@ -91,7 +91,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     id: "shop-05", ...shop,
     stackTag: "top",
     label: "Collections",
-    description: "The first project I worked on when I joined Shop. Built on an early version of collections, adding collaboration and recommendations based on saved products, and guiding the project to completion.",
+    description: "The first project I worked on when I joined Shop. Built on an early version of collections, adding collaboration and recommendations based on saved products. Helped guide the project to completion.",
     period: "Q3 2025",
     year: 2025,
     quarter: 3,
