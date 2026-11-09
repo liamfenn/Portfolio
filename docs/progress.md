@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy review (2026-11-08)**
+- Approved Collections and its description covering Liam's first Shop project, collaboration, saved-product recommendations and guiding it to completion. All seven Shop entries are reviewed; Shopping agent and both Blink entries remain.
 - Approved Baskets and its description covering the early Shop Week direction, personalized product baskets and on-device card generation with varied arrangements and physical behavior.
 - Approved Canvas and its description covering the procedurally generated product canvas and intent-based spatial layout.
 - Approved Incentives and its description covering value type instead of funding source and the canonical system for offers, progress and eligibility.
