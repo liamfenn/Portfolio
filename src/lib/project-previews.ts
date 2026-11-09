@@ -114,7 +114,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-08", ...shop,
     label: "Canvas",
-    description: "Visual shopping exploration built around an open canvas of products. The prototype uses spatial layout and direct interaction to explore a more fluid way of discovering and collecting things.",
+    description: "Visual shopping exploration built around an open, procedurally generated canvas of products. The thesis was that a spatial layout organized around intent could make discovering and collecting items feel more fluid and effortless.",
     period: "Q3 2026",
     year: 2026,
     quarter: 3,
