@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy review (2026-11-08)**
+- Approved Incentives and its description covering value type instead of funding source and the canonical system for offers, progress and eligibility.
 - Approved Navigation and its description covering search across Shop, product detail/typeahead behavior and the custom liquid glass treatment. Approved Rewards card and its description covering visual treatments, custom shaders, the physical card design and gyroscope-driven movement. The bottom-search project is also named Navigation, with approved copy covering its distortion shader and suggested queries appearing as scrolling signals interest. The remaining project names and descriptions are still being reviewed one at a time; advance only when Liam explicitly says to move on.
 
 **All / Shop / Other filters and sort-code cleanup (2026-11-08)**
