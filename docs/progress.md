@@ -5,6 +5,9 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Project copy review (2026-11-08)**
+- Approved the first project's name, Navigation, and its description covering search across Shop, product detail/typeahead behavior and the custom liquid glass treatment. The remaining project names and descriptions are still being reviewed one at a time; advance only when Liam explicitly says to move on.
+
 **All / Shop / Other filters and sort-code cleanup (2026-11-08)**
 - Replaced Recent/Random with All → Shop → Other → All, starting on All. The feed shows ten/seven/three projects respectively. Filtering hides excluded tiles while retaining all media nodes, resolves the curated order and stacking tags once, and preserves the same relative order in every group. Focused navigation and its announced count use only the selected group. Company links, color glitches and repeated-click selection protection remain.
 - Removed shuffle seeds/state, dynamic CSS ordering, obsolete date-sort/editor helpers, the sort-only video snapshot/poster-hold module, its policy timeouts/CSS, and the `sort-covers` diagnostic. Filtering only requests a visibility refresh from the existing playback coordinator. Source loading, startup coverage, rendition upgrades, source retention, alpha policy and focus media placement remain separate and intact.
