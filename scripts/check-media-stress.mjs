@@ -2,7 +2,8 @@
 //   node scripts/check-media-stress.mjs [origin]
 // MEDIA_BROWSER=chromium with CHROMIUM_PATH (an installed Chrome, for H.264) repeats it in Chrome.
 // Checks source choice per clip (alpha on desktop, matte on phones), one load per clip across repeated scroll passes, no skeleton on
-// return, background-tab pause without release, and that no unrevealed video shows beneath a transparent poster.
+// return, background-tab pause without release, and that no unrevealed video shows beneath a transparent poster. A load the player
+// cancels before any data arrives, because the tile was scrolled past, isn't a reload; the report marks it "(cancelled)".
 // MEDIA_REPORT_ONLY=1 prints the measurements without failing, for comparing against another build.
 import assert from "node:assert/strict";
 import { chromium, webkit } from "playwright-core";
@@ -33,12 +34,17 @@ try {
           const media = video.closest(".homepage-project-media"), id = media.closest("li")?.dataset.projectId ?? video.getAttribute("aria-label");
           if (!seen.has(video)) {
             seen.add(video);
+            let current;
             video.addEventListener("loadstart", () => {
+              if (current && !current.loaded) current.file += " (cancelled)";
+              current = undefined;
               if (!video.getAttribute("src")) return;
               const list = window.__media.loads.get(id) ?? [];
-              list.push(video.getAttribute("src").split("/").pop());
+              current = { file: video.getAttribute("src").split("/").pop(), loaded: false };
+              list.push(current);
               window.__media.loads.set(id, list);
             });
+            video.addEventListener("loadeddata", () => { if (current) current.loaded = true; });
           }
           if (video.dataset.everReady === "true" && media.querySelector(".skeleton[data-active='true'], .project-preview-media[aria-busy='true']")) window.__media.skeletonAfterReady++;
           if (video.dataset.frameReady === "true") video.dataset.everReady = "true";
@@ -63,7 +69,8 @@ try {
     const result = await page.evaluate(() => {
       const videos = [...document.querySelectorAll(".homepage-project-media video")];
       return {
-        loads: Object.fromEntries(window.__media.loads),
+        loads: Object.fromEntries([...window.__media.loads].map(([id, loads]) => [id, loads.map(load => load.file)])),
+        loaded: Object.fromEntries([...window.__media.loads].map(([id, loads]) => [id, loads.filter(load => load.loaded).map(load => load.file)])),
         skeletonAfterReady: window.__media.skeletonAfterReady,
         ghost: window.__media.ghost,
         alphaFormats: videos.filter(video => video.closest("[data-media-alpha]")).map(video => video.dataset.alphaFormat ?? null),
@@ -73,9 +80,9 @@ try {
     });
     const totalMB = [...bytes.values()].reduce((sum, value) => sum + value, 0) / 1e6;
     console.log(`${engine.name()} ${width}px`, JSON.stringify({ ...result, transferredMB: Number(totalMB.toFixed(2)) }, null, 1));
-    for (const [id, loads] of Object.entries(result.loads)) {
-      // An upgrade to a larger rung is allowed; reloading the same file is not.
-      check.equal(new Set(loads).size, loads.length, `${id} reloaded the same source while scrolling: ${loads.join(", ")}`);
+    for (const [id, loads] of Object.entries(result.loaded)) {
+      // An upgrade to a larger rung is allowed; loading the same file again after it had played is not.
+      check.equal(new Set(loads).size, loads.length, `${id} reloaded the same source while scrolling: ${result.loads[id].join(", ")}`);
     }
     check.equal(result.skeletonAfterReady, 0, "a clip that already played must not show its skeleton again");
     check.equal(result.ghost, 0, "an unrevealed video must not show beneath a transparent poster");

@@ -8,7 +8,11 @@ decided, or gets dropped.
 **New Blink timer clip (2026-11-09)**
 - Replaced the Blink timer tile's media with Liam's `3D-Timer.webm`: 2160px square VP9 with alpha, 60fps, 23.7 seconds, 103.7 MB. Same project and media ID, imported with `--alpha` (version `d7ca6619858943b3`), so desktop alpha, mobile H.264 and transparent posters were all regenerated. Every HEVC rung decodes all 1421 frames with alpha 0–255.
 - It is now the heaviest clip: 10.6 / 11.0 MB (VP9 / HEVC) at the 1200 desktop grid rung and 4.4 MB at the 800 mobile rung, up from 7.6 / 9.2 and 3.3. The card's description still describes the earlier timer study and may need a look.
-- Checked in the dev server: the tile plays real alpha in the desktop grid and the focused view switches to HEVC alpha in WebKit. `check-media-stress` fails at 1440px on an unrelated clip reloading the same file across scroll passes; it fails the same way with the old timer entry, so it predates this change.
+- Checked in the dev server: the tile plays real alpha in the desktop grid and the focused view switches to HEVC alpha in WebKit.
+
+**Stress check reloads were cancelled loads (2026-11-09)**
+- `check-media-stress` failed intermittently at 1440px with a clip "reloading" the same file. Instrumenting releases showed every repeat came from the player's rule that cancels a load once the tile is scrolled past (`entry.loading` outside the prepared set), always with no data yet (readyState 0, nothing buffered). No clip that had played was ever released or refetched in later passes. Desktop now loads the larger alpha files in the grid, so on the check's fast first pass (about 1200px/s) the two load slots fall behind more often.
+- The player is unchanged: freeing slots for what's on screen is intended. The check now counts only repeats of a file that had loaded, and marks cancelled loads "(cancelled)" in its report. Two concurrent desktop runs with cancellations pass; temporarily lowering `retain` to 1 still fails it, so real reloads are still caught.
 
 **Project copy refinements**
 - Collections: split the final clause into its own sentence: “Helped guide the project to completion.”
