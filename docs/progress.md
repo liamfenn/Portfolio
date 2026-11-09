@@ -6,7 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy review (2026-11-08)**
-- Approved the first project's name, Navigation, and its description covering search across Shop, product detail/typeahead behavior and the custom liquid glass treatment. The remaining project names and descriptions are still being reviewed one at a time; advance only when Liam explicitly says to move on.
+- Approved Navigation and its description covering search across Shop, product detail/typeahead behavior and the custom liquid glass treatment. Approved Rewards card and its description covering visual treatments, custom shaders, the physical card design and gyroscope-driven movement. The remaining project names and descriptions are still being reviewed one at a time; advance only when Liam explicitly says to move on.
 
 **All / Shop / Other filters and sort-code cleanup (2026-11-08)**
 - Replaced Recent/Random with All → Shop → Other → All, starting on All. The feed shows ten/seven/three projects respectively. Filtering hides excluded tiles while retaining all media nodes, resolves the curated order and stacking tags once, and preserves the same relative order in every group. Focused navigation and its announced count use only the selected group. Company links, color glitches and repeated-click selection protection remain.
