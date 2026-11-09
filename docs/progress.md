@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy refinements**
+- Collections: approved “Built on an early version of collections, adding collaboration and recommendations based on saved products, and guiding the project to completion.” Keeps the existing first-project-at-Shop opening and acknowledges the foundation was already there when Liam joined.
 - Baskets: removed “real” before “products.”
 - Incentives: changed “on Shop” to “in Shop” and removed “them” after “Organized.”
 - Rewards card: removed “using depth and motion to give a familiar format a more physical feel,” leaving the opening sentence as “Interactive digital card for Shop rewards.”
