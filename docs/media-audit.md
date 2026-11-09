@@ -29,17 +29,17 @@ The initial full audit validated all 40 project/reel renditions and their poster
 
 ## Transparent master refresh
 
-Baskets and Bottom search now replace their opaque deliveries with transparent originals. The separate Blink timer tile uses the newly supplied `Timer-shake.webm`; the existing first Blink tile is unchanged. All are 2160px square, tagged SDR sRGB/Rec.709 at 60fps. The table gives decimal MB per individual file as VP9 / HEVC; a browser loads one compatible format at one selected size.
+Baskets and Bottom search now replace their opaque deliveries with transparent originals. The separate Blink timer tile uses `3D-Timer.webm` (supplied 2026-11-09, replacing the earlier `Timer-shake.webm`; 23.7 seconds rather than 19.6); the existing first Blink tile is unchanged. All are 2160px square, tagged SDR sRGB/Rec.709 at 60fps. The table gives decimal MB per individual file as VP9 / HEVC; a browser loads one compatible format at one selected size.
 
 | Clip | Original MB | 640px MB | 800px MB | 1200px MB | 1600px MB |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Baskets | 66.934 | 1.503 / 1.749 | 2.033 / 2.399 | 3.390 / 4.282 | 4.930 / 6.395 |
 | Bottom search | 56.913 | 1.794 / 2.256 | 2.445 / 2.982 | 4.068 / 4.870 | 6.112 / 7.121 |
-| Blink timer | 97.129 | 2.888 / 3.660 | 4.144 / 5.109 | 7.552 / 9.178 | 11.212 / 13.653 |
+| Blink timer | 103.737 | 3.493 / 3.932 | 5.299 / 5.779 | 10.631 / 11.025 | 16.392 / 16.814 |
 
-Versions are `0123b286d11feae4`, `e41f63dd93a7ad5a`, and `e8079f986f258c18`, respectively. Native AVFoundation validation decodes every HEVC frame at every rung: 805 / 677 / 1174 frames, with alpha minimum 0 and maximum 255. VP9 uses libvpx for full decode; posters retain transparency. The originals remain untouched.
+Versions are `0123b286d11feae4`, `e41f63dd93a7ad5a`, and `d7ca6619858943b3`, respectively. Native AVFoundation validation decodes every HEVC frame at every rung: 805 / 677 / 1421 frames, with alpha minimum 0 and maximum 255. VP9 uses libvpx for full decode; posters retain transparency. The originals remain untouched.
 
-An additional color-plane quality check compares each 640px VP9 rendition with its original master resized to 640px through the same SDR conversion, sampling every other frame with libvmaf. Mean scores are 97.05 / 97.85 / 97.31. These measure color compression, not alpha fidelity or HEVC quality; native alpha checks and visual playback review supplement them. Detailed logs remain in `out/media-audit/alpha-master-quality.json` and the per-clip logs.
+An additional color-plane quality check compares each 640px VP9 rendition with its original master resized to 640px through the same SDR conversion, sampling every other frame with libvmaf. Mean scores are 97.05 / 97.85, and 97.31 for the earlier timer clip; the replacement has not been scored. These measure color compression, not alpha fidelity or HEVC quality; native alpha checks and visual playback review supplement them. Detailed logs remain in `out/media-audit/alpha-master-quality.json` and the per-clip logs.
 
 The current delivery audit covers 56 project/reel renditions and 30 posters, plus the social-preview MP4. The initial normalization table above remains a historical comparison; the new transparent files have different content/background encoding costs.
 
@@ -58,6 +58,6 @@ Mobile now uses a separate H.264 ladder composited directly from each original o
 | Blink first | 0.521 | 0.712 | 1.137 | 1.491 |
 | Baskets | 1.475 | 2.047 | 3.114 | 3.828 |
 | Bottom search | 1.366 | 1.811 | 2.449 | 2.999 |
-| Blink timer | 2.392 | 3.312 | 5.287 | 6.887 |
+| Blink timer | 3.046 | 4.373 | 7.654 | 10.354 |
 
 The current full audit covers 72 project/reel renditions and 30 posters, plus the social preview. Browser review verifies all four mobile MP4s playing, and a mobile → desktop → mobile resize selecting H.264 → HEVC alpha → H.264 at the same 800px rung, preserving the playhead and clearing retained frames. Desktop media returns above the header only when the transparent frame is ready. Physical iPhone confirmation is still required. Future alpha imports automatically include mobile H.264; a local 640px alpha import smoke check verifies all three codec outputs and native alpha validation.

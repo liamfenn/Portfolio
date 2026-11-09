@@ -1,9 +1,14 @@
 # Progress and goals
 
-Last updated 2026-11-08. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-09. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**New Blink timer clip (2026-11-09)**
+- Replaced the Blink timer tile's media with Liam's `3D-Timer.webm`: 2160px square VP9 with alpha, 60fps, 23.7 seconds, 103.7 MB. Same project and media ID, imported with `--alpha` (version `d7ca6619858943b3`), so desktop alpha, mobile H.264 and transparent posters were all regenerated. Every HEVC rung decodes all 1421 frames with alpha 0–255.
+- It is now the heaviest clip: 10.6 / 11.0 MB (VP9 / HEVC) at the 1200 desktop grid rung and 4.4 MB at the 800 mobile rung, up from 7.6 / 9.2 and 3.3. The card's description still describes the earlier timer study and may need a look.
+- Checked in the dev server: the tile plays real alpha in the desktop grid and the focused view switches to HEVC alpha in WebKit. `check-media-stress` fails at 1440px on an unrelated clip reloading the same file across scroll passes; it fails the same way with the old timer entry, so it predates this change.
 
 **Project copy refinements**
 - Collections: split the final clause into its own sentence: “Helped guide the project to completion.”
