@@ -82,7 +82,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-04", ...shop,
     label: "Baskets",
-    description: "Experiential campaign centered around a social graph of personalized baskets, filled with real products selected from the canvas. Each card is generated on device, with a dynamic layout and a different arrangement of physics every time.",
+    description: "Extended an early creative direction for Shop Week, exploring how users could create and share personalized baskets of real products selected from a canvas. Each card is generated on device, with a different arrangement and physical behavior every time.",
     media: MEDIA_ASSETS.shopFourthPreview,
     team: [],
     tech: ["Swift", "Nano Banana", "Kling"],
