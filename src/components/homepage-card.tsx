@@ -30,10 +30,10 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, displayOrder }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, hidden = false }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
-  cardOverlay?: boolean; priorityMedia?: boolean; displayOrder?: number;
+  cardOverlay?: boolean; priorityMedia?: boolean; hidden?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -52,7 +52,7 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
   const detailsId = `${preview.id}-details`;
   const panelId = `${preview.id}-panel`;
   return (
-    <li data-project-id={preview.id} style={displayOrder === undefined ? undefined : { order: displayOrder }}
+    <li data-project-id={preview.id} hidden={hidden}
       className={`project-preview homepage-card${isMobile && expanded ? " is-expanded" : ""}${cardOverlay ? " has-card-overlay" : ""}`} data-company={preview.company}
       onKeyDown={event => {
         if (cardOverlay && expanded && event.key === "Escape") {

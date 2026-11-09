@@ -5,10 +5,17 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**All / Shop / Other filters and sort-code cleanup (2026-11-08)**
+- Replaced Recent/Random with All → Shop → Other → All, starting on All. The feed shows ten/seven/three projects respectively. Filtering hides excluded tiles while retaining all media nodes, resolves the curated order and stacking tags once, and preserves the same relative order in every group. Focused navigation and its announced count use only the selected group. Company links, color glitches and repeated-click selection protection remain.
+- Removed shuffle seeds/state, dynamic CSS ordering, obsolete date-sort/editor helpers, the sort-only video snapshot/poster-hold module, its policy timeouts/CSS, and the `sort-covers` diagnostic. Filtering only requests a visibility refresh from the existing playback coordinator. Source loading, startup coverage, rendition upgrades, source retention, alpha policy and focus media placement remain separate and intact.
+- Retired the old sort and focus-navigation browser scripts in favor of `check-project-filters.mjs`, which exercises the current filter UI and filtered keyboard navigation. Historical sort experiments below describe removed behavior. The previously staged performance revert remains paused in the original checkout.
+- Validation: 105 tests, TypeScript, touched-file lint and the production build pass. Real-media checks in WebKit and Chrome at 393px/1440px verify exact filtered sets, no hidden-tile gaps, stable player parents/order, hidden-video pause and source retention, shared header controls, keyboard/repeated clicks, full filtered focus cycles, close cleanup and reduced motion. Phone/desktop screenshots confirm the Other feed starts directly with its three previews.
+- This is the requested browsing change and removal of superseded sort machinery, not a claim that the physical iPhone compositing flash is fixed. Filtering still changes screen positions and needs native iPhone confirmation.
+
 **First-pass project descriptions (2026-11-08)**
 - Added two-sentence overview drafts for all ten filled projects, including Collections sheet and separate descriptions for the two Blink clips. Renamed Shop card to Rewards card and Shop Incentives to Incentives system. Copy remains in the project registry for individual revision.
 
-**Physical iPhone sort recording and isolated test (2026-11-08)**
+**Physical iPhone sort recording and isolated test (2026-11-08; retired with Random)**
 - Liam's 60fps recording confirms the flash persists after `b50342f`. Frame analysis finds several full-tile black runs lasting 2–3 frames (about 33–50ms) at sort changes. This is briefer than the reported one-second estimate and does not establish a slow decoder or timeout as the cause. The recording cannot distinguish a bad video-to-canvas copy from native compositing blanking the combined media layer; desktop browser checks do not reproduce it.
 - Added `?sort-covers=posters` on mobile only: all sort coverage uses the existing poster path, bypassing live video-frame copies. Ordinary preview URLs keep their current behavior. This is a controlled device test, not a claimed fix. If the flash remains, canvas copies are not required to cause it; if it disappears, the capture path needs further isolation.
 - Validation: 116 tests, TypeScript and touched-file lint pass. WebKit/Chrome verify zero sort frame copies with the mobile test URL, poster holds instead, and unchanged capture behavior for ordinary mobile URLs and for desktop with the query flag.
@@ -18,7 +25,7 @@ decided, or gets dropped.
 - The shared header participates in the dialog's keyboard focus loop and accessibility ownership. Background content stays inert while the company link remains interactive; closing restores the previous inert state.
 - Validation: 116 tests, TypeScript, touched-file lint and the production build pass. Chrome and WebKit checks at 1440px/393px cover all four company-link instances, hover, keyboard focus wrapping, close cleanup, sorting, paging and reduced motion. Chrome also verifies native new-tab opening; WebKit navigation is intercepted because closing popup windows crashes its test runtime.
 
-**iPhone Safari sort handoff follow-up (2026-11-08)**
+**iPhone Safari sort handoff follow-up (2026-11-08; retired with Random)**
 - Liam still sees an intermittent roughly one-second black flash when changing Recent to Random on iPhone Safari. Focus navigation remains tied to the visible feed order; it is not involved in this grid sort.
 - Playing clips now capture their retained picture in the sort click handler, before React changes CSS order. The existing layout-effect pass then covers paused clips that the sort brings into view. Previously all captures happened after the move, leaving a window in which Safari could already have invalidated a native surface. Rapid sorts use posters for surfaces still recovering from the previous move instead of sampling them again.
 - On mobile, held posters now have an explicit opaque token background and foreground layer, with native video still rendered underneath so Safari can present its resumed frame. The former opacity rule hid ordinary held videos but was overridden for the mobile H.264 copies of alpha clips. Desktop keeps its existing alpha/poster layering. No changes to video files, frame rate, sort order or focus motion.

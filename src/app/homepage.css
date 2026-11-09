@@ -46,7 +46,7 @@
 .header-label { position: absolute; z-index: 1; top: 0; left: var(--header-label-inset); height: 100%; color: var(--text-primary); --inspect-color-token: text-primary; --work-glyph-size: var(--header-glyph); --work-label-gap: var(--portfolio-sort-gap); transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--header-filter-slot))); transition: transform var(--header-transition); }
 .portfolio-header.is-over-images .header-label { transform: none; }
 .header-label { display: flex; align-items: center; white-space: nowrap; }
-.header-label .feed-sort-control { display: flex; align-items: center; width: auto; height: 100%; }
+.header-label .feed-filter-control { display: flex; align-items: center; width: auto; height: 100%; }
 .header-label .work-sort-control { width: auto; }
 .header-label a.work-sort-control { position: relative; height: 100%; }
 .header-label a.work-sort-control::before { content: ""; position: absolute; inset-block: calc((var(--portfolio-control-size) - var(--portfolio-hit-size)) / 2); inset-inline: 0; }
@@ -59,7 +59,7 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 .portfolio-header.is-project-focus .header-fill { left: 0; background-color: var(--header-translucent-fill); -webkit-backdrop-filter: blur(var(--header-translucent-blur)); backdrop-filter: blur(var(--header-translucent-blur)); }
 .portfolio-header.is-project-focus .header-avatar { visibility: hidden; opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
 .portfolio-header.is-project-focus .header-label { right: var(--header-project-action-slot); transform: translateX(calc(var(--content-padding-mobile) - var(--header-filter-slot))); }
-.portfolio-header.is-project-focus .header-label .feed-sort-control { flex: none; }
+.portfolio-header.is-project-focus .header-label .feed-filter-control { flex: none; }
 .portfolio-header.is-project-focus .header-project-detail { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .portfolio-header.is-project-focus .header-label .work-control-dot { opacity: 0; transform: scale(var(--header-pop-scale)); filter: blur(var(--header-pop-blur)); }
 .portfolio-header.is-project-focus .header-action { color: var(--text-muted); --inspect-color-token: text-muted; }
@@ -96,17 +96,18 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
 
 .portfolio-feed { margin-top: var(--portfolio-section-gap); padding-top: var(--portfolio-feed-top); }
 .feed-toolbar { position: relative; display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--portfolio-toolbar-gap); }
-.feed-toolbar > .feed-sort-control { transition: opacity var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), visibility 0s; }
-.portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar > .feed-sort-control { visibility: hidden; opacity: 0; filter: blur(var(--header-pop-blur)); transform: scale(var(--header-pop-scale)); pointer-events: none; transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
-/* Reuse the previous sort menu's geometry, option stack and motion around the new square mark. */
+.feed-toolbar > .feed-filter-control { transition: opacity var(--header-pop-duration) var(--motion-ease), filter var(--header-pop-duration) var(--motion-ease), transform var(--header-pop-duration) var(--motion-ease), visibility 0s; }
+.portfolio-v4:has(.portfolio-header.is-over-images) .feed-toolbar > .feed-filter-control { visibility: hidden; opacity: 0; filter: blur(var(--header-pop-blur)); transform: scale(var(--header-pop-scale)); pointer-events: none; transition-delay: 0s, 0s, 0s, var(--header-pop-duration); }
+/* Filter controls share the existing work-control geometry and glyph treatment. */
 .feed-toolbar { --work-glyph-size: var(--work-glyph-desktop-size); --work-label-gap: var(--portfolio-sort-gap); }
-.feed-toolbar .feed-sort-control { margin-left: var(--portfolio-sort-inset); }
-.feed-sort-control .work-control { position: relative; padding: 0; }
-.feed-sort-control .work-label-group { gap: var(--work-label-gap); }
+.feed-toolbar .feed-filter-control { margin-left: var(--portfolio-sort-inset); }
+.feed-filter-control .work-control { position: relative; padding: 0; }
+.feed-filter-control .work-label-group { gap: var(--work-label-gap); }
 /* Safari paints native character highlights only when the control's text is selectable. */
-.feed-sort-control:has([data-link-glitch-active]), .feed-sort-control [data-link-glitch-active] { -webkit-user-select: text; user-select: text; }
+.feed-filter-control:has([data-link-glitch-active]), .feed-filter-control [data-link-glitch-active] { -webkit-user-select: text; user-select: text; }
 /* Keyboard focus shouldn't leave a tile under the fixed header. */
 .portfolio-v4 .homepage-card-trigger { scroll-margin-top: calc(var(--viewport-safe-top) + var(--portfolio-top) + var(--portfolio-control-size) + var(--page-frame)); }
+.feed-projects > [hidden] { display: none; }
 .feed-projects { display: flex; flex-direction: column; gap: var(--portfolio-feed-gap); margin: 0; padding: 0; list-style: none; }
 
 @media (max-width: 767px) {
@@ -118,19 +119,19 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
   .portfolio-header.is-scrolled, .portfolio-header.is-project-focus { width: calc(100% - var(--content-padding-mobile) * 2); }
   .portfolio-header.is-project-focus .header-action { color: var(--text-secondary); --inspect-color-token: text-secondary; }
   :is(.header-avatar, .header-action)::before { top: 0; bottom: calc(var(--portfolio-control-mobile-size) - var(--portfolio-hit-size)); }
-  .header-label .feed-sort-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
+  .header-label .feed-filter-control .work-sort-control::before { inset: calc((100% - var(--portfolio-hit-size)) / 2) 0; }
   .portfolio-player { --portfolio-control-size: var(--portfolio-control-mobile-size); --player-track-gap: var(--player-track-mobile-gap); width: auto; margin: var(--portfolio-mobile-section-gap) var(--content-padding-mobile) 0; }
   .portfolio-feed { margin-top: var(--portfolio-mobile-section-gap); padding-top: var(--portfolio-mobile-feed-top); }
   .feed-toolbar { padding-inline: var(--content-padding-mobile); margin-bottom: var(--portfolio-mobile-toolbar-gap); font: var(--type-bodySans); }
   .feed-toolbar { --work-glyph-size: var(--page-frame); --work-dot-ratio: var(--work-dot-mobile-ratio); }
-  .feed-sort-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
+  .feed-filter-control .work-sort-control::before { content: ""; position: absolute; inset: calc(var(--type-body-leading) - var(--portfolio-hit-size)) 0 0; }
   .feed-projects { gap: var(--portfolio-mobile-feed-gap); }
   .portfolio-v4 .homepage-contact { margin-top: var(--portfolio-mobile-section-gap); padding-inline: var(--content-padding-mobile); }
   .portfolio-v4 .portfolio-footer { margin-top: var(--portfolio-mobile-section-gap); padding: 0 var(--content-padding-mobile); }
 }
 @media (prefers-reduced-motion: reduce) {
   .portfolio-v4 *, .portfolio-v4 *::before, .portfolio-v4 *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
-  .feed-toolbar > .feed-sort-control { transition-delay: 0s !important; }
+  .feed-toolbar > .feed-filter-control { transition-delay: 0s !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {

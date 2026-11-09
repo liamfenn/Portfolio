@@ -74,7 +74,7 @@ export function WorkGlyphControl({
   useEffect(() => {
     if (previousSelection.current === selection) return;
     previousSelection.current = selection;
-    // Re-selecting Random still counts as a selection, even when the label stays the same.
+    // Replay the selection pulse even when the displayed label stays the same.
     if (!reducedMotion) { selectionPlaying.current = true; replay(); }
   }, [selection, replay, reducedMotion]);
 

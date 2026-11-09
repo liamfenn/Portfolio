@@ -1,32 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { HomepageCard } from "@/components/homepage-card";
-import { ProjectSortControl } from "@/components/project-sort-control";
+import { ProjectFilterControl } from "@/components/project-filter-control";
 import { ProjectFocus } from "@/components/project-focus";
 import type { ProjectFocusSelection } from "@/components/project-focus";
 import { useProjectDisplayState } from "@/components/project-display-state";
 import { usePortfolioExperiments } from "@/components/portfolio-experiments";
 import { PROJECT_PREVIEWS } from "@/lib/project-previews";
-import { sortProjects } from "@/lib/project-order";
+import { placeNewProjects } from "@/lib/project-order";
 import { arrangeProjectGrid } from "@/lib/project-arrangement";
-import { refreshVideoOrder } from "@/lib/video-playback";
+import { filterProjects } from "@/lib/project-filters";
+import { refreshVideoVisibility } from "@/lib/video-playback";
+import featuredOrder from "@/lib/featured-order.json";
 
-const FILLED_PROJECTS = PROJECT_PREVIEWS.filter(project => project.media);
+const PROJECTS = arrangeProjectGrid(placeNewProjects(PROJECT_PREVIEWS.filter(project => project.media), featuredOrder.order), 1);
 
 export function ProjectFeed() {
-  const { featuredOrder, sortMode, randomSeed, setFocusedProject } = useProjectDisplayState();
+  const { projectFilter, setFocusedProject } = useProjectDisplayState();
   const { projectInteractionMode } = usePortfolioExperiments();
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selection, setSelection] = useState<ProjectFocusSelection | null>(null);
-  const sortRevision = `${sortMode}:${randomSeed}`;
-  const previousSort = useRef(sortRevision);
   useLayoutEffect(() => {
-    if (previousSort.current === sortRevision) return;
-    previousSort.current = sortRevision;
-    return refreshVideoOrder();
-  }, [sortRevision]);
+    refreshVideoVisibility();
+  }, [projectFilter]);
   useEffect(() => {
     const media = matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(media.matches);
@@ -39,19 +37,9 @@ export function ProjectFeed() {
   const closeFocus = useCallback(() => setSelection(null), []);
   const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
 
-  const recent = sortProjects(FILLED_PROJECTS, featuredOrder, false);
-  let projects = recent;
-  if (sortMode === "random") {
-    const rank = (id: string) => {
-      let value = randomSeed + 1;
-      for (const character of id) value = Math.imul(value ^ character.charCodeAt(0), 0x45d9f3b);
-      return value >>> 0;
-    };
-    projects = [...recent].sort((a, b) => rank(a.id) - rank(b.id));
-  }
-  projects = arrangeProjectGrid(projects, 1);
+  const projects = filterProjects(PROJECTS, projectFilter);
+  const visibleIds = new Set(projects.map(project => project.id));
   const overlay = projectInteractionMode === "overlay";
-  const displayOrder = new Map(projects.map((project, index) => [project.id, index]));
 
   const focusIndex = selection ? projects.findIndex(project => project.id === selection.preview.id) : -1;
   const navigate = (direction: -1 | 1, keyboard: boolean) => {
@@ -65,16 +53,17 @@ export function ProjectFeed() {
 
   return <section className="portfolio-feed" aria-label="Selected work">
     <div className="feed-toolbar text-bodySans">
-      <ProjectSortControl />
+      <ProjectFilterControl />
     </div>
-    {/* The tiles keep their place in the DOM and sorting only changes their CSS order: moving a playing video makes it flash black. */}
-    <ul className="feed-projects" onFocusCapture={event => {
+    <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Showing {projects.length} {projectFilter === "all" ? "" : projectFilter === "shop" ? "Shop " : "other "}projects</span>
+    {/* Keep every player mounted in the curated order; filtering only hides excluded tiles. */}
+    <ul id="project-feed-projects" className="feed-projects" onFocusCapture={event => {
       if (!overlay || !expandedId) return;
       const trigger = (event.target as Element).closest(".homepage-card-trigger");
       if (trigger?.matches(":focus-visible") && trigger.closest<HTMLElement>("[data-project-id]")?.dataset.projectId !== expandedId) setExpandedId(null);
     }}>
-      {recent.map((preview, index) => <HomepageCard key={preview.id} preview={preview} isMobile={isMobile} priorityMedia={index === 0}
-        displayOrder={displayOrder.get(preview.id)}
+      {PROJECTS.map((preview, index) => <HomepageCard key={preview.id} preview={preview} isMobile={isMobile} priorityMedia={index === 0}
+        hidden={!visibleIds.has(preview.id)}
         expanded={overlay && expandedId === preview.id}
         cardOverlay={overlay}
         focusActive={selection?.preview.id === preview.id}
