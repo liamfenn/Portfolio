@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy refinements**
+- Incentives: changed “on Shop” to “in Shop” and removed “them” after “Organized.”
 - Rewards card: removed “using depth and motion to give a familiar format a more physical feel,” leaving the opening sentence as “Interactive digital card for Shop rewards.”
 - Top-search Navigation: removed the clause explaining typeahead results and changed “liquid glass” to “tinted glass.” Other reviewed descriptions remain as approved; further edits are being handled individually.
 

@@ -71,7 +71,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-03", ...shop,
     label: "Incentives",
-    description: "Rethought how incentives appear throughout the funnel on Shop. Organized them by value type rather than funding source to make them clearer for buyers. Developed a canonical system for communicating offers, progress, and eligibility without visual clutter.",
+    description: "Rethought how incentives appear throughout the funnel in Shop. Organized by value type rather than funding source to make them clearer for buyers. Developed a canonical system for communicating offers, progress, and eligibility without visual clutter.",
     period: "Q3 2026",
     year: 2026,
     quarter: 3,
