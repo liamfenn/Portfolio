@@ -57,7 +57,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-02", ...shop,
     label: "Rewards card",
-    description: "Interactive digital card for Shop rewards, using depth and motion to give a familiar format a more physical feel. Tested various visual treatments and custom shaders that informed the design of a physical card. Gyroscope-driven movement adds a small moment of play to the shopping experience.",
+    description: "Interactive digital card for Shop rewards. Tested various visual treatments and custom shaders that informed the design of a physical card. Gyroscope-driven movement adds a small moment of play to the shopping experience.",
     period: "Q4 2026",
     quarter: 4,
     media: MEDIA_ASSETS.shopRewardsCard,
