@@ -45,7 +45,7 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
     id: "shop-01", ...shop,
     stackTag: "top",
     label: "Navigation",
-    description: "Explored exposing search throughout Shop, with particular attention to the product detail page and typeahead, which surfaces relevant products, stores, and queries. Rolled a custom liquid glass treatment that preserves fluidity while making transitions calmer and more predictable.",
+    description: "Explored exposing search throughout Shop, with particular attention to the product detail page and typeahead. Rolled a custom tinted glass treatment that preserves fluidity while making transitions calmer and more predictable.",
     period: "Q4 2026",
     quarter: 4,
     media: MEDIA_ASSETS.shopFirstPreview,

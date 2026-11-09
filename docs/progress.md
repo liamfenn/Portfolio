@@ -5,6 +5,9 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Project copy refinements**
+- Top-search Navigation: removed the clause explaining typeahead results and changed “liquid glass” to “tinted glass.” Other reviewed descriptions remain as approved; further edits are being handled individually.
+
 **Project copy review (2026-11-08)**
 - Approved Collections and its description covering Liam's first Shop project, collaboration, saved-product recommendations and guiding it to completion. All seven Shop entries are reviewed; Shopping agent and both Blink entries remain.
 - Approved Baskets and its description covering the early Shop Week direction, personalized product baskets and on-device card generation with varied arrangements and physical behavior.
