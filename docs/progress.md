@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Project copy refinements**
+- Bottom-search Navigation: removed “for Shop” from the opening sentence.
 - Incentives: replaced the description with Liam’s supplied “Reimagined how incentives show up throughout the funnel” copy, using offer type and communicating value/progress/eligibility.
 - Baskets: removed “selected from a canvas,” leaving “personalized baskets of products.”
 - Collections: approved “Built on an early version of collections, adding collaboration and recommendations based on saved products, and guiding the project to completion.” Keeps the existing first-project-at-Shop opening and acknowledges the foundation was already there when Liam joined.
