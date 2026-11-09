@@ -102,8 +102,8 @@ export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-07", ...shop,
     stackTag: "bottom",
-    label: "Bottom search",
-    description: "Search exploration built around a bottom-anchored input, keeping the interaction close at hand. The prototype looks at how search can open over the browsing experience and move naturally between queries and results.",
+    label: "Navigation",
+    description: "Experimented with a bottom-anchored search for Shop, using a distortion shader to connect its movement to the surrounding page. Suggested queries emerge from behind the bar as the user scrolls through a product page, inviting deeper exploration only when we can infer interest.",
     period: "Q4 2026",
     year: 2026,
     quarter: 4,
