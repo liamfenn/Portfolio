@@ -115,7 +115,8 @@ test("nothing in the bar overlaps: text clears every visible square, and Spotify
     const squares = [frame.avatar > 0.01 ? control : 0, frame.albumIn && frame.album > 0.01 ? frame.albumX + control : 0, frame.brandLeft > 0.1 ? frame.brandLeftX + frame.brandLeft : 0];
     assert.ok(frame.textLeft >= Math.max(...squares) + Math.min(panel, inset) - 0.5, `text under a square at ${ms}ms`);
     assert.ok(frame.actionRight >= frame.brandRight + inset - 0.5, `time under Spotify at ${ms}ms`);
-    if (frame.brandLeft > 0.5 && frame.albumIn && frame.album > 0.5) assert.ok(frame.brandLeftX >= frame.albumX + control - 0.5, `album over Spotify at ${ms}ms`);
+    // (At the flip Spotify tucks under the album as they slide out; that is checked on its own below.)
+    if (ms < FILTER_AT && frame.brandLeft > 0.5 && frame.albumIn && frame.album > 0.5) assert.ok(frame.brandLeftX >= frame.albumX + control - 0.5, `album over Spotify at ${ms}ms`);
   }
 });
 
@@ -135,27 +136,41 @@ test("text only changes once the bar has settled, except in the site's flip to t
   }
 });
 
-test("at the flip, Spotify slides out whole under the bar's edge as the fill and label follow it, without a snap", () => {
+test("at the flip, Spotify slides out with the album just behind, whole, as the fill and label follow, without a snap", () => {
   const { control, column, narrow, slot } = STORY_METRICS;
-  let previous = bar(FILTER_AT - 1);
-  // The bar has already narrowed as it rose, so its left edge holds still through the flip.
   const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 0.5, message ?? `${actual} is not ${expected}`);
+  let previous = bar(FILTER_AT - 1);
+  // The bar has already narrowed, so its left edge holds still through the slide; the album and Spotify sit side by side.
   near(previous.width, column - narrow);
-  near(previous.brandLeftX, 0);
-  for (let ms = FILTER_AT; ms <= FILTER_AT + STORY_METRICS.scroll; ms += 1000 / 60) {
-    const frame = bar(ms);
-    near(frame.width, column - narrow, `the bar's width moves at ${ms}ms`);
-    near(frame.brandLeft, control, `Spotify changes size at ${ms}ms`);
-    // The fill's edge is Spotify's right edge, and the label keeps its distance from it.
-    assert.ok(Math.abs(frame.fillLeft - Math.max(0, frame.brandLeftX + control)) < 0.5, `fill apart from Spotify at ${ms}ms`);
-    assert.ok(frame.brandLeftX <= previous.brandLeftX, `jumps back at ${ms}ms`);
-    // No 60fps frame moves it more than a fifth of its width: it slides rather than snaps.
-    assert.ok(previous.brandLeftX - frame.brandLeftX < control / 5, `snaps at ${ms}ms`);
-    previous = frame;
+  near(previous.albumX, 0);
+  near(previous.brandLeftX, control);
+  const frames = [];
+  for (let ms = FILTER_AT; ms <= FILTER_AT + 700; ms += 1000 / 60) frames.push(bar(ms));
+  for (const frame of frames) {
+    near(frame.width, column - narrow, "the bar's width moves during the slide");
+    near(frame.brandLeft, control, "Spotify changes size");
+    // The album trails Spotify a little, Spotify tucking under it, but they never come apart, and the album never
+    // reaches past Spotify's right edge; the fill's edge is Spotify's right edge.
+    if (frame.albumIn) {
+      assert.ok(frame.brandLeftX <= frame.albumX + control + 0.5, "a gap opens between the album and Spotify");
+      assert.ok(frame.albumX + control <= frame.brandLeftX + control + 0.5, "the album passes Spotify");
+    }
+    near(frame.fillLeft, Math.max(0, frame.brandLeftX + control), "the fill comes apart from Spotify");
   }
-  near(previous.brandLeftX, -control);
-  near(previous.fillLeft, 0);
-  near(previous.textLeft, slot);
+  for (let index = 1; index < frames.length; index++) {
+    const step = frames[index - 1].brandLeftX - frames[index].brandLeftX;
+    // Every 60fps frame moves on smoothly: never back, never more than a fifth of a square at once (the slide covers
+    // two), and its speed never changes abruptly from one frame to the next.
+    assert.ok(step >= 0 && step < control / 5, `a jump of ${step.toFixed(1)}px at frame ${index}`);
+    if (index > 1) assert.ok(Math.abs(step - (frames[index - 2].brandLeftX - frames[index - 1].brandLeftX)) < control / 20, `a lurch at frame ${index}`);
+  }
+  // The dot pops in with the flip, not once the squares have gone.
+  assert.ok(bar(FILTER_AT + STORY_METRICS.pop).mark > 0.99);
+  const last = frames.at(-1);
+  near(last.brandLeftX, -control);
+  near(last.fillLeft, 0);
+  near(last.textLeft, slot);
+  assert.equal(last.albumIn, 0);
 });
 
 test("the grid follows the bar up, but only reaches it once it has become the filter", () => {

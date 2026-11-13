@@ -182,7 +182,9 @@ export function OgStory() {
       parts.fill.style.setProperty("--og-story-over", `${(frame.over * 100).toFixed(1)}%`);
       parts.fill.style.setProperty("--og-story-over-amount", frame.over.toFixed(3));
       pop(parts.avatar, 0, frame.avatar);
-      pop(parts.album, frame.albumX, frame.albumIn ? frame.album : 0);
+      // The album, like Spotify after it, only ever slides and fades; it never scales.
+      parts.album.style.transform = `translateX(${frame.albumX}px)`;
+      parts.album.style.opacity = String(frame.albumIn ? frame.album : 0);
       // Spotify's blocks change width to move sides. The right one pops in at full size in its slot, the fill drawing
       // back off it, and only narrows once it has popped.
       const rightWidth = frame.brand < 0.995 ? metrics.control : frame.brandRight;

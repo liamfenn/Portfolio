@@ -57,12 +57,15 @@ export const PLAYER_AT = 2000;
 const SOLO_AT = 3300;
 /** Three songs: playing, played a few minutes ago, playing. */
 export const SONG_ATS = [PLAYER_AT + 400, 3900, 4800];
-/** The album leaves and Spotify slides into its place as the bar rises and narrows, as the header narrows once the page
- * scrolls. Then the bar flips to the filter on the site's header flip ease (homepage.css `.is-over-images`,
- * --header-scroll-ease): Spotify slides out to the left under the bar's edge, whole, as the fill and label follow its
- * right edge into place; the fill turns translucent, the dot pops in, and the text scrambles to "All". */
-const LIFT_AT = 5800, RISE_MS = 900, SLIDE_AT = LIFT_AT + 200;
-export const FILTER_AT = SLIDE_AT + 420;
+/** The bar rises, narrowing first, as the header narrows once the page scrolls. Then it flips to the filter on the
+ * site's header flip ease (homepage.css `.is-over-images`, --header-scroll-ease), in one slide: the album and Spotify
+ * slide out under the bar's left edge, whole, fading as they go, the album a few frames behind, while the fill and
+ * label follow Spotify's right edge into place; the fill turns translucent, the dot pops in, and the text scrambles to "All". */
+const LIFT_AT = 5800, RISE_MS = 900, NARROW_MS = 450;
+export const FILTER_AT = LIFT_AT + NARROW_MS;
+/** The slide carries two squares, so it takes a little longer than the header's flip of one (--header-scroll-duration);
+ * the album follows Spotify out a few frames behind. */
+const FLIP_SCALE = 1.4, ALBUM_LAG_MS = 70;
 /** The grid follows the bar up, reaching it just after it has become the filter, which turns translucent over it as
  * the site's header does over the work. */
 export const GRID_AT = LIFT_AT + 100;
@@ -185,8 +188,8 @@ export const motionAt = (grid: GridFrame | null, ms: number) => grid && ms >= SP
  */
 export interface BarFrame {
   left: number; top: number; width: number;
-  /** Pops, 0 (out) to 1: the avatar, the album, the right Spotify block and the filter's dot; `brandLeftPop` is only
-   * the left block's fade as it slides out. */
+  /** Pops, 0 (out) to 1: the avatar, the right Spotify block and the filter's dot. `album` and `brandLeftPop` are only
+   * fades, as those squares slide out. */
   avatar: number; album: number; brand: number; brandLeftPop: number; mark: number;
   /** Whether the album is there at all (it waits under the avatar until the player comes in). */
   albumIn: number; albumX: number;
@@ -214,7 +217,7 @@ function barKeys({ column, control, narrow, inset, panel, slot, pop, scroll }: S
     width: control, rise: 0, over: 0, avatar: 0, lead: control, album: 1, albumIn: 0, albumX: 0,
     brand: 0, brandRight: 0, brandLeft: 0, brandLeftX: control * 2, brandLeftPop: 1, playing: 1, mark: 0, textPad: panel,
   };
-  const flip = (at: number, set: Partial<BarState>): Key => ({ at, ms: scroll, ease: scrollEase, set });
+  const flip = (at: number, set: Partial<BarState>): Key => ({ at, ms: scroll * FLIP_SCALE, ease: scrollEase, set });
   const move = (at: number, set: Partial<BarState>, ms = MOVE_MS): Key => ({ at, ms, ease: motionEase, set });
   const keys: Key[] = [
     { at: AVATAR_AT, ms: pop, ease: motionEase, set: { avatar: 1 } },
@@ -230,15 +233,16 @@ function barKeys({ column, control, narrow, inset, panel, slot, pop, scroll }: S
     move(SOLO_AT, { lead: 0, albumX: 0, brandLeftX: control, brandLeft: control, brandRight: 0 }),
     { at: SONG_ATS[1], ms: pop, ease: motionEase, set: { playing: 0 } },
     { at: SONG_ATS[2], ms: pop, ease: motionEase, set: { playing: 1 } },
-    // The album pops out and the bar rises, narrowing as it goes; Spotify slides into the album's place.
-    { at: LIFT_AT, ms: pop, ease: motionEase, set: { album: 0 } },
+    // The bar rises, and narrows before anything slides, so its left edge holds still through the slide.
     { at: LIFT_AT, ms: RISE_MS, ease: enterEase, set: { rise: 1 } },
-    { at: LIFT_AT, ms: FILTER_AT - LIFT_AT, ease: enterEase, set: { width: column - narrow } },
-    { at: LIFT_AT + pop, ms: 1, ease: cut, set: { albumIn: 0 } },
-    move(SLIDE_AT, { brandLeftX: 0 }),
-    // The flip to the filter, in one motion: Spotify slides out under the bar's left edge, whole and fading a little,
-    // as the fill and label follow its right edge. Shrinking it in place while the bar narrowed squeezed it from the left.
+    { at: LIFT_AT, ms: NARROW_MS, ease: enterEase, set: { width: column - narrow } },
+    // The flip to the filter, in one slide: Spotify goes out under the bar's left edge, whole and fading, as the fill and
+    // label follow its right edge, and the album follows it out a few frames behind, Spotify tucking under it.
+    // (Popping the album out, then moving Spotify into its place, read as a vanish and a snap; so did shrinking a square
+    // in place while the bar narrowed.)
     flip(FILTER_AT, { brandLeftX: -control, brandLeftPop: 0, textPad: slot, over: 1 }),
+    flip(FILTER_AT + ALBUM_LAG_MS, { albumX: -control * 2, album: 0 }),
+    { at: FILTER_AT + ALBUM_LAG_MS + scroll * FLIP_SCALE, ms: 1, ease: cut, set: { albumIn: 0 } },
     { at: FILTER_AT, ms: pop, ease: motionEase, set: { mark: 1 } },
     // Into the focused tile: the mark pops out as the text moves into its place.
     { at: LAND_AT, ms: pop, ease: motionEase, set: { mark: 0 } },
@@ -250,8 +254,10 @@ function barKeys({ column, control, narrow, inset, panel, slot, pop, scroll }: S
 /** The bar at `ms` on a card `width` × `height`. */
 export function barAt(ms: number, width: number, height: number, metrics: StoryMetrics, shape: StoryShape): BarFrame {
   const { start, keys } = barKeys(metrics), state = { ...start };
+  // Keys apply in the order listed; one that hasn't started yet is skipped rather than ending the loop, so a key never
+  // waits on one listed before it.
   for (const { at, ms: length, ease, set } of keys) {
-    if (ms < at) break;
+    if (ms < at) continue;
     const t = ease(clamp((ms - at) / length));
     for (const [field, value] of Object.entries(set) as [keyof BarState, number][]) state[field] = lerp(state[field], value, t);
   }
