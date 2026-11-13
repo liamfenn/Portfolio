@@ -57,10 +57,10 @@ export const PLAYER_AT = 2000;
 const SOLO_AT = 3300;
 /** Three songs: playing, played a few minutes ago, playing. */
 export const SONG_ATS = [PLAYER_AT + 400, 3900, 4800];
-/** The album leaves and Spotify slides into its place as the bar rises; then the bar flips to the filter on the site's
- * header flip ease (homepage.css `.is-over-images`, --header-scroll-ease): Spotify shrinks and fades away as the fill
- * and label ride its edge into place and the bar narrows to its new width, all in one motion; the fill turns
- * translucent, the dot pops in, and the text scrambles to "All". */
+/** The album leaves and Spotify slides into its place as the bar rises and narrows, as the header narrows once the page
+ * scrolls. Then the bar flips to the filter on the site's header flip ease (homepage.css `.is-over-images`,
+ * --header-scroll-ease): Spotify slides out to the left under the bar's edge, whole, as the fill and label follow its
+ * right edge into place; the fill turns translucent, the dot pops in, and the text scrambles to "All". */
 const LIFT_AT = 5800, RISE_MS = 900, SLIDE_AT = LIFT_AT + 200;
 export const FILTER_AT = SLIDE_AT + 420;
 /** The grid follows the bar up, reaching it just after it has become the filter, which turns translucent over it as
@@ -181,12 +181,12 @@ export const motionAt = (grid: GridFrame | null, ms: number) => grid && ms >= SP
  *
  * Spotify is two blocks: one at the far right end, one after the album. Each is as wide as `brandRight` or `brandLeft`
  * (0 to the square's size), so moving sides is the right one shrinking as the left one grows. `brand` pops the right
- * block in; at the flip to the filter the left one narrows to nothing as `brandLeftPop` fades and shrinks it.
+ * block in; at the flip to the filter the left one slides out past the bar's left edge as `brandLeftPop` fades it.
  */
 export interface BarFrame {
   left: number; top: number; width: number;
-  /** Pops, 0 (out) to 1: the avatar, the album, the Spotify blocks (right, then left, which fades on the flip's ease)
-   * and the filter's dot. */
+  /** Pops, 0 (out) to 1: the avatar, the album, the right Spotify block and the filter's dot; `brandLeftPop` is only
+   * the left block's fade as it slides out. */
   avatar: number; album: number; brand: number; brandLeftPop: number; mark: number;
   /** Whether the album is there at all (it waits under the avatar until the player comes in). */
   albumIn: number; albumX: number;
@@ -230,14 +230,15 @@ function barKeys({ column, control, narrow, inset, panel, slot, pop, scroll }: S
     move(SOLO_AT, { lead: 0, albumX: 0, brandLeftX: control, brandLeft: control, brandRight: 0 }),
     { at: SONG_ATS[1], ms: pop, ease: motionEase, set: { playing: 0 } },
     { at: SONG_ATS[2], ms: pop, ease: motionEase, set: { playing: 1 } },
-    // The album pops out and the bar rises; Spotify slides into the album's place.
+    // The album pops out and the bar rises, narrowing as it goes; Spotify slides into the album's place.
     { at: LIFT_AT, ms: pop, ease: motionEase, set: { album: 0 } },
     { at: LIFT_AT, ms: RISE_MS, ease: enterEase, set: { rise: 1 } },
+    { at: LIFT_AT, ms: FILTER_AT - LIFT_AT, ease: enterEase, set: { width: column - narrow } },
     { at: LIFT_AT + pop, ms: 1, ease: cut, set: { albumIn: 0 } },
     move(SLIDE_AT, { brandLeftX: 0 }),
-    // The flip to the filter, in one motion: Spotify narrows and fades as the fill and label follow its edge and the
-    // bar narrows to its width over the work, as the header's does once the page scrolls.
-    flip(FILTER_AT, { brandLeft: 0, brandLeftPop: 0, textPad: slot, over: 1, width: column - narrow }),
+    // The flip to the filter, in one motion: Spotify slides out under the bar's left edge, whole and fading a little,
+    // as the fill and label follow its right edge. Shrinking it in place while the bar narrowed squeezed it from the left.
+    flip(FILTER_AT, { brandLeftX: -control, brandLeftPop: 0, textPad: slot, over: 1 }),
     { at: FILTER_AT, ms: pop, ease: motionEase, set: { mark: 1 } },
     // Into the focused tile: the mark pops out as the text moves into its place.
     { at: LAND_AT, ms: pop, ease: motionEase, set: { mark: 0 } },
@@ -279,12 +280,12 @@ export interface StoryCopy {
 }
 export interface StoryProject { company: string; label: string; period: string }
 
-/** Three of Liam's recent songs: where the clock starts if playing, or how long ago it played. Their art is saved in
- * public/images/meta as og-story-album-1 to 3. */
+/** Liam's three songs: where the clock starts if playing, or how long ago it played. Their art, from Spotify, is saved
+ * in public/images/meta as og-story-album-1 to 3. */
 export const SONGS: { title: string; artist: string; seconds?: number; ago?: string }[] = [
-  { title: "Childhood", artist: "Beach House", seconds: 84 },
-  { title: "Everything", artist: "Found Space", ago: "4m ago" },
-  { title: "Ten Long Years", artist: "LL Burns", seconds: 127 },
+  { title: "Mimesis", artist: "Fontaines D.C.", seconds: 84 },
+  { title: "Lovely Sewer", artist: "Yves Tumor", ago: "4m ago" },
+  { title: "Lazuli", artist: "Beach House", seconds: 127 },
 ];
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 

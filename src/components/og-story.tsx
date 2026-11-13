@@ -189,7 +189,9 @@ export function OgStory() {
       parts.brandRight.style.width = `${rightWidth}px`;
       pop(parts.brandRight, frame.width - rightWidth, frame.brandRight > 0.5 ? frame.brand : 0);
       parts.brandLeft.style.width = `${frame.brandLeft}px`;
-      pop(parts.brandLeft, frame.brandLeftX, frame.brandLeft > 0.1 ? frame.brandLeftPop : 0);
+      // The left block moves and fades but never scales: at the flip it slides out whole under the bar's left edge.
+      parts.brandLeft.style.transform = `translateX(${frame.brandLeftX}px)`;
+      parts.brandLeft.style.opacity = String(frame.brandLeft > 0.1 ? frame.brandLeftPop : 0);
       parts.brandRightPlaying.style.opacity = parts.brandLeftPlaying.style.opacity = String(frame.playing);
       pop(parts.mark, metrics.inset, frame.mark);
       parts.copy.style.left = `${frame.textLeft}px`;

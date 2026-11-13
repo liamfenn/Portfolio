@@ -135,23 +135,27 @@ test("text only changes once the bar has settled, except in the site's flip to t
   }
 });
 
-test("at the flip, Spotify narrows away as the fill, label and bar width slide with it, all on one ease", () => {
+test("at the flip, Spotify slides out whole under the bar's edge as the fill and label follow it, without a snap", () => {
   const { control, column, narrow, slot } = STORY_METRICS;
   let previous = bar(FILTER_AT - 1);
-  assert.equal(previous.brandLeft, control);
-  assert.equal(previous.width, column);
-  for (let ms = FILTER_AT; ms <= FILTER_AT + STORY_METRICS.scroll; ms += 5) {
-    const frame = bar(ms), progress = (control - frame.brandLeft) / control;
-    // The fill's edge is Spotify's edge, and the bar's width and the label move in step with it.
-    assert.ok(Math.abs(frame.fillLeft - frame.brandLeft) < 0.5, `fill apart from Spotify at ${ms}ms`);
-    assert.ok(Math.abs((column - frame.width) / narrow - progress) < 0.01, `width out of step at ${ms}ms`);
-    assert.ok(frame.brandLeft <= previous.brandLeft && frame.width <= previous.width, `jumps back at ${ms}ms`);
-    // No step in one 60fps frame takes more than a fifth of the move: it slides rather than snaps.
-    assert.ok(previous.brandLeft - frame.brandLeft < control / 5, `snaps at ${ms}ms`);
+  // The bar has already narrowed as it rose, so its left edge holds still through the flip.
+  const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 0.5, message ?? `${actual} is not ${expected}`);
+  near(previous.width, column - narrow);
+  near(previous.brandLeftX, 0);
+  for (let ms = FILTER_AT; ms <= FILTER_AT + STORY_METRICS.scroll; ms += 1000 / 60) {
+    const frame = bar(ms);
+    near(frame.width, column - narrow, `the bar's width moves at ${ms}ms`);
+    near(frame.brandLeft, control, `Spotify changes size at ${ms}ms`);
+    // The fill's edge is Spotify's right edge, and the label keeps its distance from it.
+    assert.ok(Math.abs(frame.fillLeft - Math.max(0, frame.brandLeftX + control)) < 0.5, `fill apart from Spotify at ${ms}ms`);
+    assert.ok(frame.brandLeftX <= previous.brandLeftX, `jumps back at ${ms}ms`);
+    // No 60fps frame moves it more than a fifth of its width: it slides rather than snaps.
+    assert.ok(previous.brandLeftX - frame.brandLeftX < control / 5, `snaps at ${ms}ms`);
     previous = frame;
   }
-  assert.equal(previous.brandLeft, 0);
-  assert.equal(previous.textLeft, slot);
+  near(previous.brandLeftX, -control);
+  near(previous.fillLeft, 0);
+  near(previous.textLeft, slot);
 });
 
 test("the grid follows the bar up, but only reaches it once it has become the filter", () => {
