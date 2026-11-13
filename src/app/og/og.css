@@ -42,6 +42,9 @@
 .og-story-mark {
   --og-story-dot: calc(var(--work-glyph-size) * var(--work-dot-ratio));
   left: 0; top: calc(50% - var(--og-story-dot) / 2); height: var(--og-story-dot); color: var(--text-primary);
+  /* The site's dot is a clip-path circle, which Chrome snaps to whole device pixels; at the capture's 2.8125x scale
+     that shaved its top. A rounded box draws the same circle without the snap. */
+  clip-path: none; border-radius: 50%;
 }
 .og-story-copy { display: flex; align-items: center; gap: var(--player-track-gap); }
 .og-story-label, .og-story-action { display: flex; align-items: center; white-space: pre; }

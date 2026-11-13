@@ -21,7 +21,7 @@ const ALBUMS = [1, 2, 3].map(song => `/images/meta/og-story-album-${song}.webp`)
 /** The ending: the name is revealed as the last tile slides off it, holds, glitches to the site's address, which holds
  * and glitches out, and the card holds blank before the loop starts again. */
 const URL = "fennell.cv";
-const NAME_HOLD_MS = 2500, URL_HOLD_MS = 2500, BLANK_MS = 400;
+const NAME_HOLD_MS = 1500, URL_HOLD_MS = 2000, BLANK_MS = 400;
 /** The projects paged through after the spin lands, in order; the first is where it lands. */
 const CYCLE_IDS = ["shop-02", "shopping-agent", "shop-03", "shop-08"];
 const PERIOD = (project: ProjectPreview) => `${project.quarter ? `Q${project.quarter} ` : ""}${String(project.year).slice(-2)}`;
@@ -205,8 +205,9 @@ export function OgStory() {
         parts.albumUnder.style.backgroundImage = `url("${ALBUMS[under]}")`;
         const colors = currentGlyphPalette();
         ALBUM_CELL_ORDER.forEach((cell, rank) => {
-          // The newest few cells flash a palette colour before showing the art, as the site's swap does.
-          const element = cells[cell], flash = rank < shown && rank >= shown - 3 && cell % 5 === 0 && colors.length > 0;
+          // The newest few cells flash a palette colour before showing the art, as the site's swap does; once every cell
+          // is in, none flash, or the last few stay coloured.
+          const element = cells[cell], flash = shown < cells.length && rank < shown && rank >= shown - 3 && cell % 5 === 0 && colors.length > 0;
           element.style.backgroundImage = flash ? "none" : `url("${ALBUMS[over]}")`;
           element.style.backgroundColor = flash ? colors[cell % colors.length] : "";
           element.style.opacity = rank < shown ? "1" : "0";

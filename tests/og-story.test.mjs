@@ -90,7 +90,7 @@ test("the player flips through three songs, playing, played a while ago, then pl
   assert.equal(next.tick, true);
   // Each later song's cover comes in over the last, cell by cell, in a fixed order.
   assert.equal(new Set(ALBUM_CELL_ORDER).size, 64);
-  assert.deepEqual(albumAt(SONG_ATS[1] + 500), { under: 0, over: 1, shown: 64 });
+  assert.deepEqual(albumAt(SONG_ATS[1] + 500), { under: 1, over: 1, shown: 0 });
   assert.ok(albumAt(SONG_ATS[2] + 100).shown > 0 && albumAt(SONG_ATS[2] + 100).shown < 64);
 });
 

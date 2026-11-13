@@ -318,7 +318,7 @@ export function storyCopy(ms: number, projects: StoryProject[], shape: StoryShap
 /**
  * The album's art swap between songs, like the site's player (album-artwork.tsx): the next cover appears over the
  * last in irregular clusters on an 8 × 8 grid. Returns which cover is underneath, which is coming in, and how many of
- * its cells show, in `ALBUM_CELL_ORDER`'s order.
+ * its cells show, in `ALBUM_CELL_ORDER`'s order; at rest, the cover is underneath and no cells show.
  */
 export const ALBUM_GRID = 8;
 const SWAP_MS = 300;
@@ -333,7 +333,9 @@ export const ALBUM_CELL_ORDER = (() => {
   }).sort((a, b) => a.rank - b.rank).map(cell => cell.index);
 })();
 export function albumAt(ms: number) {
-  const song = Math.max(0, songAt(ms));
-  if (song === 0) return { under: 0, over: 0, shown: 0 };
-  return { under: song - 1, over: song, shown: Math.round(clamp((ms - SONG_ATS[song]) / SWAP_MS) * ALBUM_GRID ** 2) };
+  const song = Math.max(0, songAt(ms)), t = (ms - SONG_ATS[song]) / SWAP_MS;
+  // Once a swap is done the new cover moves underneath and the cells hide, since their edges show as faint gridlines
+  // where they fall between pixels.
+  if (song === 0 || t >= 1) return { under: song, over: song, shown: 0 };
+  return { under: song - 1, over: song, shown: Math.round(clamp(t) * ALBUM_GRID ** 2) };
 }
