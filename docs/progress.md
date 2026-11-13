@@ -5,6 +5,10 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Quarter label color consistency (2026-11-12)**
+- Mobile now matches desktop: focused header dates use `text-muted` (#999999), while home project dates use `text-secondary` (#555555). Removed the mobile-only focused-date override; no new tokens.
+- Validation: Chrome/WebKit computed colors at 1440px and 393px, all 120 tests and TypeScript pass.
+
 **Chrome-only overscroll and Safari Top scrolling (2026-11-12)**
 - Scoped the focused-view bounce suppression to Chromium using an attribute on the mounted dialog. Safari keeps its previous `contain` behavior and the page keeps its native overscroll policy; Chrome on iOS is excluded because it uses WebKit.
 - Measured native Top scrolling at 1200px/4500px depth: Chrome took about 0.55s/1.08s, while WebKit took about 0.18s at either depth. Safari now uses a distance-scaled animation with the shared header easing, measuring about 0.62s/0.95s. Chrome keeps its native smooth scroll. New `--scroll-top-*` roles supply the min/max/viewport duration and easing; existing motion tokens provide all but the 1200ms maximum.
