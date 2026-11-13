@@ -29,12 +29,13 @@ export class ProjectFocusMedia {
   private frame = 0;
 
   start(scroller: HTMLElement) {
-    const sync = () => this.schedule();
+    // Scroll events already run before paint; another frame lets the media trail native content.
+    const sync = () => this.sync();
     const resize = () => {
       this.placements.forEach(placement => placement.animation?.finish());
       this.schedule();
     };
-    this.observer = new ResizeObserver(sync);
+    this.observer = new ResizeObserver(() => this.schedule());
     this.observer.observe(scroller);
     scroller.addEventListener("scroll", sync, { passive: true });
     window.addEventListener("resize", resize);
