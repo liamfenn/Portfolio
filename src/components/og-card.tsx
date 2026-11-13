@@ -65,7 +65,7 @@ async function glitch(letters: { element: HTMLElement; to: string }[], signal: A
  * Glitching letters out of, or back into, their places: each in a random order flickers through the palette for
  * 200–350ms, then is gone ("out") or settles on the text's own colour ("in"). The same transition either way.
  */
-async function glitchInPlace(letters: HTMLElement[], signal: AbortSignal, mode: "out" | "in") {
+export async function glitchInPlace(letters: HTMLElement[], signal: AbortSignal, mode: "out" | "in") {
   const start = performance.now(), colors = currentGlyphPalette(), slots = shuffled(letters.map((_, index) => index));
   const runs = letters.map((element, index) => {
     const at = start + slots[index] * PLACE_STAGGER_MS;

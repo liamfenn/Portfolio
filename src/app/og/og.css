@@ -16,3 +16,32 @@
 .og-reel-stage { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
 .og-reel-grid { position: absolute; inset: 0; width: 100%; height: 100%; }
 .og-reel-filters { position: absolute; width: 0; height: 0; }
+/* The story (/og/story): the site's header bar, player and filter as one bar the scene moves frame by frame, over the
+   reel's grid canvas. Every move is set from script on the virtual clock, so nothing here transitions. */
+.og-story-bar {
+  position: fixed; top: 0; left: 0; z-index: 1; height: var(--portfolio-control-size); overflow: hidden; visibility: hidden;
+  --work-glyph-size: var(--work-glyph-desktop-size);
+}
+.og-story-bar > * { position: absolute; top: 0; height: 100%; }
+.og-story-fill {
+  background-color: color-mix(in srgb, var(--header-translucent-fill) var(--og-story-over, 0%), var(--bg-secondary-fill));
+  -webkit-backdrop-filter: blur(calc(var(--header-translucent-blur) * var(--og-story-over-amount, 0)));
+  backdrop-filter: blur(calc(var(--header-translucent-blur) * var(--og-story-over-amount, 0)));
+}
+.og-story-square { left: 0; width: var(--portfolio-control-size); }
+.og-story-square img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.og-story-playing { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg-green-fill); }
+.og-story-playing .player-logo { background: var(--text-on-accent); }
+.og-story-mark { left: 0; top: calc(50% - var(--work-glyph-size) / 2); height: var(--work-glyph-size); color: var(--text-primary); }
+.og-story-label, .og-story-action { display: flex; align-items: center; white-space: pre; }
+.og-story-label { overflow: hidden; }
+.og-story-lead { color: var(--text-primary); --inspect-color-token: text-primary; }
+.og-story-trail { color: var(--text-secondary); --inspect-color-token: text-secondary; }
+.og-story-trail-artist { margin-left: var(--player-artist-gap); }
+.og-story-trail-detail { margin-left: var(--content-padding-mobile); }
+.og-story-action-name { color: var(--text-primary); --inspect-color-token: text-primary; }
+.og-story-action-clock { color: var(--text-green); --inspect-color-token: text-green; }
+.og-story-action-ago { color: var(--text-muted); --inspect-color-token: text-muted; }
+.og-story-action-label { color: var(--text-secondary); --inspect-color-token: text-secondary; }
+/* The name glitches in while the last tile is still sliding away beneath it. */
+.og-story .og-card-title { position: relative; z-index: 2; }

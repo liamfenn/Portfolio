@@ -91,6 +91,36 @@ export function warpAt(u: number, v: number) {
   return { x: u * edge * WARP * 2, y: v * edge * WARP * 0.6 };
 }
 
+export interface WarpedTile {
+  left: number; top: number; size: number; fill: string;
+  image?: { image: CanvasImageSource; width: number; height: number } | null;
+  /** How opaque the tile is painted, 0 to 1. */
+  alpha?: number;
+}
+/**
+ * Paints square tiles onto `ink`, warped. The warp maps each painted point back to the grid point it shows (as the
+ * old displacement map did), and for one line across the card it is only a squeeze toward the middle, so each tile is
+ * painted one pixel row at a time: find the grid row that line shows, squeeze it, and draw it, with the source
+ * smoothed. `bend` scales the warp, 0 painting the tiles flat.
+ */
+export function paintWarped(ink: CanvasRenderingContext2D, width: number, height: number, ratio: number, tiles: WarpedTile[], bend = 1) {
+  const strip = 1 / ratio, middle = width / 2;
+  ink.clearRect(0, 0, width, height);
+  for (let y = 0; y < height; y += strip) {
+    const v = (y + strip / 2) / height * 2 - 1, squeeze = 1 + warpAt(1, v).x * bend, along = y + warpAt(0, v).y * bend * height / 2;
+    for (const { left, top, size, fill, image, alpha = 1 } of tiles) {
+      if (along < top || along >= top + size || alpha <= 0) continue;
+      const x = middle + (left - middle) / squeeze, w = size / squeeze;
+      ink.globalAlpha = alpha;
+      if (image) {
+        const sy = (along - top) / size * image.height;
+        ink.drawImage(image.image, 0, sy, image.width, Math.max(1, image.height / size * strip), x, y, w, strip);
+      } else { ink.fillStyle = fill; ink.fillRect(x, y, w, strip); }
+    }
+  }
+  ink.globalAlpha = 1;
+}
+
 const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
 
 /** The return starts once every row still on the card is above this share of its height, while the last ones fly off. */
@@ -160,24 +190,9 @@ async function run(stage: HTMLElement, signal: AbortSignal, nearlyGone: () => vo
   stage.append(canvas);
   const work = video ? workVideo(video) : null;
 
-  // The warp maps each painted point back to the grid point it shows (as the old displacement map did), and for one
-  // line across the card it is only a squeeze toward the middle, so each tile is painted one pixel row at a time: find
-  // the grid row that line shows, squeeze it, and draw it, with the source smoothed.
-  const strip = 1 / ratio, middle = width / 2;
   const paint = (tiles: { left: number; top: number }[]) => {
-    ink.clearRect(0, 0, width, height);
-    const source = work?.ready() ? work.video : null;
-    for (let y = 0; y < height; y += strip) {
-      const v = (y + strip / 2) / height * 2 - 1, squeeze = 1 + warpAt(1, v).x, along = y + warpAt(0, v).y * height / 2;
-      for (const { left, top } of tiles) {
-        if (along < top || along >= top + size) continue;
-        const x = middle + (left - middle) / squeeze, w = size / squeeze;
-        if (source) {
-          const sy = (along - top) / size * source.videoHeight;
-          ink.drawImage(source, 0, sy, source.videoWidth, Math.max(1, source.videoHeight / size * strip), x, y, w, strip);
-        } else { ink.fillStyle = fill; ink.fillRect(x, y, w, strip); }
-      }
-    }
+    const image = work?.ready() ? { image: work.video, width: work.video.videoWidth, height: work.video.videoHeight } : null;
+    paintWarped(ink, width, height, ratio, tiles.map(({ left, top }) => ({ left, top, size, fill, image })));
   };
   try {
     const start = await nextFrame();

@@ -16,6 +16,11 @@
 // instead (with --glitch-return to glitch them back in place rather than float them home), --rows moves the grid as
 // rows, --video plays the Shop product-page prototype in the tiles instead of placeholders, and --tight grows the
 // tiles to 8px from the card's sides.
+// --story records the story (/og/story: the header bar, player and filter, the work grid's spin and pages, then the
+// name) as 16:9 and 9:16 cuts named office-of-liam-fennell-story-*; with --quick, only its 16:9 frames at 1x. It runs
+// in the installed Google Chrome rather than Playwright's Chromium, which can't play the tiles' H.264 clips. The cuts
+// are laid out at 1080×608 and 768×1366, so the 552px column keeps the storyboard's (and the desktop site's) scale,
+// then scaled to 1080p and cropped to an even frame.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -28,13 +33,14 @@ const VARIANTS = [["--reverse", "landing=reverse", "-reverse"], ["--all-glitch",
   .filter(([flag]) => process.argv.includes(flag));
 const VARIANT = VARIANTS.length > 0;
 const REEL = process.argv.includes("--reel");
-const BASE = REEL ? URL.replace(/\/og\/?$/, "/og/reel") : URL;
+const STORY = process.argv.includes("--story");
+const BASE = REEL ? URL.replace(/\/og\/?$/, "/og/reel") : STORY ? URL.replace(/\/og\/?$/, "/og/story") : URL;
 const PAGE = VARIANTS.length ? `${BASE}?${VARIANTS.map(([, query]) => query).join("&")}` : BASE;
 const SUFFIX = VARIANTS.map(([, , suffix]) => suffix).join("");
-const NAME = REEL ? "office-of-liam-fennell-reel" : "office-of-liam-fennell";
+const NAME = REEL ? "office-of-liam-fennell-reel" : STORY ? "office-of-liam-fennell-story" : "office-of-liam-fennell";
 const FPS = 60;
-const MAX_FRAMES = FPS * 20;
-const FRAMES = REEL ? "out/og-reel-frames" : "out/og-frames";
+const MAX_FRAMES = FPS * 30;
+const FRAMES = REEL ? "out/og-reel-frames" : STORY ? "out/og-story-frames" : "out/og-frames";
 const SHARE = "out/share";
 
 const clock = seed => {
@@ -56,7 +62,7 @@ const clock = seed => {
 async function record(width, height, scale) {
   const dir = `${FRAMES}${SUFFIX}-${width}x${height}@${scale}x`;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(STORY ? { channel: "chrome" } : {});
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale });
   await page.addInitScript(clock, SEED);
   // Not "networkidle": dev tooling (Agentation retrying its local server) can keep the network busy indefinitely.
@@ -64,7 +70,7 @@ async function record(width, height, scale) {
   // Dev-only overlays (the Next indicator, Agentation) would otherwise sit on top of the card.
   await page.addStyleTag({ content: "nextjs-portal, [data-feedback-toolbar] { display: none !important; }" });
   // The card sets this once its fonts and Matter.js have loaded, so the first virtual frame is its first real one.
-  await page.waitForFunction(() => window.__ogReady === true, null, { timeout: 60000 });
+  await page.waitForFunction(() => window.__ogReady === true, null, { timeout: 60000, polling: 100 });
   let frame = 0;
   for (; frame < MAX_FRAMES; frame++) {
     await page.screenshot({ path: `${dir}/${String(frame).padStart(5, "0")}.png` });
@@ -81,9 +87,20 @@ async function record(width, height, scale) {
   return dir;
 }
 
-const encode = (dir, output, crf) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
-  "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
+const encode = (dir, output, crf, crop) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
+  ...(crop ? ["-vf", `crop=${crop}:0:0`] : []), "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
 
+if (STORY) {
+  mkdirSync(SHARE, { recursive: true });
+  for (const [name, width, height, scale, crop] of QUICK ? [["16x9", 1080, 608, 1]] : [["16x9", 1080, 608, 16 / 9, "1920:1080"], ["9x16", 768, 1366, 1080 / 768, "1080:1920"]]) {
+    const dir = await record(width, height, scale);
+    if (QUICK) continue;
+    encode(dir, `${SHARE}/${NAME}-${name}.mp4`, 16, crop);
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", `${dir}/00000.png`, "-vf", `crop=${crop}:0:0`, `${SHARE}/${NAME}-${name}.png`]);
+  }
+  if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-{16x9,9x16}.{mp4,png}`);
+  process.exit(0);
+}
 if (REEL) {
   mkdirSync(SHARE, { recursive: true });
   for (const [name, width, height, scale] of QUICK ? [["16x9", 1200, 675, 1]] : [["16x9", 1200, 675, 1.6], ["9x16", 675, 1200, 1.6]]) {

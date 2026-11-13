@@ -14,7 +14,7 @@ import { filterProjects } from "@/lib/project-filters";
 import { refreshVideoVisibility } from "@/lib/video-playback";
 import featuredOrder from "@/lib/featured-order.json";
 
-const PROJECTS = arrangeProjectGrid(placeNewProjects(PROJECT_PREVIEWS.filter(project => project.media), featuredOrder.order), 1);
+export const PROJECTS = arrangeProjectGrid(placeNewProjects(PROJECT_PREVIEWS.filter(project => project.media), featuredOrder.order), 1);
 
 export function ProjectFeed() {
   const { projectFilter, setFocusedProject } = useProjectDisplayState();

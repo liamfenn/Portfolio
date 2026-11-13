@@ -1,9 +1,15 @@
 # Progress and goals
 
-Last updated 2026-11-09. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-12. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**Story video (2026-11-12)**
+- Storyboard: Figma 678:4147. `/og/story` (dev only) plays it with the site's pieces, animated like the work reel: the avatar pops in and the header bar opens into "Office of … Liam Fennell", turns into the player (storyboard album art, "Romance Fontaines D.C.", a ticking green clock, then idle "1m ago"), and then into the "■ Filter … Top" control as it rises and docks. The feed grid slides up beneath it on the reel's accelerate-then-decelerate curve, then spins (a power ramp up, a long fall to rest, with the reel's warp and vertical blur, both scaled by speed so rest frames are flat). It lands on the Rewards card at 5.3s and shrinks to the storyboard's 480px focused tile, the bar settling inside it with the project's company, label and period. It pages through the rest of the feed, each project held for less time than the last (800ms down to 46ms, page turns 380ms down to 180ms), and ends on Navigation (the feed's first project, shown as "Top search" in the storyboard). That tile slides away, the name glitches in, holds, and glitches out to blank. About 14.7s, seamless.
+- Liam's choices: 16:9 and 9:16, real project media in the tiles, the spin landing on Rewards card about 5s in and then cycling through the rest with shortening dwells, and silent for now.
+- Text uses the site's filter scramble; the filter mark is the square variant, as in the storyboard. The 480px focus tile is the storyboard's size rather than a site token. Labels come from `PROJECT_PREVIEWS`, so the storyboard's "Top search" reads "Navigation".
+- Code: pure timeline in `src/lib/og-story.ts` (tested in `tests/og-story.test.mjs`), the scene in `src/components/og-story.tsx`. The reel's row-by-row warped painter is now `paintWarped` in `og-reel.ts`, shared by both. `node scripts/capture-og.mjs http://localhost:3000/og 7 --story [--quick]` writes `out/share/office-of-liam-fennell-story-{16x9,9x16}.{mp4,png}`. 16:9 is laid out at 1080×608 and 9:16 at 768×1366, keeping the 552px column at the desktop site's scale, then scaled to 1080p and cropped to an even frame. The story capture runs in installed Google Chrome, since Playwright's Chromium can't play the tiles' H.264 clips; under Chrome, Playwright's default `requestAnimationFrame` polling ran on the page's frozen virtual clock and never fired, so the capture now polls for readiness on a timer.
 
 **New Blink timer clip (2026-11-09)**
 - Replaced the Blink timer tile's media with Liam's `3D-Timer.webm`: 2160px square VP9 with alpha, 60fps, 23.7 seconds, 103.7 MB. Same project and media ID, imported with `--alpha` (version `d7ca6619858943b3`), so desktop alpha, mobile H.264 and transparent posters were all regenerated. Every HEVC rung decodes all 1421 frames with alpha 0–255.

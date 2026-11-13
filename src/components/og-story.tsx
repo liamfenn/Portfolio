@@ -1,0 +1,236 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { InspectableText } from "@/components/design-inspector";
+import { glitchInPlace } from "@/components/og-card";
+import { PROJECTS } from "@/components/project-feed";
+import { useColorScramble } from "@/hooks/use-color-scramble";
+import { mediaUrl } from "@/lib/media-delivery";
+import { paintWarped } from "@/lib/og-reel";
+import { GRID_AT, barAt, gridAt, gridTiles, motionAt, storyCopy, storySchedule, STORY_METRICS } from "@/lib/og-story";
+import type { BarFrame, StoryCopy, StoryMetrics } from "@/lib/og-story";
+import type { ProjectPreview } from "@/lib/project-previews";
+import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+
+const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fennell", face: "og-card-serif" }];
+/** The storyboard's album artwork (frame 7), saved from the Figma file. */
+const ALBUM = "/images/meta/og-story-album.webp";
+/** The name holds between glitching in and out, and the card holds blank before the loop starts again. */
+const NAME_HOLD_MS = 700;
+const BLANK_MS = 300;
+/** Tiles are drawn from the rendition nearest this width: enough for a 552px tile on the 1080p capture. */
+const TILE_RENDITION = 1200;
+const PERIOD = (project: ProjectPreview) => `${project.quarter ? `Q${project.quarter} ` : ""}${String(project.year).slice(-2)}`;
+const COPY = PROJECTS.map(project => ({ company: project.company, label: project.label, period: PERIOD(project) }));
+const REWARDS = Math.max(0, PROJECTS.findIndex(project => project.id === "shop-02"));
+
+const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
+async function wait(ms: number, signal: AbortSignal) {
+  const end = performance.now() + ms;
+  while ((await nextFrame()) < end) signal.throwIfAborted();
+}
+
+/** Each beat's text change plays the site's filter scramble, as the header's own labels do. */
+function Scrambled({ text, className }: { text: string; className?: string }) {
+  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, ignore: [], playOnMount: false });
+  return <InspectableText text={text}><span ref={ref} className={className}>{text}</span></InspectableText>;
+}
+
+/**
+ * One project's media, drawn into its tile. Playing live it just runs; under the capture's virtual clock it is seeked
+ * to each frame's time instead, as the reel's tile video is, so every recorded frame shows the right picture.
+ */
+function tileMedia(project: ProjectPreview, capturing: boolean) {
+  const media = project.media;
+  if (media?.kind === "image") {
+    const image = new window.Image();
+    image.src = mediaUrl(media.src);
+    const ready = image.decode().catch(() => {});
+    return {
+      ready,
+      image: () => image.naturalWidth ? { image, width: image.naturalWidth, height: image.naturalHeight } : null,
+      seek: () => Promise.resolve(),
+      stop() {},
+    };
+  }
+  if (media?.kind !== "video") return null;
+  // H.264 where there is one: mobile alpha clips have it composited on the tile colour, which is what a tile shows.
+  const playable = media.renditions.filter(rendition => rendition.h264);
+  const rendition = playable.find(candidate => candidate.width >= TILE_RENDITION) ?? playable.at(-1);
+  if (!rendition?.h264) return null;
+  const video = document.createElement("video");
+  Object.assign(video, { src: mediaUrl(rendition.h264), muted: true, playsInline: true, loop: true, preload: "auto", crossOrigin: "anonymous" });
+  // Loading every clip before the clock starts keeps the first seeks from timing out into blank tiles.
+  const ready = new Promise<void>(resolve => {
+    if (video.readyState >= 2) resolve();
+    video.addEventListener("loadeddata", () => resolve(), { once: true });
+    video.addEventListener("error", () => resolve(), { once: true });
+    window.setTimeout(resolve, 20000);
+  });
+  if (!capturing) void video.play().catch(() => {});
+  return {
+    ready,
+    image: () => video.readyState >= 2 ? { image: video, width: video.videoWidth, height: video.videoHeight } : null,
+    seek(ms: number) {
+      if (!capturing || !video.duration) return Promise.resolve();
+      return new Promise<void>(resolve => {
+        const timeout = window.setTimeout(resolve, 3000);
+        video.addEventListener("seeked", () => { window.clearTimeout(timeout); resolve(); }, { once: true });
+        video.currentTime = (ms / 1000) % video.duration;
+      });
+    },
+    stop() { video.pause(); video.removeAttribute("src"); video.load(); },
+  };
+}
+
+/** Reads the story's lengths from tokens.css, falling back to their current values. */
+function readMetrics(root: HTMLElement): StoryMetrics & { popScale: number; popBlur: number } {
+  const styles = getComputedStyle(root);
+  const read = (name: string, fallback: number) => {
+    const value = styles.getPropertyValue(name).trim(), number = parseFloat(value);
+    if (!Number.isFinite(number)) return fallback;
+    return value.endsWith("ms") ? number : value.endsWith("s") ? number * 1000 : number;
+  };
+  return {
+    column: read("--portfolio-column-width", STORY_METRICS.column), control: read("--portfolio-control-size", STORY_METRICS.control),
+    narrow: read("--header-narrow-inset", STORY_METRICS.narrow), inset: read("--content-padding-mobile", STORY_METRICS.inset),
+    panel: read("--portfolio-panel-padding", STORY_METRICS.panel), slot: read("--header-filter-slot", STORY_METRICS.slot),
+    gap: read("--portfolio-feed-gap", STORY_METRICS.gap), pop: read("--header-pop-duration", STORY_METRICS.pop),
+    popScale: read("--header-pop-scale", 0.5), popBlur: read("--header-pop-blur", 3),
+  };
+}
+
+declare global { interface Window { __ogLoops?: number; __ogReady?: boolean; __ogSettle?: () => Promise<void> } }
+
+/**
+ * The story card (see og-story): the site's header bar, player, filter and work, played to the storyboard on one loop.
+ * It plays in real time here; scripts/capture-og.mjs --story drives it on a virtual clock to record it.
+ */
+export function OgStory() {
+  const root = useRef<HTMLElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const title = useRef<HTMLParagraphElement>(null);
+  const [copy, setCopy] = useState<StoryCopy>(() => storyCopy(0, COPY, REWARDS));
+
+  useEffect(() => {
+    const card = root.current, reelStage = stage.current, row = bar.current, name = title.current;
+    if (!card || !reelStage || !row || !name || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const controller = new AbortController(), { signal } = controller;
+    const capturing = "__ogEvents" in window, metrics = readMetrics(card), schedule = storySchedule(PROJECTS.length);
+    const letters = Array.from(name.querySelectorAll<HTMLElement>("[data-letter]")).filter(element => element.textContent?.trim());
+    const part = (key: string) => row.querySelector<HTMLElement>(`[data-part="${key}"]`)!;
+    const parts = { fill: part("fill"), avatar: part("avatar"), album: part("album"), brand: part("brand"), playing: part("playing"), mark: part("mark"), label: part("label"), action: part("action") };
+    const media = PROJECTS.map(project => tileMedia(project, capturing));
+
+    // The grid is painted onto one canvas at full pixel density with the reel's warp, under an SVG vertical blur.
+    const width = card.clientWidth, height = card.clientHeight, ratio = window.devicePixelRatio || 1, filterId = "og-story-filter";
+    const canvas = document.createElement("canvas");
+    canvas.className = "og-reel-grid";
+    canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+    const ink = canvas.getContext("2d")!;
+    ink.setTransform(ratio, 0, 0, ratio, 0, 0); ink.imageSmoothingQuality = "high";
+    reelStage.insertAdjacentHTML("beforeend", `<svg class="og-reel-filters" aria-hidden="true">
+      <filter id="${filterId}" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter></svg>`);
+    reelStage.append(canvas);
+    const blur = reelStage.querySelector("feGaussianBlur")!, fill = getComputedStyle(card).getPropertyValue("--bg-secondary-fill").trim() || "#f6f8fa";
+
+    const pop = (element: HTMLElement, x: number, shown: number) => {
+      element.style.transform = `translateX(${x}px) scale(${metrics.popScale + (1 - metrics.popScale) * shown})`;
+      element.style.opacity = String(shown);
+      element.style.filter = shown < 0.999 ? `blur(${(metrics.popBlur * (1 - shown)).toFixed(2)}px)` : "";
+    };
+    const drawBar = (frame: BarFrame) => {
+      row.style.visibility = "visible";
+      row.style.transform = `translate(${frame.left}px, ${frame.top}px)`;
+      row.style.width = `${frame.width}px`;
+      parts.fill.style.left = `${frame.fillLeft}px`;
+      parts.fill.style.width = `${Math.max(0, frame.width - frame.fillLeft - frame.fillRight)}px`;
+      parts.fill.style.setProperty("--og-story-over", `${(frame.over * 100).toFixed(1)}%`);
+      parts.fill.style.setProperty("--og-story-over-amount", frame.over.toFixed(3));
+      pop(parts.avatar, 0, frame.avatar);
+      pop(parts.album, frame.albumX, frame.album);
+      pop(parts.brand, frame.brandX, frame.brand);
+      parts.playing.style.opacity = String(frame.playing);
+      pop(parts.mark, metrics.inset, frame.mark);
+      parts.label.style.left = `${frame.textLeft}px`;
+      parts.label.style.right = `${frame.actionRight}px`;
+      parts.action.style.right = `${frame.actionRight}px`;
+    };
+
+    const run = async () => {
+      await Promise.all([document.fonts.ready, ...media.map(item => item?.ready)]);
+      // The capture script starts its virtual clock only once this is set.
+      window.__ogReady = true;
+      for (;;) {
+        letters.forEach(letter => { letter.style.visibility = "hidden"; });
+        let named: Promise<void> | null = null, said = "";
+        const start = await nextFrame();
+        for (let time = start; ; time = await nextFrame()) {
+          signal.throwIfAborted();
+          const ms = time - start;
+          drawBar(barAt(ms, width, height, metrics, PROJECTS.length, REWARDS));
+          const words = storyCopy(ms, COPY, REWARDS), key = JSON.stringify(words);
+          if (key !== said) { said = key; setCopy(words); }
+          // The grid's blur and warp follow how fast it is moving.
+          const grid = gridAt(ms, height, metrics, PROJECTS.length, REWARDS), intensity = motionAt(grid, ms);
+          blur.setAttribute("stdDeviation", `0 ${grid ? (Math.min(36, grid.speed / 60 * 0.4) * intensity).toFixed(2) : 0}`);
+          canvas.style.filter = intensity > 0.01 ? `url(#${filterId})` : "";
+          const tiles = grid ? gridTiles(grid, PROJECTS.length, width, height) : [];
+          const paint = () => paintWarped(ink, width, height, ratio, tiles.map(({ project, left, top }) => ({ left, top, size: grid!.size, fill, image: media[project]?.image() })), intensity);
+          // Under the capture, the tiles are painted once their clips have seeked to this instant; clips start as the grid comes in.
+          const settled = Promise.all(tiles.map(({ project }) => media[project]?.seek(Math.max(0, ms - GRID_AT))));
+          if (capturing) { const drawn = settled.then(paint); window.__ogSettle = () => drawn; } else paint();
+          if (!named && ms >= schedule.nameAt) named = glitchInPlace(letters, signal, "in");
+          if (ms >= schedule.endAt) break;
+        }
+        row.style.visibility = "hidden";
+        await named;
+        await wait(NAME_HOLD_MS, signal);
+        await glitchInPlace(letters, signal, "out");
+        await wait(BLANK_MS, signal);
+        window.__ogLoops = (window.__ogLoops ?? 0) + 1;
+      }
+    };
+    run().catch(error => { if (!signal.aborted) throw error; });
+    return () => {
+      controller.abort();
+      media.forEach(item => item?.stop());
+      canvas.remove(); reelStage.querySelector(".og-reel-filters")?.remove();
+      window.__ogSettle = undefined;
+    };
+  }, []);
+
+  return (
+    <main ref={root} className="og-card og-story">
+      <div ref={stage} className="og-reel-stage" aria-hidden="true" />
+      <div ref={bar} className="og-story-bar" aria-hidden="true">
+        <span className="og-story-fill" data-part="fill" />
+        <span className="og-story-square og-story-album" data-part="album"><Image src={ALBUM} width={192} height={192} alt="" unoptimized /></span>
+        <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
+        <span className="og-story-square player-brand" data-part="brand">
+          <span className="player-logo" />
+          <span className="og-story-playing" data-part="playing"><span className="player-logo" /></span>
+        </span>
+        <span className="work-control-square og-story-mark" data-part="mark" />
+        <span className="og-story-label text-bodySans" data-part="label">
+          <Scrambled text={copy.lead} className="og-story-lead" />
+          <Scrambled text={copy.trail} className={`og-story-trail${copy.lead ? ` og-story-trail-${copy.trailGap}` : ""}`} />
+        </span>
+        <span className={`og-story-action og-story-action-${copy.actionKind} ${copy.actionKind === "name" ? "text-bodySerif" : copy.actionKind === "label" ? "text-bodySans" : "text-captionSans"}`} data-part="action">
+          <Scrambled text={copy.action} />
+        </span>
+      </div>
+      <InspectableText>
+        <p ref={title} className="og-card-title">
+          {WORDS.map(({ text, face }, word) => (
+            <span key={word} className={face}>
+              {Array.from(text).map((char, index) => <span key={index} data-letter="">{char}</span>)}
+            </span>
+          ))}
+        </p>
+      </InspectableText>
+    </main>
+  );
+}
