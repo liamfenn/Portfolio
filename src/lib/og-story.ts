@@ -28,8 +28,10 @@ export interface StoryMetrics {
   gap: number;
   /** --header-pop-duration, for the squares and mark popping in and out. */
   pop: number;
+  /** --header-scroll-duration: the header's flip from the name to the filter, which the bar's own flip copies. */
+  scroll: number;
 }
-export const STORY_METRICS: StoryMetrics = { column: 552, control: 32, narrow: 48, inset: 12, panel: 10, slot: 27, gap: 8, pop: 280 };
+export const STORY_METRICS: StoryMetrics = { column: 552, control: 32, narrow: 48, inset: 12, panel: 10, slot: 27, gap: 8, pop: 280, scroll: 360 };
 
 /** What the grid holds: the feed's projects, where the Rewards card sits in it, and the projects paged through after
  * landing (as feed indexes, starting with the Rewards card). */
@@ -44,8 +46,10 @@ const GRID_TOP = 32, DOCK_TOP = 24;
 /** The beats, in ms from the blank first frame. The bar's moves are quick and land together; text changes only once
  * the bar has settled. */
 export const AVATAR_AT = 250;
-const OPEN_AT = 450, OPEN_MS = 500;
-const OFFICE_AT = 950, NAME_AT = 1150;
+/** The bar opens once the avatar has finished popping, accelerating then decelerating like the reel's slides, so the
+ * avatar doesn't shift while it is still scaling and the opening doesn't lurch. */
+const OPEN_AT = 600, OPEN_MS = 520;
+const OFFICE_AT = 1150, NAME_AT = 1350;
 /** "Office of" to the player: the album slides out from under the avatar as Spotify pops in at the far end. */
 export const PLAYER_AT = 2000;
 /** The avatar leaves and the album slides into its place; Spotify shrinks away on the right and grows in after the
@@ -53,15 +57,16 @@ export const PLAYER_AT = 2000;
 const SOLO_AT = 3300;
 /** Three songs: playing, played a few minutes ago, playing. */
 export const SONG_ATS = [PLAYER_AT + 400, 3900, 4800];
-/** The album leaves and Spotify slides into its place as the bar rises; then Spotify shrinks away and the bar becomes
- * the filter. */
-const LIFT_AT = 5800, RISE_MS = 900, SLIDE_AT = LIFT_AT + 200, COLLAPSE_AT = SLIDE_AT + 350;
-export const FILTER_AT = COLLAPSE_AT + 350;
+/** The album leaves and Spotify slides into its place as the bar rises and narrows; then the bar flips to the filter
+ * the way the site's header flips from the name to it over the work (homepage.css `.is-over-images`): the square pops
+ * out, the fill slides left over its place and turns translucent, the label slides to the filter's slot, the dot pops
+ * in, and the text scrambles to "All". */
+const LIFT_AT = 5800, RISE_MS = 900, SLIDE_AT = LIFT_AT + 200;
+export const FILTER_AT = SLIDE_AT + 420;
 /** The grid follows the bar up, reaching it just after it has become the filter, which turns translucent over it as
  * the site's header does over the work. */
 export const GRID_AT = LIFT_AT + 100;
 const GRID_MS = 1000;
-const OVER_AT = FILTER_AT + 50, OVER_MS = 350;
 /** The spin: from rest, ramping up, then a long deceleration into the Rewards card. */
 export const SPIN_AT = GRID_AT + GRID_MS + 100;
 const SPIN_MS = 1500;
@@ -89,6 +94,8 @@ export function spinProgress(s: number) {
 
 /** The site's ease (--motion-ease): quick off the mark, settling softly. Pops and the bar's moves both use it. */
 const motionEase = (t: number) => bezier(0.16, 1, 0.3, 1, t);
+/** The header's flip ease (--header-scroll-ease). */
+const scrollEase = (t: number) => bezier(0.4, 0, 0.2, 1, t);
 /** The last tile leaves accelerating, then nearly steady, so it reads as a slide rather than a vanish. */
 const leaveEase = (t: number) => bezier(0.6, 0, 0.8, 0.7, t);
 const clamp = (t: number) => Math.max(0, Math.min(1, t));
@@ -167,18 +174,19 @@ export function gridTiles(grid: GridFrame, shape: StoryShape, width: number, hei
 export const motionAt = (grid: GridFrame | null, ms: number) => grid && ms >= SPIN_AT ? speedIntensity(grid.speed) : 0;
 
 /**
- * The bar, in its own coordinates (x from its left edge). Its layers sit in a fixed order, back to front: Spotify, the
- * grey fill, the album, the avatar, then the text and the filter's mark. The fill's edges and the text are worked out
- * from the squares beside them, so they always move together.
+ * The bar, in its own coordinates (x from its left edge). Its layers sit in a fixed order, back to front: the grey fill,
+ * the text and the filter's dot, Spotify, the album, then the avatar, as the site's header stacks its avatar above its
+ * label. The fill's edges and the text are worked out from
+ * the squares beside them, so they always move together.
  *
  * Spotify is two blocks: one at the far right end, one after the album. Each is as wide as `brandRight` or `brandLeft`
  * (0 to the square's size), so moving sides is the right one shrinking as the left one grows. `brand` pops the right
- * block in.
+ * block in and `brandLeftPop` pops the left one out at the flip to the filter.
  */
 export interface BarFrame {
   left: number; top: number; width: number;
-  /** Pops, 0 (out) to 1: the avatar, the album, the right Spotify block and the filter's mark. */
-  avatar: number; album: number; brand: number; mark: number;
+  /** Pops, 0 (out) to 1: the avatar, the album, the Spotify blocks (right, then left) and the filter's dot. */
+  avatar: number; album: number; brand: number; brandLeftPop: number; mark: number;
   /** Whether the album is there at all (it waits under the avatar until the player comes in). */
   albumIn: number; albumX: number;
   brandLeft: number; brandLeftX: number; brandRight: number;
@@ -192,7 +200,9 @@ export interface BarFrame {
 interface BarState {
   width: number; rise: number; over: number;
   avatar: number; lead: number; album: number; albumIn: number; albumX: number;
-  brand: number; brandRight: number; brandLeft: number; brandLeftX: number; playing: number; mark: number;
+  brand: number; brandRight: number; brandLeft: number; brandLeftX: number; brandLeftPop: number; playing: number; mark: number;
+  /** How much room the left Spotify square takes from the fill: 1, then 0 as the fill slides over its place. */
+  brandSpace: number;
   /** How far the text sits from the fill's left edge: the panel padding beside a square, the filter slot, or the
    * content padding in a focused tile. */
   textPad: number;
@@ -200,15 +210,16 @@ interface BarState {
 type Key = { at: number; ms: number; ease: (t: number) => number; set: Partial<BarState> };
 const cut = () => 1;
 
-function barKeys({ column, control, narrow, inset, panel, slot, pop }: StoryMetrics) {
+function barKeys({ column, control, narrow, inset, panel, slot, pop, scroll }: StoryMetrics) {
   const start: BarState = {
     width: control, rise: 0, over: 0, avatar: 0, lead: control, album: 1, albumIn: 0, albumX: 0,
-    brand: 0, brandRight: 0, brandLeft: 0, brandLeftX: control * 2, playing: 1, mark: 0, textPad: panel,
+    brand: 0, brandRight: 0, brandLeft: 0, brandLeftX: control * 2, brandLeftPop: 1, brandSpace: 1, playing: 1, mark: 0, textPad: panel,
   };
+  const flip = (at: number, set: Partial<BarState>): Key => ({ at, ms: scroll, ease: scrollEase, set });
   const move = (at: number, set: Partial<BarState>, ms = MOVE_MS): Key => ({ at, ms, ease: motionEase, set });
   const keys: Key[] = [
     { at: AVATAR_AT, ms: pop, ease: motionEase, set: { avatar: 1 } },
-    { at: OPEN_AT, ms: OPEN_MS, ease: motionEase, set: { width: column } },
+    { at: OPEN_AT, ms: OPEN_MS, ease: enterEase, set: { width: column } },
     // The player: the album slides out from under the avatar, the fill and text moving with it, as Spotify pops in at
     // the far end and the fill's right end makes room for it.
     { at: PLAYER_AT, ms: 1, ease: cut, set: { albumIn: 1 } },
@@ -220,15 +231,15 @@ function barKeys({ column, control, narrow, inset, panel, slot, pop }: StoryMetr
     move(SOLO_AT, { lead: 0, albumX: 0, brandLeftX: control, brandLeft: control, brandRight: 0 }),
     { at: SONG_ATS[1], ms: pop, ease: motionEase, set: { playing: 0 } },
     { at: SONG_ATS[2], ms: pop, ease: motionEase, set: { playing: 1 } },
-    // The album pops out and the bar rises; Spotify slides into its place, then shrinks away, the text moving to the
-    // filter's slot as the mark pops in.
+    // The album pops out and the bar rises and narrows, as the header does once the page scrolls; Spotify slides into
+    // the album's place.
     { at: LIFT_AT, ms: pop, ease: motionEase, set: { album: 0 } },
     { at: LIFT_AT, ms: RISE_MS, ease: enterEase, set: { rise: 1 } },
     { at: LIFT_AT + pop, ms: 1, ease: cut, set: { albumIn: 0 } },
-    move(SLIDE_AT, { brandLeftX: 0, width: column - narrow / 2 }, 350),
-    move(COLLAPSE_AT, { brandLeft: 0, textPad: slot }, 350),
-    { at: FILTER_AT, ms: pop, ease: motionEase, set: { mark: 1 } },
-    move(OVER_AT, { over: 1, width: column - narrow }, OVER_MS),
+    move(SLIDE_AT, { brandLeftX: 0, width: column - narrow }),
+    // The header's flip to the filter, all at once.
+    { at: FILTER_AT, ms: pop, ease: motionEase, set: { brandLeftPop: 0, mark: 1 } },
+    flip(FILTER_AT, { brandSpace: 0, textPad: slot, over: 1 }),
     // Into the focused tile: the mark pops out as the text moves into its place.
     { at: LAND_AT, ms: pop, ease: motionEase, set: { mark: 0 } },
     move(LAND_AT + pop * 0.5, { textPad: inset }),
@@ -244,9 +255,9 @@ export function barAt(ms: number, width: number, height: number, metrics: StoryM
     const t = ease(clamp((ms - at) / length));
     for (const [field, value] of Object.entries(set) as [keyof BarState, number][]) state[field] = lerp(state[field], value, t);
   }
-  const { control, inset } = metrics, { rise, lead, textPad, ...bar } = state;
+  const { control, inset } = metrics, { rise, lead, textPad, brandSpace, ...bar } = state;
   // The fill starts after whichever square reaches furthest: the avatar's slot, the album, or Spotify after it.
-  const fillLeft = Math.max(lead, state.albumIn ? state.albumX + control : 0, state.brandLeft > 0 ? state.brandLeftX + state.brandLeft : 0);
+  const fillLeft = Math.max(lead, state.albumIn ? state.albumX + control : 0, state.brandLeft > 0 ? (state.brandLeftX + state.brandLeft) * brandSpace : 0);
   const frame = { ...bar, fillLeft, fillRight: state.brandRight, textLeft: fillLeft + textPad, actionRight: state.brandRight + inset };
   let left = (width - bar.width) / 2, top = lerp((height - control) / 2, DOCK_TOP, rise);
   if (ms >= LAND_AT) {
@@ -291,7 +302,7 @@ export function storyCopy(ms: number, projects: StoryProject[], shape: StoryShap
     const seconds = Math.floor((ms - SONG_ATS[index]) / 1000);
     return { ...words, action: clock(song.seconds + seconds), actionKind: "clock", ...(seconds > 0 ? { tick: true as const } : {}) };
   }
-  if (ms < FOCUSED_AT) return { ...blank, lead: "Filter", action: "Top" };
+  if (ms < FOCUSED_AT) return { ...blank, lead: "All", action: "Top" };
   // Each page turn swaps the bar's project halfway through.
   const turned = storySchedule(shape.cycle.length).steps.filter(step => ms >= step.at + step.ms / 2).length;
   const { company, label, period } = projects[shape.cycle[Math.min(turned, shape.cycle.length - 1)]];

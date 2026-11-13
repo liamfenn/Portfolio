@@ -39,7 +39,10 @@
 .og-story-album-cell { position: relative; background-size: calc(var(--og-story-album-grid, 8) * 100%); background-repeat: no-repeat; opacity: 0; }
 .og-story-name { font-size: var(--text-og-story-name); }
 .og-story-playing .player-logo { background: var(--text-on-accent); }
-.og-story-mark { left: 0; top: calc(50% - var(--work-glyph-size) / 2); height: var(--work-glyph-size); color: var(--text-primary); }
+.og-story-mark {
+  --og-story-dot: calc(var(--work-glyph-size) * var(--work-dot-ratio));
+  left: 0; top: calc(50% - var(--og-story-dot) / 2); height: var(--og-story-dot); color: var(--text-primary);
+}
 .og-story-copy { display: flex; align-items: center; gap: var(--player-track-gap); }
 .og-story-label, .og-story-action { display: flex; align-items: center; white-space: pre; }
 .og-story-label { flex: 1; min-width: 0; overflow: hidden; }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { InspectableText } from "@/components/design-inspector";
 import { glitchInPlace } from "@/components/og-card";
@@ -38,10 +38,16 @@ async function wait(ms: number, signal: AbortSignal) {
   while ((await nextFrame()) < end) signal.throwIfAborted();
 }
 
-/** Each beat's text change plays the site's filter scramble, as the header's own labels do. */
+/**
+ * Each beat's text change plays the site's filter scramble, as the header's own labels do. React renders only the
+ * first text; after that the scramble writes every change, so the new words never show for a frame before it starts
+ * from the old ones. A quiet change (a clock tick) is written straight in, since the scramble draws nothing at speed 0.
+ */
 function Scrambled({ text, className, quiet = false }: { text: string; className?: string; quiet?: boolean }) {
   const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, ignore: [], playOnMount: false, speed: quiet ? 0 : FILTER_SCRAMBLE.speed });
-  return <InspectableText text={text}><span ref={ref} className={className}>{text}</span></InspectableText>;
+  const [first] = useState(text);
+  useLayoutEffect(() => { if (quiet && ref.current) ref.current.textContent = text; }, [quiet, text, ref]);
+  return <InspectableText text={text}><span ref={ref} className={className}>{first}</span></InspectableText>;
 }
 
 /** Spotify's square: grey, with a green layer over it while a song plays. */
@@ -112,6 +118,7 @@ function readMetrics(root: HTMLElement): StoryMetrics & { popScale: number; popB
     narrow: read("--header-narrow-inset", STORY_METRICS.narrow), inset: read("--content-padding-mobile", STORY_METRICS.inset),
     panel: read("--portfolio-panel-padding", STORY_METRICS.panel), slot: read("--header-filter-slot", STORY_METRICS.slot),
     gap: read("--portfolio-feed-gap", STORY_METRICS.gap), pop: read("--header-pop-duration", STORY_METRICS.pop),
+    scroll: read("--header-scroll-duration", STORY_METRICS.scroll),
     popScale: read("--header-pop-scale", 0.5), popBlur: read("--header-pop-blur", 3),
   };
 }
@@ -179,8 +186,7 @@ export function OgStory() {
       parts.brandRight.style.width = `${rightWidth}px`;
       pop(parts.brandRight, frame.width - rightWidth, frame.brandRight > 0.5 ? frame.brand : 0);
       parts.brandLeft.style.width = `${frame.brandLeft}px`;
-      parts.brandLeft.style.transform = `translateX(${frame.brandLeftX}px)`;
-      parts.brandLeft.style.opacity = frame.brandLeft > 0.5 ? "1" : "0";
+      pop(parts.brandLeft, frame.brandLeftX, frame.brandLeft > 0.5 ? frame.brandLeftPop : 0);
       parts.brandRightPlaying.style.opacity = parts.brandLeftPlaying.style.opacity = String(frame.playing);
       pop(parts.mark, metrics.inset, frame.mark);
       parts.copy.style.left = `${frame.textLeft}px`;
@@ -250,17 +256,10 @@ export function OgStory() {
     <main ref={root} className="og-card og-story">
       <div ref={stage} className="og-reel-stage" aria-hidden="true" />
       <div ref={bar} className="og-story-bar" aria-hidden="true">
-        {/* Back to front: Spotify, the fill, the album, the avatar, then the mark and text. */}
-        <Brand part="brand-right" />
-        <Brand part="brand-left" />
+        {/* Back to front: the fill, the dot and text, then Spotify, the album and the avatar. As in the site's header,
+            the squares sit above the text, so at the flip to the filter the label slides under the popping square. */}
         <span className="og-story-fill" data-part="fill" />
-        <span className="og-story-square og-story-album" data-part="album" style={{ "--og-story-album-grid": ALBUM_GRID } as CSSProperties}>
-          <span className="og-story-album-art" data-part="album-under" />
-          {CELLS.map(({ x, y }, index) => <span key={index} className="og-story-album-cell" data-album-cell=""
-            style={{ backgroundPosition: `${x}% ${y}%` }} />)}
-        </span>
-        <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
-        <span className="work-control-square og-story-mark" data-part="mark" />
+        <span className="work-control-dot og-story-mark" data-part="mark" />
         {/* One row, so the label gives way to the right-hand text rather than running under it. */}
         <span className="og-story-copy" data-part="copy">
           <span className="og-story-label text-bodySans">
@@ -271,6 +270,14 @@ export function OgStory() {
             <Scrambled text={copy.action} quiet={copy.tick} />
           </span>
         </span>
+        <Brand part="brand-right" />
+        <Brand part="brand-left" />
+        <span className="og-story-square og-story-album" data-part="album" style={{ "--og-story-album-grid": ALBUM_GRID } as CSSProperties}>
+          <span className="og-story-album-art" data-part="album-under" />
+          {CELLS.map(({ x, y }, index) => <span key={index} className="og-story-album-cell" data-album-cell=""
+            style={{ backgroundPosition: `${x}% ${y}%` }} />)}
+        </span>
+        <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
       </div>
       <InspectableText>
         <p ref={title} className="og-card-title og-story-name">

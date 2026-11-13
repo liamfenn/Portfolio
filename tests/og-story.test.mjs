@@ -62,13 +62,15 @@ test("the last tile slides away alone, with nothing following it down", () => {
   }
 });
 
-test("the bar starts blank and centred, opens to the column, and rides off with the last tile", () => {
+test("the bar starts blank and centred, opens only once the avatar has popped, and rides off with the last tile", () => {
   const first = bar(0);
   assert.equal(first.avatar, 0);
   assert.equal(first.width, STORY_METRICS.control);
   assert.equal(first.left, (WIDTH - STORY_METRICS.control) / 2);
   assert.equal(first.top, (HEIGHT - STORY_METRICS.control) / 2);
   assert.equal(bar(AVATAR_AT + 1000).avatar, 1);
+  // While the avatar is still popping, the bar hasn't started to open.
+  for (let ms = AVATAR_AT; ms < AVATAR_AT + STORY_METRICS.pop; ms += 5) assert.equal(bar(ms).width, STORY_METRICS.control);
   const open = bar(1800);
   assert.equal(open.width, STORY_METRICS.column);
   assert.equal(open.fillLeft, STORY_METRICS.control);
@@ -110,21 +112,24 @@ test("nothing in the bar overlaps: text clears every visible square, and Spotify
   const { control, panel, inset } = STORY_METRICS;
   for (let ms = 0; ms < LAND_AT; ms += 5) {
     const frame = bar(ms);
-    const squares = [frame.avatar > 0.01 ? control : 0, frame.albumIn && frame.album > 0.01 ? frame.albumX + control : 0, frame.brandLeft > 0.5 ? frame.brandLeftX + frame.brandLeft : 0];
+    // At the flip to the filter the label slides under the left Spotify square as it pops out, as the site's header
+    // label slides under its avatar; only a settled square counts.
+    const squares = [frame.avatar > 0.01 ? control : 0, frame.albumIn && frame.album > 0.01 ? frame.albumX + control : 0, frame.brandLeft > 0.5 && frame.brandLeftPop > 0.99 ? frame.brandLeftX + frame.brandLeft : 0];
     assert.ok(frame.textLeft >= Math.max(...squares) + Math.min(panel, inset) - 0.5, `text under a square at ${ms}ms`);
     assert.ok(frame.actionRight >= frame.brandRight + inset - 0.5, `time under Spotify at ${ms}ms`);
     if (frame.brandLeft > 0.5 && frame.albumIn && frame.album > 0.5) assert.ok(frame.brandLeftX >= frame.albumX + control - 0.5, `album over Spotify at ${ms}ms`);
   }
 });
 
-test("text only changes once the bar has settled, and the bar holds still while it changes", () => {
+test("text only changes once the bar has settled, except in the site's flip to the filter", () => {
   let previous = JSON.stringify(storyCopy(0, PROJECTS, SHAPE));
   for (let ms = 0; ms < FOCUSED_AT + 50; ms += 5) {
     const copy = storyCopy(ms, PROJECTS, SHAPE), words = JSON.stringify(copy);
     if (words === previous) continue;
     previous = words;
-    // The player's clock is a clock: it ticks whatever the bar is doing.
-    if (copy.tick) continue;
+    // The player's clock is a clock: it ticks whatever the bar is doing. And the flip to the filter is the site's
+    // header flip, which scrambles the text as the label slides.
+    if (copy.tick || ms === FILTER_AT) continue;
     const before = bar(ms - 30), during = bar(ms + 200);
     for (const field of ["textLeft", "actionRight", "fillLeft", "fillRight"]) {
       assert.ok(Math.abs(before[field] - during[field]) < 0.5, `${field} moves as the text changes at ${ms}ms`);
