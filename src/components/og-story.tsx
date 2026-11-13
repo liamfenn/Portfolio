@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { InspectableText } from "@/components/design-inspector";
-import { glitchInPlace } from "@/components/og-card";
+import { PLACE_STAGGER_MS, glitchInPlace } from "@/components/og-card";
 import { PROJECTS } from "@/components/project-feed";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { mediaUrl } from "@/lib/media-delivery";
@@ -18,9 +18,10 @@ import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fennell", face: "og-card-serif" }];
 /** The three songs' artwork (see SONGS in og-story), from Spotify. */
 const ALBUMS = [1, 2, 3].map(song => `/images/meta/og-story-album-${song}.webp`);
-/** The name holds between glitching in and out, and the card holds blank before the loop starts again. */
-const NAME_HOLD_MS = 800;
-const BLANK_MS = 400;
+/** The ending: the name is revealed as the last tile slides off it, holds, glitches to the site's address, which holds
+ * and glitches out, and the card holds blank before the loop starts again. */
+const URL = "fennell.cv";
+const NAME_HOLD_MS = 2500, URL_HOLD_MS = 2500, BLANK_MS = 400;
 /** The projects paged through after the spin lands, in order; the first is where it lands. */
 const CYCLE_IDS = ["shop-02", "shopping-agent", "shop-03", "shop-08"];
 const PERIOD = (project: ProjectPreview) => `${project.quarter ? `Q${project.quarter} ` : ""}${String(project.year).slice(-2)}`;
@@ -134,14 +135,16 @@ export function OgStory() {
   const stage = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLParagraphElement>(null);
+  const url = useRef<HTMLParagraphElement>(null);
   const [copy, setCopy] = useState<StoryCopy>(() => storyCopy(0, COPY, SHAPE));
 
   useEffect(() => {
-    const card = root.current, reelStage = stage.current, row = bar.current, name = title.current;
-    if (!card || !reelStage || !row || !name || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const card = root.current, reelStage = stage.current, row = bar.current, name = title.current, address = url.current;
+    if (!card || !reelStage || !row || !name || !address || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const controller = new AbortController(), { signal } = controller;
     const capturing = "__ogEvents" in window, metrics = readMetrics(card), schedule = storySchedule(SHAPE.cycle.length);
-    const letters = Array.from(name.querySelectorAll<HTMLElement>("[data-letter]")).filter(element => element.textContent?.trim());
+    const placed = (text: HTMLElement) => Array.from(text.querySelectorAll<HTMLElement>("[data-letter]")).filter(element => element.textContent?.trim());
+    const letters = placed(name), urlLetters = placed(address);
     const part = (key: string) => row.querySelector<HTMLElement>(`[data-part="${key}"]`)!;
     const parts = {
       fill: part("fill"), avatar: part("avatar"), album: part("album"), albumUnder: part("album-under"), mark: part("mark"), copy: part("copy"),
@@ -186,7 +189,7 @@ export function OgStory() {
       parts.brandRight.style.width = `${rightWidth}px`;
       pop(parts.brandRight, frame.width - rightWidth, frame.brandRight > 0.5 ? frame.brand : 0);
       parts.brandLeft.style.width = `${frame.brandLeft}px`;
-      pop(parts.brandLeft, frame.brandLeftX, frame.brandLeft > 0.5 ? frame.brandLeftPop : 0);
+      pop(parts.brandLeft, frame.brandLeftX, frame.brandLeft > 0.1 ? frame.brandLeftPop : 0);
       parts.brandRightPlaying.style.opacity = parts.brandLeftPlaying.style.opacity = String(frame.playing);
       pop(parts.mark, metrics.inset, frame.mark);
       parts.copy.style.left = `${frame.textLeft}px`;
@@ -207,14 +210,13 @@ export function OgStory() {
       }
     };
 
-    const nameBottom = name.getBoundingClientRect().bottom + metrics.control;
     const run = async () => {
       await Promise.all([document.fonts.ready, ...media.map(item => item?.ready), ...ALBUMS.map(src => { const image = new window.Image(); image.src = src; return image.decode().catch(() => {}); })]);
       // The capture script starts its virtual clock only once this is set.
       window.__ogReady = true;
       for (;;) {
-        letters.forEach(letter => { letter.style.visibility = "hidden"; });
-        let named: Promise<void> | null = null, said = "";
+        [...letters, ...urlLetters].forEach(letter => { letter.style.visibility = "hidden"; });
+        let named = false, said = "";
         const start = await nextFrame();
         for (let time = start; ; time = await nextFrame()) {
           signal.throwIfAborted();
@@ -231,14 +233,20 @@ export function OgStory() {
           // Under the capture, the tiles are painted once their clips have seeked to this instant; clips start as the grid comes in.
           const settled = Promise.all(tiles.map(({ project }) => media[project]?.seek(Math.max(0, ms - GRID_AT))));
           if (capturing) { const drawn = settled.then(paint); window.__ogSettle = () => drawn; } else paint();
-          // The name glitches in once the last tile has slid below it, so the two never overlap.
-          if (!named && ms >= schedule.outAt && (!grid || grid.top > nameBottom)) named = glitchInPlace(letters, signal, "in");
+          // The name sits behind the grid, shown only once the last tile covers it (earlier, it would flicker through the
+          // gaps between pages), so the tile slides off it.
+          if (!named && ms >= schedule.outAt) { named = true; letters.forEach(letter => { letter.style.visibility = ""; }); }
           if (ms >= schedule.endAt) break;
         }
         row.style.visibility = "hidden";
-        await named;
         await wait(NAME_HOLD_MS, signal);
+        // The name glitches out, then the address glitches into the same spot; overlapping them, as the reel overlaps
+        // its letters and grid, mixed the two texts' letters.
         await glitchInPlace(letters, signal, "out");
+        await wait(PLACE_STAGGER_MS * 2, signal);
+        await glitchInPlace(urlLetters, signal, "in");
+        await wait(URL_HOLD_MS, signal);
+        await glitchInPlace(urlLetters, signal, "out");
         await wait(BLANK_MS, signal);
         window.__ogLoops = (window.__ogLoops ?? 0) + 1;
       }
@@ -279,15 +287,23 @@ export function OgStory() {
         </span>
         <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
       </div>
-      <InspectableText>
-        <p ref={title} className="og-card-title og-story-name">
-          {WORDS.map(({ text, face }, word) => (
-            <span key={word} className={face}>
-              {Array.from(text).map((char, index) => <span key={index} data-letter="">{char}</span>)}
-            </span>
-          ))}
-        </p>
-      </InspectableText>
+      {/* The name and the address share one place in the middle of the card, behind the grid. */}
+      <div className="og-story-ending">
+        <InspectableText>
+          <p ref={title} className="og-card-title og-story-name">
+            {WORDS.map(({ text, face }, word) => (
+              <span key={word} className={face}>
+                {Array.from(text).map((char, index) => <span key={index} data-letter="">{char}</span>)}
+              </span>
+            ))}
+          </p>
+        </InspectableText>
+        <InspectableText>
+          <p ref={url} className="og-card-title og-story-name">
+            <span className="og-card-serif">{Array.from(URL).map((char, index) => <span key={index} data-letter="" style={{ visibility: "hidden" }}>{char}</span>)}</span>
+          </p>
+        </InspectableText>
+      </div>
     </main>
   );
 }

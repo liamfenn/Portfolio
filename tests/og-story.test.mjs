@@ -112,9 +112,7 @@ test("nothing in the bar overlaps: text clears every visible square, and Spotify
   const { control, panel, inset } = STORY_METRICS;
   for (let ms = 0; ms < LAND_AT; ms += 5) {
     const frame = bar(ms);
-    // At the flip to the filter the label slides under the left Spotify square as it pops out, as the site's header
-    // label slides under its avatar; only a settled square counts.
-    const squares = [frame.avatar > 0.01 ? control : 0, frame.albumIn && frame.album > 0.01 ? frame.albumX + control : 0, frame.brandLeft > 0.5 && frame.brandLeftPop > 0.99 ? frame.brandLeftX + frame.brandLeft : 0];
+    const squares = [frame.avatar > 0.01 ? control : 0, frame.albumIn && frame.album > 0.01 ? frame.albumX + control : 0, frame.brandLeft > 0.1 ? frame.brandLeftX + frame.brandLeft : 0];
     assert.ok(frame.textLeft >= Math.max(...squares) + Math.min(panel, inset) - 0.5, `text under a square at ${ms}ms`);
     assert.ok(frame.actionRight >= frame.brandRight + inset - 0.5, `time under Spotify at ${ms}ms`);
     if (frame.brandLeft > 0.5 && frame.albumIn && frame.album > 0.5) assert.ok(frame.brandLeftX >= frame.albumX + control - 0.5, `album over Spotify at ${ms}ms`);
@@ -135,6 +133,25 @@ test("text only changes once the bar has settled, except in the site's flip to t
       assert.ok(Math.abs(before[field] - during[field]) < 0.5, `${field} moves as the text changes at ${ms}ms`);
     }
   }
+});
+
+test("at the flip, Spotify narrows away as the fill, label and bar width slide with it, all on one ease", () => {
+  const { control, column, narrow, slot } = STORY_METRICS;
+  let previous = bar(FILTER_AT - 1);
+  assert.equal(previous.brandLeft, control);
+  assert.equal(previous.width, column);
+  for (let ms = FILTER_AT; ms <= FILTER_AT + STORY_METRICS.scroll; ms += 5) {
+    const frame = bar(ms), progress = (control - frame.brandLeft) / control;
+    // The fill's edge is Spotify's edge, and the bar's width and the label move in step with it.
+    assert.ok(Math.abs(frame.fillLeft - frame.brandLeft) < 0.5, `fill apart from Spotify at ${ms}ms`);
+    assert.ok(Math.abs((column - frame.width) / narrow - progress) < 0.01, `width out of step at ${ms}ms`);
+    assert.ok(frame.brandLeft <= previous.brandLeft && frame.width <= previous.width, `jumps back at ${ms}ms`);
+    // No step in one 60fps frame takes more than a fifth of the move: it slides rather than snaps.
+    assert.ok(previous.brandLeft - frame.brandLeft < control / 5, `snaps at ${ms}ms`);
+    previous = frame;
+  }
+  assert.equal(previous.brandLeft, 0);
+  assert.equal(previous.textLeft, slot);
 });
 
 test("the grid follows the bar up, but only reaches it once it has become the filter", () => {

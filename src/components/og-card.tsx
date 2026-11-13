@@ -26,7 +26,7 @@ const REEL_AFTER_KICK_MS = 2000;
 /** The authoring reel shares the same validated CDN asset as other project video consumers. */
 const REEL_VIDEO = MEDIA_ASSETS.shopProductPage;
 /** With ?exit=glitch in the reel, letters glitch out of their places and back in this far apart, in a random order. */
-const PLACE_STAGGER_MS = 40;
+export const PLACE_STAGGER_MS = 40;
 /** Plain text at both ends, so the last frame meets the first and the video loops without a seam. */
 const HOLD_MS = 600;
 

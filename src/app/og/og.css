@@ -19,7 +19,7 @@
 /* The story (/og/story): the site's header bar, player and filter as one bar the scene moves frame by frame, over the
    reel's grid canvas. Every move is set from script on the virtual clock, so nothing here transitions. */
 .og-story-bar {
-  position: fixed; top: 0; left: 0; z-index: 1; height: var(--portfolio-control-size); overflow: hidden; visibility: hidden;
+  position: fixed; top: 0; left: 0; z-index: 2; height: var(--portfolio-control-size); overflow: hidden; visibility: hidden;
   --work-glyph-size: var(--work-glyph-desktop-size);
 }
 .og-story-bar > * { position: absolute; top: 0; height: 100%; }
@@ -55,5 +55,7 @@
 .og-story-action-clock { color: var(--text-green); --inspect-color-token: text-green; }
 .og-story-action-ago { color: var(--text-muted); --inspect-color-token: text-muted; }
 .og-story-action-label { color: var(--text-secondary); --inspect-color-token: text-secondary; }
-/* The name glitches in while the last tile is still sliding away beneath it. */
-.og-story .og-card-title { position: relative; z-index: 2; }
+/* The ending sits behind the grid, so the last tile slides off the name; the name and address share one spot. */
+.og-story .og-reel-stage { z-index: 1; }
+.og-story-ending { display: grid; place-items: center; }
+.og-story-ending > * { grid-area: 1 / 1; }
