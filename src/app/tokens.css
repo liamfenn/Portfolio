@@ -203,6 +203,10 @@ body {
   --header-translucent-blur: 6px;
   --header-scroll-duration: 360ms;
   --header-scroll-ease: cubic-bezier(.4, 0, .2, 1);
+  --scroll-top-min-duration: var(--motion-duration);
+  --scroll-top-max-duration: 1200ms;
+  --scroll-top-viewport-duration: var(--motion-duration);
+  --scroll-top-ease: var(--header-scroll-ease);
 }
 
 @media (max-width: 767px) {

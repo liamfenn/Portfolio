@@ -9,6 +9,7 @@ import { ProjectFocusMedia, warmProjectMedia } from "@/lib/project-focus-media";
 import { useProjectFocusPaging } from "@/hooks/use-project-focus-paging";
 import { focusTweenDuration, scaledBox, swipesToDismiss, tileOnScreen } from "@/lib/project-paging";
 import { setVideoFocusSession } from "@/lib/video-playback";
+import { isChromium } from "@/lib/browser-engine";
 
 export type ProjectFocusSelection = { preview: ProjectPreview; trigger: HTMLButtonElement; origin: DOMRect; keyboard: boolean; navigation?: boolean };
 
@@ -60,6 +61,7 @@ export function ProjectFocus({ selection, neighbors, onClose, onClosing, onNavig
   useLayoutEffect(() => {
     const root = rootRef.current!, topEdge = topEdgeRef.current!, bottomEdge = bottomEdgeRef.current!;
     const opener = initialSelection.current.trigger;
+    root.toggleAttribute("data-disable-overscroll", isChromium(navigator.userAgent));
     // Don't fix the body here: it collapses the document, and Safari then paints a few frames with the wrong scroll
     // position, blanking the page and showing the media at its destination before the tween starts.
     const body = document.body, html = document.documentElement;

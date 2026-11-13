@@ -8,6 +8,7 @@ import { useProjectDisplayState } from "@/components/project-display-state";
 import { ProjectFilterControl } from "@/components/project-filter-control";
 import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
+import { scrollToTop } from "@/lib/scroll-to-top";
 
 const EMAIL_HREF = "mailto:info@fennell.cv";
 
@@ -26,6 +27,7 @@ export function PortfolioHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [overImages, setOverImages] = useState(false);
   const header = useRef<HTMLDivElement>(null);
+  const cancelTopScroll = useRef<() => void>(() => {});
   const reducedMotion = useReducedMotion();
   const { focusedProject } = useProjectDisplayState();
   const period = focusedProject && `${focusedProject.quarter ? `Q${focusedProject.quarter} ` : ""}${String(focusedProject.year).slice(-2)}`;
@@ -33,6 +35,10 @@ export function PortfolioHeader() {
   const { ref: actionText } = useColorScramble({
     ...FILTER_SCRAMBLE, text: actionLabel, ignore: [], playOnMount: false, speed: reducedMotion ? 0 : FILTER_SCRAMBLE.speed,
   });
+
+  useEffect(() => {
+    return () => cancelTopScroll.current();
+  }, []);
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 0);
@@ -76,7 +82,8 @@ export function PortfolioHeader() {
     <a className="header-action text-bodySans" href={overImages ? "#top" : EMAIL_HREF} aria-label={overImages ? "Back to top" : "Email Liam"} inert={Boolean(focusedProject)} onClick={event => {
       if (!overImages) return;
       event.preventDefault();
-      window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
+      cancelTopScroll.current();
+      cancelTopScroll.current = scrollToTop();
     }}>
       <InspectableText text={actionLabel}><span ref={actionText} data-hover-glitch-text aria-hidden="true">{actionLabel}</span></InspectableText>
     </a>

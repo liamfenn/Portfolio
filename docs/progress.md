@@ -5,6 +5,12 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Chrome-only overscroll and Safari Top scrolling (2026-11-12)**
+- Scoped the focused-view bounce suppression to Chromium using an attribute on the mounted dialog. Safari keeps its previous `contain` behavior and the page keeps its native overscroll policy; Chrome on iOS is excluded because it uses WebKit.
+- Measured native Top scrolling at 1200px/4500px depth: Chrome took about 0.55s/1.08s, while WebKit took about 0.18s at either depth. Safari now uses a distance-scaled animation with the shared header easing, measuring about 0.62s/0.95s. Chrome keeps its native smooth scroll. New `--scroll-top-*` roles supply the min/max/viewport duration and easing; existing motion tokens provide all but the 1200ms maximum.
+- The Safari animation cancels on fresh wheel, touch, pointer or keyboard input and on header unmount. Reduced motion goes directly to the top, including when enabled during an animation. No new dependencies; animation uses the existing Motion library.
+- Validation: 120 tests, TypeScript, touched-file lint and production build pass. Chrome/WebKit checks cover browser-specific overscroll at desktop/mobile sizes, short/long Top returns, monotonic intermediate frames, reduced motion and Safari wheel/keyboard interruption. Browser detection tests exclude Chrome's Safari token and Chrome on iOS from the wrong workaround.
+
 **Focused-view overscroll bounce (2026-11-12)**
 - Liam clarified that the original report was rubber-banding that springs back even when all content fits. The earlier media alignment fix reduced a separate frame of lag but did not disable that bounce.
 - The focused scroll containers now use horizontal `contain` and vertical `none` overscroll behavior. The root and body also disable vertical overscroll only while focus is mounted, covering wheel gestures over the shared header. Ordinary overflowing content still scrolls; the homepage's prior behavior returns on close.

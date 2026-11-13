@@ -32,7 +32,7 @@ for (const engine of [chromium, webkit]) {
         };
       });
       assert.ok(fitting.fits, "Exercise a focused view with no overflowing content");
-      assert.deepEqual(fitting.overscroll, ["none", "none", "none"], "Disable rubber-banding on both the focused scroller and the locked page");
+      assert.deepEqual(fitting.overscroll, engine === chromium ? ["none", "none", "none"] : [...pageOverscroll, "contain"], "Disable rubber-banding only in Chrome; preserve Safari's native overscroll policy");
       const header = await page.locator(".portfolio-header").boundingBox();
       for (const y of [240, header.y + header.height / 2]) {
         await page.mouse.move(width / 2, y);
@@ -48,7 +48,7 @@ for (const engine of [chromium, webkit]) {
       await page.getByRole("dialog").waitFor({ state: "detached" });
       assert.deepEqual(await page.evaluate(() => [document.documentElement, document.body].map(node => getComputedStyle(node).overscrollBehaviorY)), pageOverscroll);
       await page.setViewportSize({ width, height: width < 768 ? 500 : 650 });
-      console.log(JSON.stringify({ browser: engine.name(), width, fittingContent: true, overscrollDisabled: true, pagePolicyRestored: true }));
+      console.log(JSON.stringify({ browser: engine.name(), width, fittingContent: true, overscrollDisabled: engine === chromium, pagePolicyRestored: true }));
       for (const reduced of [false, true]) {
         await page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference" });
         const tile = page.locator('[data-project-id="shop-07"] .homepage-card-trigger');

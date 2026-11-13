@@ -822,13 +822,14 @@ body:has(.project-focus-root) .homepage-project-overlay { visibility: hidden; }
 /* Keep the wrapper out of the stacking hierarchy shared by its panels and the original grid media. */
 .project-focus-root { position: absolute; inset: 0; outline: none; }
 /* A locked page can still rubber-band when a gesture starts on the shared header. */
-html:has(.project-focus-root), body:has(.project-focus-root) { overscroll-behavior-y: none; }
+html:has(.project-focus-root[data-disable-overscroll]), body:has(.project-focus-root[data-disable-overscroll]) { overscroll-behavior-y: none; }
 /* Extend only the background layers; the foreground keeps the visible viewport's height. */
 .project-focus-backdrop, .project-focus-blur { top: calc(0px - var(--viewport-safe-top)); right: calc(0px - var(--viewport-safe-right)); left: calc(0px - var(--viewport-safe-left)); height: calc(max(100%, var(--project-focus-full-height)) + var(--viewport-safe-top) + var(--viewport-safe-bottom)); }
 .project-focus-backdrop { position: fixed; z-index: var(--project-focus-layer); background: color-mix(in srgb, var(--bg-fill) var(--project-focus-backdrop-opacity), transparent); }
 .project-focus-blur { position: fixed; z-index: var(--project-focus-layer); -webkit-backdrop-filter: blur(var(--project-focus-blur)); backdrop-filter: blur(var(--project-focus-blur)); }
 .project-focus-pages { position: fixed; inset: 0; overflow: hidden; z-index: var(--project-focus-content-layer); }
-.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain none; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--portfolio-bottom) + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
+.project-focus-scroll, .project-focus-paging-page { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--viewport-safe-top) calc(var(--content-padding) + var(--viewport-safe-right)) calc(var(--portfolio-bottom) + var(--viewport-safe-bottom)) calc(var(--content-padding) + var(--viewport-safe-left)); }
+.project-focus-root[data-disable-overscroll] :is(.project-focus-scroll, .project-focus-paging-page) { overscroll-behavior-y: none; }
 .project-focus-paging-page { pointer-events: none; scrollbar-width: none; }
 .project-focus-panel { width: 100%; max-width: var(--project-focus-column-width); margin-inline: auto; }
 .project-focus-media-slot { position: relative; width: 100%; aspect-ratio: 1; }
