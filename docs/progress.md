@@ -5,6 +5,11 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Focused-view overscroll bounce (2026-11-12)**
+- Liam clarified that the original report was rubber-banding that springs back even when all content fits. The earlier media alignment fix reduced a separate frame of lag but did not disable that bounce.
+- The focused scroll containers now use horizontal `contain` and vertical `none` overscroll behavior. The root and body also disable vertical overscroll only while focus is mounted, covering wheel gestures over the shared header. Ordinary overflowing content still scrolls; the homepage's prior behavior returns on close.
+- Expanded `check-focus-scroll.mjs` with fitting-content checks at desktop/mobile widths in Chrome/WebKit, input over content/header, vertical overscroll policy, stable content/background position and policy restoration after close. All browser scenarios, 117 tests, TypeScript, touched-file lint and the production build pass. Headless input verifies geometry and policy; physical macOS trackpad bounce remains a user check.
+
 **Focused project scroll alignment (2026-11-12)**
 - Reproduced media trailing the focused view's natively scrolled content by up to 74px for a frame. `ProjectFocusMedia` now aligns the original media and its backing directly in the passive scroll handler; resize observations still coalesce through animation frames. No media reparenting or replacement of native scrolling.
 - Added `scripts/check-focus-scroll.mjs`: frame-by-frame alignment in Chrome and WebKit at desktop/mobile widths, normal/reduced motion, paging reset, original media parent retention, and scrolled-close cleanup. Mobile WebKit uses programmatic scrolling because Playwright cannot send it wheel input.

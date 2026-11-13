@@ -15,6 +15,40 @@ for (const engine of [chromium, webkit]) {
       const scroll = delta => engine === webkit && width < 768
         ? page.locator(".project-focus-scroll").evaluate((node, amount) => node.scrollBy(0, amount), delta)
         : page.mouse.wheel(0, delta);
+      const pageOverscroll = await page.evaluate(() => [document.documentElement, document.body].map(node => getComputedStyle(node).overscrollBehaviorY));
+      // A tall viewport fits all the content: wheel input must not bounce its text or the locked page.
+      await page.setViewportSize({ width, height: 1200 });
+      const fittingTile = page.locator('[data-project-id="shop-07"] .homepage-card-trigger');
+      await fittingTile.scrollIntoViewIfNeeded();
+      await fittingTile.click();
+      await page.waitForFunction(() => document.querySelector(".project-focus-root")?.dataset.phase === "open");
+      const fitting = await page.evaluate(() => {
+        const scroller = document.querySelector(".project-focus-scroll");
+        return {
+          fits: scroller.scrollHeight === scroller.clientHeight,
+          overscroll: [document.documentElement, document.body, scroller].map(node => getComputedStyle(node).overscrollBehaviorY),
+          textTop: scroller.querySelector(".project-focus-summary").getBoundingClientRect().top,
+          backgroundScroll: scrollY,
+        };
+      });
+      assert.ok(fitting.fits, "Exercise a focused view with no overflowing content");
+      assert.deepEqual(fitting.overscroll, ["none", "none", "none"], "Disable rubber-banding on both the focused scroller and the locked page");
+      const header = await page.locator(".portfolio-header").boundingBox();
+      for (const y of [240, header.y + header.height / 2]) {
+        await page.mouse.move(width / 2, y);
+        for (const delta of [800, -800]) { await scroll(delta); await page.waitForTimeout(100); }
+        const after = await page.evaluate(() => ({
+          top: document.querySelector(".project-focus-summary").getBoundingClientRect().top,
+          offset: document.querySelector(".project-focus-scroll").scrollTop,
+          backgroundScroll: scrollY,
+        }));
+        assert.deepEqual(after, { top: fitting.textTop, offset: 0, backgroundScroll: fitting.backgroundScroll });
+      }
+      await page.keyboard.press("Escape");
+      await page.getByRole("dialog").waitFor({ state: "detached" });
+      assert.deepEqual(await page.evaluate(() => [document.documentElement, document.body].map(node => getComputedStyle(node).overscrollBehaviorY)), pageOverscroll);
+      await page.setViewportSize({ width, height: width < 768 ? 500 : 650 });
+      console.log(JSON.stringify({ browser: engine.name(), width, fittingContent: true, overscrollDisabled: true, pagePolicyRestored: true }));
       for (const reduced of [false, true]) {
         await page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference" });
         const tile = page.locator('[data-project-id="shop-07"] .homepage-card-trigger');
