@@ -17,8 +17,8 @@ const WORDS = [{ text: "Office of ", face: "og-card-sans" }, { text: "Liam Fenne
 /** The storyboard's album artwork (frame 7), saved from the Figma file. */
 const ALBUM = "/images/meta/og-story-album.webp";
 /** The name holds between glitching in and out, and the card holds blank before the loop starts again. */
-const NAME_HOLD_MS = 700;
-const BLANK_MS = 300;
+const NAME_HOLD_MS = 1200;
+const BLANK_MS = 500;
 /** Tiles are drawn from the rendition nearest this width: enough for a 552px tile on the 1080p capture. */
 const TILE_RENDITION = 1200;
 const PERIOD = (project: ProjectPreview) => `${project.quarter ? `Q${project.quarter} ` : ""}${String(project.year).slice(-2)}`;
@@ -32,8 +32,8 @@ async function wait(ms: number, signal: AbortSignal) {
 }
 
 /** Each beat's text change plays the site's filter scramble, as the header's own labels do. */
-function Scrambled({ text, className }: { text: string; className?: string }) {
-  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, ignore: [], playOnMount: false });
+function Scrambled({ text, className, quiet = false }: { text: string; className?: string; quiet?: boolean }) {
+  const { ref } = useColorScramble({ ...FILTER_SCRAMBLE, text, ignore: [], playOnMount: false, speed: quiet ? 0 : FILTER_SCRAMBLE.speed });
   return <InspectableText text={text}><span ref={ref} className={className}>{text}</span></InspectableText>;
 }
 
@@ -121,7 +121,7 @@ export function OgStory() {
     const capturing = "__ogEvents" in window, metrics = readMetrics(card), schedule = storySchedule(PROJECTS.length);
     const letters = Array.from(name.querySelectorAll<HTMLElement>("[data-letter]")).filter(element => element.textContent?.trim());
     const part = (key: string) => row.querySelector<HTMLElement>(`[data-part="${key}"]`)!;
-    const parts = { fill: part("fill"), avatar: part("avatar"), album: part("album"), brand: part("brand"), playing: part("playing"), mark: part("mark"), label: part("label"), action: part("action") };
+    const parts = { fill: part("fill"), avatar: part("avatar"), album: part("album"), brand: part("brand"), playing: part("playing"), mark: part("mark"), copy: part("copy") };
     const media = PROJECTS.map(project => tileMedia(project, capturing));
 
     // The grid is painted onto one canvas at full pixel density with the reel's warp, under an SVG vertical blur.
@@ -151,14 +151,16 @@ export function OgStory() {
       parts.fill.style.setProperty("--og-story-over-amount", frame.over.toFixed(3));
       pop(parts.avatar, 0, frame.avatar);
       pop(parts.album, frame.albumX, frame.album);
-      pop(parts.brand, frame.brandX, frame.brand);
+      // Spotify is never popped: the fill's edges cover and reveal it, so it only moves and, while covered, hides.
+      parts.brand.style.transform = `translateX(${frame.brandX}px)`;
+      parts.brand.style.opacity = String(frame.brand);
       parts.playing.style.opacity = String(frame.playing);
       pop(parts.mark, metrics.inset, frame.mark);
-      parts.label.style.left = `${frame.textLeft}px`;
-      parts.label.style.right = `${frame.actionRight}px`;
-      parts.action.style.right = `${frame.actionRight}px`;
+      parts.copy.style.left = `${frame.textLeft}px`;
+      parts.copy.style.right = `${frame.actionRight}px`;
     };
 
+    const nameBottom = name.getBoundingClientRect().bottom + metrics.control;
     const run = async () => {
       await Promise.all([document.fonts.ready, ...media.map(item => item?.ready)]);
       // The capture script starts its virtual clock only once this is set.
@@ -182,7 +184,8 @@ export function OgStory() {
           // Under the capture, the tiles are painted once their clips have seeked to this instant; clips start as the grid comes in.
           const settled = Promise.all(tiles.map(({ project }) => media[project]?.seek(Math.max(0, ms - GRID_AT))));
           if (capturing) { const drawn = settled.then(paint); window.__ogSettle = () => drawn; } else paint();
-          if (!named && ms >= schedule.nameAt) named = glitchInPlace(letters, signal, "in");
+          // The name glitches in once the last tile has slid below it, so the two never overlap.
+          if (!named && ms >= schedule.outAt && (!grid || grid.top > nameBottom)) named = glitchInPlace(letters, signal, "in");
           if (ms >= schedule.endAt) break;
         }
         row.style.visibility = "hidden";
@@ -206,20 +209,24 @@ export function OgStory() {
     <main ref={root} className="og-card og-story">
       <div ref={stage} className="og-reel-stage" aria-hidden="true" />
       <div ref={bar} className="og-story-bar" aria-hidden="true">
-        <span className="og-story-fill" data-part="fill" />
-        <span className="og-story-square og-story-album" data-part="album"><Image src={ALBUM} width={192} height={192} alt="" unoptimized /></span>
-        <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
+        {/* Back to front: Spotify, the fill, the album, the avatar, then the mark and text. */}
         <span className="og-story-square player-brand" data-part="brand">
           <span className="player-logo" />
           <span className="og-story-playing" data-part="playing"><span className="player-logo" /></span>
         </span>
+        <span className="og-story-fill" data-part="fill" />
+        <span className="og-story-square og-story-album" data-part="album"><Image src={ALBUM} width={192} height={192} alt="" unoptimized /></span>
+        <span className="og-story-square og-story-avatar" data-part="avatar"><Image src="/images/redesign/avatar.webp" width={384} height={384} alt="" unoptimized priority /></span>
         <span className="work-control-square og-story-mark" data-part="mark" />
-        <span className="og-story-label text-bodySans" data-part="label">
-          <Scrambled text={copy.lead} className="og-story-lead" />
-          <Scrambled text={copy.trail} className={`og-story-trail${copy.lead ? ` og-story-trail-${copy.trailGap}` : ""}`} />
-        </span>
-        <span className={`og-story-action og-story-action-${copy.actionKind} ${copy.actionKind === "name" ? "text-bodySerif" : copy.actionKind === "label" ? "text-bodySans" : "text-captionSans"}`} data-part="action">
-          <Scrambled text={copy.action} />
+        {/* One row, so the label gives way to the right-hand text rather than running under it. */}
+        <span className="og-story-copy" data-part="copy">
+          <span className="og-story-label text-bodySans">
+            <Scrambled text={copy.lead} className="og-story-lead" />
+            <Scrambled text={copy.trail} className={`og-story-trail${copy.lead ? ` og-story-trail-${copy.trailGap}` : ""}`} />
+          </span>
+          <span className={`og-story-action og-story-action-${copy.actionKind} ${copy.actionKind === "name" ? "text-bodySerif" : copy.actionKind === "label" ? "text-bodySans" : "text-captionSans"}`}>
+            <Scrambled text={copy.action} quiet={copy.tick} />
+          </span>
         </span>
       </div>
       <InspectableText>

@@ -33,8 +33,10 @@
 .og-story-playing { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg-green-fill); }
 .og-story-playing .player-logo { background: var(--text-on-accent); }
 .og-story-mark { left: 0; top: calc(50% - var(--work-glyph-size) / 2); height: var(--work-glyph-size); color: var(--text-primary); }
+.og-story-copy { display: flex; align-items: center; gap: var(--player-track-gap); }
 .og-story-label, .og-story-action { display: flex; align-items: center; white-space: pre; }
-.og-story-label { overflow: hidden; }
+.og-story-label { flex: 1; min-width: 0; overflow: hidden; }
+.og-story-action { flex: none; }
 .og-story-lead { color: var(--text-primary); --inspect-color-token: text-primary; }
 .og-story-trail { color: var(--text-secondary); --inspect-color-token: text-secondary; }
 .og-story-trail-artist { margin-left: var(--player-artist-gap); }

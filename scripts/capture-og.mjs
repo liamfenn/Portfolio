@@ -18,9 +18,9 @@
 // tiles to 8px from the card's sides.
 // --story records the story (/og/story: the header bar, player and filter, the work grid's spin and pages, then the
 // name) as 16:9 and 9:16 cuts named office-of-liam-fennell-story-*; with --quick, only its 16:9 frames at 1x. It runs
-// in the installed Google Chrome rather than Playwright's Chromium, which can't play the tiles' H.264 clips. The cuts
-// are laid out at 1080×608 and 768×1366, so the 552px column keeps the storyboard's (and the desktop site's) scale,
-// then scaled to 1080p and cropped to an even frame.
+// in the installed Google Chrome rather than Playwright's Chromium, which can't play the tiles' H.264 clips. Both cuts
+// share one scale: laid out at 1366×768 and 768×1366 (desktop layout, the 552px column), scaled 1.40625× to 1080p,
+// and cropped to an even frame.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -92,7 +92,7 @@ const encode = (dir, output, crf, crop) => execFileSync("ffmpeg", ["-y", "-v", "
 
 if (STORY) {
   mkdirSync(SHARE, { recursive: true });
-  for (const [name, width, height, scale, crop] of QUICK ? [["16x9", 1080, 608, 1]] : [["16x9", 1080, 608, 16 / 9, "1920:1080"], ["9x16", 768, 1366, 1080 / 768, "1080:1920"]]) {
+  for (const [name, width, height, scale, crop] of QUICK ? [["16x9", 1366, 768, 1]] : [["16x9", 1366, 768, 1080 / 768, "1920:1080"], ["9x16", 768, 1366, 1080 / 768, "1080:1920"]]) {
     const dir = await record(width, height, scale);
     if (QUICK) continue;
     encode(dir, `${SHARE}/${NAME}-${name}.mp4`, 16, crop);
