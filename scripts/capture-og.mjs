@@ -19,8 +19,8 @@
 // --story records the story (/og/story: the header bar, player and filter, the work grid's spin and pages, then the
 // name) as 16:9 and 9:16 cuts named office-of-liam-fennell-story-*; with --quick, only its 16:9 frames at 1x. It runs
 // in the installed Google Chrome rather than Playwright's Chromium, which can't play the tiles' H.264 clips. Both cuts
-// share one scale: laid out at 1366×768 and 768×1366 (desktop layout, the 552px column), scaled 1.40625× to 1080p,
-// and cropped to an even frame.
+// share one scale: laid out at 1366×768 and 768×1366 (desktop layout, the 552px column), recorded at 2.8125× (twice
+// the 1080p output), cropped to an even 4K frame and scaled down to 1080p.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
@@ -87,16 +87,18 @@ async function record(width, height, scale) {
   return dir;
 }
 
-const encode = (dir, output, crf, crop) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
-  ...(crop ? ["-vf", `crop=${crop}:0:0`] : []), "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
+const encode = (dir, output, crf, filter) => execFileSync("ffmpeg", ["-y", "-v", "error", "-framerate", String(FPS), "-i", `${dir}/%05d.png`,
+  ...(filter ? ["-vf", filter] : []), "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", output], { stdio: "inherit" });
 
 if (STORY) {
   mkdirSync(SHARE, { recursive: true });
-  for (const [name, width, height, scale, crop] of QUICK ? [["16x9", 1366, 768, 1]] : [["16x9", 1366, 768, 1080 / 768, "1920:1080"], ["9x16", 768, 1366, 1080 / 768, "1080:1920"]]) {
+  // Recorded at twice the output's density and scaled down, so text and edges come out crisp.
+  for (const [name, width, height, scale, crop, size] of QUICK ? [["16x9", 1366, 768, 1]] : [["16x9", 1366, 768, 2160 / 768, "3840:2160", "1920:1080"], ["9x16", 768, 1366, 2160 / 768, "2160:3840", "1080:1920"]]) {
     const dir = await record(width, height, scale);
     if (QUICK) continue;
-    encode(dir, `${SHARE}/${NAME}-${name}.mp4`, 16, crop);
-    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", `${dir}/00000.png`, "-vf", `crop=${crop}:0:0`, `${SHARE}/${NAME}-${name}.png`]);
+    const fit = `crop=${crop}:0:0,scale=${size}:flags=lanczos`;
+    encode(dir, `${SHARE}/${NAME}-${name}.mp4`, 14, fit);
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", `${dir}/00000.png`, "-vf", fit, `${SHARE}/${NAME}-${name}.png`]);
   }
   if (!QUICK) console.log(`Wrote ${SHARE}/${NAME}-{16x9,9x16}.{mp4,png}`);
   process.exit(0);

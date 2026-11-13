@@ -30,7 +30,14 @@
 }
 .og-story-square { left: 0; width: var(--portfolio-control-size); }
 .og-story-square img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Spotify's blocks change width to move sides, so the logo stays centred and the block clips it. */
+.og-story-brand { left: 0; width: 0; overflow: hidden; }
 .og-story-playing { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg-green-fill); }
+/* The album: the current cover, with the next one's 8 × 8 cells over it for the swap between songs. */
+.og-story-album { display: grid; grid-template-columns: repeat(var(--og-story-album-grid, 8), 1fr); overflow: hidden; background: var(--bg-secondary-fill); }
+.og-story-album-art { position: absolute; inset: 0; background: center / cover no-repeat; }
+.og-story-album-cell { position: relative; background-size: calc(var(--og-story-album-grid, 8) * 100%); background-repeat: no-repeat; opacity: 0; }
+.og-story-name { font-size: var(--text-og-story-name); }
 .og-story-playing .player-logo { background: var(--text-on-accent); }
 .og-story-mark { left: 0; top: calc(50% - var(--work-glyph-size) / 2); height: var(--work-glyph-size); color: var(--text-primary); }
 .og-story-copy { display: flex; align-items: center; gap: var(--player-track-gap); }

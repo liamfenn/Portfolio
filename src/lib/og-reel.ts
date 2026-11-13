@@ -106,6 +106,16 @@ export interface WarpedTile {
 export function paintWarped(ink: CanvasRenderingContext2D, width: number, height: number, ratio: number, tiles: WarpedTile[], bend = 1) {
   const strip = 1 / ratio, middle = width / 2;
   ink.clearRect(0, 0, width, height);
+  // Unwarped, each tile is drawn in one piece, which samples the source far more cleanly than row by row.
+  if (bend < 0.001) {
+    for (const { left, top, size, fill, image, alpha = 1 } of tiles) {
+      ink.globalAlpha = alpha;
+      if (image) ink.drawImage(image.image, 0, 0, image.width, image.height, left, top, size, size);
+      else { ink.fillStyle = fill; ink.fillRect(left, top, size, size); }
+    }
+    ink.globalAlpha = 1;
+    return;
+  }
   for (let y = 0; y < height; y += strip) {
     const v = (y + strip / 2) / height * 2 - 1, squeeze = 1 + warpAt(1, v).x * bend, along = y + warpAt(0, v).y * bend * height / 2;
     for (const { left, top, size, fill, image, alpha = 1 } of tiles) {
