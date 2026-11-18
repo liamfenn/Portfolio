@@ -26,7 +26,8 @@
     color: var(--text-primary);
     font-family: var(--font-sans);
     font-weight: 500;
-    font-size: 14.4px;
+    --fallback-font-size: 14.4px;
+    font-size: calc(var(--fallback-font-size) - var(--type-size-reduction, 0px));
     line-height: 1.35 !important;
     letter-spacing: -0.02em;
     font-feature-settings: "palt";
@@ -35,9 +36,13 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html[data-text-size-preview] body {
+    line-height: calc(var(--fallback-font-size) * 1.35) !important;
+  }
+
   @media (min-width: 768px) {
     body {
-      font-size: 16px;
+      --fallback-font-size: 16px;
     }
   }
 

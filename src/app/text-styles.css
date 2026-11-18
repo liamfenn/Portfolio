@@ -1,7 +1,7 @@
 /* Four text styles. Color remains independent of typography. */
 body {
-  --type-body-size: var(--text-body);
-  --type-caption-size: var(--text-caption);
+  --type-body-size: calc(var(--text-body) - var(--type-size-reduction, 0px));
+  --type-caption-size: calc(var(--text-caption) - var(--type-size-reduction, 0px));
   --type-body-leading: var(--leading-body);
   --type-caption-leading: var(--leading-caption);
   --type-bodySerif: var(--font-weight-regular) var(--type-body-size) / var(--type-body-leading) var(--font-otto);
@@ -23,8 +23,8 @@ body {
 
 @media (max-width: 767px) {
   body {
-    --type-body-size: var(--text-body-mobile);
-    --type-caption-size: var(--text-caption-mobile);
+    --type-body-size: calc(var(--text-body-mobile) - var(--type-size-reduction, 0px));
+    --type-caption-size: calc(var(--text-caption-mobile) - var(--type-size-reduction, 0px));
     --type-body-leading: var(--leading-mobile);
     --type-caption-leading: var(--leading-mobile);
   }

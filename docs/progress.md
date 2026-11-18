@@ -5,6 +5,9 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Text size preview (2026-11-18)**
+- The avatar menu's Text −1 pt control reduces the four shared text styles and the fallback body size by one CSS point on desktop and mobile. Line heights and proportional tracking stay the same. The control works with All sans and resets on reload.
+
 **Feed layouts (2026-11-18)**
 - The avatar menu's Feed control cycles Current, Project names, and Inline details. Current is the default and keeps the existing filter and Projects control.
 - Project names shows the whole feed without the All or Top controls. The fixed header shows the latest project whose media has reached it. Project tiles still open the focused view.

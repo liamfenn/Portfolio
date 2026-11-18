@@ -33,6 +33,7 @@
 
 /* Interaction: hover feedback, slide motion, and one focus ring. */
 :root {
+  --type-preview-size-reduction: 1pt;
   --viewport-safe-top: env(safe-area-inset-top, 0px);
   --viewport-safe-right: env(safe-area-inset-right, 0px);
   --viewport-safe-bottom: env(safe-area-inset-bottom, 0px);

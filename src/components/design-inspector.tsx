@@ -58,6 +58,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
   const [panel, setPanel] = useState<"auto" | "shown" | "hidden">("auto");
   // F swaps every serif text style for its sans counterpart, independent of the inspection mode.
   const [isAllSans, setIsAllSans] = useState(false);
+  const [isSmallerText, setIsSmallerText] = useState(false);
   const [hasExtraBottomSpace, setHasExtraBottomSpace] = useState(false);
   const toggleAllSans = useCallback(() => setIsAllSans(value => !value), []);
   const isPanelVisible = panel === "shown" || (panel === "auto" && inspection.mode !== "content");
@@ -106,6 +107,12 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
+    root.toggleAttribute("data-text-size-preview", isSmallerText);
+    return () => root.removeAttribute("data-text-size-preview");
+  }, [isSmallerText]);
+
+  useEffect(() => {
+    const root = document.documentElement;
     if (hasExtraBottomSpace) root.dataset.bottomSpacePreview = "expanded";
     else delete root.dataset.bottomSpacePreview;
     return () => { delete root.dataset.bottomSpacePreview; };
@@ -142,6 +149,7 @@ function EnabledDesignInspector({ children }: { children: ReactNode }) {
         <button type="button" aria-label="Cycle gap inspection" aria-pressed={inspection.mode.startsWith("gap-")} onClick={() => cycle("g")}><kbd>G</kbd> Gap</button>
         <button type="button" aria-label="Cycle all spacing inspection" aria-pressed={inspection.mode.startsWith("spacing-")} onClick={() => cycle("s")}><kbd>S</kbd> All</button>
         <button type="button" aria-label="Preview every text style in sans" aria-pressed={isAllSans} onClick={toggleAllSans}><kbd>F</kbd> All sans</button>
+        <button type="button" aria-label="Reduce text size by 1 point" aria-pressed={isSmallerText} onClick={() => setIsSmallerText(value => !value)}><InspectableText>Text −1 pt</InspectableText></button>
         <button type="button" className="design-inspector-desktop-control" aria-label="Preview extra bottom space on desktop" aria-pressed={hasExtraBottomSpace} onClick={() => setHasExtraBottomSpace(value => !value)}><InspectableText>Extra bottom space</InspectableText></button>
         <button type="button" aria-label={`Cycle project interaction: ${PROJECT_INTERACTION_LABELS[projectInteractionMode]}`} data-project-interaction={projectInteractionMode} disabled={feedLayout !== "current"} onClick={() => setProjectInteractionMode(value => PROJECT_INTERACTION_MODES[(PROJECT_INTERACTION_MODES.indexOf(value) + 1) % PROJECT_INTERACTION_MODES.length])}><InspectableText>Projects: {PROJECT_INTERACTION_LABELS[projectInteractionMode]}</InspectableText></button>
         <button type="button" aria-label={`Cycle feed layout: ${FEED_LAYOUT_LABELS[feedLayout]}`} data-feed-layout={feedLayout} onClick={() => setFeedLayout(value => FEED_LAYOUTS[(FEED_LAYOUTS.indexOf(value) + 1) % FEED_LAYOUTS.length])}><InspectableText>Feed: {FEED_LAYOUT_LABELS[feedLayout]}</InspectableText></button>
