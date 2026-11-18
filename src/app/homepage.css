@@ -138,3 +138,18 @@ body:has(.project-focus-root) .portfolio-header { z-index: var(--project-focus-h
   .player-track-copy { overflow-x: auto; scrollbar-width: none; }
   .player-track-fade { display: none; }
 }
+
+.portfolio-header.has-feed-label .header-label {
+  left: var(--content-padding-mobile);
+  right: var(--content-padding-mobile);
+  transform: translateX(calc(var(--portfolio-control-size) + var(--portfolio-panel-padding) - var(--content-padding-mobile)));
+  pointer-events: none;
+}
+.portfolio-header.has-feed-label.is-over-images .header-label { transform: none; }
+.header-feed-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.portfolio-v4 .homepage-card-media-frame { position: relative; aspect-ratio: 1; height: auto; }
+.portfolio-v4 .homepage-project-details {
+  gap: var(--portfolio-paragraph-gap);
+  padding: var(--content-padding-mobile) var(--content-padding-mobile) var(--portfolio-paragraph-gap);
+}

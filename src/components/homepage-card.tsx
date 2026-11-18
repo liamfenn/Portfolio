@@ -11,6 +11,7 @@ import { useColorScramble } from "@/hooks/use-color-scramble";
 import { FILTER_SCRAMBLE } from "@/lib/text-scramble";
 import { useImageLoading } from "@/hooks/use-image-loading";
 import { Skeleton } from "@/components/skeleton";
+import { ProjectFocusDetails } from "@/components/project-focus";
 import { ProjectCardOverlay } from "@/components/project-card-overlay";
 
 function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible: boolean; delay: number; labelId: string }) {
@@ -30,10 +31,10 @@ function ProjectLabel({ text, visible, delay, labelId }: { text: string; visible
   return <InspectableText text={visible ? text : ""}><span ref={ref} data-swarm-label data-swarm-label-id={labelId} data-final-text={text}>{" ".repeat(text.length)}</span></InspectableText>;
 }
 
-export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, priorityMedia = false, hidden = false }: {
+export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocus, focusActive = false, cardOverlay = false, inlineDetails = false, priorityMedia = false, hidden = false }: {
   preview: ProjectPreview; isMobile: boolean; expanded: boolean; onToggle: () => void;
   onOpenFocus?: (trigger: HTMLButtonElement, keyboard: boolean) => void; focusActive?: boolean;
-  cardOverlay?: boolean; priorityMedia?: boolean; hidden?: boolean;
+  cardOverlay?: boolean; inlineDetails?: boolean; priorityMedia?: boolean; hidden?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const { attachImage, pending, failed, onLoad, onError } = useImageLoading(preview.media?.kind === "image" ? preview.media.src : undefined);
@@ -51,8 +52,17 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
   const period = `${preview.quarter ? `Q${preview.quarter} ` : ""}${String(preview.year).slice(-2)}`;
   const detailsId = `${preview.id}-details`;
   const panelId = `${preview.id}-panel`;
+  const media = <span className="homepage-project-media" data-media-alpha={preview.media?.kind === "video" && preview.media.alpha ? "" : undefined}>
+    {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={priorityMedia || visible || focusActive} /> : null}
+    {preview.media?.kind === "image" ? <>
+      <Skeleton active={pending} />
+      <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}
+        src={mediaUrl(preview.media.src)} alt={preview.media.alt} unoptimized={preview.media.unoptimized} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+    </> : null}
+  </span>;
+
   return (
-    <li data-project-id={preview.id} hidden={hidden}
+    <li data-project-id={preview.id} data-project-label={preview.label} hidden={hidden}
       className={`project-preview homepage-card${isMobile && expanded ? " is-expanded" : ""}${cardOverlay ? " has-card-overlay" : ""}`} data-company={preview.company}
       onKeyDown={event => {
         if (cardOverlay && expanded && event.key === "Escape") {
@@ -61,7 +71,11 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
           onToggle();
         }
       }}>
-      <button type="button" className="project-preview-link homepage-card-trigger hover-surface" data-media-kind={preview.media?.kind ?? "placeholder"}
+      {inlineDetails ? <>
+        <h2 className="sr-only"><InspectableText>{preview.label}</InspectableText></h2>
+        <div className="project-preview-link homepage-card-media-frame">{media}</div>
+        <ProjectFocusDetails preview={preview} inline />
+      </> : <button type="button" className="project-preview-link homepage-card-trigger hover-surface" data-media-kind={preview.media?.kind ?? "placeholder"}
         aria-label={`${preview.label}, ${preview.company}, ${preview.period}`}
         aria-haspopup={onOpenFocus ? "dialog" : undefined}
         aria-expanded={onOpenFocus ? focusActive : isMobile || cardOverlay ? expanded : undefined}
@@ -73,19 +87,12 @@ export function HomepageCard({ preview, isMobile, expanded, onToggle, onOpenFocu
           else if (isMobile || cardOverlay) onToggle();
         }}
         onKeyDown={event => { if (!cardOverlay && event.key === "Escape" && isMobile && expanded) onToggle(); }}>
-        <span className="homepage-project-media" data-media-alpha={preview.media?.kind === "video" && preview.media.alpha ? "" : undefined}>
-        {preview.media?.kind === "video" ? <ProjectPreviewVideo asset={preview.media} priority={priorityMedia || visible || focusActive} /> : null}
-        {preview.media?.kind === "image" ? <>
-          <Skeleton active={pending} />
-          <Image ref={attachImage} onLoad={onLoad} onError={onError} className={failed ? "loading-image-error" : undefined}
-            src={mediaUrl(preview.media.src)} alt={preview.media.alt} unoptimized={preview.media.unoptimized} fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-        </> : null}
-        </span>
+        {media}
         <span id={detailsId} className={`homepage-project-overlay text-captionSans${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
           <span className="homepage-project-company"><ProjectLabel labelId={`${preview.id}:company`} text={preview.company} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
           <span className="homepage-project-period"><ProjectLabel labelId={`${preview.id}:period`} text={period} visible={visible} delay={isMobile && !reducedMotion ? delay : 0} /></span>
         </span>
-      </button>
+      </button>}
       {cardOverlay && <ProjectCardOverlay preview={preview} open={expanded} id={panelId} />}
     </li>
   );

@@ -10,7 +10,15 @@ export type ProjectInteractionMode = typeof PROJECT_INTERACTION_MODES[number];
 export const PROJECT_INTERACTION_LABELS: Record<ProjectInteractionMode, string> = {
   focus: "Focused view", overlay: "Card overlay",
 };
+export const FEED_LAYOUTS = ["current", "project-names", "inline-details"] as const;
+export type FeedLayout = typeof FEED_LAYOUTS[number];
+export const FEED_LAYOUT_LABELS: Record<FeedLayout, string> = {
+  current: "Current", "project-names": "Project names", "inline-details": "Inline details",
+};
+
 type Experiments = {
+  feedLayout: FeedLayout;
+  setFeedLayout: Dispatch<SetStateAction<FeedLayout>>;
   paletteLabOpen: boolean;
   setPaletteLabOpen: Dispatch<SetStateAction<boolean>>;
   projectInteractionMode: ProjectInteractionMode;
@@ -21,6 +29,7 @@ type Experiments = {
   setSafariEdgeTestEnabled: Dispatch<SetStateAction<boolean>>;
 };
 const ExperimentsContext = createContext<Experiments>({
+  feedLayout: FEED_LAYOUTS[0], setFeedLayout: () => {},
   paletteLabOpen: false, setPaletteLabOpen: () => {},
   projectInteractionMode: PROJECT_INTERACTION_MODES[0], setProjectInteractionMode: () => {},
   skeletonPreviewEnabled: false, setSkeletonPreviewEnabled: () => {},
@@ -29,6 +38,7 @@ const ExperimentsContext = createContext<Experiments>({
 export const usePortfolioExperiments = () => useContext(ExperimentsContext);
 
 export function PortfolioExperiments({ children }: { children: ReactNode }) {
+  const [feedLayout, setFeedLayout] = useState<FeedLayout>(FEED_LAYOUTS[0]);
   const [paletteLabOpen, setPaletteLabOpen] = useState(false);
   const [projectInteractionMode, setProjectInteractionMode] = useState<ProjectInteractionMode>(PROJECT_INTERACTION_MODES[0]);
   const [skeletonPreviewEnabled, setSkeletonPreviewEnabled] = useState(false);
@@ -40,7 +50,7 @@ export function PortfolioExperiments({ children }: { children: ReactNode }) {
     const frame = requestAnimationFrame(() => setProjectInteractionMode(mode));
     return () => cancelAnimationFrame(frame);
   }, []);
-  return <ExperimentsContext.Provider value={{ paletteLabOpen, setPaletteLabOpen, projectInteractionMode, setProjectInteractionMode, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled }}>
+  return <ExperimentsContext.Provider value={{ feedLayout, setFeedLayout, paletteLabOpen, setPaletteLabOpen, projectInteractionMode, setProjectInteractionMode, skeletonPreviewEnabled, setSkeletonPreviewEnabled, safariEdgeTestEnabled, setSafariEdgeTestEnabled }}>
     {children}
   </ExperimentsContext.Provider>;
 }

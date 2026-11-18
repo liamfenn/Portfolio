@@ -1,9 +1,14 @@
 # Progress and goals
 
-Last updated 2026-11-12. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-18. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**Feed layouts (2026-11-18)**
+- The avatar menu's Feed control cycles Current, Project names, and Inline details. Current is the default and keeps the existing filter and Projects control.
+- Project names shows the whole feed without the All or Top controls. The fixed header shows the latest project whose media has reached it. Project tiles still open the focused view.
+- Inline details uses the same header and puts the project's description, contributors, and stack beneath its media on desktop and mobile. The header keeps the project name visible while those details pass underneath.
 
 **Quarter label color consistency (2026-11-12)**
 - Mobile now matches desktop: focused header dates use `text-muted` (#999999), while home project dates use `text-secondary` (#555555). Removed the mobile-only focused-date override; no new tokens.

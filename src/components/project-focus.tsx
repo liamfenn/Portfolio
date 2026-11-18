@@ -17,8 +17,8 @@ function FocusText({ text }: { text: string }) {
   return <InspectableText text={text}><span className="project-focus-text" data-focus-text={text}>{text}</span></InspectableText>;
 }
 
-export function ProjectFocusDetails({ preview }: { preview: ProjectPreview }) {
-  return <div className="project-focus-details text-bodySans">
+export function ProjectFocusDetails({ preview, inline = false }: { preview: ProjectPreview; inline?: boolean }) {
+  return <div className={`project-focus-details text-bodySans${inline ? " homepage-project-details" : ""}`}>
     {preview.description && <p className="project-focus-summary text-bodySerif"><InspectableText>{preview.description}</InspectableText></p>}
     <ProjectCredits preview={preview} textStyle="text-bodySans" />
   </div>;

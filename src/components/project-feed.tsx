@@ -18,13 +18,16 @@ export const PROJECTS = arrangeProjectGrid(placeNewProjects(PROJECT_PREVIEWS.fil
 
 export function ProjectFeed() {
   const { projectFilter, setFocusedProject } = useProjectDisplayState();
-  const { projectInteractionMode } = usePortfolioExperiments();
+  const { feedLayout, projectInteractionMode } = usePortfolioExperiments();
   const [isMobile, setIsMobile] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selection, setSelection] = useState<ProjectFocusSelection | null>(null);
+  const showFilters = feedLayout === "current";
+  const inlineDetails = feedLayout === "inline-details";
+  const activeFilter = showFilters ? projectFilter : "all";
   useLayoutEffect(() => {
     refreshVideoVisibility();
-  }, [projectFilter]);
+  }, [activeFilter, feedLayout]);
   useEffect(() => {
     const media = matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(media.matches);
@@ -37,9 +40,9 @@ export function ProjectFeed() {
   const closeFocus = useCallback(() => setSelection(null), []);
   const clearFocusedProject = useCallback(() => setFocusedProject(null), [setFocusedProject]);
 
-  const projects = filterProjects(PROJECTS, projectFilter);
+  const projects = filterProjects(PROJECTS, activeFilter);
   const visibleIds = new Set(projects.map(project => project.id));
-  const overlay = projectInteractionMode === "overlay";
+  const overlay = showFilters && projectInteractionMode === "overlay";
 
   const focusIndex = selection ? projects.findIndex(project => project.id === selection.preview.id) : -1;
   const navigate = (direction: -1 | 1, keyboard: boolean) => {
@@ -52,10 +55,10 @@ export function ProjectFeed() {
   };
 
   return <section className="portfolio-feed" aria-label="Selected work">
-    <div className="feed-toolbar text-bodySans">
+    {showFilters && <div className="feed-toolbar text-bodySans">
       <ProjectFilterControl />
-    </div>
-    <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Showing {projects.length} {projectFilter === "all" ? "" : projectFilter === "shop" ? "Shop " : "other "}projects</span>
+    </div>}
+    {showFilters && <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">Showing {projects.length} {projectFilter === "all" ? "" : projectFilter === "shop" ? "Shop " : "other "}projects</span>}
     {/* Keep every player mounted in the curated order; filtering only hides excluded tiles. */}
     <ul id="project-feed-projects" className="feed-projects" onFocusCapture={event => {
       if (!overlay || !expandedId) return;
@@ -66,8 +69,9 @@ export function ProjectFeed() {
         hidden={!visibleIds.has(preview.id)}
         expanded={overlay && expandedId === preview.id}
         cardOverlay={overlay}
+        inlineDetails={inlineDetails}
         focusActive={selection?.preview.id === preview.id}
-        onOpenFocus={overlay ? undefined : (trigger, keyboard) => {
+        onOpenFocus={overlay || inlineDetails ? undefined : (trigger, keyboard) => {
           setSelection({ preview, trigger, origin: trigger.getBoundingClientRect(), keyboard });
           setFocusedProject(preview);
         }}
