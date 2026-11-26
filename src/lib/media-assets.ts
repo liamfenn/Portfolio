@@ -51,7 +51,7 @@ export const MEDIA_ASSETS = {
     kind: "image",
     src: "/images/projects/shop-testflight-icons.jpg",
     unoptimized: true,
-    alt: "Nine Shop Testflight icon explorations in a three-by-three grid",
+    alt: "Nine Shop developer icon explorations in a three-by-three grid",
     width: 1280,
     height: 1280,
   },

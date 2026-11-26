@@ -10,6 +10,7 @@ decided, or gets dropped.
 - All generated videos pass full decode and metadata validation. Chrome/WebKit at desktop and mobile widths confirm grid and focused playback from the published CDN files; all 120 tests, TypeScript, and the production build pass.
 
 **Shop Testflight Icons (2026-11-25)**
+- Renamed the project to “Developer icons” at Liam's request; updated its image alt text to match.
 - Added Liam's supplied 1280px square image as a new Shop project, titled Testflight Icons and dated Q4 26. The description is temporarily “Description coming soon.”; contributors and stack are empty and omitted from the UI.
 - Placed it directly below the bottom Navigation project (`shop-07`) in the curated order. The feed now contains eleven projects: eight Shop and three Other.
 - Validation: all 120 tests, TypeScript, touched-file lint, and production build pass. Chrome/WebKit at desktop and mobile widths verify the original image loads, placement and Q4 26 header, focused and inline descriptions, and omitted credit fields.

@@ -43,7 +43,7 @@ const shop = {
 export const PROJECT_PREVIEWS: ProjectPreview[] = [
   {
     id: "shop-testflight-icons", ...shop,
-    label: "Testflight Icons",
+    label: "Developer icons",
     description: "Description coming soon.",
     period: "Q4 2026",
     year: 2026,
