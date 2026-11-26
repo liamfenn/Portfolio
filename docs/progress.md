@@ -6,6 +6,7 @@ decided, or gets dropped.
 ## Where things stand
 
 **Incentives video refresh**
+- Swapped in Liam's subsequent re-render as immutable version `b475604ea9b37d34`, regenerating all four H.264 renditions and three posters. Duration remains 18.45 seconds at 60fps.
 - Replaced `shop-q3-2026` with Liam's revised clip: red incentive accents and updated merchant avatars. Preserved its 18.45-second duration and 60fps, with fresh 640/800/1200/1600px H.264 renditions and 480/800/1600px posters under immutable version `3c535d89dd675672`.
 - All generated videos pass full decode and metadata validation. Chrome/WebKit at desktop and mobile widths confirm grid and focused playback from the published CDN files; all 120 tests, TypeScript, and the production build pass.
 
