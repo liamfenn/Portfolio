@@ -5,6 +5,10 @@ decided, or gets dropped.
 
 ## Where things stand
 
+**Incentives video refresh**
+- Replaced `shop-q3-2026` with Liam's revised clip: red incentive accents and updated merchant avatars. Preserved its 18.45-second duration and 60fps, with fresh 640/800/1200/1600px H.264 renditions and 480/800/1600px posters under immutable version `3c535d89dd675672`.
+- All generated videos pass full decode and metadata validation. Chrome/WebKit at desktop and mobile widths confirm grid and focused playback from the published CDN files; all 120 tests, TypeScript, and the production build pass.
+
 **Shop Testflight Icons (2026-11-25)**
 - Added Liam's supplied 1280px square image as a new Shop project, titled Testflight Icons and dated Q4 26. The description is temporarily “Description coming soon.”; contributors and stack are empty and omitted from the UI.
 - Placed it directly below the bottom Navigation project (`shop-07`) in the curated order. The feed now contains eleven projects: eight Shop and three Other.
