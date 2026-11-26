@@ -46,6 +46,15 @@ export type PortfolioMediaAsset = PortfolioImageAsset | PortfolioVideoAsset;
 export const IMPORTED_MEDIA = importedMedia as Record<string, PortfolioVideoAsset>;
 
 export const MEDIA_ASSETS = {
+  shopTestflightIcons: {
+    id: "shop-testflight-icons",
+    kind: "image",
+    src: "/images/projects/shop-testflight-icons.jpg",
+    unoptimized: true,
+    alt: "Nine Shop Testflight icon explorations in a three-by-three grid",
+    width: 1280,
+    height: 1280,
+  },
   milktoothQ42026: IMPORTED_MEDIA["milktooth-q4-2026"],
   milktoothBlinkTimer: IMPORTED_MEDIA["milktooth-blink-timer"],
   shoppingAgent: IMPORTED_MEDIA["shopping-agent"],

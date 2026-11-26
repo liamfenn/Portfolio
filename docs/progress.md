@@ -1,9 +1,14 @@
 # Progress and goals
 
-Last updated 2026-11-18. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
+Last updated 2026-11-25. Branch: `portfolio-v4-redesign`. Update this file when something ships, gets
 decided, or gets dropped.
 
 ## Where things stand
+
+**Shop Testflight Icons (2026-11-25)**
+- Added Liam's supplied 1280px square image as a new Shop project, titled Testflight Icons and dated Q4 26. The description is temporarily “Description coming soon.”; contributors and stack are empty and omitted from the UI.
+- Placed it directly below the bottom Navigation project (`shop-07`) in the curated order. The feed now contains eleven projects: eight Shop and three Other.
+- Validation: all 120 tests, TypeScript, touched-file lint, and production build pass. Chrome/WebKit at desktop and mobile widths verify the original image loads, placement and Q4 26 header, focused and inline descriptions, and omitted credit fields.
 
 **Text size preview (2026-11-18)**
 - The avatar menu's Text −1 pt control reduces the four shared text styles and the fallback body size by one CSS point on desktop and mobile. Line heights and proportional tracking stay the same. The control works with All sans and resets on reload.

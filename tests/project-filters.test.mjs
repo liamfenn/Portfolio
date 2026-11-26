@@ -14,8 +14,8 @@ test("filters partition the published feed without changing its curated order", 
   const projects = arrangeProjectGrid(placeNewProjects(PROJECT_PREVIEWS.filter(project => project.media), featuredOrder.order), 1);
   const all = filterProjects(projects, "all"), shop = filterProjects(projects, "shop"), other = filterProjects(projects, "other");
   assert.deepEqual(all, projects);
-  assert.equal(all.length, 10);
-  assert.equal(shop.length, 7);
+  assert.equal(all.length, 11);
+  assert.equal(shop.length, 8);
   assert.equal(other.length, 3);
   assert.deepEqual(shop, all.filter(project => project.company === "Shop"));
   assert.deepEqual(other, all.filter(project => project.company !== "Shop"));
